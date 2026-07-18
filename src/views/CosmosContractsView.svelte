@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosContractView from '$/views/CosmosContractView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					address: true,
-					codeId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosContract}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				address: true,
+				codeId: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosContracts) => [...new Map(cosmosContracts.values.map((cosmosContract) => [cosmosContract[EntityMetaKey.SelectorKey], cosmosContract])).values()]}
+	getKey={(cosmosContract) => cosmosContract[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos contracts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosContracts)}
-			{@const uniqueCosmosContracts = [...new Map(cosmosContracts.values.map((cosmosContract) => [cosmosContract[EntityMetaKey.SelectorKey], cosmosContract])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosContracts.totalCount}
-				getKey={(cosmosContract) => cosmosContract[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosContracts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos contracts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosContract })}
-					{@const cosmosContractFields = { ...cosmosContract[EntityMetaKey.Selector], ...cosmosContract }}
-					{@const selection = select(EntityType.CosmosContract, cosmosContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosContractView
-						selection={selection}
-						prefetched={cosmosContractFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosContract}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosContract })}
+		{@const cosmosContractFields = { ...cosmosContract[EntityMetaKey.Selector], ...cosmosContract }}
+		{@const selection = select(EntityType.CosmosContract, cosmosContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosContractView
+			selection={selection}
+			prefetched={cosmosContractFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

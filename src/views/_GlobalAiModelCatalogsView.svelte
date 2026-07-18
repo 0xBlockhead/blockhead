@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAiModelCatalogView from '$/views/_GlobalAiModelCatalogView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAiModelCatalog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAiModelCatalog}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(globalAiModelCatalogs) => [...new Map(globalAiModelCatalogs.values.map((globalAiModelCatalog) => [globalAiModelCatalog[EntityMetaKey.SelectorKey], globalAiModelCatalog])).values()]}
+	getKey={(globalAiModelCatalog) => globalAiModelCatalog[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global AI model catalogs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAiModelCatalogs)}
-			{@const uniqueGlobalAiModelCatalogs = [...new Map(globalAiModelCatalogs.values.map((globalAiModelCatalog) => [globalAiModelCatalog[EntityMetaKey.SelectorKey], globalAiModelCatalog])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAiModelCatalog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAiModelCatalogs.totalCount}
-				getKey={(globalAiModelCatalog) => globalAiModelCatalog[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAiModelCatalogs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global AI model catalogs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAiModelCatalog })}
-					{@const globalAiModelCatalogFields = { ...globalAiModelCatalog[EntityMetaKey.Selector], ...globalAiModelCatalog }}
-					{@const selection = select(EntityType._GlobalAiModelCatalog, globalAiModelCatalog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalAiModelCatalogView
-						selection={selection}
-						prefetched={globalAiModelCatalogFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAiModelCatalog}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAiModelCatalog })}
+		{@const globalAiModelCatalogFields = { ...globalAiModelCatalog[EntityMetaKey.Selector], ...globalAiModelCatalog }}
+		{@const selection = select(EntityType._GlobalAiModelCatalog, globalAiModelCatalog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalAiModelCatalogView
+			selection={selection}
+			prefetched={globalAiModelCatalogFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

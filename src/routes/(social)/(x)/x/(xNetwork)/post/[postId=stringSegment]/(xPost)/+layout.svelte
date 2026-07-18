@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,10 @@
 			{@const DetailView = XPostView}
 
 			<DetailView
-				selection={select(EntityType.XPost, data.selector)}
+				selection={select(EntityType.XPost, data.selector, { sources: [
+		Source.X_Rest,
+		Source.X_FxEmbed_Rest,
+	] })}
 				href={
 					resolve('/x/post/[postId=stringSegment]', {
 						postId: params.postId,

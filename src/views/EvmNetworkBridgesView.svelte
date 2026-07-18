@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkBridgeView from '$/views/EvmNetworkBridgeView.svelte'
 </script>
@@ -63,91 +62,58 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					url: true,
-					relationshipType: true,
-					$toNetwork: true,
-					$fromNetwork: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkBridge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetworkBridge}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				url: true,
+				relationshipType: true,
+				$toNetwork: true,
+				$fromNetwork: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkBridges) => [...new Map(evmNetworkBridges.values.map((evmNetworkBridge) => [evmNetworkBridge[EntityMetaKey.SelectorKey], evmNetworkBridge])).values()]}
+	getKey={(evmNetworkBridge) => evmNetworkBridge[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network bridges yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkBridges)}
-			{@const uniqueEvmNetworkBridges = [...new Map(evmNetworkBridges.values.map((evmNetworkBridge) => [evmNetworkBridge[EntityMetaKey.SelectorKey], evmNetworkBridge])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkBridge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkBridges.totalCount}
-				getKey={(evmNetworkBridge) => evmNetworkBridge[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkBridges}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network bridges yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkBridge })}
-					{@const evmNetworkBridgeFields = { ...evmNetworkBridge[EntityMetaKey.Selector], ...evmNetworkBridge }}
-					{@const selection = select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmNetworkBridgeHrefFields = { ...evmNetworkBridge, ...evmNetworkBridge[EntityMetaKey.Selector] }}
-					<EvmNetworkBridgeView
-						selection={selection}
-						prefetched={evmNetworkBridgeFields}
-						href={
-							(evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-								toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
-								url: String(evmNetworkBridgeHrefFields.url ?? ''),
-								network: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$fromNetwork.caip2) ?? ''),
-							}) : evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-								toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
-								url: String(evmNetworkBridgeHrefFields.url ?? ''),
-								network: String(evmNetworkBridgeHrefFields.$fromNetwork.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetworkBridge}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkBridge })}
+		{@const evmNetworkBridgeFields = { ...evmNetworkBridge[EntityMetaKey.Selector], ...evmNetworkBridge }}
+		{@const selection = select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmNetworkBridgeHrefFields = { ...evmNetworkBridge, ...evmNetworkBridge[EntityMetaKey.Selector] }}
+		<EvmNetworkBridgeView
+			selection={selection}
+			prefetched={evmNetworkBridgeFields}
+			href={
+				(evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+					toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
+					url: encodeURIComponent(String(evmNetworkBridgeHrefFields.url ?? '')),
+					network: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$fromNetwork.caip2) ?? ''),
+				}) : evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+					toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
+					url: encodeURIComponent(String(evmNetworkBridgeHrefFields.url ?? '')),
+					network: String(evmNetworkBridgeHrefFields.$fromNetwork.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

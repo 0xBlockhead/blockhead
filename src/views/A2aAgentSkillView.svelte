@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const a2aAgentSkill = $derived(selection({
-		sources: [
-			Source.A2aWellKnown_Http,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 		},
@@ -70,37 +67,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={a2aAgentSkill}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aAgentSkill}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={a2aAgentSkill}>
-			{#snippet Pending()}
-				<A2aAgentCard_SnapshotView
-					selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<A2aAgentCard_SnapshotView
-					selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<A2aAgentCard_SnapshotView
+						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={a2aAgentSkill}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<A2aAgentCard_SnapshotView
+						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									skillId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const skillId = pendingEntity.skillId}
-							{#if skillId !== undefined && skillId !== null}
-								{String((skillId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const skillId = resolvedEntity.skillId}
@@ -149,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -184,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}

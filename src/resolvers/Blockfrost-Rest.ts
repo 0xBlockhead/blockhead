@@ -8,7 +8,12 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { CardanoBlockSelector } from '$/schema/CardanoBlock.ts'
+import { CardanoCommittee_EpochSelector } from '$/schema/CardanoCommittee_Epoch.ts'
+import { CardanoDRepSelector } from '$/schema/CardanoDRep.ts'
+import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernanceProposal.ts'
+import { CardanoGovernanceProposal_TimestampSelector } from '$/schema/CardanoGovernanceProposal_Timestamp.ts'
 import { CardanoNetwork_TimestampSelector } from '$/schema/CardanoNetwork_Timestamp.ts'
+import { CardanoStakePoolSelector } from '$/schema/CardanoStakePool.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
@@ -27,7 +32,17 @@ if (blockfrostBinding == null)
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
-	if (!('slug' in network) || network.slug !== networkBySlug.cardano.slug)
+	if (
+		!(
+			'slug' in network
+			&& network.slug === networkBySlug.cardano.slug
+		)
+		&& !(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.cardano.caip2.namespace
+			&& network.caip2.reference === networkBySlug.cardano.caip2.reference
+		)
+	)
 		throw new Error('Blockfrost_Rest: unsupported network')
 }
 
@@ -96,6 +111,62 @@ const networkObservation = async () => {
 	}
 }
 
+const committeeEpoch = async (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	limit: number
+) => {
+	const {
+		getCommittee,
+		getLatestEpoch,
+		listCommitteeVotes,
+	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	const [
+		committee,
+		epoch,
+		votes,
+	] = await Promise.all([
+		getCommittee(blockfrostBinding),
+		getLatestEpoch(blockfrostBinding),
+		listCommitteeVotes(blockfrostBinding, limit),
+	])
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			epoch: epoch.epoch,
+			source: Source.Blockfrost_Rest,
+		},
+		epoch: epoch.epoch,
+		source: Source.Blockfrost_Rest,
+		govActionId: committee.gov_action_id ?? undefined,
+		$seatingProposal: committee.proposal_tx_hash == null || committee.proposal_index == null ? undefined : {
+			$network: network,
+			proposalTxHash: committee.proposal_tx_hash,
+			proposalIndex: committee.proposal_index,
+		},
+		dissolved: committee.is_dissolved,
+		quorumNumerator: committee.quorum.numerator,
+		quorumDenominator: committee.quorum.denominator,
+		memberCount: committee.members.length,
+		members: committee.members,
+		$$votes: votes.map((vote) => ({
+			$proposal: {
+				$network: network,
+				proposalTxHash: vote.proposal_tx_hash,
+				proposalIndex: vote.proposal_index,
+			},
+			voterKind: 'constitutional-committee',
+			voterCredential: vote.voter_hot_id,
+			source: Source.Blockfrost_Rest,
+			vote: vote.vote,
+			voteTxHash: vote.tx_hash,
+			anchorUrl: vote.metadata_url ?? undefined,
+			anchorHash: vote.metadata_hash ?? undefined,
+			timestampMs: vote.block_time * 1_000,
+		})),
+	}
+}
+
 export default {
 	source: Source.Blockfrost_Rest,
 
@@ -103,18 +174,20 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertCardanoMainnet(network)
+				[NetworkSelector.Caip2]: {
+					resolve: async (network) => {
+						assertCardanoMainnet(network)
 
-					return [
-						{
-							url: firstHttpUrlForBinding(blockfrostBinding),
-							transportType: TransportType.Http,
-							providerName: 'Blockfrost',
-						},
-					]
-				}
-			},
+						return [
+							{
+								url: firstHttpUrlForBinding(blockfrostBinding),
+								transportType: TransportType.Http,
+								providerName: 'Blockfrost',
+							},
+						]
+					},
+					},
+				},
 		})({
 			Cardano: {
 				restEndpoints: (restEndpoints) => restEndpoints,
@@ -124,20 +197,22 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertCardanoMainnet(network)
-					const observation = await networkObservation()
+				[NetworkSelector.Caip2]: {
+					resolve: async (network) => {
+						assertCardanoMainnet(network)
+						const observation = await networkObservation()
 
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								timestampMs: observation.timestampMs,
-								source: Source.Blockfrost_Rest,
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									timestampMs: observation.timestampMs,
+									source: Source.Blockfrost_Rest,
+								},
+								...observation,
 							},
-							...observation,
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -167,20 +242,22 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listBlocks(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((block) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							hash: block.hash,
-						},
-						...blockFields(block),
-					}))
+						return (await listBlocks(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map((block) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								hash: block.hash,
+							},
+							...blockFields(block),
+						}))
+					},
 				}
 			},
 		})({
@@ -200,20 +277,22 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listLatestBlockTransactions(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((hash) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
+						return (await listLatestBlockTransactions(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map((hash) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								hash,
+							},
 							hash,
-						},
-						hash,
-					}))
+						}))
+					},
 				}
 			},
 		})({
@@ -230,20 +309,22 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listStakePools(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((poolId) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
+						return (await listStakePools(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map((poolId) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								poolId,
+							},
 							poolId,
-						},
-						poolId,
-					}))
+						}))
+					},
 				}
 			},
 		})({
@@ -260,21 +341,23 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listDReps(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((dRep) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
+						return (await listDReps(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map((dRep) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								drepCredential: dRep.drep_id,
+							},
 							drepCredential: dRep.drep_id,
-						},
-						drepCredential: dRep.drep_id,
-						credentialKind: dRep.has_script ? 'script' : 'key',
-					}))
+							credentialKind: dRep.has_script ? 'script' : 'key',
+						}))
+					},
 				}
 			},
 		})({
@@ -292,23 +375,25 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listGovernanceProposals } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listGovernanceProposals } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listGovernanceProposals(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map((proposal) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
+						return (await listGovernanceProposals(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map((proposal) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								proposalTxHash: proposal.tx_hash,
+								proposalIndex: proposal.cert_index,
+							},
 							proposalTxHash: proposal.tx_hash,
 							proposalIndex: proposal.cert_index,
-						},
-						proposalTxHash: proposal.tx_hash,
-						proposalIndex: proposal.cert_index,
-						proposalKind: proposal.governance_type,
-					}))
+							proposalKind: proposal.governance_type,
+						}))
+					},
 				}
 			},
 		})({
@@ -327,27 +412,29 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertCardanoMainnet(network)
-					const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
+						const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-					return (await listAssets(
-						blockfrostBinding,
-						Math.min(resolverContextRowLimit(context), 100)
-					)).map(({ asset }) => {
-						if (asset.length < 56 || asset.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(asset))
-							throw new Error('Blockfrost_Rest: asset identifier is malformed')
+						return (await listAssets(
+							blockfrostBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).map(({ asset }) => {
+							if (asset.length < 56 || asset.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(asset))
+								throw new Error('Blockfrost_Rest: asset identifier is malformed')
 
-						return {
-							[EntityMetaKey.Selector]: {
-								$network: network,
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									policyId: asset.slice(0, 56),
+									assetName: asset.slice(56),
+								},
 								policyId: asset.slice(0, 56),
 								assetName: asset.slice(56),
-							},
-							policyId: asset.slice(0, 56),
-							assetName: asset.slice(56),
-						}
-					})
+							}
+						})
+					},
 				}
 			},
 		})({
@@ -365,70 +452,72 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertCardanoMainnet(network)
-					const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
-					const parameters = await getLatestProtocolParameters(blockfrostBinding)
+				[NetworkSelector.Caip2]: {
+					resolve: async (network) => {
+						assertCardanoMainnet(network)
+						const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const parameters = await getLatestProtocolParameters(blockfrostBinding)
 
-					if (
-						parameters.max_val_size != null
-						&& !Number.isSafeInteger(Number(parameters.max_val_size))
-					)
-						throw new Error('Blockfrost_Rest: protocol parameter max value size is malformed')
+						if (
+							parameters.max_val_size != null
+							&& !Number.isSafeInteger(Number(parameters.max_val_size))
+						)
+							throw new Error('Blockfrost_Rest: protocol parameter max value size is malformed')
 
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: network,
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									epoch: parameters.epoch,
+									source: Source.Blockfrost_Rest,
+								},
 								epoch: parameters.epoch,
 								source: Source.Blockfrost_Rest,
+								minFeeA: BigInt(parameters.min_fee_a),
+								minFeeB: BigInt(parameters.min_fee_b),
+								maxBlockBodySize: parameters.max_block_size,
+								maxTxSize: parameters.max_tx_size,
+								maxBlockHeaderSize: parameters.max_block_header_size,
+								keyDeposit: BigInt(parameters.key_deposit),
+								poolDeposit: BigInt(parameters.pool_deposit),
+								maxEpoch: parameters.e_max,
+								nOpt: parameters.n_opt,
+								rho: parameters.rho.toString(),
+								tau: parameters.tau.toString(),
+								decentralisation: parameters.decentralisation_param.toString(),
+								protocolMajor: parameters.protocol_major_ver,
+								protocolMinor: parameters.protocol_minor_ver,
+								minPoolCost: BigInt(parameters.min_pool_cost),
+								coinsPerUtxoByte: parameters.coins_per_utxo_size == null
+									? undefined
+									: BigInt(parameters.coins_per_utxo_size),
+								costModels: parameters.cost_models_raw ?? parameters.cost_models ?? undefined,
+								executionPrices: parameters.price_mem == null && parameters.price_step == null
+									? undefined
+									: {
+										memory: parameters.price_mem,
+										steps: parameters.price_step,
+									},
+								maxTxExUnits: parameters.max_tx_ex_mem == null && parameters.max_tx_ex_steps == null
+									? undefined
+									: {
+										memory: parameters.max_tx_ex_mem,
+										steps: parameters.max_tx_ex_steps,
+									},
+								maxBlockExUnits: parameters.max_block_ex_mem == null && parameters.max_block_ex_steps == null
+									? undefined
+									: {
+										memory: parameters.max_block_ex_mem,
+										steps: parameters.max_block_ex_steps,
+									},
+								maxValueSize: parameters.max_val_size == null
+									? undefined
+									: Number(parameters.max_val_size),
+								collateralPercentage: parameters.collateral_percent ?? undefined,
+								maxCollateralInputs: parameters.max_collateral_inputs ?? undefined,
 							},
-							epoch: parameters.epoch,
-							source: Source.Blockfrost_Rest,
-							minFeeA: BigInt(parameters.min_fee_a),
-							minFeeB: BigInt(parameters.min_fee_b),
-							maxBlockBodySize: parameters.max_block_size,
-							maxTxSize: parameters.max_tx_size,
-							maxBlockHeaderSize: parameters.max_block_header_size,
-							keyDeposit: BigInt(parameters.key_deposit),
-							poolDeposit: BigInt(parameters.pool_deposit),
-							maxEpoch: parameters.e_max,
-							nOpt: parameters.n_opt,
-							rho: parameters.rho.toString(),
-							tau: parameters.tau.toString(),
-							decentralisation: parameters.decentralisation_param.toString(),
-							protocolMajor: parameters.protocol_major_ver,
-							protocolMinor: parameters.protocol_minor_ver,
-							minPoolCost: BigInt(parameters.min_pool_cost),
-							coinsPerUtxoByte: parameters.coins_per_utxo_size == null
-								? undefined
-								: BigInt(parameters.coins_per_utxo_size),
-							costModels: parameters.cost_models_raw ?? parameters.cost_models ?? undefined,
-							executionPrices: parameters.price_mem == null && parameters.price_step == null
-								? undefined
-								: {
-									memory: parameters.price_mem,
-									steps: parameters.price_step,
-								},
-							maxTxExUnits: parameters.max_tx_ex_mem == null && parameters.max_tx_ex_steps == null
-								? undefined
-								: {
-									memory: parameters.max_tx_ex_mem,
-									steps: parameters.max_tx_ex_steps,
-								},
-							maxBlockExUnits: parameters.max_block_ex_mem == null && parameters.max_block_ex_steps == null
-								? undefined
-								: {
-									memory: parameters.max_block_ex_mem,
-									steps: parameters.max_block_ex_steps,
-								},
-							maxValueSize: parameters.max_val_size == null
-								? undefined
-								: Number(parameters.max_val_size),
-							collateralPercentage: parameters.collateral_percent ?? undefined,
-							maxCollateralInputs: parameters.max_collateral_inputs ?? undefined,
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -469,35 +558,17 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertCardanoMainnet(network)
-					const {
-						getCommittee,
-						getLatestEpoch,
-					} = await import('$/sources/Blockfrost/Rest/queries.ts')
-					const [
-						committee,
-						epoch,
-					] = await Promise.all([
-						getCommittee(blockfrostBinding),
-						getLatestEpoch(blockfrostBinding),
-					])
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertCardanoMainnet(network)
 
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								epoch: epoch.epoch,
-								source: Source.Blockfrost_Rest,
-							},
-							epoch: epoch.epoch,
-							source: Source.Blockfrost_Rest,
-							quorumNumerator: committee.quorum.numerator,
-							quorumDenominator: committee.quorum.denominator,
-							memberCount: committee.members.length,
-							members: committee.members,
-						},
-					]
+						return [
+							await committeeEpoch(
+								network,
+								Math.min(resolverContextRowLimit(context), 100)
+							),
+						]
+					},
 				}
 			},
 		})({
@@ -507,32 +578,303 @@ export default {
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'epoch')]: committee.epoch,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'source')]: committee.source,
+						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: committee.govActionId,
+						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: committee.$seatingProposal,
+						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'dissolved')]: committee.dissolved,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: committee.quorumNumerator,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: committee.quorumDenominator,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: committee.memberCount,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'members')]: committee.members,
+						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$$votes')]: committee.$$votes,
 					},
 				})),
 			},
 		}),
 
 		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoCommittee_Epoch,
+			resolve: {
+				[CardanoCommittee_EpochSelector.NetworkEpochSource]: {
+					resolve: async ({
+						$network,
+						epoch,
+						source,
+					}, context) => {
+						assertCardanoMainnet($network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
+
+						const currentCommitteeEpoch = await committeeEpoch(
+							$network,
+							Math.min(resolverContextRowLimit(context), 100)
+						)
+						if (currentCommitteeEpoch.epoch !== epoch)
+							throw new Error('Blockfrost_Rest: historical committee epoch is unavailable')
+
+						return currentCommitteeEpoch
+					},
+				},
+			},
+		})({
+			epoch: (committee) => committee.epoch,
+			source: (committee) => committee.source,
+			govActionId: (committee) => committee.govActionId,
+			$seatingProposal: (committee) => committee.$seatingProposal,
+			dissolved: (committee) => committee.dissolved,
+			quorumNumerator: (committee) => committee.quorumNumerator,
+			quorumDenominator: (committee) => committee.quorumDenominator,
+			memberCount: (committee) => committee.memberCount,
+			members: (committee) => committee.members,
+			$$votes: (committee) => committee.$$votes,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoGovernanceProposal,
+			resolve: {
+				[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex]: {
+					resolve: async ({
+						$network,
+						proposalTxHash,
+						proposalIndex,
+					}, context) => {
+						assertCardanoMainnet($network)
+						const {
+							getGovernanceProposal,
+							getLatestEpoch,
+							listGovernanceProposalVotes,
+						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const [
+							proposal,
+							epoch,
+							votes,
+						] = await Promise.all([
+							getGovernanceProposal(blockfrostBinding, proposalTxHash, proposalIndex),
+							getLatestEpoch(blockfrostBinding),
+							listGovernanceProposalVotes(blockfrostBinding, proposalTxHash, proposalIndex, Math.min(resolverContextRowLimit(context), 100)),
+						])
+
+						return {
+							proposalKind: proposal.governance_type,
+							$transaction: {
+								$network,
+								hash: proposal.tx_hash,
+							},
+							depositLovelace: BigInt(proposal.deposit),
+							returnAddress: proposal.return_address,
+							$$timestamps: [{
+								$proposal: {
+									$network,
+									proposalTxHash,
+									proposalIndex,
+								},
+								epoch: epoch.epoch,
+								source: Source.Blockfrost_Rest,
+								ratifiedEpoch: proposal.ratified_epoch ?? undefined,
+								enactedEpoch: proposal.enacted_epoch ?? undefined,
+								droppedEpoch: proposal.dropped_epoch ?? undefined,
+								expiredEpoch: proposal.expired_epoch ?? undefined,
+								expirationEpoch: proposal.expiration,
+							}],
+							$$votes: votes.map((vote) => ({
+								$proposal: {
+									$network,
+									proposalTxHash,
+									proposalIndex,
+								},
+								voterKind: vote.voter_role,
+								voterCredential: vote.voter,
+								source: Source.Blockfrost_Rest,
+								vote: vote.vote,
+								voteTxHash: vote.tx_hash,
+								voteIndex: vote.cert_index,
+							})),
+						}
+					},
+				}
+			},
+		})({
+			proposalKind: (proposal) => proposal.proposalKind,
+			$transaction: (proposal) => proposal.$transaction,
+			depositLovelace: (proposal) => proposal.depositLovelace,
+			returnAddress: (proposal) => proposal.returnAddress,
+			$$timestamps: (proposal) => proposal.$$timestamps,
+			$$votes: (proposal) => proposal.$$votes,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoGovernanceProposal,
+			resolve: {
+				[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex]: {
+					resolve: async ({
+						$network,
+						proposalTxHash,
+						proposalIndex,
+					}) => {
+						assertCardanoMainnet($network)
+						const { getGovernanceProposalMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const metadata = await getGovernanceProposalMetadata(blockfrostBinding, proposalTxHash, proposalIndex)
+						return {
+							anchorUrl: metadata?.url,
+							anchorHash: metadata?.hash,
+						}
+					},
+				},
+			},
+		})({
+			anchorUrl: (proposal) => proposal.anchorUrl,
+			anchorHash: (proposal) => proposal.anchorHash,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoGovernanceProposal_Timestamp,
+			resolve: {
+				[CardanoGovernanceProposal_TimestampSelector.ProposalEpochSource]: {
+					resolve: async ({ $proposal, source }) => {
+						assertCardanoMainnet($proposal.$network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
+
+						throw new Error('Blockfrost_Rest: historical proposal observation is unavailable')
+					},
+				},
+			},
+		})({
+			epoch: (observation) => observation.epoch,
+			source: (observation) => observation.source,
+			ratifiedEpoch: (observation) => observation.ratifiedEpoch,
+			enactedEpoch: (observation) => observation.enactedEpoch,
+			droppedEpoch: (observation) => observation.droppedEpoch,
+			expiredEpoch: (observation) => observation.expiredEpoch,
+			expirationEpoch: (observation) => observation.expirationEpoch,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoDRep,
+			resolve: {
+				[CardanoDRepSelector.NetworkDrepCredential]: {
+					resolve: async ({ $network, drepCredential }, context) => {
+						assertCardanoMainnet($network)
+						const {
+							getDRep,
+							listDRepVotes,
+						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const [
+							drep,
+							votes,
+						] = await Promise.all([
+							getDRep(blockfrostBinding, drepCredential),
+							listDRepVotes(blockfrostBinding, drepCredential, Math.min(resolverContextRowLimit(context), 100)),
+						])
+						return {
+							credentialKind: drep.has_script ? 'script' : 'key',
+							$$votes: votes.map((vote) => ({
+								$proposal: {
+									$network,
+									proposalTxHash: vote.proposal_tx_hash,
+									proposalIndex: vote.proposal_cert_index,
+								},
+								voterKind: 'drep',
+								voterCredential: drepCredential,
+								source: Source.Blockfrost_Rest,
+								vote: vote.vote,
+								$drep: {
+									$network,
+									drepCredential,
+								},
+								voteTxHash: vote.tx_hash,
+								voteIndex: vote.cert_index,
+							})),
+						}
+					},
+				}
+			},
+		})({
+			credentialKind: (drep) => drep.credentialKind,
+			$$votes: (drep) => drep.$$votes,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoDRep,
+			resolve: {
+				[CardanoDRepSelector.NetworkDrepCredential]: {
+					resolve: async ({ $network, drepCredential }) => {
+						assertCardanoMainnet($network)
+						const { getDRepMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const metadata = await getDRepMetadata(blockfrostBinding, drepCredential)
+						return {
+							anchorUrl: metadata?.url,
+							anchorHash: metadata?.hash,
+						}
+					},
+				},
+			},
+		})({
+			anchorUrl: (drep) => drep.anchorUrl,
+			anchorHash: (drep) => drep.anchorHash,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoStakePool,
+			resolve: {
+				[CardanoStakePoolSelector.NetworkPoolId]: {
+					resolve: async ({ $network, poolId }) => {
+						assertCardanoMainnet($network)
+						const {
+							getStakePool,
+						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const pool = await getStakePool(blockfrostBinding, poolId)
+
+						return pool
+					},
+				}
+			},
+		})({
+			vrfKeyHash: (pool) => pool.vrf_key,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
+			entityType: EntityType.CardanoStakePool,
+			resolve: {
+				[CardanoStakePoolSelector.NetworkPoolId]: {
+					resolve: async ({ $network, poolId }) => {
+						assertCardanoMainnet($network)
+						const { getStakePoolMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const metadata = await getStakePoolMetadata(blockfrostBinding, poolId)
+						return {
+							name: metadata?.name,
+							ticker: metadata?.ticker,
+							description: metadata?.description,
+							homepage: metadata?.homepage,
+						}
+					},
+				},
+			},
+		})({
+			name: (pool) => pool.name ?? undefined,
+			ticker: (pool) => pool.ticker ?? undefined,
+			description: (pool) => pool.description ?? undefined,
+			homepage: (pool) => pool.homepage ?? undefined,
+		}),
+
+		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoNetwork_Timestamp,
 			resolve: {
-				[CardanoNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({
-					$network,
-					timestampMs,
-					source,
-				}) => {
-					assertCardanoMainnet($network)
-					if (source !== Source.Blockfrost_Rest)
-						throw new Error('Blockfrost_Rest: observation source mismatch')
+				[CardanoNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						assertCardanoMainnet($network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
 
-					const observation = await networkObservation()
-					if (observation.timestampMs !== timestampMs)
-						throw new Error('Blockfrost_Rest: historical observation is unavailable')
+						const observation = await networkObservation()
+						if (observation.timestampMs !== timestampMs)
+							throw new Error('Blockfrost_Rest: historical observation is unavailable')
 
-					return observation
+						return observation
+					},
 				}
 			},
 		})({
@@ -554,32 +896,38 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoBlock,
 			resolve: {
-				[CardanoBlockSelector.NetworkHash]: async ({ $network, hash }) => {
-					assertCardanoMainnet($network)
-					const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-					const block = blockFields(await getBlock(blockfrostBinding, hash))
-					if (block.hash !== hash)
-						throw new Error('Blockfrost_Rest: block hash does not match the requested selector')
+				[CardanoBlockSelector.NetworkHash]: {
+					resolve: async ({ $network, hash }) => {
+						assertCardanoMainnet($network)
+						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const block = blockFields(await getBlock(blockfrostBinding, hash))
+						if (block.hash !== hash)
+							throw new Error('Blockfrost_Rest: block hash does not match the requested selector')
 
-					return block
+						return block
+					},
 				},
-				[CardanoBlockSelector.NetworkSlot]: async ({ $network, slot }) => {
-					assertCardanoMainnet($network)
-					const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-					const block = blockFields(await getBlock(blockfrostBinding, slot.toString()))
-					if (block.slot !== slot)
-						throw new Error('Blockfrost_Rest: block slot does not match the requested selector')
+				[CardanoBlockSelector.NetworkSlot]: {
+					resolve: async ({ $network, slot }) => {
+						assertCardanoMainnet($network)
+						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const block = blockFields(await getBlock(blockfrostBinding, slot.toString()))
+						if (block.slot !== slot)
+							throw new Error('Blockfrost_Rest: block slot does not match the requested selector')
 
-					return block
+						return block
+					},
 				},
-				[CardanoBlockSelector.NetworkBlockNo]: async ({ $network, blockNo }) => {
-					assertCardanoMainnet($network)
-					const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-					const block = blockFields(await getBlock(blockfrostBinding, blockNo.toString()))
-					if (block.blockNo !== blockNo)
-						throw new Error('Blockfrost_Rest: block number does not match the requested selector')
+				[CardanoBlockSelector.NetworkBlockNo]: {
+					resolve: async ({ $network, blockNo }) => {
+						assertCardanoMainnet($network)
+						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const block = blockFields(await getBlock(blockfrostBinding, blockNo.toString()))
+						if (block.blockNo !== blockNo)
+							throw new Error('Blockfrost_Rest: block number does not match the requested selector')
 
-					return block
+						return block
+					},
 				},
 			},
 		})({

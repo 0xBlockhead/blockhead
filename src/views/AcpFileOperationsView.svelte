@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpFileOperationView from '$/views/AcpFileOperationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					operationId: true,
-					operationKind: true,
-					path: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpFileOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpFileOperation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				operationId: true,
+				operationKind: true,
+				path: true,
+			},
+		})
+	}
+	getResourceItems={(acpFileOperations) => [...new Map(acpFileOperations.values.map((acpFileOperation) => [acpFileOperation[EntityMetaKey.SelectorKey], acpFileOperation])).values()]}
+	getKey={(acpFileOperation) => acpFileOperation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP file operations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpFileOperations)}
-			{@const uniqueAcpFileOperations = [...new Map(acpFileOperations.values.map((acpFileOperation) => [acpFileOperation[EntityMetaKey.SelectorKey], acpFileOperation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpFileOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpFileOperations.totalCount}
-				getKey={(acpFileOperation) => acpFileOperation[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpFileOperations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP file operations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpFileOperation })}
-					{@const acpFileOperationFields = { ...acpFileOperation[EntityMetaKey.Selector], ...acpFileOperation }}
-					{@const selection = select(EntityType.AcpFileOperation, acpFileOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpFileOperationView
-						selection={selection}
-						prefetched={acpFileOperationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpFileOperation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpFileOperation })}
+		{@const acpFileOperationFields = { ...acpFileOperation[EntityMetaKey.Selector], ...acpFileOperation }}
+		{@const selection = select(EntityType.AcpFileOperation, acpFileOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpFileOperationView
+			selection={selection}
+			prefetched={acpFileOperationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

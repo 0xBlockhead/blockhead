@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4626Vault_BlockView from '$/views/Erc4626Vault_BlockView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					blockNumber: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4626Vault_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Erc4626Vault_Block}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				blockNumber: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(erc4626VaultBlocks) => [...new Map(erc4626VaultBlocks.values.map((erc4626VaultBlock) => [erc4626VaultBlock[EntityMetaKey.SelectorKey], erc4626VaultBlock])).values()]}
+	getKey={(erc4626VaultBlock) => erc4626VaultBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Erc4626 vault blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(erc4626VaultBlocks)}
-			{@const uniqueErc4626VaultBlocks = [...new Map(erc4626VaultBlocks.values.map((erc4626VaultBlock) => [erc4626VaultBlock[EntityMetaKey.SelectorKey], erc4626VaultBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4626Vault_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4626VaultBlocks.totalCount}
-				getKey={(erc4626VaultBlock) => erc4626VaultBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueErc4626VaultBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Erc4626 vault blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: erc4626VaultBlock })}
-					{@const erc4626VaultBlockFields = { ...erc4626VaultBlock[EntityMetaKey.Selector], ...erc4626VaultBlock }}
-					{@const selection = select(EntityType.Erc4626Vault_Block, erc4626VaultBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<Erc4626Vault_BlockView
-						selection={selection}
-						prefetched={erc4626VaultBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Erc4626Vault_Block}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: erc4626VaultBlock })}
+		{@const erc4626VaultBlockFields = { ...erc4626VaultBlock[EntityMetaKey.Selector], ...erc4626VaultBlock }}
+		{@const selection = select(EntityType.Erc4626Vault_Block, erc4626VaultBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<Erc4626Vault_BlockView
+			selection={selection}
+			prefetched={erc4626VaultBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

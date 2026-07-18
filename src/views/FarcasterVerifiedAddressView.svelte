@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterVerifiedAddress = $derived(selection({}))
+	const farcasterVerifiedAddress = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')
 	const viewDomId = $derived('farcaster-verified-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -73,35 +75,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterVerifiedAddress}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterVerifiedAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterVerifiedAddress}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster verified address'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocol) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterVerifiedAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocol) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,19 +141,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocol = pendingEntity.protocol}
-							{#if protocol !== undefined && protocol !== null}
-								{String((protocol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocol = resolvedEntity.protocol}
@@ -171,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -200,8 +190,6 @@
 			<ResourceBoundary
 				resource={selection.$evmAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -229,8 +217,6 @@
 			<ResourceBoundary
 				resource={selection.$solanaAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>

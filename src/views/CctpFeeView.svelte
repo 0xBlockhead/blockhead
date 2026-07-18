@@ -36,7 +36,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpFee = $derived(selection({}))
+	const cctpFee = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP fee')
 	const viewDomId = $derived('cctp-fee-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -57,29 +59,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cctpFee}>
-			{#snippet Pending()}
-				{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpFee}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cctpFee}>
-			{#snippet Pending()}
-				{[String((pendingEntity.fromDomain) ?? ''), String((pendingEntity.toDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.fromDomain) ?? ''), String((resolvedEntity.toDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.fromDomain) ?? ''), String((pendingEntity.toDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpFee}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fromDomain) ?? ''), String((resolvedEntity.toDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -90,19 +92,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									apiHost: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const apiHost = pendingEntity.apiHost}
-							{#if apiHost !== undefined && apiHost !== null}
-								{String((apiHost) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const apiHost = resolvedEntity.apiHost}
@@ -120,19 +116,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fromDomain: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fromDomain = pendingEntity.fromDomain}
-							{#if fromDomain !== undefined && fromDomain !== null}
-								{String((fromDomain) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fromDomain = resolvedEntity.fromDomain}
@@ -150,19 +140,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									toDomain: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const toDomain = pendingEntity.toDomain}
-							{#if toDomain !== undefined && toDomain !== null}
-								{String((toDomain) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const toDomain = resolvedEntity.toDomain}

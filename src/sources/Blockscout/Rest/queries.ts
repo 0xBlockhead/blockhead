@@ -5,8 +5,6 @@
 	*/
 
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { corsFetch } from '$/lib/http.ts'
-import { blockscoutOrigins } from '$/sources/Blockscout/Http/BlockscoutRestV2/constants.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
 import {
 	blockscoutV2ItemsCountMax,
@@ -161,14 +159,10 @@ export const getStats = async ({
 	explorerOrigin: string
 }): Promise<BlockscoutStats | null> => {
 	try {
-		const url = new URL(explorerOrigin)
-		url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}/stats`
-		const res = await corsFetch(url.toString(), {
-			origins: blockscoutOrigins,
-			init: { headers: { accept: 'application/json' } },
-		})
-		if (!res.ok) return null
-		const validated = blockscoutStatsWireSchema(await res.json())
+		const validated = blockscoutStatsWireSchema(await getJson({
+			explorerOrigin,
+			path: '/stats',
+		}))
 		return validated instanceof arktype.errors ?
 			null
 		:
@@ -388,6 +382,23 @@ export const getAddressTokenTransfers = async ({
 		throw error
 	}
 	return wire.items
+}
+
+/** REST v2 **`GET /token-transfers`** — latest network token transfers. */
+export const getTokenTransfers = async ({
+	explorerOrigin,
+	limit,
+}: {
+	explorerOrigin: string
+	limit: number
+}): Promise<BlockscoutTokenTransfer[]> => {
+	if (limit <= 0) return []
+	return (
+		await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
+			explorerOrigin,
+			path: '/token-transfers',
+		})
+	).items.slice(0, limit)
 }
 
 /** REST v2 **`GET /transactions/{txHash}/token-transfers`** — paginated **`items`**. */

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadTransferRequest = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 			createdAt: true,
@@ -77,58 +74,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadTransferRequest}>
-			{#snippet Pending()}
-				{@const id0 = pendingEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const id0 = pendingEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadTransferRequest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const id0 = resolvedEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadTransferRequest}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'blockhead transfer request'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadTransferRequest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadTransferRequest}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAt0 = pendingEntity.createdAt}
+			{#if createdAt0 !== undefined && createdAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadTransferRequest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}
@@ -262,19 +253,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									status: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const status = pendingEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const status = resolvedEntity.status}
@@ -292,19 +277,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									allocations: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const allocations = pendingEntity.allocations}
-							{#if allocations !== undefined && allocations !== null}
-								{allocations == null ? '' : String(((allocations).map((allocation) => `${allocation.destination}:${allocation.token}:${allocation.amount}`).join(', ')) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const allocations = resolvedEntity.allocations}
@@ -324,19 +303,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}
@@ -354,19 +327,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									expiresAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const expiresAt = pendingEntity.expiresAt}
-							{#if expiresAt !== undefined && expiresAt !== null}
-								<Timestamp timestamp={Number(expiresAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const expiresAt = resolvedEntity.expiresAt}

@@ -27,6 +27,7 @@
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
+	import XrplAccountView from '$/views/XrplAccountView.svelte'
 </script>
 
 
@@ -40,7 +41,7 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotAccount && data.selectorMapping.selectorName === 'NetworkAccountId' ? PolkadotAccountView : data.selectorMapping.entityType === EntityType.CosmosAccount && data.selectorMapping.selectorName === 'NetworkAddress' ? CosmosAccountView : data.selectorMapping.entityType === EntityType.EvmNetworkAccount && data.selectorMapping.selectorName === 'EvmNetworkEvmAccount' ? EvmNetworkAccountView : data.selectorMapping.entityType === EntityType.SolanaAccount && data.selectorMapping.selectorName === 'NetworkPubkey' ? SolanaAccountView : TonAccountView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotAccount && data.selectorMapping.selectorName === 'NetworkAccountId' ? PolkadotAccountView : data.selectorMapping.entityType === EntityType.CosmosAccount && data.selectorMapping.selectorName === 'NetworkAddress' ? CosmosAccountView : data.selectorMapping.entityType === EntityType.EvmNetworkAccount && data.selectorMapping.selectorName === 'EvmNetworkEvmAccount' ? EvmNetworkAccountView : data.selectorMapping.entityType === EntityType.SolanaAccount && data.selectorMapping.selectorName === 'NetworkPubkey' ? SolanaAccountView : data.selectorMapping.entityType === EntityType.TonAccount && data.selectorMapping.selectorName === 'NetworkAddress' ? TonAccountView : XrplAccountView}
 
 			<DetailView
 				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}

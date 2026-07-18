@@ -24,10 +24,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$account: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$account: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			freeBalancePlancks: true,
 			nonce: true,

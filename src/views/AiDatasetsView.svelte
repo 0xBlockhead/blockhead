@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiDatasetView from '$/views/AiDatasetView.svelte'
 </script>
@@ -61,81 +60,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					modality: true,
-					datasetUri: true,
-					datasetName: true,
-					huggingFaceDatasetId: true,
-					license: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiDataset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiDataset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				modality: true,
+				datasetUri: true,
+				datasetName: true,
+				huggingFaceDatasetId: true,
+				license: true,
+			},
+		})
+	}
+	getResourceItems={(aiDatasets) => [...new Map(aiDatasets.values.map((aiDataset) => [aiDataset[EntityMetaKey.SelectorKey], aiDataset])).values()]}
+	getKey={(aiDataset) => aiDataset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI datasets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiDatasets)}
-			{@const uniqueAiDatasets = [...new Map(aiDatasets.values.map((aiDataset) => [aiDataset[EntityMetaKey.SelectorKey], aiDataset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiDataset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiDatasets.totalCount}
-				getKey={(aiDataset) => aiDataset[EntityMetaKey.SelectorKey]}
-				items={uniqueAiDatasets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI datasets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiDataset })}
-					{@const aiDatasetFields = { ...aiDataset[EntityMetaKey.Selector], ...aiDataset }}
-					{@const selection = select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiDatasetView
-						selection={selection}
-						prefetched={aiDatasetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiDataset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiDataset })}
+		{@const aiDatasetFields = { ...aiDataset[EntityMetaKey.Selector], ...aiDataset }}
+		{@const selection = select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiDatasetView
+			selection={selection}
+			prefetched={aiDatasetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

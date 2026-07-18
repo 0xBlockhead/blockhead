@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Eip8004AgentServiceEndpointView from '$/views/Eip8004AgentServiceEndpointView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					endpointUrl: true,
-					endpointKind: true,
-					protocolKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Eip8004AgentServiceEndpoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Eip8004AgentServiceEndpoint}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				endpointUrl: true,
+				endpointKind: true,
+				protocolKind: true,
+			},
+		})
+	}
+	getResourceItems={(eip8004AgentServiceEndpoints) => [...new Map(eip8004AgentServiceEndpoints.values.map((eip8004AgentServiceEndpoint) => [eip8004AgentServiceEndpoint[EntityMetaKey.SelectorKey], eip8004AgentServiceEndpoint])).values()]}
+	getKey={(eip8004AgentServiceEndpoint) => eip8004AgentServiceEndpoint[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EIP-8004 agent service endpoints yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eip8004AgentServiceEndpoints)}
-			{@const uniqueEip8004AgentServiceEndpoints = [...new Map(eip8004AgentServiceEndpoints.values.map((eip8004AgentServiceEndpoint) => [eip8004AgentServiceEndpoint[EntityMetaKey.SelectorKey], eip8004AgentServiceEndpoint])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Eip8004AgentServiceEndpoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eip8004AgentServiceEndpoints.totalCount}
-				getKey={(eip8004AgentServiceEndpoint) => eip8004AgentServiceEndpoint[EntityMetaKey.SelectorKey]}
-				items={uniqueEip8004AgentServiceEndpoints}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EIP-8004 agent service endpoints yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eip8004AgentServiceEndpoint })}
-					{@const eip8004AgentServiceEndpointFields = { ...eip8004AgentServiceEndpoint[EntityMetaKey.Selector], ...eip8004AgentServiceEndpoint }}
-					{@const selection = select(EntityType.Eip8004AgentServiceEndpoint, eip8004AgentServiceEndpoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<Eip8004AgentServiceEndpointView
-						selection={selection}
-						prefetched={eip8004AgentServiceEndpointFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Eip8004AgentServiceEndpoint}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eip8004AgentServiceEndpoint })}
+		{@const eip8004AgentServiceEndpointFields = { ...eip8004AgentServiceEndpoint[EntityMetaKey.Selector], ...eip8004AgentServiceEndpoint }}
+		{@const selection = select(EntityType.Eip8004AgentServiceEndpoint, eip8004AgentServiceEndpoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<Eip8004AgentServiceEndpointView
+			selection={selection}
+			prefetched={eip8004AgentServiceEndpointFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentCredentialStateView from '$/views/BlockheadAgentCredentialStateView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					credentialKind: true,
-					credentialId: true,
-					$connection: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentCredentialState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentCredentialState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				credentialKind: true,
+				credentialId: true,
+				$connection: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentCredentialStates) => [...new Map(blockheadAgentCredentialStates.values.map((blockheadAgentCredentialState) => [blockheadAgentCredentialState[EntityMetaKey.SelectorKey], blockheadAgentCredentialState])).values()]}
+	getKey={(blockheadAgentCredentialState) => blockheadAgentCredentialState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead agent credential states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentCredentialStates)}
-			{@const uniqueBlockheadAgentCredentialStates = [...new Map(blockheadAgentCredentialStates.values.map((blockheadAgentCredentialState) => [blockheadAgentCredentialState[EntityMetaKey.SelectorKey], blockheadAgentCredentialState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentCredentialState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentCredentialStates.totalCount}
-				getKey={(blockheadAgentCredentialState) => blockheadAgentCredentialState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentCredentialStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead agent credential states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentCredentialState })}
-					{@const blockheadAgentCredentialStateFields = { ...blockheadAgentCredentialState[EntityMetaKey.Selector], ...blockheadAgentCredentialState }}
-					{@const selection = select(EntityType.BlockheadAgentCredentialState, blockheadAgentCredentialState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAgentCredentialStateView
-						selection={selection}
-						prefetched={blockheadAgentCredentialStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentCredentialState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentCredentialState })}
+		{@const blockheadAgentCredentialStateFields = { ...blockheadAgentCredentialState[EntityMetaKey.Selector], ...blockheadAgentCredentialState }}
+		{@const selection = select(EntityType.BlockheadAgentCredentialState, blockheadAgentCredentialState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAgentCredentialStateView
+			selection={selection}
+			prefetched={blockheadAgentCredentialStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpResourceTemplate = $derived(selection({
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			mimeType: true,
@@ -73,29 +70,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mcpResourceTemplate}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpResourceTemplate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={mcpResourceTemplate}>
-			{#snippet Pending()}
-				{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpResourceTemplate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -117,26 +114,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									uriTemplate: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const uriTemplate = pendingEntity.uriTemplate}
-							{#if uriTemplate !== undefined && uriTemplate !== null}
-								<svelte:element
-									this={'a'}
-									href={String(uriTemplate)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(uriTemplate)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const uriTemplate = resolvedEntity.uriTemplate}
@@ -158,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -193,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							title: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const title = resolvedEntity.title}
@@ -228,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}
@@ -263,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mimeType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mimeType = pendingEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
-						<div>
-							<dt>mime type</dt>
-							<dd>
-								{String((mimeType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mimeType = resolvedEntity.mimeType}

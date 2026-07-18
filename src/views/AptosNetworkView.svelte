@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosNetwork = $derived(selection({}))
+	const aptosNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('aptos network')
 	const viewDomId = $derived('aptos-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -57,7 +59,6 @@
 	import AptosTransactionsView from '$/views/AptosTransactionsView.svelte'
 	import AptosEventsView from '$/views/AptosEventsView.svelte'
 	import AptosAccountsView from '$/views/AptosAccountsView.svelte'
-	import MoveModulesView from '$/views/MoveModulesView.svelte'
 	import AptosCoinBalance_TimestampsView from '$/views/AptosCoinBalance_TimestampsView.svelte'
 </script>
 
@@ -73,38 +74,38 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={aptosNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,11 +157,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -168,12 +166,12 @@
 
 				{#snippet SectionAptosChainObservations({ id, label, open })}
 					<AptosNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos network observations.'
 						open={open}
 						title={label}
@@ -183,12 +181,12 @@
 
 				{#snippet SectionAptosChainBlocks({ id, label, open })}
 					<AptosBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos blocks.'
 						open={open}
 						title={label}
@@ -198,12 +196,12 @@
 
 				{#snippet SectionAptosChainTransactions({ id, label, open })}
 					<AptosTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos transactions.'
 						open={open}
 						title={label}
@@ -213,12 +211,12 @@
 
 				{#snippet SectionAptosChainEvents({ id, label, open })}
 					<AptosEventsView
-						selection={
-							selection.$$events({
-								count: true,
-							})
-						}
+						selection={selection.$$events}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos events.'
 						open={open}
 						title={label}
@@ -237,19 +235,12 @@
 							id: 'aptos-accounts',
 							label: 'Accounts',
 						},
-						{
-							id: 'aptos-modules',
-							label: 'Move modules',
-						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-accounts-modules'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Accounts and modules</HeadingComponent>
 					</header>
@@ -257,28 +248,13 @@
 
 				{#snippet SectionAptosAccounts({ id, label, open })}
 					<AptosAccountsView
-						selection={
-							selection.$$accounts({
-								count: true,
-							})
-						}
+						selection={selection.$$accounts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos accounts.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionAptosModules({ id, label, open })}
-					<MoveModulesView
-						selection={
-							selection.$$modules({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No Aptos Move modules.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -300,11 +276,8 @@
 				}
 				data-card
 				class='network-view-collapsible-balances'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balances</HeadingComponent>
 					</header>
@@ -312,12 +285,12 @@
 
 				{#snippet SectionAptosCoinBalances({ id, label, open })}
 					<AptosCoinBalance_TimestampsView
-						selection={
-							selection.$$coinBalanceTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$coinBalanceTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Aptos coin balance observations.'
 						open={open}
 						title={label}

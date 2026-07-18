@@ -20,7 +20,7 @@
 	const pageSelection = $derived(select(EntityType.Market_Derivative_Timestamp, {
 		$market: data.selector,
 		timestampMs: Number(params.timestampMs),
-		feedKey: params.feedKey,
+		feedKey: decodeURIComponent(params.feedKey),
 	}, {
 		fields: {
 			markPrice: true,

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleDiscussionComment = $derived(selection({}))
+	const radicleDiscussionComment = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle discussion comment')
 	const viewDomId = $derived('radicle-discussion-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radicleDiscussionComment}>
-			{#snippet Pending()}
-				{title || 'radicle discussion comment'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radicleDiscussionComment}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -82,19 +84,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									commentId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const commentId = pendingEntity.commentId}
-							{#if commentId !== undefined && commentId !== null}
-								{String((commentId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const commentId = resolvedEntity.commentId}
@@ -109,24 +105,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorDid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorDid = pendingEntity.authorDid}
-					{#if authorDid !== undefined && authorDid !== null}
-						<div>
-							<dt>author DID</dt>
-							<dd>
-								{String((authorDid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorDid = resolvedEntity.authorDid}
@@ -144,24 +129,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							body: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const body = pendingEntity.body}
-					{#if body !== undefined && body !== null}
-						<div>
-							<dt>body</dt>
-							<dd>
-								{String((body) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const body = resolvedEntity.body}
@@ -179,24 +153,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							bodyObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const bodyObjectId = pendingEntity.bodyObjectId}
-					{#if bodyObjectId !== undefined && bodyObjectId !== null}
-						<div>
-							<dt>body object ID</dt>
-							<dd>
-								{String((bodyObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const bodyObjectId = resolvedEntity.bodyObjectId}
@@ -214,24 +177,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								{String((createdAt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -249,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAt = pendingEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								{String((updatedAt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAt = resolvedEntity.updatedAt}
@@ -284,24 +225,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyToCommentId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyToCommentId = pendingEntity.replyToCommentId}
-					{#if replyToCommentId !== undefined && replyToCommentId !== null}
-						<div>
-							<dt>reply to comment ID</dt>
-							<dd>
-								{String((replyToCommentId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyToCommentId = resolvedEntity.replyToCommentId}
@@ -319,8 +249,6 @@
 			<ResourceBoundary
 				resource={selection.$payloadObject}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

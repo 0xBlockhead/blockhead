@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,10 @@
 			{@const DetailView = RedditSubredditView}
 
 			<DetailView
-				selection={select(EntityType.RedditSubreddit, data.selector)}
+				selection={select(EntityType.RedditSubreddit, data.selector, { sources: [
+		Source.Constants_Internal,
+		Source.Reddit_PublicJson,
+	] })}
 				href={
 					resolve('/reddit/r/[name=stringSegment]', {
 						name: params.name,

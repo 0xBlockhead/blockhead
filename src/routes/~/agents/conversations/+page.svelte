@@ -37,5 +37,8 @@
 			})
 		}
 		id='blockhead-agent-conversations'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

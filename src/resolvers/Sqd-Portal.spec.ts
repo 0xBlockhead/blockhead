@@ -167,7 +167,7 @@ describe('SQD Portal query boundary', () => {
 describe('SQD Portal resolver', () => {
 	it('maps every owned EVM block field and transaction selector', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(evmBlockNdjson, { status: 200 }))
-		const block = await sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber]({
+		const block = await sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
 			$network: network,
 			blockNumber: 18_000_000n,
 		}, context)
@@ -204,7 +204,7 @@ describe('SQD Portal resolver', () => {
 	})
 
 	it('fails closed for an unsupported network', async () => {
-		await expect(sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber]({
+		await expect(sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
 			$network: {
 				caip2: {
 					namespace: 'eip155',

@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mevBuilderTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			deliveredPayloadCount: true,
 			deliveredValueWei: true,
@@ -83,82 +84,86 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mevBuilderTimestamp}>
-			{#snippet Pending()}
-				{[(String((pendingEntity.deliveredPayloadCount) ?? '') ? String((pendingEntity.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((pendingEntity.deliveredValueWei) ?? '') ? String((pendingEntity.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || title || 'MEV builder timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.deliveredPayloadCount) ?? '') ? String((resolvedEntity.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((resolvedEntity.deliveredValueWei) ?? '') ? String((resolvedEntity.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[(String((pendingEntity.deliveredPayloadCount) ?? '') ? String((pendingEntity.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((pendingEntity.deliveredValueWei) ?? '') ? String((pendingEntity.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mevBuilderTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[(String((resolvedEntity.deliveredPayloadCount) ?? '') ? String((resolvedEntity.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((resolvedEntity.deliveredValueWei) ?? '') ? String((resolvedEntity.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={mevBuilderTimestamp}>
-			{#snippet Pending()}
-				{@const deliveredPayloadCount0 = pendingEntity.deliveredPayloadCount}
-				{#if deliveredPayloadCount0 !== undefined && deliveredPayloadCount0 !== null}
-					<NumberValue value={Number(deliveredPayloadCount0)} />
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const deliveredPayloadCount0 = pendingEntity.deliveredPayloadCount}
+					{#if deliveredPayloadCount0 !== undefined && deliveredPayloadCount0 !== null}
+						<NumberValue
+							value={deliveredPayloadCount0}
+						/>
 
-					<span> payloads</span>
-				{/if}
-			{/snippet}
+						<span> payloads</span>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={mevBuilderTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const deliveredPayloadCount0 = resolvedEntity.deliveredPayloadCount}
+					{#if deliveredPayloadCount0 !== undefined && deliveredPayloadCount0 !== null}
+						<NumberValue
+							value={deliveredPayloadCount0}
+						/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const deliveredPayloadCount0 = resolvedEntity.deliveredPayloadCount}
-				{#if deliveredPayloadCount0 !== undefined && deliveredPayloadCount0 !== null}
-					<NumberValue value={Number(deliveredPayloadCount0)} />
-
-					<span> payloads</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						<span> payloads</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={mevBuilderTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<MevBuilderView
-						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
-						href={
-							(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
-								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<MevBuilderView
-						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
-						href={
-							(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
-								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<MevBuilderView
+					selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+					href={
+						(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+							builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+							builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+							network: String(selection.entitySelector.$builder.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={mevBuilderTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<MevBuilderView
+							selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+							href={
+								(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+									builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+									builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+									network: String(selection.entitySelector.$builder.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deliveredPayloadCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deliveredPayloadCount = pendingEntity.deliveredPayloadCount}
-					{#if deliveredPayloadCount !== undefined && deliveredPayloadCount !== null}
-						<div>
-							<dt>Delivered payload count</dt>
-							<dd>
-								<NumberValue value={Number(deliveredPayloadCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deliveredPayloadCount = resolvedEntity.deliveredPayloadCount}
@@ -191,7 +185,9 @@
 						<div>
 							<dt>Delivered payload count</dt>
 							<dd>
-								<NumberValue value={Number(deliveredPayloadCount)} />
+								<NumberValue
+									value={deliveredPayloadCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -201,26 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deliveredValueWei: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deliveredValueWei = pendingEntity.deliveredValueWei}
-					{#if deliveredValueWei !== undefined && deliveredValueWei !== null}
-						<div>
-							<dt>Delivered value</dt>
-							<dd>
-								<NumberValue value={Number(deliveredValueWei)} />
-
-								<span> wei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deliveredValueWei = resolvedEntity.deliveredValueWei}
@@ -228,7 +211,9 @@
 						<div>
 							<dt>Delivered value</dt>
 							<dd>
-								<NumberValue value={Number(deliveredValueWei)} />
+								<NumberValue
+									value={deliveredValueWei}
+								/>
 
 								<span> wei</span>
 							</dd>
@@ -240,24 +225,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							relayCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const relayCount = pendingEntity.relayCount}
-					{#if relayCount !== undefined && relayCount !== null}
-						<div>
-							<dt>Relay count</dt>
-							<dd>
-								<NumberValue value={Number(relayCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const relayCount = resolvedEntity.relayCount}
@@ -265,7 +239,9 @@
 						<div>
 							<dt>Relay count</dt>
 							<dd>
-								<NumberValue value={Number(relayCount)} />
+								<NumberValue
+									value={relayCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -277,24 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							windowStartSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const windowStartSlot = pendingEntity.windowStartSlot}
-					{#if windowStartSlot !== undefined && windowStartSlot !== null}
-						<div>
-							<dt>Window start slot</dt>
-							<dd>
-								<NumberValue value={Number(windowStartSlot)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const windowStartSlot = resolvedEntity.windowStartSlot}
@@ -302,7 +267,9 @@
 						<div>
 							<dt>Window start slot</dt>
 							<dd>
-								<NumberValue value={Number(windowStartSlot)} />
+								<NumberValue
+									value={windowStartSlot}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -312,24 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							windowEndSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const windowEndSlot = pendingEntity.windowEndSlot}
-					{#if windowEndSlot !== undefined && windowEndSlot !== null}
-						<div>
-							<dt>Window end slot</dt>
-							<dd>
-								<NumberValue value={Number(windowEndSlot)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const windowEndSlot = resolvedEntity.windowEndSlot}
@@ -337,7 +293,9 @@
 						<div>
 							<dt>Window end slot</dt>
 							<dd>
-								<NumberValue value={Number(windowEndSlot)} />
+								<NumberValue
+									value={windowEndSlot}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -347,24 +305,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sampleLimit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sampleLimit = pendingEntity.sampleLimit}
-					{#if sampleLimit !== undefined && sampleLimit !== null}
-						<div>
-							<dt>Sample limit</dt>
-							<dd>
-								<NumberValue value={Number(sampleLimit)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sampleLimit = resolvedEntity.sampleLimit}
@@ -372,7 +319,9 @@
 						<div>
 							<dt>Sample limit</dt>
 							<dd>
-								<NumberValue value={Number(sampleLimit)} />
+								<NumberValue
+									value={sampleLimit}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -387,19 +336,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -417,19 +360,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}

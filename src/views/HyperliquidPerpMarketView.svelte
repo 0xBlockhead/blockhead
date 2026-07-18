@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidPerpMarket = $derived(selection({}))
+	const hyperliquidPerpMarket = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid perp market')
 	const viewDomId = $derived('hyperliquid-perp-market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidPerpMarket}>
-			{#snippet Pending()}
-				{title || 'hyperliquid perp market'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidPerpMarket}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									coin: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const coin = pendingEntity.coin}
-							{#if coin !== undefined && coin !== null}
-								{String((coin) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const coin = resolvedEntity.coin}

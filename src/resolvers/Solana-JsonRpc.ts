@@ -9,6 +9,7 @@ import {
 } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -103,8 +104,10 @@ const solanaTransactionTimestampFields = (
 		slot,
 		source: Source.Solana_JsonRpc,
 	},
-	$transaction: {
-		[EntityMetaKey.Selector]: transactionId,
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], '$transaction')]: {
+			[EntityMetaKey.Selector]: transactionId,
+		},
 	},
 	slot,
 	source: Source.Solana_JsonRpc,
@@ -123,6 +126,67 @@ const solanaTransactionTimestampFields = (
 	}),
 })
 
+const solanaTransactionRow = (
+	network: { caip2: {
+		namespace: string
+		reference: string
+	} } | { slug: string },
+	signature: string,
+	transaction: SolanaRpcTransactionWithMeta,
+	slot: bigint
+) => {
+	const transactionFields = solanaTransactionFields(
+		network,
+		transaction,
+		slot
+	)
+	const timestamp = solanaTransactionTimestampFields(
+		{
+			$network: network,
+			signature,
+		},
+		transaction,
+		slot
+	)
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			signature,
+		},
+		[EntityMetaKey.Fields]: {
+			...(transactionFields.$block != null && {
+				[entityFieldAddressKey(EntityType.SolanaTransaction, [], '$block')]: transactionFields.$block,
+			}),
+			...(transactionFields.$feePayer != null && {
+				[entityFieldAddressKey(EntityType.SolanaTransaction, [], '$feePayer')]: transactionFields.$feePayer,
+			}),
+			[entityFieldAddressKey(EntityType.SolanaTransaction, [], 'slot')]: slot,
+			[entityFieldAddressKey(EntityType.SolanaTransaction, [], '$$timestamps')]: [
+				{
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						...(timestamp.timestampMs != null && {
+							[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], 'timestampMs')]: timestamp.timestampMs,
+						}),
+						...(timestamp.feeLamports != null && {
+							[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], 'feeLamports')]: timestamp.feeLamports,
+						}),
+						...(timestamp.computeUnitsConsumed != null && {
+							[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], 'computeUnitsConsumed')]: timestamp.computeUnitsConsumed,
+						}),
+						...(timestamp.status != null && {
+							[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], 'status')]: timestamp.status,
+						}),
+						...(timestamp.err != null && {
+							[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], 'err')]: timestamp.err,
+						}),
+					},
+				},
+			],
+		},
+	}
+}
+
 const solanaInstructionFields = (
 	network: { caip2: {
 		namespace: string
@@ -130,12 +194,13 @@ const solanaInstructionFields = (
 	} } | { slug: string },
 	instruction: SolanaRpcInstruction
 ) => ({
-	$program: {
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			programId: instruction.programId,
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$program')]: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				programId: instruction.programId,
+			},
 		},
-	},
 	...(instruction.parsed?.type != null && {
 		parsedType: instruction.parsed.type,
 	}),
@@ -145,14 +210,15 @@ const solanaInstructionFields = (
 	...(instruction.stackHeight != null && {
 		stackHeight: instruction.stackHeight,
 	}),
-	$$accounts: (
-		instruction.accounts?.map((pubkey) => ({
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				pubkey,
-			},
-		})) ?? []
-	),
+		[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$$accounts')]: (
+			instruction.accounts?.map((pubkey) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					pubkey,
+				},
+			})) ?? []
+		),
+	},
 })
 
 const solanaInstructionRows = (
@@ -219,18 +285,20 @@ const solanaAccountTimestampFields = (
 		slot,
 		source: Source.Solana_JsonRpc,
 	},
-	$account: {
-		[EntityMetaKey.Selector]: accountId,
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], '$account')]: {
+			[EntityMetaKey.Selector]: accountId,
+		},
+		[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], '$ownerProgram')]: {
+			[EntityMetaKey.Selector]: {
+				$network: accountId.$network,
+				programId: accountInfo.owner,
+			},
+		},
 	},
 	slot,
 	source: Source.Solana_JsonRpc,
 	lamports: BigInt(accountInfo.lamports),
-	$ownerProgram: {
-		[EntityMetaKey.Selector]: {
-			$network: accountId.$network,
-			programId: accountInfo.owner,
-		},
-	},
 	rentEpoch: BigInt(accountInfo.rentEpoch),
 	executable: accountInfo.executable,
 	dataEncoding: accountInfo.data[1],
@@ -258,8 +326,10 @@ const solanaValidatorTimestampFields = (
 		slot,
 		source: Source.Solana_JsonRpc,
 	},
-	$validator: {
-		[EntityMetaKey.Selector]: validatorId,
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator')]: {
+			[EntityMetaKey.Selector]: validatorId,
+		},
 	},
 	slot,
 	source: Source.Solana_JsonRpc,
@@ -370,9 +440,11 @@ const solanaTokenAccountTimestampFields = (
 		slot,
 		source: Source.Solana_JsonRpc,
 	},
-	$tokenAccount: {
-		[EntityMetaKey.Selector]: tokenAccount,
-	} satisfies Entity<typeof schema, EntityType.SolanaTokenAccount>,
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.SolanaTokenAccount_Timestamp, [], '$tokenAccount')]: {
+			[EntityMetaKey.Selector]: tokenAccount,
+		} satisfies Entity<typeof schema, EntityType.SolanaTokenAccount>,
+	},
 	slot,
 	source: Source.Solana_JsonRpc,
 	amount: BigInt(info.tokenAmount.amount),
@@ -399,68 +471,55 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: async ({ $network, slot }: {
-					$network: { caip2: {
-						namespace: string
-						reference: string
-					} } | { slug: string }
-					slot: bigint
-				}) => {
-						assertSolanaMainnet($network)
+				[SolanaBlockSelector.Slot]: {
+					resolve: async ({ $network, slot }: {
+						$network: { caip2: {
+							namespace: string
+							reference: string
+						} } | { slug: string }
+						slot: bigint
+					}) => {
+							assertSolanaMainnet($network)
 
-						const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
-						const block = await getBlock({
-							rpcUrl: await solanaMainnetRpcUrl(),
-							slot,
-						})
-						if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
-						return {
-							...(block.blockHeight != null && {
-								blockHeight: BigInt(block.blockHeight),
-							}),
-							blockHash: block.blockhash,
-							previousBlockHash: block.previousBlockhash,
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									slot: BigInt(block.parentSlot),
+							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
+							const block = await getBlock({
+								rpcUrl: await solanaMainnetRpcUrl(),
+								slot,
+							})
+							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
+							return {
+								...(block.blockHeight != null && {
+									blockHeight: BigInt(block.blockHeight),
+								}),
+								blockHash: block.blockhash,
+								previousBlockHash: block.previousBlockhash,
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot: BigInt(block.parentSlot),
+									},
 								},
-							},
-							parentSlot: BigInt(block.parentSlot),
-							...(block.blockTime != null && {
-								timestampMs: block.blockTime * 1000,
-							}),
-							transactionCount: block.transactions.length,
-							$$transactions: block.transactions.flatMap((transaction) => {
-								const signature = transaction.transaction.signatures.at(0)
-								return signature == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												$network,
-												signature,
-											},
-											...solanaTransactionFields(
-												$network,
-												transaction,
-												slot
-											),
-											$$timestamps: [
-												solanaTransactionTimestampFields(
-													{
-														$network,
-														signature,
-													},
-													transaction,
-													slot
-												),
-											],
-										},
-									]
-							}),
-						}
+								parentSlot: BigInt(block.parentSlot),
+								...(block.blockTime != null && {
+									timestampMs: block.blockTime * 1000,
+								}),
+								transactionCount: block.transactions.length,
+								$$transactions: block.transactions.flatMap((transaction) => {
+									const signature = transaction.transaction.signatures.at(0)
+									return signature == null ?
+										[]
+									:
+										[
+										solanaTransactionRow(
+											$network,
+											signature,
+											transaction,
+											slot
+										),
+										]
+								}),
+							}
+					},
 				},
 			},
 		})({
@@ -473,65 +532,84 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 				$$transactions: (block) => block.$$transactions,
 			}),
+
+		defineResolver(Source.Solana_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						assertSolanaMainnet({ caip2 })
+						return (await import('$/sources/Solana/JsonRpc/queries.ts')).solanaMainnetRpcEndpoints
+					},
+				}
+			},
+		})({
+				Solana: {
+					rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+				},
+			}),
+
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					assertSolanaMainnet($network)
-					const {
-						getEpochInfo,
-						getHealth,
-						getVersion,
-						getVoteAccounts,
-					} = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const [
-						epochInfo,
-					health,
-					version,
-					voteAccounts,
-					] = await Promise.all([
-						getEpochInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}),
-						getHealth({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}).catch((error) => (
-						error instanceof Error ? error.message : 'unavailable'
-						)),
-						getVersion({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}),
-						getVoteAccounts({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}),
-					])
-					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
-						timestampMs,
-						source: Source.Solana_JsonRpc,
-						ledgerModels: [NetworkLedgerModel.Account],
-						executionModels: [NetworkExecutionModel.SolanaRuntime],
-						absoluteSlot: BigInt(epochInfo.absoluteSlot),
-						blockHeight: BigInt(epochInfo.blockHeight),
-						epoch: epochInfo.epoch,
-						slotIndex: epochInfo.slotIndex,
-						slotsInEpoch: epochInfo.slotsInEpoch,
-						...(epochInfo.transactionCount != null && {
-							transactionCount: BigInt(epochInfo.transactionCount),
-						}),
-						currentValidatorCount: voteAccounts.current.length,
-						delinquentValidatorCount: voteAccounts.delinquent.length,
-						totalActivatedStakeLamports: voteAccounts.current
-							.reduce((total, voteAccount) => total + BigInt(voteAccount.activatedStake), 0n),
-						solanaCoreVersion: version['solana-core'],
-						...(version['feature-set'] != null && {
-							featureSet: version['feature-set'],
-						}),
+				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						assertSolanaMainnet($network)
+						const {
+							getEpochInfo,
+							getHealth,
+							getVersion,
+							getVoteAccounts,
+						} = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const [
+							epochInfo,
 						health,
-					}
+						version,
+						voteAccounts,
+						] = await Promise.all([
+							getEpochInfo({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}),
+							getHealth({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}).catch((error) => (
+							error instanceof Error ? error.message : 'unavailable'
+							)),
+							getVersion({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}),
+							getVoteAccounts({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}),
+						])
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source: Source.Solana_JsonRpc,
+							ledgerModels: [NetworkLedgerModel.Account],
+							executionModels: [NetworkExecutionModel.SolanaRuntime],
+							absoluteSlot: BigInt(epochInfo.absoluteSlot),
+							blockHeight: BigInt(epochInfo.blockHeight),
+							epoch: epochInfo.epoch,
+							slotIndex: epochInfo.slotIndex,
+							slotsInEpoch: epochInfo.slotsInEpoch,
+							...(epochInfo.transactionCount != null && {
+								transactionCount: BigInt(epochInfo.transactionCount),
+							}),
+							currentValidatorCount: voteAccounts.current.length,
+							delinquentValidatorCount: voteAccounts.delinquent.length,
+							totalActivatedStakeLamports: voteAccounts.current
+								.reduce((total, voteAccount) => total + BigInt(voteAccount.activatedStake), 0n),
+							solanaCoreVersion: version['solana-core'],
+							...(version['feature-set'] != null && {
+								featureSet: version['feature-set'],
+							}),
+							health,
+						}
+					},
 				}
 			},
 		})({
@@ -559,36 +637,38 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: async ({ $network, signature }) => {
-					const transaction = await getTransaction({
-						$network,
-						signature,
-					})
-					return {
-						...solanaTransactionFields(
+				[SolanaTransactionSelector.NetworkSignature]: {
+					resolve: async ({ $network, signature }) => {
+						const transaction = await getTransaction({
 							$network,
-							transaction,
-							BigInt(transaction.slot)
-						),
-						$$timestamps: [
-							solanaTransactionTimestampFields(
+							signature,
+						})
+						return {
+							...solanaTransactionFields(
+								$network,
+								transaction,
+								BigInt(transaction.slot)
+							),
+							$$timestamps: [
+								solanaTransactionTimestampFields(
+									{
+										$network,
+										signature,
+									},
+									transaction,
+									BigInt(transaction.slot)
+								),
+							],
+							$$instructions: solanaInstructionRows(
+								$network,
 								{
 									$network,
 									signature,
 								},
-								transaction,
-								BigInt(transaction.slot)
+								transaction
 							),
-						],
-						$$instructions: solanaInstructionRows(
-							$network,
-							{
-								$network,
-								signature,
-							},
-							transaction
-						),
-					}
+						}
+					},
 				},
 			},
 		})({
@@ -605,22 +685,24 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
-				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: async ({ $transaction, slot, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					const transaction = await getTransaction($transaction)
-					if (BigInt(transaction.slot) !== slot) throw new Error('Solana_JsonRpc: SolanaTransaction_Timestamp id does not match transaction slot')
-					const { getSignatureStatuses } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					return {
-						...solanaTransactionTimestampFields(
-							$transaction,
-							transaction,
-							slot
-						),
-						confirmationStatus: (await getSignatureStatuses({
-							rpcUrl: await solanaMainnetRpcUrl(),
-							signatures: [$transaction.signature],
-						})).value[0]?.confirmationStatus,
-					}
+				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: {
+					resolve: async ({ $transaction, slot, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						const transaction = await getTransaction($transaction)
+						if (BigInt(transaction.slot) !== slot) throw new Error('Solana_JsonRpc: SolanaTransaction_Timestamp id does not match transaction slot')
+						const { getSignatureStatuses } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						return {
+							...solanaTransactionTimestampFields(
+								$transaction,
+								transaction,
+								slot
+							),
+							confirmationStatus: (await getSignatureStatuses({
+								rpcUrl: await solanaMainnetRpcUrl(),
+								signatures: [$transaction.signature],
+							})).value[0]?.confirmationStatus,
+						}
+					},
 				},
 			},
 		})({
@@ -638,32 +720,36 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
-					const transaction = await getTransaction($transaction)
-					return {
-						instructionKind: SolanaInstructionKind.Instruction,
-						indexInTransaction,
-						...solanaInstructionFields(
-							$transaction.$network,
-							transaction.transaction.message.instructions[indexInTransaction]
-						),
-					}
+				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const transaction = await getTransaction($transaction)
+						return {
+							instructionKind: SolanaInstructionKind.Instruction,
+							indexInTransaction,
+							...solanaInstructionFields(
+								$transaction.$network,
+								transaction.transaction.message.instructions[indexInTransaction]
+							),
+						}
+					},
 				},
-				[SolanaInstructionSelector.SolanaTransactionIndexInInstruction]: async ({ $transaction, indexInTransaction, indexInInstruction }) => {
-					const transaction = await getTransaction($transaction)
-					const instruction = transaction.meta?.innerInstructions
-						?.find((innerInstructionGroup) => innerInstructionGroup.index === indexInTransaction)
-						?.instructions[indexInInstruction]
-					if (instruction == null) throw new Error(`Solana_JsonRpc: instruction not found for ${$transaction.signature}`)
-					return {
-						instructionKind: SolanaInstructionKind.InnerInstruction,
-						indexInTransaction,
-						indexInInstruction,
-						...solanaInstructionFields(
-							$transaction.$network,
-							instruction
-						),
-					}
+				[SolanaInstructionSelector.SolanaTransactionIndexInInstruction]: {
+					resolve: async ({ $transaction, indexInTransaction, indexInInstruction }) => {
+						const transaction = await getTransaction($transaction)
+						const instruction = transaction.meta?.innerInstructions
+							?.find((innerInstructionGroup) => innerInstructionGroup.index === indexInTransaction)
+							?.instructions[indexInInstruction]
+						if (instruction == null) throw new Error(`Solana_JsonRpc: instruction not found for ${$transaction.signature}`)
+						return {
+							instructionKind: SolanaInstructionKind.InnerInstruction,
+							indexInTransaction,
+							indexInInstruction,
+							...solanaInstructionFields(
+								$transaction.$network,
+								instruction
+							),
+						}
+					},
 				},
 			},
 		})({
@@ -685,28 +771,30 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount,
 			resolve: {
-				[SolanaAccountSelector.NetworkPubkey]: async ({ $network, pubkey }) => {
-					assertSolanaMainnet($network)
-					const { getAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: pubkey,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
-					return {
-						$$timestamps: [
-							solanaAccountTimestampFields(
-								{
-									$network,
-									pubkey,
-								},
-								accountInfo.value,
-								BigInt(await getSlot({
-									rpcUrl: await solanaMainnetRpcUrl(),
-								}))
-							),
-						],
-					}
+				[SolanaAccountSelector.NetworkPubkey]: {
+					resolve: async ({ $network, pubkey }) => {
+						assertSolanaMainnet($network)
+						const { getAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: pubkey,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
+						return {
+							$$timestamps: [
+								solanaAccountTimestampFields(
+									{
+										$network,
+										pubkey,
+									},
+									accountInfo.value,
+									BigInt(await getSlot({
+										rpcUrl: await solanaMainnetRpcUrl(),
+									}))
+								),
+							],
+						}
+					},
 				}
 			},
 		})({
@@ -718,28 +806,30 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
-				[SolanaAccount_TimestampSelector.AccountSlotSource]: async ({ $account, slot, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					assertSolanaMainnet($account.$network)
-					const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: $account.pubkey,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${$account.pubkey}`)
-					return solanaAccountTimestampFields(
-						$account,
-						accountInfo.value,
-						slot
-					)
+				[SolanaAccount_TimestampSelector.AccountSlotSource]: {
+					resolve: async ({ $account, slot, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						assertSolanaMainnet($account.$network)
+						const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: $account.pubkey,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${$account.pubkey}`)
+						return solanaAccountTimestampFields(
+							$account,
+							accountInfo.value,
+							slot
+						)
+					},
 				},
 			},
 		})({
-				$account: (timestamp) => timestamp.$account,
+				$account: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], '$account')],
 				slot: (timestamp) => timestamp.slot,
 				source: (timestamp) => timestamp.source,
 				lamports: (timestamp) => timestamp.lamports,
-				$ownerProgram: (timestamp) => timestamp.$ownerProgram,
+				$ownerProgram: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], '$ownerProgram')],
 				rentEpoch: (timestamp) => timestamp.rentEpoch,
 				executable: (timestamp) => timestamp.executable,
 				dataEncoding: (timestamp) => timestamp.dataEncoding,
@@ -748,16 +838,18 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaProgram,
 			resolve: {
-				[SolanaProgramSelector.NetworkProgramId]: async ({ $network, programId }) => {
-					assertSolanaMainnet($network)
-					return {
-						$programAccount: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								pubkey: programId,
+				[SolanaProgramSelector.NetworkProgramId]: {
+					resolve: async ({ $network, programId }) => {
+						assertSolanaMainnet($network)
+						return {
+							$programAccount: {
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									pubkey: programId,
+								},
 							},
-						},
-					}
+						}
+					},
 				}
 			},
 		})({
@@ -767,30 +859,32 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint,
 			resolve: {
-				[SolanaTokenMintSelector.NetworkMintAddress]: async ({ $network, mintAddress }) => {
-					assertSolanaMainnet($network)
-					const { getParsedTokenMintAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getParsedTokenMintAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: mintAddress,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${mintAddress}`)
-					return {
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$mint: {
-										$network,
-										mintAddress,
+				[SolanaTokenMintSelector.NetworkMintAddress]: {
+					resolve: async ({ $network, mintAddress }) => {
+						assertSolanaMainnet($network)
+						const { getParsedTokenMintAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getParsedTokenMintAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: mintAddress,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${mintAddress}`)
+						return {
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$mint: {
+											$network,
+											mintAddress,
+										},
+										slot: BigInt(await getSlot({
+											rpcUrl: await solanaMainnetRpcUrl(),
+										})),
+										source: Source.Solana_JsonRpc,
 									},
-									slot: BigInt(await getSlot({
-										rpcUrl: await solanaMainnetRpcUrl(),
-									})),
-									source: Source.Solana_JsonRpc,
 								},
-							},
-						],
-					}
+							],
+						}
+					},
 				}
 			},
 		})({
@@ -800,27 +894,29 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint_Timestamp,
 			resolve: {
-				[SolanaTokenMint_TimestampSelector.MintSlotSource]: async ({ $mint, slot, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					assertSolanaMainnet($mint.$network)
-					const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getParsedTokenMintAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: $mint.mintAddress,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${$mint.mintAddress}`)
-					return {
-						$mint: {
-							[EntityMetaKey.Selector]: $mint,
-						},
-						slot,
-						source,
-						supply: BigInt(accountInfo.value.data.parsed.info.supply),
-						decimals: accountInfo.value.data.parsed.info.decimals,
-						isInitialized: accountInfo.value.data.parsed.info.isInitialized,
-						mintAuthorityPubkey: accountInfo.value.data.parsed.info.mintAuthority ?? undefined,
-						freezeAuthorityPubkey: accountInfo.value.data.parsed.info.freezeAuthority ?? undefined,
-					}
+				[SolanaTokenMint_TimestampSelector.MintSlotSource]: {
+					resolve: async ({ $mint, slot, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						assertSolanaMainnet($mint.$network)
+						const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getParsedTokenMintAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: $mint.mintAddress,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${$mint.mintAddress}`)
+						return {
+							$mint: {
+								[EntityMetaKey.Selector]: $mint,
+							},
+							slot,
+							source,
+							supply: BigInt(accountInfo.value.data.parsed.info.supply),
+							decimals: accountInfo.value.data.parsed.info.decimals,
+							isInitialized: accountInfo.value.data.parsed.info.isInitialized,
+							mintAuthorityPubkey: accountInfo.value.data.parsed.info.mintAuthority ?? undefined,
+							freezeAuthorityPubkey: accountInfo.value.data.parsed.info.freezeAuthority ?? undefined,
+						}
+					},
 				}
 			},
 		})({
@@ -837,65 +933,67 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenAccount,
 			resolve: {
-				[SolanaTokenAccountSelector.NetworkTokenAccountPubkey]: async ({ $network, tokenAccountPubkey }) => {
-					assertSolanaMainnet($network)
-					const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getParsedTokenAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: tokenAccountPubkey,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${tokenAccountPubkey}`)
-					const info = accountInfo.value.data.parsed.info
-					return {
-						$account: {
-							[EntityMetaKey.Selector]: {
-								$network,
-								pubkey: tokenAccountPubkey,
-							},
-						},
-						$mint: {
-							[EntityMetaKey.Selector]: {
-								$network,
-								mintAddress: info.mint,
-							},
-						},
-						$owner: {
-							[EntityMetaKey.Selector]: {
-								$network,
-								pubkey: info.owner,
-							},
-						},
-						...(info.delegate != null && {
-							$delegate: {
+				[SolanaTokenAccountSelector.NetworkTokenAccountPubkey]: {
+					resolve: async ({ $network, tokenAccountPubkey }) => {
+						assertSolanaMainnet($network)
+						const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getParsedTokenAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: tokenAccountPubkey,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${tokenAccountPubkey}`)
+						const info = accountInfo.value.data.parsed.info
+						return {
+							$account: {
 								[EntityMetaKey.Selector]: {
 									$network,
-									pubkey: info.delegate,
+									pubkey: tokenAccountPubkey,
 								},
 							},
-						}),
-						...(info.closeAuthority != null && {
-							$closeAuthority: {
+							$mint: {
 								[EntityMetaKey.Selector]: {
 									$network,
-									pubkey: info.closeAuthority,
+									mintAddress: info.mint,
 								},
 							},
-						}),
-						$$timestamps: [
-							{
+							$owner: {
 								[EntityMetaKey.Selector]: {
-									$tokenAccount: {
+									$network,
+									pubkey: info.owner,
+								},
+							},
+							...(info.delegate != null && {
+								$delegate: {
+									[EntityMetaKey.Selector]: {
 										$network,
-										tokenAccountPubkey,
+										pubkey: info.delegate,
 									},
-									slot: BigInt(await getSlot({
-										rpcUrl: await solanaMainnetRpcUrl(),
-									})),
-									source: Source.Solana_JsonRpc,
 								},
-							},
-						],
-					}
+							}),
+							...(info.closeAuthority != null && {
+								$closeAuthority: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										pubkey: info.closeAuthority,
+									},
+								},
+							}),
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$tokenAccount: {
+											$network,
+											tokenAccountPubkey,
+										},
+										slot: BigInt(await getSlot({
+											rpcUrl: await solanaMainnetRpcUrl(),
+										})),
+										source: Source.Solana_JsonRpc,
+									},
+								},
+							],
+						}
+					},
 				}
 			},
 		})({
@@ -910,20 +1008,22 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenAccount_Timestamp,
 			resolve: {
-				[SolanaTokenAccount_TimestampSelector.TokenAccountSlotSource]: async ({ $tokenAccount, slot, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					assertSolanaMainnet($tokenAccount.$network)
-					const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const accountInfo = await getParsedTokenAccountInfo({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						pubkey: $tokenAccount.tokenAccountPubkey,
-					})
-					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${$tokenAccount.tokenAccountPubkey}`)
-					return solanaTokenAccountTimestampFields(
-						$tokenAccount,
-						accountInfo.value.data.parsed.info,
-						slot
-					)
+				[SolanaTokenAccount_TimestampSelector.TokenAccountSlotSource]: {
+					resolve: async ({ $tokenAccount, slot, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						assertSolanaMainnet($tokenAccount.$network)
+						const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const accountInfo = await getParsedTokenAccountInfo({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							pubkey: $tokenAccount.tokenAccountPubkey,
+						})
+						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${$tokenAccount.tokenAccountPubkey}`)
+						return solanaTokenAccountTimestampFields(
+							$tokenAccount,
+							accountInfo.value.data.parsed.info,
+							slot
+						)
+					},
 				},
 			},
 		})({
@@ -946,37 +1046,39 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator,
 			resolve: {
-				[SolanaValidatorSelector.NetworkVotePubkey]: async ({ $network, votePubkey }) => {
-					assertSolanaMainnet($network)
-					const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const voteAccounts = await getVoteAccounts({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						votePubkey: votePubkey,
-					})
-					const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
-						voteAccount.votePubkey === votePubkey
-					))
-					const delinquentVoteAccount = voteAccounts.delinquent.find((voteAccount) => (
-						voteAccount.votePubkey === votePubkey
-					))
-					const voteAccount = currentVoteAccount ?? delinquentVoteAccount
-					if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${votePubkey}`)
-					return {
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$validator: {
-										$network,
-										votePubkey,
+				[SolanaValidatorSelector.NetworkVotePubkey]: {
+					resolve: async ({ $network, votePubkey }) => {
+						assertSolanaMainnet($network)
+						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const voteAccounts = await getVoteAccounts({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							votePubkey: votePubkey,
+						})
+						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
+							voteAccount.votePubkey === votePubkey
+						))
+						const delinquentVoteAccount = voteAccounts.delinquent.find((voteAccount) => (
+							voteAccount.votePubkey === votePubkey
+						))
+						const voteAccount = currentVoteAccount ?? delinquentVoteAccount
+						if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${votePubkey}`)
+						return {
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$validator: {
+											$network,
+											votePubkey,
+										},
+										slot: BigInt(await getSlot({
+											rpcUrl: await solanaMainnetRpcUrl(),
+										})),
+										source: Source.Solana_JsonRpc,
 									},
-									slot: BigInt(await getSlot({
-										rpcUrl: await solanaMainnetRpcUrl(),
-									})),
-									source: Source.Solana_JsonRpc,
 								},
-							},
-						],
-					}
+							],
+						}
+					},
 				}
 			},
 		})({
@@ -986,35 +1088,37 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator_Timestamp,
 			resolve: {
-				[SolanaValidator_TimestampSelector.ValidatorSlotSource]: async ({ $validator, slot, source }) => {
-					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
-					assertSolanaMainnet($validator.$network)
-					const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const voteAccounts = await getVoteAccounts({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						votePubkey: $validator.votePubkey,
-					})
-					const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
-						voteAccount.votePubkey === $validator.votePubkey
-					))
-					const delinquentVoteAccount = voteAccounts.delinquent.find((voteAccount) => (
-						voteAccount.votePubkey === $validator.votePubkey
-					))
-					const voteAccount = currentVoteAccount ?? delinquentVoteAccount
-					if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${$validator.votePubkey}`)
-					return {
-						$validator: {
-							[EntityMetaKey.Selector]: $validator,
-						},
-						slot,
-						source,
-						nodePubkey: voteAccount.nodePubkey,
-						activatedStakeLamports: BigInt(voteAccount.activatedStake),
-						commission: voteAccount.commission,
-						delinquent: delinquentVoteAccount != null,
-						lastVoteSlot: BigInt(voteAccount.lastVote),
-						rootSlot: BigInt(voteAccount.rootSlot),
-					}
+				[SolanaValidator_TimestampSelector.ValidatorSlotSource]: {
+					resolve: async ({ $validator, slot, source }) => {
+						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+						assertSolanaMainnet($validator.$network)
+						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const voteAccounts = await getVoteAccounts({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							votePubkey: $validator.votePubkey,
+						})
+						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
+							voteAccount.votePubkey === $validator.votePubkey
+						))
+						const delinquentVoteAccount = voteAccounts.delinquent.find((voteAccount) => (
+							voteAccount.votePubkey === $validator.votePubkey
+						))
+						const voteAccount = currentVoteAccount ?? delinquentVoteAccount
+						if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${$validator.votePubkey}`)
+						return {
+							$validator: {
+								[EntityMetaKey.Selector]: $validator,
+							},
+							slot,
+							source,
+							nodePubkey: voteAccount.nodePubkey,
+							activatedStakeLamports: BigInt(voteAccount.activatedStake),
+							commission: voteAccount.commission,
+							delinquent: delinquentVoteAccount != null,
+							lastVoteSlot: BigInt(voteAccount.lastVote),
+							rootSlot: BigInt(voteAccount.rootSlot),
+						}
+					},
 				}
 			},
 		})({
@@ -1033,17 +1137,19 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					assertSolanaMainnet({ caip2 })
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: { caip2 },
-								timestampMs: Date.now(),
-								source: Source.Solana_JsonRpc,
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						assertSolanaMainnet({ caip2 })
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: { caip2 },
+									timestampMs: Date.now(),
+									source: Source.Solana_JsonRpc,
+								},
 							},
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -1053,32 +1159,34 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					assertSolanaMainnet({ caip2 })
-					const {
-						getBlocks,
-						getSlot,
-					} = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const endSlot = BigInt(await getSlot({
-						rpcUrl: await solanaMainnetRpcUrl(),
-					}))
-					return (await getBlocks({
-						rpcUrl: await solanaMainnetRpcUrl(),
-						startSlot: endSlot > BigInt(limit - 1) ?
-							endSlot - BigInt(limit - 1)
-						:
-							0n,
-						endSlot,
-					}))
-						.toReversed()
-						.slice(0, limit)
-						.map((slot) => ({
-							[EntityMetaKey.Selector]: {
-								$network: { caip2 },
-								slot: BigInt(slot),
-							},
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						assertSolanaMainnet({ caip2 })
+						const {
+							getBlocks,
+							getSlot,
+						} = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const endSlot = BigInt(await getSlot({
+							rpcUrl: await solanaMainnetRpcUrl(),
 						}))
+						return (await getBlocks({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							startSlot: endSlot > BigInt(limit - 1) ?
+								endSlot - BigInt(limit - 1)
+							:
+								0n,
+							endSlot,
+						}))
+							.toReversed()
+							.slice(0, limit)
+							.map((slot) => ({
+								[EntityMetaKey.Selector]: {
+									$network: { caip2 },
+									slot: BigInt(slot),
+								},
+							}))
+					},
 				}
 			},
 		})({
@@ -1090,18 +1198,20 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					assertSolanaMainnet({ caip2 })
-					const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					return solanaValidatorRows(
-						{ caip2 },
-						await getVoteAccounts({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}),
-						BigInt(await getSlot({
-							rpcUrl: await solanaMainnetRpcUrl(),
-						}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						assertSolanaMainnet({ caip2 })
+						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						return solanaValidatorRows(
+							{ caip2 },
+							await getVoteAccounts({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}),
+							BigInt(await getSlot({
+								rpcUrl: await solanaMainnetRpcUrl(),
+							}))
+						)
+					},
 				}
 			},
 		})({
@@ -1113,13 +1223,15 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					assertSolanaMainnet({ caip2 })
-					const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const voteAccounts = await getVoteAccounts({
-						rpcUrl: await solanaMainnetRpcUrl(),
-					})
-					return voteAccounts.current.length + voteAccounts.delinquent.length
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						assertSolanaMainnet({ caip2 })
+						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const voteAccounts = await getVoteAccounts({
+							rpcUrl: await solanaMainnetRpcUrl(),
+						})
+						return voteAccounts.current.length + voteAccounts.delinquent.length
+					},
 				}
 			},
 		})({
@@ -1133,91 +1245,19 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					assertSolanaMainnet({ caip2 })
-					const {
-						getBlock,
-						getBlocks,
-						getSlot,
-					} = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const endSlot = BigInt(await getSlot({
-						rpcUrl: await solanaMainnetRpcUrl(),
-					}))
-					return (
-						await Promise.all(
-							(await getBlocks({
-								rpcUrl: await solanaMainnetRpcUrl(),
-								startSlot: endSlot > 31n ? endSlot - 31n : 0n,
-								endSlot,
-							}))
-								.toReversed()
-								.map(async (slot) => ({
-									slot: BigInt(slot),
-									block: await getBlock({
-										rpcUrl: await solanaMainnetRpcUrl(),
-										slot: BigInt(slot),
-									}),
-								}))
-					)
-					)
-						.flatMap(({ block, slot }) => (
-						block?.transactions.flatMap((transaction) => {
-								const signature = transaction.transaction.signatures.at(0)
-								return signature == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												$network: { caip2 },
-												signature,
-											},
-											...solanaTransactionFields(
-												{ caip2 },
-												transaction,
-												slot
-											),
-											$$timestamps: [
-												solanaTransactionTimestampFields(
-													{
-														$network: { caip2 },
-														signature,
-													},
-													transaction,
-													slot
-												),
-											],
-										},
-									]
-						}) ?? []
-						))
-						.slice(0, limit)
-				}
-			},
-		})({
-				Solana: {
-					$$transactions: (transactions) => transactions,
-				},
-			}),
-
-		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					assertSolanaMainnet({ caip2 })
-					const {
-						getBlock,
-						getBlocks,
-						getSlot,
-					} = await import('$/sources/Solana/JsonRpc/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const endSlot = BigInt(await getSlot({
-						rpcUrl: await solanaMainnetRpcUrl(),
-					}))
-					return [
-						...new Set(
-							(
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						assertSolanaMainnet({ caip2 })
+						const {
+							getBlock,
+							getBlocks,
+							getSlot,
+						} = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const endSlot = BigInt(await getSlot({
+							rpcUrl: await solanaMainnetRpcUrl(),
+						}))
+						const blocks = (
 							await Promise.all(
 								(await getBlocks({
 									rpcUrl: await solanaMainnetRpcUrl(),
@@ -1225,82 +1265,144 @@ export default {
 									endSlot,
 								}))
 									.toReversed()
-									.map(async (slot) => (
-										(await getBlock({
+									.map(async (slot) => ({
+										slot: BigInt(slot),
+										block: await getBlock({
 											rpcUrl: await solanaMainnetRpcUrl(),
 											slot: BigInt(slot),
-										}))?.transactions
-											.flatMap((transaction) => (
-												transaction.transaction.message.accountKeys.map((accountKey) => accountKey.pubkey)
-											))
-											?? []
-									))
+										}).catch(() => null),
+									}))
 							)
-							).flat()
-					),
-					]
-						.slice(0, limit)
-						.map((pubkey) => ({
-							[EntityMetaKey.Selector]: {
-								$network: { caip2 },
-								pubkey,
-							},
-						}))
+						)
+						const transactions = blocks.flatMap(({ block }) => block?.transactions ?? [])
+						const instructions = transactions.flatMap((transaction) => [
+							...transaction.transaction.message.instructions,
+							...(transaction.meta?.innerInstructions?.flatMap((innerInstructions) => innerInstructions.instructions) ?? []),
+						])
+						const tokenInstructions = instructions.filter((instruction) => (
+							instruction.program === 'spl-token'
+							|| instruction.program === 'spl-token-2022'
+							|| instruction.program === 'spl-associated-token-account'
+						))
+						return {
+							transactions: blocks
+								.flatMap(({ block, slot }) => (
+									block?.transactions.flatMap((transaction) => {
+										const signature = transaction.transaction.signatures.at(0)
+										return signature == null ?
+											[]
+										:
+											[
+												solanaTransactionRow(
+													{ caip2 },
+													signature,
+													transaction,
+													slot
+												),
+											]
+									}) ?? []
+								))
+								.slice(0, limit),
+							accounts: [...new Set(
+								transactions.flatMap((transaction) => (
+									transaction.transaction.message.accountKeys.map((accountKey) => accountKey.pubkey)
+								))
+							)]
+								.slice(0, limit)
+								.map((pubkey) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										pubkey,
+									},
+								})),
+							programs: [...new Set(
+								instructions.map((instruction) => instruction.programId)
+							)]
+								.slice(0, limit)
+								.map((programId) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										programId,
+									},
+								})),
+							tokenAccounts: [...new Set(
+								tokenInstructions.flatMap((instruction) => [
+									instruction.parsed?.info?.account,
+									instruction.parsed?.info?.destination,
+									instruction.parsed?.info?.newAccount,
+									instruction.parsed?.info?.source,
+								].filter((pubkey) => pubkey != null))
+							)]
+								.slice(0, limit)
+								.map((tokenAccountPubkey) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										tokenAccountPubkey,
+									},
+								})),
+							tokenMints: [...new Set(
+								tokenInstructions.flatMap((instruction) => (
+									instruction.parsed?.info?.mint == null ?
+										[]
+									:
+										[instruction.parsed.info.mint]
+								))
+							)]
+								.slice(0, limit)
+								.map((mintAddress) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										mintAddress,
+									},
+								})),
+						}
+					},
 				}
 			},
 		})({
 				Solana: {
-					$$accounts: (accounts) => accounts,
+					$$transactions: (state) => state.transactions,
+					$$accounts: (state) => state.accounts,
+					$$programs: (state) => state.programs,
+					$$tokenAccounts: (state) => state.tokenAccounts,
+					$$tokenMints: (state) => state.tokenMints,
 				},
 			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: async ({ $network, slot }: {
-					$network: { caip2: {
-						namespace: string
-						reference: string
-					} } | { slug: string }
-					slot: bigint
-				}) => {
-						assertSolanaMainnet($network)
+				[SolanaBlockSelector.Slot]: {
+					resolve: async ({ $network, slot }: {
+						$network: { caip2: {
+							namespace: string
+							reference: string
+						} } | { slug: string }
+						slot: bigint
+					}) => {
+							assertSolanaMainnet($network)
 
-						const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
-						const block = await getBlock({
-							rpcUrl: await solanaMainnetRpcUrl(),
-							slot,
-						})
-						if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
-						return block.transactions.flatMap((transaction) => {
-							const signature = transaction.transaction.signatures.at(0)
+							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
+							const block = await getBlock({
+								rpcUrl: await solanaMainnetRpcUrl(),
+								slot,
+							})
+							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
+							return block.transactions.flatMap((transaction) => {
+								const signature = transaction.transaction.signatures.at(0)
 							return signature == null ?
 								[]
 							:
 								[
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
-											signature,
-										},
-										...solanaTransactionFields(
-											$network,
-											transaction,
-											slot
-										),
-										$$timestamps: [
-											solanaTransactionTimestampFields(
-												{
-													$network,
-													signature,
-												},
-												transaction,
-												slot
-											),
-										],
-									},
+									solanaTransactionRow(
+										$network,
+										signature,
+										transaction,
+										slot
+									),
 								]
-						})
+							})
+					},
 				},
 			},
 		})({
@@ -1309,19 +1411,21 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: async ({ $network, signature }) => (
-					solanaInstructionRows(
-						$network,
-						{
+				[SolanaTransactionSelector.NetworkSignature]: {
+					resolve: async ({ $network, signature }) => (
+						solanaInstructionRows(
 							$network,
-							signature,
-						},
-						await getTransaction({
-							$network,
-							signature,
-						})
-					)
-				)
+							{
+								$network,
+								signature,
+							},
+							await getTransaction({
+								$network,
+								signature,
+							})
+						)
+					),
+				}
 			},
 		})({
 				$$instructions: (instructions) => instructions.map((instruction) => ({

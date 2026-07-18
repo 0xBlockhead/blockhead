@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitForgeMirror = $derived(selection({}))
+	const gitForgeMirror = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || 'Git forge mirror')
 	const viewDomId = $derived('git-forge-mirror-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,29 +66,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitForgeMirror}>
-			{#snippet Pending()}
-				{[String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.owner) ?? ''), String((resolvedEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitForgeMirror}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.owner) ?? ''), String((resolvedEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitForgeMirror}>
-			{#snippet Pending()}
-				{[String((pendingEntity.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.owner) ?? ''), String((resolvedEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitForgeMirror}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.owner) ?? ''), String((resolvedEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,19 +99,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									forgeHost: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const forgeHost = pendingEntity.forgeHost}
-							{#if forgeHost !== undefined && forgeHost !== null}
-								{String((forgeHost) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const forgeHost = resolvedEntity.forgeHost}
@@ -127,19 +123,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									owner: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const owner = pendingEntity.owner}
-							{#if owner !== undefined && owner !== null}
-								{String((owner) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const owner = resolvedEntity.owner}
@@ -157,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									repositoryName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const repositoryName = pendingEntity.repositoryName}
-							{#if repositoryName !== undefined && repositoryName !== null}
-								{String((repositoryName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const repositoryName = resolvedEntity.repositoryName}
@@ -184,8 +168,6 @@
 			<ResourceBoundary
 				resource={selection.$gitRepository}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitRepository)}
 					{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
 						<div>
@@ -206,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							defaultBranch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const defaultBranch = pendingEntity.defaultBranch}
-					{#if defaultBranch !== undefined && defaultBranch !== null}
-						<div>
-							<dt>default branch</dt>
-							<dd>
-								{String((defaultBranch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const defaultBranch = resolvedEntity.defaultBranch}
@@ -241,24 +212,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							visibility: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const visibility = pendingEntity.visibility}
-					{#if visibility !== undefined && visibility !== null}
-						<div>
-							<dt>visibility</dt>
-							<dd>
-								{String((visibility) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const visibility = resolvedEntity.visibility}
@@ -276,31 +236,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							htmlUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const htmlUrl = pendingEntity.htmlUrl}
-					{#if htmlUrl !== undefined && htmlUrl !== null}
-						<div>
-							<dt>HTML URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(htmlUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(htmlUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const htmlUrl = resolvedEntity.htmlUrl}
@@ -325,24 +267,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerRepositoryId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerRepositoryId = pendingEntity.providerRepositoryId}
-					{#if providerRepositoryId !== undefined && providerRepositoryId !== null}
-						<div>
-							<dt>provider repository ID</dt>
-							<dd>
-								{String((providerRepositoryId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerRepositoryId = resolvedEntity.providerRepositoryId}
@@ -360,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}
@@ -400,26 +320,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cloneUrls: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cloneUrls = pendingEntity.cloneUrls}
-							{#if cloneUrls !== undefined && cloneUrls !== null}
-								<svelte:element
-									this={'a'}
-									href={String(cloneUrls)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(cloneUrls)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cloneUrls = resolvedEntity.cloneUrls}

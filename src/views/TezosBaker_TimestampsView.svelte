@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBaker_TimestampView from '$/views/TezosBaker_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBaker_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBaker_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBakerTimestamps) => [...new Map(tezosBakerTimestamps.values.map((tezosBakerTimestamp) => [tezosBakerTimestamp[EntityMetaKey.SelectorKey], tezosBakerTimestamp])).values()]}
+	getKey={(tezosBakerTimestamp) => tezosBakerTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos baker observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBakerTimestamps)}
-			{@const uniqueTezosBakerTimestamps = [...new Map(tezosBakerTimestamps.values.map((tezosBakerTimestamp) => [tezosBakerTimestamp[EntityMetaKey.SelectorKey], tezosBakerTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBaker_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBakerTimestamps.totalCount}
-				getKey={(tezosBakerTimestamp) => tezosBakerTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBakerTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos baker observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBakerTimestamp })}
-					{@const tezosBakerTimestampFields = { ...tezosBakerTimestamp[EntityMetaKey.Selector], ...tezosBakerTimestamp }}
-					{@const selection = select(EntityType.TezosBaker_Timestamp, tezosBakerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBaker_TimestampView
-						selection={selection}
-						prefetched={tezosBakerTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBaker_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBakerTimestamp })}
+		{@const tezosBakerTimestampFields = { ...tezosBakerTimestamp[EntityMetaKey.Selector], ...tezosBakerTimestamp }}
+		{@const selection = select(EntityType.TezosBaker_Timestamp, tezosBakerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBaker_TimestampView
+			selection={selection}
+			prefetched={tezosBakerTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

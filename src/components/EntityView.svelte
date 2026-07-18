@@ -154,6 +154,7 @@
 			<div data-row="start wrap">
 				<HeadingComponent>
 					<EntityId
+						{entityType}
 						{entitySelector}
 						{href}
 						{idDragPlainText}
@@ -184,6 +185,21 @@
 				})}
 			{/if}
 		</div>
+
+		{#if showTypeAnnotation}
+			{#if TypeAnnotationTooltip}
+				<Tooltip
+					contentProps={{ side: 'top' }}
+					Content={TypeAnnotationTooltip}
+				>
+					{#snippet children()}
+						<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
+					{/snippet}
+				</Tooltip>
+			{:else}
+				<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
+			{/if}
+		{/if}
 	</header>
 {/snippet}
 
@@ -194,6 +210,7 @@
 		data-row="inline align-center wrap"
 	>
 		<EntityId
+			{entityType}
 			{entitySelector}
 			{href}
 			{idDragPlainText}
@@ -229,23 +246,6 @@
 		{@render CardSummaryHeader({
 			showCollapsedContent: false,
 		})}
-
-		{#if showTypeAnnotation}
-			<div data-row="wrap">
-				{#if TypeAnnotationTooltip}
-					<Tooltip
-						contentProps={{ side: 'top' }}
-						Content={TypeAnnotationTooltip}
-					>
-						{#snippet children()}
-							<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
-						{/snippet}
-					</Tooltip>
-				{:else}
-					<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
-				{/if}
-			</div>
-		{/if}
 	</div>
 
 {:else}
@@ -256,21 +256,6 @@
 		id={articleProps.id ?? stringify(entitySelector)}
 		style:view-transition-name={`EntityView-${articleProps.id ?? stringify(entitySelector)}`}
 	>
-		{#snippet Annotation()}
-			{#if TypeAnnotationTooltip}
-				<Tooltip
-					contentProps={{ side: 'top' }}
-					Content={TypeAnnotationTooltip}
-				>
-					{#snippet children()}
-					<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
-					{/snippet}
-				</Tooltip>
-			{:else}
-				<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
-			{/if}
-		{/snippet}
-
 		<Collapsible
 			bind:open
 			canToggle={collapsible}
@@ -284,7 +269,6 @@
 			data-column-item="flexible"
 			data-card
 			{...CollapsibleProps}
-			Annotation={showTypeAnnotation ? Annotation : undefined}
 		>
 			{#snippet Summary({ open })}
 				{@render CardSummaryHeader({

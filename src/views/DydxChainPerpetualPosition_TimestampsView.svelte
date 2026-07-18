@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainPerpetualPosition_TimestampView from '$/views/DydxChainPerpetualPosition_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					side: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				side: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainPerpetualPositionTimestamps) => [...new Map(dydxChainPerpetualPositionTimestamps.values.map((dydxChainPerpetualPositionTimestamp) => [dydxChainPerpetualPositionTimestamp[EntityMetaKey.SelectorKey], dydxChainPerpetualPositionTimestamp])).values()]}
+	getKey={(dydxChainPerpetualPositionTimestamp) => dydxChainPerpetualPositionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain perpetual position observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainPerpetualPositionTimestamps)}
-			{@const uniqueDydxChainPerpetualPositionTimestamps = [...new Map(dydxChainPerpetualPositionTimestamps.values.map((dydxChainPerpetualPositionTimestamp) => [dydxChainPerpetualPositionTimestamp[EntityMetaKey.SelectorKey], dydxChainPerpetualPositionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainPerpetualPositionTimestamps.totalCount}
-				getKey={(dydxChainPerpetualPositionTimestamp) => dydxChainPerpetualPositionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainPerpetualPositionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain perpetual position observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainPerpetualPositionTimestamp })}
-					{@const dydxChainPerpetualPositionTimestampFields = { ...dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], ...dydxChainPerpetualPositionTimestamp }}
-					{@const selection = select(EntityType.DydxChainPerpetualPosition_Timestamp, dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainPerpetualPosition_TimestampView
-						selection={selection}
-						prefetched={dydxChainPerpetualPositionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainPerpetualPositionTimestamp })}
+		{@const dydxChainPerpetualPositionTimestampFields = { ...dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], ...dydxChainPerpetualPositionTimestamp }}
+		{@const selection = select(EntityType.DydxChainPerpetualPosition_Timestamp, dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainPerpetualPosition_TimestampView
+			selection={selection}
+			prefetched={dydxChainPerpetualPositionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

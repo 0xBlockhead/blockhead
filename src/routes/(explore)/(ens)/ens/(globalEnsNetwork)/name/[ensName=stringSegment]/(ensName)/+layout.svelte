@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,10 @@
 			{@const DetailView = EnsNameView}
 
 			<DetailView
-				selection={select(EntityType.EnsName, data.selector)}
+				selection={select(EntityType.EnsName, data.selector, { sources: [
+		Source.TheGraph_Graphql,
+		Source.Voltaire_JsonRpc,
+	] })}
 				href={
 					resolve('/ens/name/[ensName=stringSegment]', {
 						ensName: params.ensName,

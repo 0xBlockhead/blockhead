@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lightningNetwork = $derived(selection({
-		sources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 		},
@@ -66,7 +62,6 @@
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
 	import BlockheadLightningInvoicesView from '$/views/BlockheadLightningInvoicesView.svelte'
 	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
-	import BlockheadLightningNodeStatesView from '$/views/BlockheadLightningNodeStatesView.svelte'
 </script>
 
 
@@ -81,29 +76,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={lightningNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'Lightning network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lightningNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lightningNetwork}>
-			{#snippet Pending()}
-				{['Lightning'].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'Lightning network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{['Lightning'].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{['Lightning'].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lightningNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{['Lightning'].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -129,8 +124,6 @@
 			<ResourceBoundary
 				resource={selection.$settlementNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -180,11 +173,8 @@
 				}
 				data-card
 				class='network-view-collapsible-network-graph'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Network graph</HeadingComponent>
 					</header>
@@ -192,12 +182,12 @@
 
 				{#snippet SectionLightningObservations({ id, label, open })}
 					<LightningNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No observations yet.'
 						open={open}
 						title={label}
@@ -207,12 +197,12 @@
 
 				{#snippet SectionLightningNodes({ id, label, open })}
 					<LightningNodesView
-						selection={
-							selection.$$nodes({
-								count: true,
-							})
-						}
+						selection={selection.$$nodes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No nodes yet.'
 						open={open}
 						title={label}
@@ -222,12 +212,12 @@
 
 				{#snippet SectionLightningChannels({ id, label, open })}
 					<LightningChannelsView
-						selection={
-							selection.$$channels({
-								count: true,
-							})
-						}
+						selection={selection.$$channels}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No channels yet.'
 						open={open}
 						title={label}
@@ -254,11 +244,8 @@
 				}
 				data-card
 				class='network-view-collapsible-payments'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Payments</HeadingComponent>
 					</header>
@@ -266,12 +253,12 @@
 
 				{#snippet SectionLightningInvoices({ id, label, open })}
 					<BlockheadLightningInvoicesView
-						selection={
-							selection.$$invoices({
-								count: true,
-							})
-						}
+						selection={selection.$$invoices}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No invoices yet.'
 						open={open}
 						title={label}
@@ -281,53 +268,13 @@
 
 				{#snippet SectionLightningPaymentList({ id, label, open })}
 					<BlockheadLightningPaymentsView
-						selection={
-							selection.$$payments({
-								count: true,
-							})
-						}
+						selection={selection.$$payments}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No payments yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-lightning-local-state'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'lightning-local-node-states',
-							label: 'Local node states',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-local-state'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Local node state</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionLightningLocalNodeStates({ id, label, open })}
-					<BlockheadLightningNodeStatesView
-						selection={
-							selection.$$localNodeStates({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No local node states.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

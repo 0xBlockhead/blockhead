@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XrplAmendment_TimestampView from '$/views/XrplAmendment_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplAmendment_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XrplAmendment_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(xrplAmendmentTimestamps) => [...new Map(xrplAmendmentTimestamps.values.map((xrplAmendmentTimestamp) => [xrplAmendmentTimestamp[EntityMetaKey.SelectorKey], xrplAmendmentTimestamp])).values()]}
+	getKey={(xrplAmendmentTimestamp) => xrplAmendmentTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No XRPL amendment observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xrplAmendmentTimestamps)}
-			{@const uniqueXrplAmendmentTimestamps = [...new Map(xrplAmendmentTimestamps.values.map((xrplAmendmentTimestamp) => [xrplAmendmentTimestamp[EntityMetaKey.SelectorKey], xrplAmendmentTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplAmendment_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xrplAmendmentTimestamps.totalCount}
-				getKey={(xrplAmendmentTimestamp) => xrplAmendmentTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueXrplAmendmentTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No XRPL amendment observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xrplAmendmentTimestamp })}
-					{@const xrplAmendmentTimestampFields = { ...xrplAmendmentTimestamp[EntityMetaKey.Selector], ...xrplAmendmentTimestamp }}
-					{@const selection = select(EntityType.XrplAmendment_Timestamp, xrplAmendmentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<XrplAmendment_TimestampView
-						selection={selection}
-						prefetched={xrplAmendmentTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XrplAmendment_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xrplAmendmentTimestamp })}
+		{@const xrplAmendmentTimestampFields = { ...xrplAmendmentTimestamp[EntityMetaKey.Selector], ...xrplAmendmentTimestamp }}
+		{@const selection = select(EntityType.XrplAmendment_Timestamp, xrplAmendmentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<XrplAmendment_TimestampView
+			selection={selection}
+			prefetched={xrplAmendmentTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

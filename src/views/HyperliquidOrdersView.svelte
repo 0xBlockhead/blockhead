@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidOrderView from '$/views/HyperliquidOrderView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidOrder}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidOrder}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidOrders) => [...new Map(hyperliquidOrders.values.map((hyperliquidOrder) => [hyperliquidOrder[EntityMetaKey.SelectorKey], hyperliquidOrder])).values()]}
+	getKey={(hyperliquidOrder) => hyperliquidOrder[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid orders yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidOrders)}
-			{@const uniqueHyperliquidOrders = [...new Map(hyperliquidOrders.values.map((hyperliquidOrder) => [hyperliquidOrder[EntityMetaKey.SelectorKey], hyperliquidOrder])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidOrder}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidOrders.totalCount}
-				getKey={(hyperliquidOrder) => hyperliquidOrder[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidOrders}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid orders yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidOrder })}
-					{@const hyperliquidOrderFields = { ...hyperliquidOrder[EntityMetaKey.Selector], ...hyperliquidOrder }}
-					{@const selection = select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidOrderView
-						selection={selection}
-						prefetched={hyperliquidOrderFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidOrder}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidOrder })}
+		{@const hyperliquidOrderFields = { ...hyperliquidOrder[EntityMetaKey.Selector], ...hyperliquidOrder }}
+		{@const selection = select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidOrderView
+			selection={selection}
+			prefetched={hyperliquidOrderFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

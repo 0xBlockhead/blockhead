@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBaker_Cycle_TimestampView from '$/views/TezosBaker_Cycle_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBaker_Cycle_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBaker_Cycle_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBakerCycleTimestamps) => [...new Map(tezosBakerCycleTimestamps.values.map((tezosBakerCycleTimestamp) => [tezosBakerCycleTimestamp[EntityMetaKey.SelectorKey], tezosBakerCycleTimestamp])).values()]}
+	getKey={(tezosBakerCycleTimestamp) => tezosBakerCycleTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos baker cycle observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBakerCycleTimestamps)}
-			{@const uniqueTezosBakerCycleTimestamps = [...new Map(tezosBakerCycleTimestamps.values.map((tezosBakerCycleTimestamp) => [tezosBakerCycleTimestamp[EntityMetaKey.SelectorKey], tezosBakerCycleTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBaker_Cycle_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBakerCycleTimestamps.totalCount}
-				getKey={(tezosBakerCycleTimestamp) => tezosBakerCycleTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBakerCycleTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos baker cycle observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBakerCycleTimestamp })}
-					{@const tezosBakerCycleTimestampFields = { ...tezosBakerCycleTimestamp[EntityMetaKey.Selector], ...tezosBakerCycleTimestamp }}
-					{@const selection = select(EntityType.TezosBaker_Cycle_Timestamp, tezosBakerCycleTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBaker_Cycle_TimestampView
-						selection={selection}
-						prefetched={tezosBakerCycleTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBaker_Cycle_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBakerCycleTimestamp })}
+		{@const tezosBakerCycleTimestampFields = { ...tezosBakerCycleTimestamp[EntityMetaKey.Selector], ...tezosBakerCycleTimestamp }}
+		{@const selection = select(EntityType.TezosBaker_Cycle_Timestamp, tezosBakerCycleTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBaker_Cycle_TimestampView
+			selection={selection}
+			prefetched={tezosBakerCycleTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

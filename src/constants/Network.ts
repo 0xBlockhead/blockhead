@@ -1,14 +1,25 @@
+// Generated from APP.ts. Do not edit by hand.
+
 export enum NetworkNamespace {
+	Algorand = 'Algorand',
+	Aptos = 'Aptos',
+	Avail = 'Avail',
+	Avalanche = 'Avalanche',
 	Bittensor = 'Bittensor',
 	Bitcoin = 'Bitcoin',
 	BitcoinCash = 'BitcoinCash',
 	Cardano = 'Cardano',
+	Celestia = 'Celestia',
 	Cosmos = 'Cosmos',
+	Dydx = 'Dydx',
 	Dogecoin = 'Dogecoin',
 	Elements = 'Elements',
 	Evm = 'Evm',
 	Filecoin = 'Filecoin',
+	Hedera = 'Hedera',
 	Hyperliquid = 'Hyperliquid',
+	InternetComputer = 'InternetComputer',
+	Kaspa = 'Kaspa',
 	Lightning = 'Lightning',
 	Litecoin = 'Litecoin',
 	Logos = 'Logos',
@@ -17,9 +28,13 @@ export enum NetworkNamespace {
 	Polkadot = 'Polkadot',
 	Quilibrium = 'Quilibrium',
 	Solana = 'Solana',
+	Starknet = 'Starknet',
+	Stellar = 'Stellar',
+	Sui = 'Sui',
 	Tezos = 'Tezos',
 	Ton = 'Ton',
 	Tron = 'Tron',
+	Xrpl = 'Xrpl',
 	Zcash = 'Zcash',
 	ZeroG = 'ZeroG',
 }
@@ -107,6 +122,22 @@ export const networks = [
 		executionModels: [],
 	},
 	{
+		slug: 'algorand',
+		name: 'Algorand',
+		namespace: NetworkNamespace.Algorand,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'aptos',
+		name: 'Aptos',
+		namespace: NetworkNamespace.Aptos,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'arbitrum',
 		name: 'Arbitrum One',
 		caip2: {
@@ -129,6 +160,22 @@ export const networks = [
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
 		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'avail',
+		name: 'Avail',
+		namespace: NetworkNamespace.Avail,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'avalanche-p-chain',
+		name: 'Avalanche P-Chain',
+		namespace: NetworkNamespace.Avalanche,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
 	},
 	{
 		slug: 'bittensor',
@@ -177,6 +224,10 @@ export const networks = [
 	{
 		slug: 'cardano',
 		name: 'Cardano',
+		caip2: {
+			namespace: 'cip34',
+			reference: '1-764824073',
+		},
 		namespace: NetworkNamespace.Cardano,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Utxo],
@@ -190,6 +241,22 @@ export const networks = [
 			reference: 'cosmoshub-4',
 		},
 		namespace: NetworkNamespace.Cosmos,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.CosmosSdk],
+	},
+	{
+		slug: 'celestia',
+		name: 'Celestia',
+		namespace: NetworkNamespace.Celestia,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'dydx',
+		name: 'dYdX Chain',
+		namespace: NetworkNamespace.Dydx,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
 		executionModels: [NetworkExecutionModel.CosmosSdk],
@@ -263,11 +330,43 @@ export const networks = [
 		executionModels: [],
 	},
 	{
+		slug: 'hedera',
+		name: 'Hedera Mainnet',
+		caip2: {
+			namespace: 'hedera',
+			reference: 'mainnet',
+		},
+		namespace: NetworkNamespace.Hedera,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'hyperliquid',
 		name: 'Hyperliquid',
+		caip2: {
+			namespace: 'eip155',
+			reference: '999',
+		},
 		namespace: NetworkNamespace.Hyperliquid,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'icp',
+		name: 'Internet Computer',
+		namespace: NetworkNamespace.InternetComputer,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'kaspa',
+		name: 'Kaspa',
+		namespace: NetworkNamespace.Kaspa,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
 		executionModels: [],
 	},
 	{
@@ -351,6 +450,30 @@ export const networks = [
 		executionModels: [NetworkExecutionModel.SolanaRuntime],
 	},
 	{
+		slug: 'starknet',
+		name: 'Starknet',
+		namespace: NetworkNamespace.Starknet,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'stellar',
+		name: 'Stellar',
+		namespace: NetworkNamespace.Stellar,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'sui',
+		name: 'Sui',
+		namespace: NetworkNamespace.Sui,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'ton',
 		name: 'TON Mainnet',
 		caip2: {
@@ -383,6 +506,18 @@ export const networks = [
 		executionModels: [NetworkExecutionModel.Michelson],
 	},
 	{
+		slug: 'xrpl',
+		name: 'XRP Ledger',
+		caip2: {
+			namespace: 'xrpl',
+			reference: '0',
+		},
+		namespace: NetworkNamespace.Xrpl,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'zcash',
 		name: 'Zcash',
 		caip2: {
@@ -406,6 +541,21 @@ export const networks = [
 	ledgerModels: readonly NetworkLedgerModel[]
 	executionModels: readonly NetworkExecutionModel[]
 }[]
+
+type _Caip2NetworkKey<_Network> = (
+	_Network extends {
+		readonly caip2: {
+			readonly namespace: infer _Namespace extends string
+			readonly reference: infer _Reference extends string
+		}
+	} ?
+		`${_Namespace}:${_Reference}`
+		:
+		never
+)
+
+export type Caip2NetworkKey = _Caip2NetworkKey<(typeof networks)[number]>
+export type NetworkSlug = (typeof networks)[number]['slug']
 
 export const networkResourceUrls = [
 	{

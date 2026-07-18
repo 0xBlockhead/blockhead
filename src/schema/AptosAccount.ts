@@ -46,12 +46,6 @@ export const AptosAccount = entity({
 		entityType: EntityType.AptosAccountResource,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$modules: {
-		label: 'modules',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.MoveModule,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$transactions: {
 		label: 'transactions',
 		type: EntityFieldType.EntitiesReference,

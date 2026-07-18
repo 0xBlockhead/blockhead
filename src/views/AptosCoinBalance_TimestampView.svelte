@@ -41,9 +41,11 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosCoinBalanceTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			assetType: true,
 			amount: true,
+			unit: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'current Aptos coin balance observation')
@@ -70,58 +72,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || 'current Aptos coin balance observation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-			{#snippet Pending()}
-				{@const amount0 = pendingEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amount0 = pendingEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amount0 = resolvedEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amount0 = resolvedEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+
+						<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-			{#snippet Pending()}
-				{@const ledgerVersion0 = pendingEntity.ledgerVersion}
-				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(ledgerVersion0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
-				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(ledgerVersion0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const ledgerVersion0 = pendingEntity.ledgerVersion}
+			{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={ledgerVersion0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
+					{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={ledgerVersion0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -149,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetType = pendingEntity.assetType}
-							{#if assetType !== undefined && assetType !== null}
-								{String((assetType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetType = resolvedEntity.assetType}
@@ -179,19 +187,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									storageId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const storageId = pendingEntity.storageId}
-							{#if storageId !== undefined && storageId !== null}
-								{String((storageId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const storageId = resolvedEntity.storageId}
@@ -209,19 +211,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									isPrimary: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const isPrimary = pendingEntity.isPrimary}
-							{#if isPrimary !== undefined && isPrimary !== null}
-								{isPrimary ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const isPrimary = resolvedEntity.isPrimary}
@@ -236,24 +232,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							coinType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const coinType = pendingEntity.coinType}
-					{#if coinType !== undefined && coinType !== null}
-						<div>
-							<dt>coin type</dt>
-							<dd>
-								{String((coinType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const coinType = resolvedEntity.coinType}
@@ -274,24 +259,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									amount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amount = pendingEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amount = resolvedEntity.amount}
 							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -306,24 +287,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerVersion: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerVersion = pendingEntity.ledgerVersion}
-							{#if ledgerVersion !== undefined && ledgerVersion !== null}
-								<NumberValue value={Number(ledgerVersion)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerVersion = resolvedEntity.ledgerVersion}
 							{#if ledgerVersion !== undefined && ledgerVersion !== null}
-								<NumberValue value={Number(ledgerVersion)} />
+								<NumberValue
+									value={ledgerVersion}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -336,19 +313,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -363,24 +334,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -401,19 +361,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ownerAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ownerAddress = pendingEntity.ownerAddress}
-							{#if ownerAddress !== undefined && ownerAddress !== null}
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ownerAddress = resolvedEntity.ownerAddress}

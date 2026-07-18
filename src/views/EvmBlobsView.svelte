@@ -52,7 +52,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmBlobView from '$/views/EvmBlobView.svelte'
 </script>
@@ -70,93 +69,59 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					indexInTransaction: true,
-					versionedHash: true,
-					$transaction: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmBlob}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			sources: [
+				Source.Voltaire_JsonRpc,
+			],
+			fields: {
+				indexInTransaction: true,
+				versionedHash: true,
+				$transaction: true,
+			},
+		})
+	}
+	getResourceItems={(evmBlobs) => [...new Map(evmBlobs.values.map((evmBlob) => [evmBlob[EntityMetaKey.SelectorKey], evmBlob])).values()]}
+	getKey={(evmBlob) => evmBlob[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM blobs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmBlobs)}
-			{@const uniqueEvmBlobs = [...new Map(evmBlobs.values.map((evmBlob) => [evmBlob[EntityMetaKey.SelectorKey], evmBlob])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmBlobs.totalCount}
-				getKey={(evmBlob) => evmBlob[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmBlobs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM blobs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmBlob })}
-					{@const evmBlobFields = { ...evmBlob[EntityMetaKey.Selector], ...evmBlob }}
-					{@const selection = select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmBlobHrefFields = { ...evmBlob, ...evmBlob[EntityMetaKey.Selector] }}
-					<EvmBlobView
-						selection={selection}
-						prefetched={evmBlobFields}
-						href={
-							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
-								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
-								network: String(caip2StringFromValue(evmBlobHrefFields.$transaction.$network.caip2) ?? ''),
-							}) : evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
-								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
-								network: String(evmBlobHrefFields.$transaction.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmBlob}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: evmBlob })}
+		{@const evmBlobFields = { ...evmBlob[EntityMetaKey.Selector], ...evmBlob }}
+		{@const selection = select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmBlobHrefFields = { ...evmBlob, ...evmBlob[EntityMetaKey.Selector] }}
+		<EvmBlobView
+			selection={selection}
+			prefetched={evmBlobFields}
+			href={
+				(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+					transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
+					indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
+					network: String(caip2StringFromValue(evmBlobHrefFields.$transaction.$network.caip2) ?? ''),
+				}) : evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+					transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
+					indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
+					network: String(evmBlobHrefFields.$transaction.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

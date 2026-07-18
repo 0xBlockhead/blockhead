@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CosmosAccountSelector {
@@ -33,12 +34,9 @@ export const CosmosAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CosmosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-	},
-	$$transactions: {
-		label: 'Transactions',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.CosmosTransaction,
-		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CosmosSdk_Rest,
+		],
 	},
 })({
 	selectors: {

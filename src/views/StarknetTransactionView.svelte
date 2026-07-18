@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const starknetTransaction = $derived(selection({
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			transactionKind: true,
 		},
@@ -77,72 +70,76 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetTransaction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={starknetTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetTransaction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={starknetTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={starknetTransaction}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(starknetBlock)}
-						{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<StarknetBlockView
-									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-									prefetched={starknetBlock}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(starknetBlock)}
-						{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<StarknetBlockView
-									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-									prefetched={starknetBlock}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$block}
+			>
+				{#snippet children(starknetBlock)}
+					{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<StarknetBlockView
+								selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
+								prefetched={starknetBlock}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={starknetTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$block}
+					>
+						{#snippet children(starknetBlock)}
+							{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<StarknetBlockView
+										selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
+										prefetched={starknetBlock}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,19 +150,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionHash = pendingEntity.transactionHash}
-							{#if transactionHash !== undefined && transactionHash !== null}
-								<TruncatedValue value={String((transactionHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionHash = resolvedEntity.transactionHash}
@@ -180,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionKind = pendingEntity.transactionKind}
-					{#if transactionKind !== undefined && transactionKind !== null}
-						<div>
-							<dt>transaction kind</dt>
-							<dd>
-								{String((transactionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionKind = resolvedEntity.transactionKind}
@@ -215,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(starknetBlock)}
 					{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							senderAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const senderAddress = pendingEntity.senderAddress}
-					{#if senderAddress !== undefined && senderAddress !== null}
-						<div>
-							<dt>sender address</dt>
-							<dd>
-								<TruncatedValue value={String((senderAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const senderAddress = resolvedEntity.senderAddress}
@@ -272,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>nonce</dt>
-							<dd>
-								{String((nonce) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonce = resolvedEntity.nonce}
@@ -309,24 +265,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -344,24 +289,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resourceBounds: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resourceBounds = pendingEntity.resourceBounds}
-					{#if resourceBounds !== undefined && resourceBounds !== null}
-						<div>
-							<dt>resource bounds</dt>
-							<dd>
-								{String((resourceBounds) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resourceBounds = resolvedEntity.resourceBounds}
@@ -382,19 +316,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									calldata: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const calldata = pendingEntity.calldata}
-							{#if calldata !== undefined && calldata !== null}
-								{calldata.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const calldata = resolvedEntity.calldata}
@@ -412,19 +340,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signature: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signature = pendingEntity.signature}
-							{#if signature !== undefined && signature !== null}
-								<TruncatedValue value={signature.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signature = resolvedEntity.signature}

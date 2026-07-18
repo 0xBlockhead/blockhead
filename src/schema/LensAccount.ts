@@ -91,12 +91,6 @@ export const LensAccount = entity({
 		entityType: EntityType.LensAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$managers: {
-		label: 'Managers',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.LensAccountManager,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$posts: {
 		label: 'Posts',
 		type: EntityFieldType.EntitiesReference,

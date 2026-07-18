@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bittensorBlock = $derived(selection({
-		sources: [
-			Source.Bittensor_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			extrinsicCount: true,
 		},
@@ -75,68 +72,76 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bittensorBlock}>
-			{#snippet Pending()}
-				{@const blockNumber0 = pendingEntity.blockNumber}
-				{#if blockNumber0 !== undefined && blockNumber0 !== null}
-					<NumberValue value={Number(blockNumber0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const blockNumber0 = resolvedEntity.blockNumber}
-				{#if blockNumber0 !== undefined && blockNumber0 !== null}
-					<NumberValue value={Number(blockNumber0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const blockNumber0 = pendingEntity.blockNumber}
+					{#if blockNumber0 !== undefined && blockNumber0 !== null}
+						<NumberValue
+							value={blockNumber0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blockNumber0 = resolvedEntity.blockNumber}
+					{#if blockNumber0 !== undefined && blockNumber0 !== null}
+						<NumberValue
+							value={blockNumber0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bittensorBlock}>
-			{#snippet Pending()}
-				{@const hash0 = pendingEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hash0 = resolvedEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const hash0 = pendingEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash0 = resolvedEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bittensorBlock}>
-			{#snippet Pending()}
-				{@const extrinsicCount0 = pendingEntity.extrinsicCount}
-				{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(extrinsicCount0)} />
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const extrinsicCount0 = pendingEntity.extrinsicCount}
+			{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={extrinsicCount0}
+					/>
 
-						<span> extrinsics</span>
-					</span>
-				{/if}
-			{/snippet}
+					<span> extrinsics</span>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const extrinsicCount0 = resolvedEntity.extrinsicCount}
+					{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={extrinsicCount0}
+							/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const extrinsicCount0 = resolvedEntity.extrinsicCount}
-				{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(extrinsicCount0)} />
-
-						<span> extrinsics</span>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+							<span> extrinsics</span>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -165,24 +170,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockNumber = pendingEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue value={Number(blockNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockNumber = resolvedEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -195,19 +196,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -222,8 +217,6 @@
 			<ResourceBoundary
 				resource={selection.$parent}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bittensorBlock)}
 					{#if bittensorBlock != null && bittensorBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -246,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stateRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stateRoot = pendingEntity.stateRoot}
-					{#if stateRoot !== undefined && stateRoot !== null}
-						<div>
-							<dt>State root</dt>
-							<dd>
-								<TruncatedValue value={String((stateRoot) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stateRoot = resolvedEntity.stateRoot}
@@ -281,24 +263,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							extrinsicsRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const extrinsicsRoot = pendingEntity.extrinsicsRoot}
-					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
-						<div>
-							<dt>Extrinsics root</dt>
-							<dd>
-								<TruncatedValue value={String((extrinsicsRoot) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const extrinsicsRoot = resolvedEntity.extrinsicsRoot}
@@ -316,24 +287,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							extrinsicCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const extrinsicCount = pendingEntity.extrinsicCount}
-					{#if extrinsicCount !== undefined && extrinsicCount !== null}
-						<div>
-							<dt>Extrinsics</dt>
-							<dd>
-								<NumberValue value={Number(extrinsicCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const extrinsicCount = resolvedEntity.extrinsicCount}
@@ -341,7 +301,9 @@
 						<div>
 							<dt>Extrinsics</dt>
 							<dd>
-								<NumberValue value={Number(extrinsicCount)} />
+								<NumberValue
+									value={extrinsicCount}
+								/>
 							</dd>
 						</div>
 					{/if}

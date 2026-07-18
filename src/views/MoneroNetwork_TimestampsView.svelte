@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroNetwork_TimestampView from '$/views/MoneroNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					height: true,
-					status: true,
-					synchronized: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoneroNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				height: true,
+				status: true,
+				synchronized: true,
+			},
+		})
+	}
+	getResourceItems={(moneroNetworkTimestamps) => [...new Map(moneroNetworkTimestamps.values.map((moneroNetworkTimestamp) => [moneroNetworkTimestamp[EntityMetaKey.SelectorKey], moneroNetworkTimestamp])).values()]}
+	getKey={(moneroNetworkTimestamp) => moneroNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Monero network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moneroNetworkTimestamps)}
-			{@const uniqueMoneroNetworkTimestamps = [...new Map(moneroNetworkTimestamps.values.map((moneroNetworkTimestamp) => [moneroNetworkTimestamp[EntityMetaKey.SelectorKey], moneroNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moneroNetworkTimestamps.totalCount}
-				getKey={(moneroNetworkTimestamp) => moneroNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMoneroNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Monero network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moneroNetworkTimestamp })}
-					{@const moneroNetworkTimestampFields = { ...moneroNetworkTimestamp[EntityMetaKey.Selector], ...moneroNetworkTimestamp }}
-					{@const selection = select(EntityType.MoneroNetwork_Timestamp, moneroNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoneroNetwork_TimestampView
-						selection={selection}
-						prefetched={moneroNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoneroNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moneroNetworkTimestamp })}
+		{@const moneroNetworkTimestampFields = { ...moneroNetworkTimestamp[EntityMetaKey.Selector], ...moneroNetworkTimestamp }}
+		{@const selection = select(EntityType.MoneroNetwork_Timestamp, moneroNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoneroNetwork_TimestampView
+			selection={selection}
+			prefetched={moneroNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

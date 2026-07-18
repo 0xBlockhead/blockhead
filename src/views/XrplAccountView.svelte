@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -40,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAccount = $derived(selection({}))
+	const xrplAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('XRPL account')
 	const viewDomId = $derived('xrpl-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -50,7 +54,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import XrplNetworkView from '$/views/XrplNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import XrplLedgerEntriesView from '$/views/XrplLedgerEntriesView.svelte'
 	import XrplTransactionsView from '$/views/XrplTransactionsView.svelte'
 	import XrplTrustlinesView from '$/views/XrplTrustlinesView.svelte'
@@ -63,22 +67,30 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.account !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+			accountId: String(pendingEntity.account ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.account !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+			accountId: String(pendingEntity.account ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xrplAccount}>
-			{#snippet Pending()}
-				{title || 'XRPL account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xrplAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -86,8 +98,15 @@
 			<div>
 				<dt>network</dt>
 				<dd>
-					<XrplNetworkView
-						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network, {})}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -100,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									account: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const account = pendingEntity.account}
-							{#if account !== undefined && account !== null}
-								<TruncatedValue value={String((account) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const account = resolvedEntity.account}
@@ -149,11 +162,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -161,12 +171,12 @@
 
 				{#snippet SectionXrplAccountLedgerEntries({ id, label, open })}
 					<XrplLedgerEntriesView
-						selection={
-							selection.$$ledgerEntries({
-								count: true,
-							})
-						}
+						selection={selection.$$ledgerEntries}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ledger entries.'
 						open={open}
 						title={label}
@@ -176,12 +186,12 @@
 
 				{#snippet SectionXrplAccountTransactions({ id, label, open })}
 					<XrplTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions.'
 						open={open}
 						title={label}
@@ -191,12 +201,12 @@
 
 				{#snippet SectionXrplAccountTrustlines({ id, label, open })}
 					<XrplTrustlinesView
-						selection={
-							selection.$$trustlines({
-								count: true,
-							})
-						}
+						selection={selection.$$trustlines}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trustlines.'
 						open={open}
 						title={label}
@@ -219,11 +229,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -231,12 +238,12 @@
 
 				{#snippet SectionXrplAccountTimestamps({ id, label, open })}
 					<XrplAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

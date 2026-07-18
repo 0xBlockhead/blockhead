@@ -45,6 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const oracleFeed = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 			feedKind: true,
@@ -75,35 +76,34 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={oracleFeed}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'oracle feed'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={oracleFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={oracleFeed}>
-			{#snippet Pending()}
-				{@const feedKind0 = pendingEntity.feedKind}
-				{#if feedKind0 !== undefined && feedKind0 !== null}
-					{String((feedKind0) ?? '')}
-				{/if}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const feedKind0 = pendingEntity.feedKind}
+					{#if feedKind0 !== undefined && feedKind0 !== null}
+						{String((feedKind0) ?? '')}
+					{/if}
 
-				<ResourceBoundary
-					resource={selection.$market}
-				>
-					{#snippet children(market)}
-						{#if market != null && market[EntityMetaKey.Selector] != null}
-							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								prefetched={market}
-								href={
+					<ResourceBoundary
+						resource={selection.$market}
+					>
+						{#snippet children(market)}
+							{#if market != null && market[EntityMetaKey.Selector] != null}
+								<MarketView
+									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+									prefetched={market}
+									href={
 									(market[EntityMetaKey.Selector].marketKind !== undefined && market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.assetKey !== undefined && market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.assetKey !== undefined && market[EntityMetaKey.Selector].$marketVenue !== undefined && market[EntityMetaKey.Selector].$marketVenue.marketVenueId !== undefined && market[EntityMetaKey.Selector].$base.kind !== undefined && market[EntityMetaKey.Selector].$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 										marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
 										base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
@@ -113,30 +113,32 @@
 										quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={oracleFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feedKind0 = resolvedEntity.feedKind}
+					{#if feedKind0 !== undefined && feedKind0 !== null}
+						{String((feedKind0) ?? '')}
+					{/if}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const feedKind0 = resolvedEntity.feedKind}
-				{#if feedKind0 !== undefined && feedKind0 !== null}
-					{String((feedKind0) ?? '')}
-				{/if}
-
-				<ResourceBoundary
-					resource={selection.$market}
-				>
-					{#snippet children(market)}
-						{#if market != null && market[EntityMetaKey.Selector] != null}
-							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								prefetched={market}
-								href={
+					<ResourceBoundary
+						resource={selection.$market}
+					>
+						{#snippet children(market)}
+							{#if market != null && market[EntityMetaKey.Selector] != null}
+								<MarketView
+									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+									prefetched={market}
+									href={
 									(market[EntityMetaKey.Selector].marketKind !== undefined && market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.assetKey !== undefined && market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.assetKey !== undefined && market[EntityMetaKey.Selector].$marketVenue !== undefined && market[EntityMetaKey.Selector].$marketVenue.marketVenueId !== undefined && market[EntityMetaKey.Selector].$base.kind !== undefined && market[EntityMetaKey.Selector].$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 										marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
 										base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
@@ -146,14 +148,17 @@
 										quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -182,19 +187,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -209,8 +208,6 @@
 			<ResourceBoundary
 				resource={selection.$market}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(market)}
 					{#if market != null && market[EntityMetaKey.Selector] != null}
 						<div>
@@ -243,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feedKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feedKind = pendingEntity.feedKind}
-					{#if feedKind !== undefined && feedKind !== null}
-						<div>
-							<dt>feed kind</dt>
-							<dd>
-								{String((feedKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feedKind = resolvedEntity.feedKind}

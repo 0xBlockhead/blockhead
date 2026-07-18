@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiRegulatedCoinState_TimestampView from '$/views/SuiRegulatedCoinState_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiRegulatedCoinState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiRegulatedCoinStateTimestamps) => [...new Map(suiRegulatedCoinStateTimestamps.values.map((suiRegulatedCoinStateTimestamp) => [suiRegulatedCoinStateTimestamp[EntityMetaKey.SelectorKey], suiRegulatedCoinStateTimestamp])).values()]}
+	getKey={(suiRegulatedCoinStateTimestamp) => suiRegulatedCoinStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui regulated coin state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiRegulatedCoinStateTimestamps)}
-			{@const uniqueSuiRegulatedCoinStateTimestamps = [...new Map(suiRegulatedCoinStateTimestamps.values.map((suiRegulatedCoinStateTimestamp) => [suiRegulatedCoinStateTimestamp[EntityMetaKey.SelectorKey], suiRegulatedCoinStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiRegulatedCoinState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiRegulatedCoinStateTimestamps.totalCount}
-				getKey={(suiRegulatedCoinStateTimestamp) => suiRegulatedCoinStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiRegulatedCoinStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui regulated coin state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiRegulatedCoinStateTimestamp })}
-					{@const suiRegulatedCoinStateTimestampFields = { ...suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], ...suiRegulatedCoinStateTimestamp }}
-					{@const selection = select(EntityType.SuiRegulatedCoinState_Timestamp, suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiRegulatedCoinState_TimestampView
-						selection={selection}
-						prefetched={suiRegulatedCoinStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiRegulatedCoinState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiRegulatedCoinStateTimestamp })}
+		{@const suiRegulatedCoinStateTimestampFields = { ...suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], ...suiRegulatedCoinStateTimestamp }}
+		{@const selection = select(EntityType.SuiRegulatedCoinState_Timestamp, suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiRegulatedCoinState_TimestampView
+			selection={selection}
+			prefetched={suiRegulatedCoinStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

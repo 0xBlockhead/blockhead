@@ -44,24 +44,18 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const filecoinActor = $derived(selection({
-		sources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-		fields: {
-			balanceAttoFil: true,
-			actorCodeCid: true,
-		},
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'filecoin actor')
 	const viewDomId = $derived('filecoin-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FilecoinActor_TimestampsView from '$/views/FilecoinActor_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import FilecoinActor_TimestampView from '$/views/FilecoinActor_TimestampView.svelte'
 </script>
 
 
@@ -70,67 +64,96 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+			address: String(pendingEntity.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+			address: String(pendingEntity.address ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={filecoinActor}>
-			{#snippet Pending()}
-				{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'filecoin actor'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary resource={filecoinActor}>
-			{#snippet Pending()}
-				{@const balanceAttoFil0 = pendingEntity.balanceAttoFil}
-				{#if balanceAttoFil0 !== undefined && balanceAttoFil0 !== null}
-					<NumberValue value={Number(balanceAttoFil0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const balanceAttoFil0 = resolvedEntity.balanceAttoFil}
-				{#if balanceAttoFil0 !== undefined && balanceAttoFil0 !== null}
-					<NumberValue value={Number(balanceAttoFil0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={filecoinActor}>
-			{#snippet Pending()}
-				{@const actorCodeCid0 = pendingEntity.actorCodeCid}
-				{#if actorCodeCid0 !== undefined && actorCodeCid0 !== null}
-					<span data-text="muted">
-						{String((actorCodeCid0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const actorCodeCid0 = resolvedEntity.actorCodeCid}
-				{#if actorCodeCid0 !== undefined && actorCodeCid0 !== null}
-					<span data-text="muted">
-						{String((actorCodeCid0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={filecoinActor}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Latest observation</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection.$$timestamps({
+								sources: [
+									Source.Lotus_JsonRpc,
+								],
+								fields: {
+									height: true,
+									timestampMs: true,
+									balanceAttoFil: true,
+									source: true,
+								},
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
+						}
+					>
+						{#snippet children(filecoinActorTimestamps)}
+							{@const filecoinActorTimestamp = filecoinActorTimestamps.values[0]}
+							{#if filecoinActorTimestamp != null}
+								{@const filecoinActorTimestampSelector = filecoinActorTimestamp[EntityMetaKey.Selector]}
+								<FilecoinActor_TimestampView
+									selection={
+										select(EntityType.FilecoinActor_Timestamp, filecoinActorTimestampSelector, {
+											sources: [
+												Source.Lotus_JsonRpc,
+											],
+										})
+									}
+									href={
+										(filecoinActorTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+											height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
+											tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+											source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
+											address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
+											network: String(caip2StringFromValue(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2) ?? ''),
+										}) : filecoinActorTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+											height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
+											tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+											source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
+											address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
+											network: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug ?? ''),
+										}) : undefined)
+									}
+									prefetched={{ ...filecoinActorTimestampSelector, ...filecoinActorTimestamp }}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
@@ -156,19 +179,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -179,123 +196,23 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-						fields: {
-							actorCodeCid: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const actorCodeCid = pendingEntity.actorCodeCid}
-					{#if actorCodeCid !== undefined && actorCodeCid !== null}
-						<div>
-							<dt>Actor code CID</dt>
-							<dd>
-								{String((actorCodeCid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const actorCodeCid = resolvedEntity.actorCodeCid}
-					{#if actorCodeCid !== undefined && actorCodeCid !== null}
-						<div>
-							<dt>Actor code CID</dt>
-							<dd>
-								{String((actorCodeCid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-						fields: {
-							nonce: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								<NumberValue value={Number(nonce)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								<NumberValue value={Number(nonce)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-						fields: {
-							balanceAttoFil: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const balanceAttoFil = pendingEntity.balanceAttoFil}
-					{#if balanceAttoFil !== undefined && balanceAttoFil !== null}
-						<div>
-							<dt>Balance attoFIL</dt>
-							<dd>
-								<NumberValue value={Number(balanceAttoFil)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceAttoFil = resolvedEntity.balanceAttoFil}
-					{#if balanceAttoFil !== undefined && balanceAttoFil !== null}
-						<div>
-							<dt>Balance attoFIL</dt>
-							<dd>
-								<NumberValue value={Number(balanceAttoFil)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<FilecoinActor_TimestampsView
+				selection={
+						selection.$$timestamps({
+							sources: [
+								Source.Lotus_JsonRpc,
+							],
+							count: true,
+						})
+					}
+				title='Observations'
+				id='FilecoinActor_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

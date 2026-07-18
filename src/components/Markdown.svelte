@@ -1,7 +1,14 @@
 <script lang="ts">
 	// State
-	let { content = null }: { content?: string | null } = $props()
+	let {
+		content = null,
+		mode = 'markdown',
+	}: {
+		content?: string | null
+		mode?: 'markdown' | 'syndication'
+	} = $props()
 
+	import { syndicationHtmlToSafeHtml } from '$/lib/html.ts'
 	import { markdownToHtml } from '$/lib/markdown.ts'
 </script>
 
@@ -10,7 +17,7 @@
 	class="markdown"
 	data-column="gap-4"
 >
-	{@html markdownToHtml(content)}
+	{@html mode === 'syndication' ? syndicationHtmlToSafeHtml(content) : markdownToHtml(content)}
 </div>
 
 

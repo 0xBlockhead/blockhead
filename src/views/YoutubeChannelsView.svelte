@@ -8,7 +8,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -51,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import YoutubeChannelView from '$/views/YoutubeChannelView.svelte'
 </script>
@@ -63,86 +61,50 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					title: true,
-					channelId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.YoutubeChannel}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				channelId: true,
+			},
+		})
+	}
+	getResourceItems={(youtubeChannels) => [...new Map(youtubeChannels.values.map((youtubeChannel) => [youtubeChannel[EntityMetaKey.SelectorKey], youtubeChannel])).values()]}
+	getKey={(youtubeChannel) => youtubeChannel[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No YouTube channels yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(youtubeChannels)}
-			{@const uniqueYoutubeChannels = [...new Map(youtubeChannels.values.map((youtubeChannel) => [youtubeChannel[EntityMetaKey.SelectorKey], youtubeChannel])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeChannels.totalCount}
-				getKey={(youtubeChannel) => youtubeChannel[EntityMetaKey.SelectorKey]}
-				items={uniqueYoutubeChannels}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No YouTube channels yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: youtubeChannel })}
-					{@const youtubeChannelFields = { ...youtubeChannel[EntityMetaKey.Selector], ...youtubeChannel }}
-					{@const selection = select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const youtubeChannelHrefFields = { ...youtubeChannel, ...youtubeChannel[EntityMetaKey.Selector] }}
-					<YoutubeChannelView
-						selection={selection}
-						prefetched={youtubeChannelFields}
-						href={
-							(youtubeChannelHrefFields.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
-								channelId: String(youtubeChannelHrefFields.channelId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.YoutubeChannel}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: youtubeChannel })}
+		{@const youtubeChannelFields = { ...youtubeChannel[EntityMetaKey.Selector], ...youtubeChannel }}
+		{@const selection = select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const youtubeChannelHrefFields = { ...youtubeChannel, ...youtubeChannel[EntityMetaKey.Selector] }}
+		<YoutubeChannelView
+			selection={selection}
+			prefetched={youtubeChannelFields}
+			href={
+				(youtubeChannelHrefFields.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
+					channelId: encodeURIComponent(String(youtubeChannelHrefFields.channelId ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

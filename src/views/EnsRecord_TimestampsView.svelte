@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EnsRecord_TimestampView from '$/views/EnsRecord_TimestampView.svelte'
 </script>
@@ -62,87 +61,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$record: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EnsRecord_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$record: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(ensRecordTimestamps) => [...new Map(ensRecordTimestamps.values.map((ensRecordTimestamp) => [ensRecordTimestamp[EntityMetaKey.SelectorKey], ensRecordTimestamp])).values()]}
+	getKey={(ensRecordTimestamp) => ensRecordTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ENS record observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ensRecordTimestamps)}
-			{@const uniqueEnsRecordTimestamps = [...new Map(ensRecordTimestamps.values.map((ensRecordTimestamp) => [ensRecordTimestamp[EntityMetaKey.SelectorKey], ensRecordTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensRecordTimestamps.totalCount}
-				getKey={(ensRecordTimestamp) => ensRecordTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEnsRecordTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ENS record observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ensRecordTimestamp })}
-					{@const ensRecordTimestampFields = { ...ensRecordTimestamp[EntityMetaKey.Selector], ...ensRecordTimestamp }}
-					{@const selection = select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ensRecordTimestampHrefFields = { ...ensRecordTimestamp, ...ensRecordTimestamp[EntityMetaKey.Selector] }}
-					<EnsRecord_TimestampView
-						selection={selection}
-						prefetched={ensRecordTimestampFields}
-						href={
-							(ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(ensRecordTimestampHrefFields.timestampMs ?? ''),
-								source: String(ensRecordTimestampHrefFields.source ?? ''),
-								ensName: String(ensRecordTimestampHrefFields.$record.$name.name ?? ''),
-								recordId: String(ensRecordTimestampHrefFields.$record.recordKey ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EnsRecord_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ensRecordTimestamp })}
+		{@const ensRecordTimestampFields = { ...ensRecordTimestamp[EntityMetaKey.Selector], ...ensRecordTimestamp }}
+		{@const selection = select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ensRecordTimestampHrefFields = { ...ensRecordTimestamp, ...ensRecordTimestamp[EntityMetaKey.Selector] }}
+		<EnsRecord_TimestampView
+			selection={selection}
+			prefetched={ensRecordTimestampFields}
+			href={
+				(ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(ensRecordTimestampHrefFields.timestampMs ?? ''),
+					source: String(ensRecordTimestampHrefFields.source ?? ''),
+					ensName: encodeURIComponent(String(ensRecordTimestampHrefFields.$record.$name.name ?? '')),
+					recordId: encodeURIComponent(String(ensRecordTimestampHrefFields.$record.recordKey ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

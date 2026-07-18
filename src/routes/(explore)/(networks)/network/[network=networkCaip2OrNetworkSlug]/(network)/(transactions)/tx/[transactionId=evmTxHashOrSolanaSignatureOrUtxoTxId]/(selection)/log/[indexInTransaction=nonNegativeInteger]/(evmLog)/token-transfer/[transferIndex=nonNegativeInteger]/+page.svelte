@@ -29,7 +29,11 @@
 		fields: {
 			standard: true,
 			amount: true,
-			Nft,tokenId: true,
+			Nft: {
+				fields: {
+					tokenId: true,
+				},
+			},
 			$from: true,
 			$to: true,
 			$coinInstance: true,

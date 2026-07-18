@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerStrategyTimestamp = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			totalShares: true,
 		},
@@ -76,66 +69,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
-			{#snippet Pending()}
-				<EigenLayerStrategyView
-					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EigenLayerStrategyView
-					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EigenLayerStrategyView
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EigenLayerStrategyView
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
-			{#snippet Pending()}
-				{@const totalShares0 = pendingEntity.totalShares}
-				{#if totalShares0 !== undefined && totalShares0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(totalShares0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const totalShares0 = resolvedEntity.totalShares}
-				{#if totalShares0 !== undefined && totalShares0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(totalShares0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const totalShares0 = pendingEntity.totalShares}
+			{#if totalShares0 !== undefined && totalShares0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={totalShares0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const totalShares0 = resolvedEntity.totalShares}
+					{#if totalShares0 !== undefined && totalShares0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={totalShares0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -157,19 +154,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -187,19 +178,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -214,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue value={Number(blockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -239,7 +213,9 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -251,24 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalShares: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalShares = pendingEntity.totalShares}
-					{#if totalShares !== undefined && totalShares !== null}
-						<div>
-							<dt>total shares</dt>
-							<dd>
-								<NumberValue value={Number(totalShares)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalShares = resolvedEntity.totalShares}
@@ -276,7 +241,9 @@
 						<div>
 							<dt>total shares</dt>
 							<dd>
-								<NumberValue value={Number(totalShares)} />
+								<NumberValue
+									value={totalShares}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -286,24 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalUnderlying: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalUnderlying = pendingEntity.totalUnderlying}
-					{#if totalUnderlying !== undefined && totalUnderlying !== null}
-						<div>
-							<dt>total underlying</dt>
-							<dd>
-								<NumberValue value={Number(totalUnderlying)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalUnderlying = resolvedEntity.totalUnderlying}
@@ -311,7 +267,9 @@
 						<div>
 							<dt>total underlying</dt>
 							<dd>
-								<NumberValue value={Number(totalUnderlying)} />
+								<NumberValue
+									value={totalUnderlying}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -321,24 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakerCount = pendingEntity.stakerCount}
-					{#if stakerCount !== undefined && stakerCount !== null}
-						<div>
-							<dt>staker count</dt>
-							<dd>
-								<NumberValue value={Number(stakerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakerCount = resolvedEntity.stakerCount}
@@ -346,7 +293,9 @@
 						<div>
 							<dt>staker count</dt>
 							<dd>
-								<NumberValue value={Number(stakerCount)} />
+								<NumberValue
+									value={stakerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -356,24 +305,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							delegationCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const delegationCount = pendingEntity.delegationCount}
-					{#if delegationCount !== undefined && delegationCount !== null}
-						<div>
-							<dt>delegation count</dt>
-							<dd>
-								<NumberValue value={Number(delegationCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const delegationCount = resolvedEntity.delegationCount}
@@ -381,7 +319,9 @@
 						<div>
 							<dt>delegation count</dt>
 							<dd>
-								<NumberValue value={Number(delegationCount)} />
+								<NumberValue
+									value={delegationCount}
+								/>
 							</dd>
 						</div>
 					{/if}

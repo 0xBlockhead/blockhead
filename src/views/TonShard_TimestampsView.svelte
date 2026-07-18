@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonShard_TimestampView from '$/views/TonShard_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonShard_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonShard_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonShardTimestamps) => [...new Map(tonShardTimestamps.values.map((tonShardTimestamp) => [tonShardTimestamp[EntityMetaKey.SelectorKey], tonShardTimestamp])).values()]}
+	getKey={(tonShardTimestamp) => tonShardTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON shard observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonShardTimestamps)}
-			{@const uniqueTonShardTimestamps = [...new Map(tonShardTimestamps.values.map((tonShardTimestamp) => [tonShardTimestamp[EntityMetaKey.SelectorKey], tonShardTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonShard_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonShardTimestamps.totalCount}
-				getKey={(tonShardTimestamp) => tonShardTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonShardTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON shard observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonShardTimestamp })}
-					{@const tonShardTimestampFields = { ...tonShardTimestamp[EntityMetaKey.Selector], ...tonShardTimestamp }}
-					{@const selection = select(EntityType.TonShard_Timestamp, tonShardTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonShard_TimestampView
-						selection={selection}
-						prefetched={tonShardTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonShard_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonShardTimestamp })}
+		{@const tonShardTimestampFields = { ...tonShardTimestamp[EntityMetaKey.Selector], ...tonShardTimestamp }}
+		{@const selection = select(EntityType.TonShard_Timestamp, tonShardTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonShard_TimestampView
+			selection={selection}
+			prefetched={tonShardTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

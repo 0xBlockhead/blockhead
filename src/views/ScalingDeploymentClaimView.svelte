@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const scalingDeploymentClaim = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			scalingDeploymentClaimId: true,
 		},
@@ -71,82 +72,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={scalingDeploymentClaim}>
-			{#snippet Pending()}
-				{[String((pendingEntity.sourceProjectId) ?? ''), String((pendingEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || title || 'scaling deployment claim'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.sourceProjectId) ?? ''), String((resolvedEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.sourceProjectId) ?? ''), String((pendingEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={scalingDeploymentClaim}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.sourceProjectId) ?? ''), String((resolvedEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={scalingDeploymentClaim}>
-			{#snippet Pending()}
-				{[String((pendingEntity.sourceProjectId) ?? ''), String((pendingEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || title || 'scaling deployment claim'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.sourceProjectId) ?? ''), String((resolvedEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.sourceProjectId) ?? ''), String((pendingEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={scalingDeploymentClaim}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.sourceProjectId) ?? ''), String((resolvedEntity.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={scalingDeploymentClaim}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+					{String((source0) ?? '')}
 				</span>
-			{/snippet}
+			{/if}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={scalingDeploymentClaim}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+
 					<span data-text="muted">
-						{String((source0) ?? '')}
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
 					</span>
-				{/if}
-
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -175,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -205,19 +200,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sourceProjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sourceProjectId = pendingEntity.sourceProjectId}
-							{#if sourceProjectId !== undefined && sourceProjectId !== null}
-								{String((sourceProjectId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sourceProjectId = resolvedEntity.sourceProjectId}
@@ -232,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scalingDeploymentClaimId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scalingDeploymentClaimId = pendingEntity.scalingDeploymentClaimId}
-					{#if scalingDeploymentClaimId !== undefined && scalingDeploymentClaimId !== null}
-						<div>
-							<dt>Scaling deployment claim ID</dt>
-							<dd>
-								{String((scalingDeploymentClaimId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scalingDeploymentClaimId = resolvedEntity.scalingDeploymentClaimId}
@@ -269,8 +247,6 @@
 			<ResourceBoundary
 				resource={selection.$rollup}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmRollup)}
 					{#if evmRollup != null && evmRollup[EntityMetaKey.Selector] != null}
 						<div>

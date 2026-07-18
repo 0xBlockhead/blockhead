@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitTorrentPiece = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			length: true,
 		},
@@ -68,41 +69,49 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitTorrentPiece}>
-			{#snippet Pending()}
-				{@const pieceIndex0 = pendingEntity.pieceIndex}
-				{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
-					<NumberValue value={Number(pieceIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const pieceIndex0 = resolvedEntity.pieceIndex}
-				{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
-					<NumberValue value={Number(pieceIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const pieceIndex0 = pendingEntity.pieceIndex}
+					{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
+						<NumberValue
+							value={pieceIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitTorrentPiece}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const pieceIndex0 = resolvedEntity.pieceIndex}
+					{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
+						<NumberValue
+							value={pieceIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitTorrentPiece}>
-			{#snippet Pending()}
-				{@const length0 = pendingEntity.length}
-				{#if length0 !== undefined && length0 !== null}
-					<NumberValue value={Number(length0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const length0 = resolvedEntity.length}
-				{#if length0 !== undefined && length0 !== null}
-					<NumberValue value={Number(length0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const length0 = pendingEntity.length}
+					{#if length0 !== undefined && length0 !== null}
+						<NumberValue
+							value={length0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitTorrentPiece}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const length0 = resolvedEntity.length}
+					{#if length0 !== undefined && length0 !== null}
+						<NumberValue
+							value={length0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,24 +133,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pieceIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pieceIndex = pendingEntity.pieceIndex}
-							{#if pieceIndex !== undefined && pieceIndex !== null}
-								<NumberValue value={Number(pieceIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pieceIndex = resolvedEntity.pieceIndex}
 							{#if pieceIndex !== undefined && pieceIndex !== null}
-								<NumberValue value={Number(pieceIndex)} />
+								<NumberValue
+									value={pieceIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -151,24 +156,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pieceHashV1: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pieceHashV1 = pendingEntity.pieceHashV1}
-					{#if pieceHashV1 !== undefined && pieceHashV1 !== null}
-						<div>
-							<dt>piece hash v1</dt>
-							<dd>
-								<TruncatedValue value={String((pieceHashV1) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pieceHashV1 = resolvedEntity.pieceHashV1}
@@ -186,24 +180,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pieceRootV2: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pieceRootV2 = pendingEntity.pieceRootV2}
-					{#if pieceRootV2 !== undefined && pieceRootV2 !== null}
-						<div>
-							<dt>piece root v2</dt>
-							<dd>
-								{String((pieceRootV2) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pieceRootV2 = resolvedEntity.pieceRootV2}
@@ -221,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pieceLayerHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pieceLayerHash = pendingEntity.pieceLayerHash}
-					{#if pieceLayerHash !== undefined && pieceLayerHash !== null}
-						<div>
-							<dt>piece layer hash</dt>
-							<dd>
-								<TruncatedValue value={String((pieceLayerHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pieceLayerHash = resolvedEntity.pieceLayerHash}
@@ -258,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							length: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const length = pendingEntity.length}
-					{#if length !== undefined && length !== null}
-						<div>
-							<dt>length</dt>
-							<dd>
-								<NumberValue value={Number(length)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const length = resolvedEntity.length}
@@ -283,7 +244,9 @@
 						<div>
 							<dt>length</dt>
 							<dd>
-								<NumberValue value={Number(length)} />
+								<NumberValue
+									value={length}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -293,24 +256,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							offset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const offset = pendingEntity.offset}
-					{#if offset !== undefined && offset !== null}
-						<div>
-							<dt>offset</dt>
-							<dd>
-								<NumberValue value={Number(offset)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const offset = resolvedEntity.offset}
@@ -318,7 +270,9 @@
 						<div>
 							<dt>offset</dt>
 							<dd>
-								<NumberValue value={Number(offset)} />
+								<NumberValue
+									value={offset}
+								/>
 							</dd>
 						</div>
 					{/if}

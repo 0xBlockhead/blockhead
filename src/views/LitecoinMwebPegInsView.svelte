@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LitecoinMwebPegInView from '$/views/LitecoinMwebPegInView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$transaction: true,
-					pegInIndex: true,
-					$transparentOutput: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebPegIn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LitecoinMwebPegIn}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$transaction: true,
+				pegInIndex: true,
+				$transparentOutput: true,
+			},
+		})
+	}
+	getResourceItems={(litecoinMwebPegIns) => [...new Map(litecoinMwebPegIns.values.map((litecoinMwebPegIn) => [litecoinMwebPegIn[EntityMetaKey.SelectorKey], litecoinMwebPegIn])).values()]}
+	getKey={(litecoinMwebPegIn) => litecoinMwebPegIn[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Litecoin MWEB peg ins yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(litecoinMwebPegIns)}
-			{@const uniqueLitecoinMwebPegIns = [...new Map(litecoinMwebPegIns.values.map((litecoinMwebPegIn) => [litecoinMwebPegIn[EntityMetaKey.SelectorKey], litecoinMwebPegIn])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebPegIn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={litecoinMwebPegIns.totalCount}
-				getKey={(litecoinMwebPegIn) => litecoinMwebPegIn[EntityMetaKey.SelectorKey]}
-				items={uniqueLitecoinMwebPegIns}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Litecoin MWEB peg ins yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: litecoinMwebPegIn })}
-					{@const litecoinMwebPegInFields = { ...litecoinMwebPegIn[EntityMetaKey.Selector], ...litecoinMwebPegIn }}
-					{@const selection = select(EntityType.LitecoinMwebPegIn, litecoinMwebPegIn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LitecoinMwebPegInView
-						selection={selection}
-						prefetched={litecoinMwebPegInFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LitecoinMwebPegIn}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: litecoinMwebPegIn })}
+		{@const litecoinMwebPegInFields = { ...litecoinMwebPegIn[EntityMetaKey.Selector], ...litecoinMwebPegIn }}
+		{@const selection = select(EntityType.LitecoinMwebPegIn, litecoinMwebPegIn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LitecoinMwebPegInView
+			selection={selection}
+			prefetched={litecoinMwebPegInFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

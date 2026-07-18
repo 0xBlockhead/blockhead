@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterCastTimestamp = $derived(selection({
-		sources: [
-			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('Farcaster cast observation')
 	const viewDomId = $derived('farcaster-cast-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -77,11 +73,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterCastTimestamp}>
-			{#snippet Pending()}
-				<FarcasterCastView
-					selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<FarcasterCastView
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
+						href={
 						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
@@ -90,16 +85,16 @@
 							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<FarcasterCastView
-					selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={farcasterCastTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<FarcasterCastView
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
+						href={
 						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
@@ -108,30 +103,31 @@
 							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterCastTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterCastTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -164,19 +160,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -193,24 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							likeCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const likeCount = pendingEntity.likeCount}
-					{#if likeCount !== undefined && likeCount !== null}
-						<div>
-							<dt>Likes</dt>
-							<dd>
-								<NumberValue value={Number(likeCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const likeCount = resolvedEntity.likeCount}
@@ -218,7 +197,9 @@
 						<div>
 							<dt>Likes</dt>
 							<dd>
-								<NumberValue value={Number(likeCount)} />
+								<NumberValue
+									value={likeCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -230,24 +211,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							recastCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const recastCount = pendingEntity.recastCount}
-					{#if recastCount !== undefined && recastCount !== null}
-						<div>
-							<dt>Recasts</dt>
-							<dd>
-								<NumberValue value={Number(recastCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const recastCount = resolvedEntity.recastCount}
@@ -255,7 +225,9 @@
 						<div>
 							<dt>Recasts</dt>
 							<dd>
-								<NumberValue value={Number(recastCount)} />
+								<NumberValue
+									value={recastCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -267,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyCount = pendingEntity.replyCount}
-					{#if replyCount !== undefined && replyCount !== null}
-						<div>
-							<dt>Replies</dt>
-							<dd>
-								<NumberValue value={Number(replyCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyCount = resolvedEntity.replyCount}
@@ -292,7 +253,9 @@
 						<div>
 							<dt>Replies</dt>
 							<dd>
-								<NumberValue value={Number(replyCount)} />
+								<NumberValue
+									value={replyCount}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 
 import {
+	materializeResolverOutput,
+	ResolverOutputMaterialization,
+} from '$/collections/assertLoadedCollectionRows.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { resolverAccountabilityReport } from '$/resolvers/accountability.ts'
@@ -16,6 +20,8 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 	entityFieldDefinitions,
+	entitySelectorKey,
+	indexSchema,
 	type EntitySelector,
 	type Schema,
 } from '$/schema/$schema.ts'
@@ -32,7 +38,7 @@ import {
 	enabledSources as browserEnabledSources,
 	sourceProviders,
 } from '$/sources/index.ts'
-import { resolvers } from '$/resolvers/index.ts'
+import { loadAllResolvers } from '$/resolvers/index.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
@@ -54,6 +60,8 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
+
+const resolvers = await loadAllResolvers()
 
 const {
 	resolverDefinitions,
@@ -160,13 +168,15 @@ const validFixtureResolver = {
 	source: 'Fixture',
 	entityType: 'FixtureEntity',
 	resolve: {
-		[FixtureEntitySelector.Slug]: async () => ({}),
+		[FixtureEntitySelector.Slug]: {
+			resolve: async () => ({}),
+		},
 	},
 	projections: {
 		name: () => 'Ada',
 		segments: () => ['kind'],
 	},
-} satisfies SourceResolverDefinition<typeof fixtureSchema, 'Fixture'>
+} satisfies SourceResolverDefinitionCandidate<typeof fixtureSchema, 'Fixture'>
 
 describe('resolver registry live resolver architecture', () => {
 	it('registers only resolver modules with at least one definition', () => {
@@ -201,7 +211,9 @@ describe('resolver registry live resolver architecture', () => {
 				{
 					...validFixtureResolver,
 					resolve: {
-						missingSelector: async () => ({}),
+						missingSelector: {
+							resolve: async () => ({}),
+						},
 					},
 				},
 				/references unknown selector missingSelector/,
@@ -328,7 +340,9 @@ describe('resolver registry live resolver architecture', () => {
 			defineResolver(Source.Voltaire_JsonRpc, {
 				entityType: EntityType.Network,
 				resolve: {
-					Caip2: async () => ({}),
+					Caip2: {
+						resolve: async () => ({}),
+					},
 				},
 				resolveLive: {
 					invalid: {
@@ -352,7 +366,9 @@ describe('resolver registry live resolver architecture', () => {
 			defineResolver(Source.Voltaire_JsonRpc, {
 				entityType: EntityType.Network,
 				resolve: {
-					Caip2: async () => [],
+					Caip2: {
+						resolve: async () => [],
+					},
 				},
 			})({
 				Evm: {
@@ -568,20 +584,46 @@ describe('resolver registry live resolver architecture', () => {
 						timestampMs: expect.any(Number),
 						source: Source.Voltaire_JsonRpc,
 					},
-					blockHeight: 12n,
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: 12n,
+					},
 				}],
 			}])
 			expect(replaceBlockRows).toHaveBeenCalledWith([{
 				source: Source.Voltaire_JsonRpc,
-				value: [expect.objectContaining({
+				value: [{
 					[EntityMetaKey.Selector]: {
 						$network,
 						blockNumber: 12n,
 					},
-					blockNumber: 12n,
-					hash: `0x${'12'.repeat(32)}`,
-				})],
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: 12n,
+						[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: `0x${'12'.repeat(32)}`,
+					}),
+				}],
 			}])
+			const schemaIndex = indexSchema(schema)
+			const fieldDefinition = schemaIndex.entityFieldDefinitionByEntityTypePathAndName[EntityType.Network][
+				entityFieldAddressKey(EntityType.Network, ['Evm'], '$$blocks')
+			]
+			if (fieldDefinition == null)
+				throw new Error('Network.Evm.$$blocks field definition missing')
+
+			expect(() => materializeResolverOutput({
+				kind: ResolverOutputMaterialization.Field,
+				schema,
+				schemaIndex,
+				entityDefinition: schemaIndex.entityDefinitionByType[EntityType.Network],
+				parentSelector: $network,
+				parentSelectorKey: entitySelectorKey(
+					schema,
+					schemaIndex.entityDefinitionByType[EntityType.Network],
+					$network
+				),
+				source: Source.Voltaire_JsonRpc,
+				fieldDefinition,
+				value: replaceBlockRows.mock.calls[0][0][0].value,
+			})).not.toThrow()
 		} finally {
 			abortController.abort()
 		}
@@ -625,6 +667,7 @@ describe('resolver registry live resolver architecture', () => {
 			)).length
 		).toBeGreaterThan(0)
 		for (const [source, facetPath, fieldName] of [
+			[Source.CosmosSdk_Rest, 'Cosmos', '$$accounts'],
 			[Source.CosmosSdk_Rest, 'Cosmos', '$$validators'],
 			[Source.CosmosSdk_Rest, 'Cosmos', '$$governanceProposals'],
 			[Source.Blockchair_Rest, 'Utxo', '$$blocks'],
@@ -671,7 +714,9 @@ describe('resolver registry live resolver architecture', () => {
 		const first = defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => ({}),
+				[_GlobalSelector.Scope]: {
+					resolve: async () => ({}),
+				},
 			},
 		})({
 				$$networks: {
@@ -682,7 +727,9 @@ describe('resolver registry live resolver architecture', () => {
 		const second = defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => ({}),
+				[_GlobalSelector.Scope]: {
+					resolve: async () => ({}),
+				},
 			},
 		})({
 				$$networks: {
@@ -842,9 +889,9 @@ describe('resolver registry live resolver architecture', () => {
 		expect(defaultSourceCoverageGaps).toEqual([])
 	})
 
-	it('keeps every active APP entity accountable to at least one resolver module', () => {
+	it('keeps generated schema entities accountable without treating view source forwarding as ownership', () => {
 		const intentionallyUnresolvedEntityTypes = {
-			[EntityType.BlockheadWalletRequestCall]: 'prospective Local_Internal entity without a catalog or resolver implementation',
+			[EntityType.BlockheadWalletRequestCall]: 'query-local Local_Internal source without a schema field default or resolver implementation',
 		} as const
 		const accountabilityReport = resolverAccountabilityReport({
 			entityTypes: schema.map((entityDefinition) => entityDefinition.entityType),
@@ -852,11 +899,7 @@ describe('resolver registry live resolver architecture', () => {
 			sourceBackedEntityTypes: new Set(schema.flatMap((entityDefinition) => (
 				Object.values(fieldDefinitionByEntityTypeAndFieldName[entityDefinition.entityType]).some((fieldDefinition) => (
 					(fieldDefinition.defaultSources?.length ?? 0) > 0
-				))
-				|| readFileSync(
-					new URL(`../views/${entityDefinition.entityType}View.svelte`, import.meta.url),
-					'utf8'
-				).includes('sources:') ?
+				)) ?
 					[entityDefinition.entityType]
 				:
 					[]
@@ -872,10 +915,10 @@ describe('resolver registry live resolver architecture', () => {
 		expect(newlyCoveredLocalEntityTypes.every((entityType) => !accountabilityReport.unresolvedEntityTypes.includes(entityType))).toBe(true)
 		for (const entityType of Object.keys(intentionallyUnresolvedEntityTypes))
 			expect(accountabilityReport.unresolvedEntityTypes).toContain(entityType)
-		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).toContain(EntityType.BlockheadWalletRequestCall)
-		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
+		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
+		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).toContain(EntityType.BlockheadWalletRequestCall)
 		expect(Object.values(intentionallyUnresolvedEntityTypes)).toEqual([
-			'prospective Local_Internal entity without a catalog or resolver implementation',
+			'query-local Local_Internal source without a schema field default or resolver implementation',
 		])
 		expect(accountabilityReport.total).toBe(accountabilityReport.sourceBacked + accountabilityReport.noDeclaredSource)
 		expect(accountabilityReport.unresolvedEntityTypes).toEqual(expect.arrayContaining([
@@ -1262,6 +1305,11 @@ describe('resolver registry live resolver architecture', () => {
 			&& candidate.entityType === EntityType.EvmBlob
 			&& 'versionedHash' in candidate.projections
 		))
+		expect(allSourceResolverDefinitions.filter((candidate) => (
+			candidate.source === Source.Voltaire_JsonRpc
+			&& candidate.entityType === EntityType.EvmBlob
+			&& candidate.resolve[EvmBlobSelector.TransactionIndexInTransaction] != null
+		))).toHaveLength(1)
 		const resolveBlob = blobResolver?.resolve[EvmBlobSelector.TransactionIndexInTransaction]
 		if (blobResolver == null || resolveBlob == null)
 			throw new Error('Voltaire_JsonRpc: missing EvmBlob resolver')
@@ -1292,23 +1340,7 @@ describe('resolver registry live resolver architecture', () => {
 			},
 		})
 
-		const blobBlockResolver = allSourceResolverDefinitions.find((candidate) => (
-			candidate.source === Source.Voltaire_JsonRpc
-			&& candidate.entityType === EntityType.EvmBlob
-			&& Object.keys(candidate.projections).length === 1
-			&& '$block' in candidate.projections
-		))
-		const resolveBlobBlock = blobBlockResolver?.resolve[EvmBlobSelector.TransactionIndexInTransaction]
-		if (blobBlockResolver == null || resolveBlobBlock == null)
-			throw new Error('Voltaire_JsonRpc: missing EvmBlob.$block resolver')
-		const blobBlock = await resolveBlobBlock({
-			$transaction: {
-				$network,
-				txHash,
-			},
-			indexInTransaction: 0,
-		}, resolverContext)
-		expect(resolverFieldSelector(blobBlockResolver, '$block')(blobBlock, {
+		expect(resolverFieldSelector(blobResolver, '$block')(blob, {
 			$transaction: {
 				$network,
 				txHash,
@@ -1400,10 +1432,12 @@ describe('resolver registry live resolver architecture', () => {
 				timestampMs: coingeckoTimestampMs,
 				source: Source.Coingecko_Rest,
 			},
-			marketCapRank: 2,
-			marketCapUsd: 123,
-			transport: 'coingecko-coin',
-			providerAssetId: 'ethereum',
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'marketCapRank')]: 2,
+				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'marketCapUsd')]: 123,
+				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'transport')]: 'coingecko-coin',
+				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'providerAssetId')]: 'ethereum',
+			},
 		}])
 
 		const blockscoutTimestampResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -1520,6 +1554,23 @@ describe('resolver registry live resolver architecture', () => {
 			|| resolveNostrBandObservation == null
 		)
 			throw new Error('missing Nostr relay observation resolver')
+
+		expect(nip11ObservationResolver.appliesTo(
+			NostrRelay_TimestampSelector.RelayTimestampMsSource,
+			{
+				$relay: { relayUrl },
+				timestampMs,
+				source: Source.NostrBand_Rest,
+			}
+		)).toBe(false)
+		expect(nostrBandObservationResolver.appliesTo(
+			NostrRelay_TimestampSelector.RelayTimestampMsSource,
+			{
+				$relay: { relayUrl },
+				timestampMs,
+				source: Source.NostrRelay_Nip11_Http,
+			}
+		)).toBe(false)
 
 		expect(resolverFieldSelector(nip11RelayResolver, '$$timestamps')(
 			await resolveNip11Relay({ relayUrl }, resolverContext),
@@ -2385,6 +2436,27 @@ describe('resolver registry live resolver architecture', () => {
 		expect(Object.values(resolverCountPartsByEntityTypeAndFieldName).flat().every((resolverPart) => (
 			fieldDefinitionByEntityTypeAndFieldName[resolverPart.entityType][resolverPart.fieldName]?.cardinality === EntityFieldCardinality.Many
 			|| fieldDefinitionByEntityTypeAndFieldName[resolverPart.entityType][resolverPart.fieldName]?.cardinality === EntityFieldCardinality.ZeroOrMany
+		))).toBe(true)
+	})
+
+	it('keeps Farcaster account connection materialization local-only', () => {
+		expect(allSourceResolverDefinitions
+			.filter(({ entityType }) => entityType === EntityType.BlockheadFarcasterAccountConnection)
+			.map(({ source }) => source)).toEqual([Source.Local_Internal])
+	})
+
+	it('keeps public Farcaster evidence separate from local connection authority', () => {
+		const publicSources = [
+			Source.Neynar_Rest,
+			Source.Snapchain_Rest,
+		]
+		expect(allSourceResolverDefinitions.some((resolver) => (
+			publicSources.includes(resolver.source)
+			&& resolver.entityType === EntityType.BlockheadFarcasterAccountConnection
+		))).toBe(false)
+		expect(allSourceResolverDefinitions.some((resolver) => (
+			publicSources.includes(resolver.source)
+			&& resolver.entityType === EntityType.FarcasterUser
 		))).toBe(true)
 	})
 

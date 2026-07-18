@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaAllowanceTimestamp = $derived(selection({}))
+	const hederaAllowanceTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera allowance timestamp')
 	const viewDomId = $derived('hedera-allowance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaAllowanceTimestamp}>
-			{#snippet Pending()}
-				{title || 'hedera allowance timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaAllowanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -150,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amount = pendingEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>amount</dt>
-							<dd>
-								{String((amount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amount = resolvedEntity.amount}
@@ -185,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							approvedForAll: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const approvedForAll = pendingEntity.approvedForAll}
-					{#if approvedForAll !== undefined && approvedForAll !== null}
-						<div>
-							<dt>approved for all</dt>
-							<dd>
-								{approvedForAll ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const approvedForAll = resolvedEntity.approvedForAll}
@@ -220,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deleted = pendingEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
-						<div>
-							<dt>deleted</dt>
-							<dd>
-								{deleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deleted = resolvedEntity.deleted}

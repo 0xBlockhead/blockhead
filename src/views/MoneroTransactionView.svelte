@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moneroTransaction = $derived(selection({
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			feeAtomicUnits: true,
 		},
@@ -77,96 +75,104 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroTransaction}>
-			{#snippet Pending()}
-				{@const txHash0 = pendingEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txHash0 = resolvedEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const txHash0 = pendingEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const txHash0 = resolvedEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroTransaction}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={
 						selection.$block({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(moneroBlock)}
-						{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
-							<MoneroBlockView
-								selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-								prefetched={moneroBlock}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
+					>
+						{#snippet children(moneroBlock)}
+							{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
+								<MoneroBlockView
+									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+									prefetched={moneroBlock}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={moneroTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
 						selection.$block({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(moneroBlock)}
-						{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
-							<MoneroBlockView
-								selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-								prefetched={moneroBlock}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					>
+						{#snippet children(moneroBlock)}
+							{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
+								<MoneroBlockView
+									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+									prefetched={moneroBlock}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moneroTransaction}>
-			{#snippet Pending()}
-				{@const feeAtomicUnits0 = pendingEntity.feeAtomicUnits}
-				{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(feeAtomicUnits0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const feeAtomicUnits0 = resolvedEntity.feeAtomicUnits}
-				{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(feeAtomicUnits0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const feeAtomicUnits0 = pendingEntity.feeAtomicUnits}
+			{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={feeAtomicUnits0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={moneroTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feeAtomicUnits0 = resolvedEntity.feeAtomicUnits}
+					{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={feeAtomicUnits0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -195,19 +201,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									txHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const txHash = pendingEntity.txHash}
-							{#if txHash !== undefined && txHash !== null}
-								<TruncatedValue value={String((txHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const txHash = resolvedEntity.txHash}
@@ -228,8 +228,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(moneroBlock)}
 					{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,27 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								<NumberValue value={Number(version)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -278,7 +262,9 @@
 						<div>
 							<dt>Version</dt>
 							<dd>
-								<NumberValue value={Number(version)} />
+								<NumberValue
+									value={version}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -288,27 +274,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							unlockTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unlockTime = pendingEntity.unlockTime}
-					{#if unlockTime !== undefined && unlockTime !== null}
-						<div>
-							<dt>Unlock time</dt>
-							<dd>
-								<NumberValue value={Number(unlockTime)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unlockTime = resolvedEntity.unlockTime}
@@ -316,7 +288,9 @@
 						<div>
 							<dt>Unlock time</dt>
 							<dd>
-								<NumberValue value={Number(unlockTime)} />
+								<NumberValue
+									value={unlockTime}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -326,27 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							feeAtomicUnits: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeAtomicUnits = pendingEntity.feeAtomicUnits}
-					{#if feeAtomicUnits !== undefined && feeAtomicUnits !== null}
-						<div>
-							<dt>Fee atomic units</dt>
-							<dd>
-								<NumberValue value={Number(feeAtomicUnits)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeAtomicUnits = resolvedEntity.feeAtomicUnits}
@@ -354,7 +314,9 @@
 						<div>
 							<dt>Fee atomic units</dt>
 							<dd>
-								<NumberValue value={Number(feeAtomicUnits)} />
+								<NumberValue
+									value={feeAtomicUnits}
+								/>
 							</dd>
 						</div>
 					{/if}

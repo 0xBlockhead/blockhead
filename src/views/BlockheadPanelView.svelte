@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadPanel = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			indexInParent: true,
 			kind: true,
@@ -74,52 +71,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadPanel}>
-			{#snippet Pending()}
-				{[String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || title || 'panel'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadPanel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadPanel}>
-			{#snippet Pending()}
-				{[String((pendingEntity.entityType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || title || 'panel'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.entityType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.entityType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadPanel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.entityType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadPanel}>
-			{#snippet Pending()}
-				{@const indexInParent0 = pendingEntity.indexInParent}
-				{#if indexInParent0 !== undefined && indexInParent0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(indexInParent0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const indexInParent0 = resolvedEntity.indexInParent}
-				{#if indexInParent0 !== undefined && indexInParent0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(indexInParent0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const indexInParent0 = pendingEntity.indexInParent}
+			{#if indexInParent0 !== undefined && indexInParent0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={indexInParent0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadPanel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const indexInParent0 = resolvedEntity.indexInParent}
+					{#if indexInParent0 !== undefined && indexInParent0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={indexInParent0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,19 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									treeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const treeId = pendingEntity.treeId}
-							{#if treeId !== undefined && treeId !== null}
-								{String((treeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const treeId = resolvedEntity.treeId}
@@ -160,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									panelId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const panelId = pendingEntity.panelId}
-							{#if panelId !== undefined && panelId !== null}
-								{String((panelId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const panelId = resolvedEntity.panelId}
@@ -212,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							parentPanelId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parentPanelId = pendingEntity.parentPanelId}
-					{#if parentPanelId !== undefined && parentPanelId !== null}
-						<div>
-							<dt>parent panel ID</dt>
-							<dd>
-								{String((parentPanelId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parentPanelId = resolvedEntity.parentPanelId}
@@ -252,24 +230,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInParent: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInParent = pendingEntity.indexInParent}
-							{#if indexInParent !== undefined && indexInParent !== null}
-								<NumberValue value={Number(indexInParent)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInParent = resolvedEntity.indexInParent}
 							{#if indexInParent !== undefined && indexInParent !== null}
-								<NumberValue value={Number(indexInParent)} />
+								<NumberValue
+									value={indexInParent}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -282,19 +256,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									kind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const kind = pendingEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const kind = resolvedEntity.kind}
@@ -309,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							entityType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const entityType = pendingEntity.entityType}
-					{#if entityType !== undefined && entityType !== null}
-						<div>
-							<dt>entity type</dt>
-							<dd>
-								{String((entityType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const entityType = resolvedEntity.entityType}

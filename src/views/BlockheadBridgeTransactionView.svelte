@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadBridgeTransaction = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')
 	const viewDomId = $derived('blockhead-bridge-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -72,7 +69,7 @@
 			createdAt: String(pendingEntity.createdAt ?? ''),
 			address: String(pendingEntity.$account.address ?? ''),
 			chainId: String(pendingEntity.$sourceTx.$network.caip2.reference ?? ''),
-			sourceTxHash: String(pendingEntity.$sourceTx.txHash ?? ''),
+			sourceTxHash: encodeURIComponent(String(pendingEntity.$sourceTx.txHash ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -80,30 +77,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadBridgeTransaction}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<Timestamp timestamp={Number(createdAt0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<Timestamp timestamp={Number(createdAt0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const createdAt0 = pendingEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<Timestamp timestamp={Number(createdAt0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadBridgeTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<Timestamp timestamp={Number(createdAt0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadBridgeTransaction}>
-			{#snippet Pending()}
-				<EvmTransactionView
-					selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmTransactionView
+						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
+						href={
 						(selection.entitySelector.$sourceTx.txHash !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$sourceTx.$network.caip2) ?? ''),
@@ -112,16 +108,16 @@
 							network: String(selection.entitySelector.$sourceTx.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmTransactionView
-					selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadBridgeTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmTransactionView
+						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
+						href={
 						(selection.entitySelector.$sourceTx.txHash !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$sourceTx.$network.caip2) ?? ''),
@@ -130,46 +126,47 @@
 							network: String(selection.entitySelector.$sourceTx.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadBridgeTransaction}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
-						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
-						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<EvmAccountView
+					selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+					href={
+						(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
+							address: String(selection.entitySelector.$account.address ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={blockheadBridgeTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<EvmAccountView
+							selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+							href={
+								(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
+									address: String(selection.entitySelector.$account.address ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -216,19 +213,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}
@@ -245,8 +236,6 @@
 			<ResourceBoundary
 				resource={selection.$bridgeTransfer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bridgeTransfer)}
 					{#if bridgeTransfer != null && bridgeTransfer[EntityMetaKey.Selector] != null}
 						<div>

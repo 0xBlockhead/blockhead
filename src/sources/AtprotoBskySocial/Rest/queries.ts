@@ -1,10 +1,6 @@
-import { getJson } from '$/lib/http.ts'
 import { bskySocialXrpcGet } from '$/sources/AtprotoBskySocial/Rest/client.ts'
-import {
-	bskySocialOrigins,
-	bskySocialXrpcBase,
-} from '$/sources/AtprotoBskySocial/Rest/constants.ts'
 import type {
+	AtprotoIdentityResolveHandleResponse,
 	BskyAppViewGetAuthorFeedResponse,
 	BskyAppViewGetPostThreadResponse,
 	BskyAppViewGetPostsResponse,
@@ -14,6 +10,13 @@ import type {
 	BskySocialSearchActorsTypeaheadResponse,
 	BskySocialSearchPostsResponse,
 } from '$/sources/AtprotoBskySocial/Rest/types.ts'
+
+export const resolveHandle = async (handle: string) => (
+	bskySocialXrpcGet<AtprotoIdentityResolveHandleResponse>(
+		'/com.atproto.identity.resolveHandle',
+		{ handle }
+	)
+)
 
 export const getProfile = async (actor: string) => (
 	bskySocialXrpcGet<BskyAppViewProfile>(
@@ -26,11 +29,9 @@ export const getPosts = async (uris: string[]) => (
 	uris.length === 0 ?
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
 	:
-		getJson<BskyAppViewGetPostsResponse>(
-			`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
-				new URLSearchParams(uris.map((u) => ['uris', u])).toString()
-			)}`,
-			{ origins: bskySocialOrigins }
+		bskySocialXrpcGet<BskyAppViewGetPostsResponse>(
+			'/app.bsky.feed.getPosts',
+			{ uris }
 		)
 )
 

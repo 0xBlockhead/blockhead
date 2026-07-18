@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonNftItemView from '$/views/TonNftItemView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNftItem}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonNftItem}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonNftItems) => [...new Map(tonNftItems.values.map((tonNftItem) => [tonNftItem[EntityMetaKey.SelectorKey], tonNftItem])).values()]}
+	getKey={(tonNftItem) => tonNftItem[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON NFT items yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonNftItems)}
-			{@const uniqueTonNftItems = [...new Map(tonNftItems.values.map((tonNftItem) => [tonNftItem[EntityMetaKey.SelectorKey], tonNftItem])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNftItem}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonNftItems.totalCount}
-				getKey={(tonNftItem) => tonNftItem[EntityMetaKey.SelectorKey]}
-				items={uniqueTonNftItems}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON NFT items yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonNftItem })}
-					{@const tonNftItemFields = { ...tonNftItem[EntityMetaKey.Selector], ...tonNftItem }}
-					{@const selection = select(EntityType.TonNftItem, tonNftItem[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonNftItemView
-						selection={selection}
-						prefetched={tonNftItemFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonNftItem}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonNftItem })}
+		{@const tonNftItemFields = { ...tonNftItem[EntityMetaKey.Selector], ...tonNftItem }}
+		{@const selection = select(EntityType.TonNftItem, tonNftItem[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonNftItemView
+			selection={selection}
+			prefetched={tonNftItemFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

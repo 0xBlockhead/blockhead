@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonContractGetMethodTimestamp = $derived(selection({}))
+	const tonContractGetMethodTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON contract get method timestamp')
 	const viewDomId = $derived('ton-contract-get-method-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonContractGetMethodTimestamp}>
-			{#snippet Pending()}
-				{title || 'TON contract get method timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonContractGetMethodTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							methodId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const methodId = pendingEntity.methodId}
-					{#if methodId !== undefined && methodId !== null}
-						<div>
-							<dt>method ID</dt>
-							<dd>
-								{String((methodId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const methodId = resolvedEntity.methodId}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							exitCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const exitCode = pendingEntity.exitCode}
-					{#if exitCode !== undefined && exitCode !== null}
-						<div>
-							<dt>exit code</dt>
-							<dd>
-								{String((exitCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const exitCode = resolvedEntity.exitCode}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>gas used</dt>
-							<dd>
-								{String((gasUsed) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resultHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resultHash = pendingEntity.resultHash}
-					{#if resultHash !== undefined && resultHash !== null}
-						<div>
-							<dt>result hash</dt>
-							<dd>
-								<TruncatedValue value={String((resultHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resultHash = resolvedEntity.resultHash}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockSeqno: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockSeqno = pendingEntity.blockSeqno}
-					{#if blockSeqno !== undefined && blockSeqno !== null}
-						<div>
-							<dt>block seqno</dt>
-							<dd>
-								{String((blockSeqno) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockSeqno = resolvedEntity.blockSeqno}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastTransactionLt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastTransactionLt = pendingEntity.lastTransactionLt}
-					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
-						<div>
-							<dt>last transaction lt</dt>
-							<dd>
-								{String((lastTransactionLt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastTransactionLt = resolvedEntity.lastTransactionLt}

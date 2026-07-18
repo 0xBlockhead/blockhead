@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const currency = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			symbol: true,
@@ -80,29 +78,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={currency}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={currency}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={currency}>
-			{#snippet Pending()}
-				{[String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'currency'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={currency}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -133,8 +131,6 @@
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(currencyTimestamps)}
 							{@const currencyTimestamp = currencyTimestamps.values[0]}
 							{#if currencyTimestamp != null}
@@ -157,6 +153,8 @@
 									layout={EntityLayout.Value}
 									open={false}
 								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No catalog snapshot available.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -169,24 +167,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								symbol: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const symbol = pendingEntity.symbol}
-						{#if symbol !== undefined && symbol !== null}
-							<div>
-								<dt>Symbol</dt>
-								<dd>
-									{String((symbol) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const symbol = resolvedEntity.symbol}
@@ -210,19 +197,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									minorUnitExponent: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const minorUnitExponent = pendingEntity.minorUnitExponent}
-							{#if minorUnitExponent !== undefined && minorUnitExponent !== null}
-								{String((minorUnitExponent) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const minorUnitExponent = resolvedEntity.minorUnitExponent}
@@ -237,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							catalogSortWeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const catalogSortWeight = pendingEntity.catalogSortWeight}
-					{#if catalogSortWeight !== undefined && catalogSortWeight !== null}
-						<div>
-							<dt>Catalog sort weight</dt>
-							<dd>
-								{String((catalogSortWeight) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const catalogSortWeight = resolvedEntity.catalogSortWeight}
@@ -289,11 +259,8 @@
 					]
 				}
 				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Markets</HeadingComponent>
 						<Tooltip contentProps={{ side: 'top' }}>
@@ -318,11 +285,15 @@
 								sources: [
 									Source.Constants_Internal,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No base available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -336,11 +307,15 @@
 								sources: [
 									Source.Constants_Internal,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No quote available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

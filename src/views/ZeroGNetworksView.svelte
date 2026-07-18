@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGNetworkView from '$/views/ZeroGNetworkView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					slug: true,
-					environment: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				slug: true,
+				environment: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGNetworks) => [...new Map(zeroGNetworks.values.map((zeroGNetwork) => [zeroGNetwork[EntityMetaKey.SelectorKey], zeroGNetwork])).values()]}
+	getKey={(zeroGNetwork) => zeroGNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGNetworks)}
-			{@const uniqueZeroGNetworks = [...new Map(zeroGNetworks.values.map((zeroGNetwork) => [zeroGNetwork[EntityMetaKey.SelectorKey], zeroGNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGNetworks.totalCount}
-				getKey={(zeroGNetwork) => zeroGNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGNetwork })}
-					{@const zeroGNetworkFields = { ...zeroGNetwork[EntityMetaKey.Selector], ...zeroGNetwork }}
-					{@const selection = select(EntityType.ZeroGNetwork, zeroGNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGNetworkView
-						selection={selection}
-						prefetched={zeroGNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGNetwork })}
+		{@const zeroGNetworkFields = { ...zeroGNetwork[EntityMetaKey.Selector], ...zeroGNetwork }}
+		{@const selection = select(EntityType.ZeroGNetwork, zeroGNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGNetworkView
+			selection={selection}
+			prefetched={zeroGNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

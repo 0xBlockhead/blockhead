@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitLooseObject = $derived(selection({}))
+	const gitLooseObject = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git loose object')
 	const viewDomId = $derived('git-loose-object-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,35 +68,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitLooseObject}>
-			{#snippet Pending()}
-				{@const objectId0 = pendingEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const objectId0 = resolvedEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const objectId0 = pendingEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={gitLooseObject}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const objectId0 = resolvedEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitLooseObject}>
-			{#snippet Pending()}
-				{[String((pendingEntity.byteSource) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git loose object'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.byteSource) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.byteSource) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitLooseObject}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.byteSource) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,19 +107,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectId = pendingEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectId = resolvedEntity.objectId}
@@ -135,19 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectFormat: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectFormat = pendingEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectFormat = resolvedEntity.objectFormat}
@@ -165,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									byteSource: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const byteSource = pendingEntity.byteSource}
-							{#if byteSource !== undefined && byteSource !== null}
-								{String((byteSource) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const byteSource = resolvedEntity.byteSource}
@@ -192,24 +176,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							path: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const path = pendingEntity.path}
-					{#if path !== undefined && path !== null}
-						<div>
-							<dt>path</dt>
-							<dd>
-								{String((path) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const path = resolvedEntity.path}
@@ -227,24 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							compressedSizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const compressedSizeBytes = pendingEntity.compressedSizeBytes}
-					{#if compressedSizeBytes !== undefined && compressedSizeBytes !== null}
-						<div>
-							<dt>compressed size bytes</dt>
-							<dd>
-								<NumberValue value={Number(compressedSizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const compressedSizeBytes = resolvedEntity.compressedSizeBytes}
@@ -252,7 +214,9 @@
 						<div>
 							<dt>compressed size bytes</dt>
 							<dd>
-								<NumberValue value={Number(compressedSizeBytes)} />
+								<NumberValue
+									value={compressedSizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -262,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observedAtMs = pendingEntity.observedAtMs}
-					{#if observedAtMs !== undefined && observedAtMs !== null}
-						<div>
-							<dt>observed AT ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(observedAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observedAtMs = resolvedEntity.observedAtMs}
@@ -297,8 +250,6 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

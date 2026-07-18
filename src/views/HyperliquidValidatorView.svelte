@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidValidator = $derived(selection({}))
+	const hyperliquidValidator = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid validator')
 	const viewDomId = $derived('hyperliquid-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidValidator}>
-			{#snippet Pending()}
-				{title || 'hyperliquid validator'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidValidator}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									validator: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const validator = pendingEntity.validator}
-							{#if validator !== undefined && validator !== null}
-								{String((validator) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const validator = resolvedEntity.validator}

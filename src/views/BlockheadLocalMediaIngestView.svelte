@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLocalMediaIngest = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			createdAt: true,
 			fileName: true,
@@ -78,52 +75,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLocalMediaIngest}>
-			{#snippet Pending()}
-				{[String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ingestId) ?? '')].filter(Boolean).join(' ') || 'local media ingest'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLocalMediaIngest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLocalMediaIngest}>
-			{#snippet Pending()}
-				{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ingestId) ?? '')].filter(Boolean).join(' ') || 'local media ingest'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.fileName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLocalMediaIngest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.fileName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadLocalMediaIngest}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAt0 = pendingEntity.createdAt}
+			{#if createdAt0 !== undefined && createdAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLocalMediaIngest}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,19 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ingestId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ingestId = pendingEntity.ingestId}
-							{#if ingestId !== undefined && ingestId !== null}
-								{String((ingestId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ingestId = resolvedEntity.ingestId}
@@ -161,24 +152,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fileName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fileName = pendingEntity.fileName}
-					{#if fileName !== undefined && fileName !== null}
-						<div>
-							<dt>file name</dt>
-							<dd>
-								{String((fileName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fileName = resolvedEntity.fileName}
@@ -196,24 +176,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mimeType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mimeType = pendingEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
-						<div>
-							<dt>MIME type</dt>
-							<dd>
-								{String((mimeType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mimeType = resolvedEntity.mimeType}
@@ -231,24 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							size: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const size = pendingEntity.size}
-					{#if size !== undefined && size !== null}
-						<div>
-							<dt>size</dt>
-							<dd>
-								<NumberValue value={Number(size)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const size = resolvedEntity.size}
@@ -256,7 +214,9 @@
 						<div>
 							<dt>size</dt>
 							<dd>
-								<NumberValue value={Number(size)} />
+								<NumberValue
+									value={size}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -266,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sha256: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sha256 = pendingEntity.sha256}
-					{#if sha256 !== undefined && sha256 !== null}
-						<div>
-							<dt>SHA-256</dt>
-							<dd>
-								{String((sha256) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sha256 = resolvedEntity.sha256}
@@ -301,8 +250,6 @@
 			<ResourceBoundary
 				resource={selection.$media}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -313,7 +260,7 @@
 									prefetched={media}
 									href={
 										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-											url: String(media[EntityMetaKey.Selector].url ?? ''),
+											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -333,19 +280,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}

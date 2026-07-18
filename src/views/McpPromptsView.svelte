@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpPromptView from '$/views/McpPromptView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					$server: true,
-					name: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpPrompt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpPrompt}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				$server: true,
+				name: true,
+			},
+		})
+	}
+	getResourceItems={(mcpPrompts) => [...new Map(mcpPrompts.values.map((mcpPrompt) => [mcpPrompt[EntityMetaKey.SelectorKey], mcpPrompt])).values()]}
+	getKey={(mcpPrompt) => mcpPrompt[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp prompts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpPrompts)}
-			{@const uniqueMcpPrompts = [...new Map(mcpPrompts.values.map((mcpPrompt) => [mcpPrompt[EntityMetaKey.SelectorKey], mcpPrompt])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpPrompt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpPrompts.totalCount}
-				getKey={(mcpPrompt) => mcpPrompt[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpPrompts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp prompts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpPrompt })}
-					{@const mcpPromptFields = { ...mcpPrompt[EntityMetaKey.Selector], ...mcpPrompt }}
-					{@const selection = select(EntityType.McpPrompt, mcpPrompt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpPromptView
-						selection={selection}
-						prefetched={mcpPromptFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpPrompt}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpPrompt })}
+		{@const mcpPromptFields = { ...mcpPrompt[EntityMetaKey.Selector], ...mcpPrompt }}
+		{@const selection = select(EntityType.McpPrompt, mcpPrompt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpPromptView
+			selection={selection}
+			prefetched={mcpPromptFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

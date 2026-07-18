@@ -38,5 +38,8 @@
 			})
 		}
 		id='eip8004-services'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

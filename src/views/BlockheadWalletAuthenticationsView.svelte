@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletAuthenticationView from '$/views/BlockheadWalletAuthenticationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					authenticationId: true,
-					protocol: true,
-					verified: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletAuthentication}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletAuthentication}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				authenticationId: true,
+				protocol: true,
+				verified: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletAuthentications) => [...new Map(blockheadWalletAuthentications.values.map((blockheadWalletAuthentication) => [blockheadWalletAuthentication[EntityMetaKey.SelectorKey], blockheadWalletAuthentication])).values()]}
+	getKey={(blockheadWalletAuthentication) => blockheadWalletAuthentication[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead wallet authentications yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletAuthentications)}
-			{@const uniqueBlockheadWalletAuthentications = [...new Map(blockheadWalletAuthentications.values.map((blockheadWalletAuthentication) => [blockheadWalletAuthentication[EntityMetaKey.SelectorKey], blockheadWalletAuthentication])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletAuthentication}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletAuthentications.totalCount}
-				getKey={(blockheadWalletAuthentication) => blockheadWalletAuthentication[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletAuthentications}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead wallet authentications yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletAuthentication })}
-					{@const blockheadWalletAuthenticationFields = { ...blockheadWalletAuthentication[EntityMetaKey.Selector], ...blockheadWalletAuthentication }}
-					{@const selection = select(EntityType.BlockheadWalletAuthentication, blockheadWalletAuthentication[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWalletAuthenticationView
-						selection={selection}
-						prefetched={blockheadWalletAuthenticationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletAuthentication}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletAuthentication })}
+		{@const blockheadWalletAuthenticationFields = { ...blockheadWalletAuthentication[EntityMetaKey.Selector], ...blockheadWalletAuthentication }}
+		{@const selection = select(EntityType.BlockheadWalletAuthentication, blockheadWalletAuthentication[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWalletAuthenticationView
+			selection={selection}
+			prefetched={blockheadWalletAuthenticationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

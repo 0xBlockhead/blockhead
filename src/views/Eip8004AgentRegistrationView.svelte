@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004AgentRegistration = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
 	const viewDomId = $derived('eip8004agent-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -73,52 +69,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004AgentRegistration}>
-			{#snippet Pending()}
-				{[String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004AgentRegistration}>
-			{#snippet Pending()}
-				{[String((pendingEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip8004AgentRegistration}>
-			{#snippet Pending()}
-				{@const chainId0 = pendingEntity.chainId}
-				{#if chainId0 !== undefined && chainId0 !== null}
-					<span data-text="muted">
-						{String((chainId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const chainId0 = resolvedEntity.chainId}
-				{#if chainId0 !== undefined && chainId0 !== null}
-					<span data-text="muted">
-						{String((chainId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const chainId0 = pendingEntity.chainId}
+			{#if chainId0 !== undefined && chainId0 !== null}
+				<span data-text="muted">
+					{String((chainId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const chainId0 = resolvedEntity.chainId}
+					{#if chainId0 !== undefined && chainId0 !== null}
+						<span data-text="muted">
+							{String((chainId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -129,19 +125,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									namespace: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const namespace = pendingEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								{String((namespace) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const namespace = resolvedEntity.namespace}
@@ -159,24 +149,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chainId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chainId = pendingEntity.chainId}
-							{#if chainId !== undefined && chainId !== null}
-								<NumberValue value={Number(chainId)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chainId = resolvedEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
-								<NumberValue value={Number(chainId)} />
+								<NumberValue
+									value={chainId}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -189,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									identityRegistry: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const identityRegistry = pendingEntity.identityRegistry}
-							{#if identityRegistry !== undefined && identityRegistry !== null}
-								{String((identityRegistry) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const identityRegistry = resolvedEntity.identityRegistry}
@@ -219,19 +199,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									agentId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const agentId = pendingEntity.agentId}
-							{#if agentId !== undefined && agentId !== null}
-								{String((agentId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const agentId = resolvedEntity.agentId}
@@ -248,8 +222,6 @@
 			<ResourceBoundary
 				resource={selection.$evmNft}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmNft)}
 					{#if evmNft != null && evmNft[EntityMetaKey.Selector] != null}
 						<div>

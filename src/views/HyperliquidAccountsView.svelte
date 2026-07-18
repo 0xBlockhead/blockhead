@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidAccounts) => [...new Map(hyperliquidAccounts.values.map((hyperliquidAccount) => [hyperliquidAccount[EntityMetaKey.SelectorKey], hyperliquidAccount])).values()]}
+	getKey={(hyperliquidAccount) => hyperliquidAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidAccounts)}
-			{@const uniqueHyperliquidAccounts = [...new Map(hyperliquidAccounts.values.map((hyperliquidAccount) => [hyperliquidAccount[EntityMetaKey.SelectorKey], hyperliquidAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidAccounts.totalCount}
-				getKey={(hyperliquidAccount) => hyperliquidAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidAccount })}
-					{@const hyperliquidAccountFields = { ...hyperliquidAccount[EntityMetaKey.Selector], ...hyperliquidAccount }}
-					{@const selection = select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidAccountView
-						selection={selection}
-						prefetched={hyperliquidAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidAccount })}
+		{@const hyperliquidAccountFields = { ...hyperliquidAccount[EntityMetaKey.Selector], ...hyperliquidAccount }}
+		{@const selection = select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidAccountView
+			selection={selection}
+			prefetched={hyperliquidAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

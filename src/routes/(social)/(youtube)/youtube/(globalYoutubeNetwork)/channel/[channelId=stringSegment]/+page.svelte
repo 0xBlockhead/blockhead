@@ -20,6 +20,8 @@
 
 	const pageSelection = $derived(select(EntityType.YoutubeChannel, data.selector, {
 		sources: [
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
 			Source.Constants_Internal,
 		],
 		fields: {

@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitCommit = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			message: true,
 		},
@@ -70,58 +71,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitCommit}>
-			{#snippet Pending()}
-				{@const objectId0 = pendingEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const objectId0 = resolvedEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const objectId0 = pendingEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={gitCommit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const objectId0 = resolvedEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitCommit}>
-			{#snippet Pending()}
-				{[String((pendingEntity.message) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git commit'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.message) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.message) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitCommit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.message) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitCommit}>
-			{#snippet Pending()}
-				{@const objectFormat0 = pendingEntity.objectFormat}
-				{#if objectFormat0 !== undefined && objectFormat0 !== null}
-					<span data-text="muted">
-						{String((objectFormat0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const objectFormat0 = resolvedEntity.objectFormat}
-				{#if objectFormat0 !== undefined && objectFormat0 !== null}
-					<span data-text="muted">
-						{String((objectFormat0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const objectFormat0 = pendingEntity.objectFormat}
+			{#if objectFormat0 !== undefined && objectFormat0 !== null}
+				<span data-text="muted">
+					{String((objectFormat0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={gitCommit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const objectFormat0 = resolvedEntity.objectFormat}
+					{#if objectFormat0 !== undefined && objectFormat0 !== null}
+						<span data-text="muted">
+							{String((objectFormat0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,19 +133,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectId = pendingEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectId = resolvedEntity.objectId}
@@ -162,19 +157,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectFormat: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectFormat = pendingEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectFormat = resolvedEntity.objectFormat}
@@ -192,19 +181,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									treeObjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const treeObjectId = pendingEntity.treeObjectId}
-							{#if treeObjectId !== undefined && treeObjectId !== null}
-								<TruncatedValue value={String((treeObjectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const treeObjectId = resolvedEntity.treeObjectId}
@@ -241,24 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorName = pendingEntity.authorName}
-					{#if authorName !== undefined && authorName !== null}
-						<div>
-							<dt>author name</dt>
-							<dd>
-								{String((authorName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorName = resolvedEntity.authorName}
@@ -276,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorEmail: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorEmail = pendingEntity.authorEmail}
-					{#if authorEmail !== undefined && authorEmail !== null}
-						<div>
-							<dt>author email</dt>
-							<dd>
-								{String((authorEmail) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorEmail = resolvedEntity.authorEmail}
@@ -311,24 +272,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorTimestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorTimestampMs = pendingEntity.authorTimestampMs}
-					{#if authorTimestampMs !== undefined && authorTimestampMs !== null}
-						<div>
-							<dt>author timestamp ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(authorTimestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorTimestampMs = resolvedEntity.authorTimestampMs}
@@ -346,24 +296,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							committerName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const committerName = pendingEntity.committerName}
-					{#if committerName !== undefined && committerName !== null}
-						<div>
-							<dt>committer name</dt>
-							<dd>
-								{String((committerName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const committerName = resolvedEntity.committerName}
@@ -381,24 +320,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							committerEmail: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const committerEmail = pendingEntity.committerEmail}
-					{#if committerEmail !== undefined && committerEmail !== null}
-						<div>
-							<dt>committer email</dt>
-							<dd>
-								{String((committerEmail) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const committerEmail = resolvedEntity.committerEmail}
@@ -416,24 +344,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							committerTimestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const committerTimestampMs = pendingEntity.committerTimestampMs}
-					{#if committerTimestampMs !== undefined && committerTimestampMs !== null}
-						<div>
-							<dt>committer timestamp ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(committerTimestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const committerTimestampMs = resolvedEntity.committerTimestampMs}
@@ -452,6 +369,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						message: true,
 					},

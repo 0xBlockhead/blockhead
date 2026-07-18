@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosTableItem = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			keyType: true,
 			valueType: true,
@@ -69,35 +70,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosTableItem}>
-			{#snippet Pending()}
-				{@const keyHash0 = pendingEntity.keyHash}
-				{#if keyHash0 !== undefined && keyHash0 !== null}
-					<TruncatedValue value={String((keyHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const keyHash0 = resolvedEntity.keyHash}
-				{#if keyHash0 !== undefined && keyHash0 !== null}
-					<TruncatedValue value={String((keyHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const keyHash0 = pendingEntity.keyHash}
+					{#if keyHash0 !== undefined && keyHash0 !== null}
+						<TruncatedValue value={String((keyHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosTableItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const keyHash0 = resolvedEntity.keyHash}
+					{#if keyHash0 !== undefined && keyHash0 !== null}
+						<TruncatedValue value={String((keyHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosTableItem}>
-			{#snippet Pending()}
-				{[String((pendingEntity.keyType) ?? ''), String((pendingEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || title || 'aptos table item'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.keyType) ?? ''), String((resolvedEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keyHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.keyType) ?? ''), String((pendingEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosTableItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.keyType) ?? ''), String((resolvedEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keyHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tableHandle: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tableHandle = pendingEntity.tableHandle}
-							{#if tableHandle !== undefined && tableHandle !== null}
-								{String((tableHandle) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tableHandle = resolvedEntity.tableHandle}
@@ -149,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									keyHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const keyHash = pendingEntity.keyHash}
-							{#if keyHash !== undefined && keyHash !== null}
-								<TruncatedValue value={String((keyHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keyHash = resolvedEntity.keyHash}
@@ -178,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							keyType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const keyType = pendingEntity.keyType}
-					{#if keyType !== undefined && keyType !== null}
-						<div>
-							<dt>key type</dt>
-							<dd>
-								{String((keyType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const keyType = resolvedEntity.keyType}
@@ -213,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							valueType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const valueType = pendingEntity.valueType}
-					{#if valueType !== undefined && valueType !== null}
-						<div>
-							<dt>value type</dt>
-							<dd>
-								{String((valueType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const valueType = resolvedEntity.valueType}

@@ -70,6 +70,12 @@ export const CardanoGovernanceProposal_Timestamp = entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	expirationEpoch: {
+		label: 'expiration epoch',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	yesStakeLovelace: {
 		label: 'yes stake lovelace',
 		type: EntityFieldType.Primitive,

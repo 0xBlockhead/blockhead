@@ -40,18 +40,6 @@ export const _GlobalActivityPubNetwork = entity({
 		entityType: EntityType.ActivityPubInstance,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$instancePeers: {
-		label: 'Instance peers',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ActivityPubInstancePeer,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$instanceModeratedDomains: {
-		label: 'Instance moderated domains',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ActivityPubInstanceModeratedDomain,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$timestamps: {
 		label: 'Timestamps',
 		type: EntityFieldType.EntitiesReference,

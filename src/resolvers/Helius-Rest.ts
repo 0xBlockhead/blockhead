@@ -4,6 +4,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -128,27 +129,29 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: async (entitySelector, context) => {
-					const transaction = await getTransaction(
-						entitySelector,
-						context
-					)
-					return {
-						...heliusTransactionFields(
-							entitySelector.$network,
-							transaction
-						),
-						$$timestamps: [
-							heliusTransactionTimestampFields(
+				[SolanaTransactionSelector.NetworkSignature]: {
+					resolve: async (entitySelector, context) => {
+						const transaction = await getTransaction(
+							entitySelector,
+							context
+						)
+						return {
+							...heliusTransactionFields(
+								entitySelector.$network,
+								transaction
+							),
+							$$timestamps: [
+								heliusTransactionTimestampFields(
+									entitySelector,
+									transaction
+								),
+							],
+							$$instructions: heliusInstructionRows(
 								entitySelector,
 								transaction
 							),
-						],
-						$$instructions: heliusInstructionRows(
-							entitySelector,
-							transaction
-						),
-					}
+						}
+					},
 				},
 			}
 		})({
@@ -156,26 +159,45 @@ export default {
 				$feePayer: (transaction) => transaction.$feePayer,
 				$$timestamps: (transaction) => transaction.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: Object.fromEntries(
+						Object.entries(timestamp).flatMap(([fieldName, value]) => (
+							fieldName === EntityMetaKey.Selector || value == null ?
+								[]
+							:
+								[[entityFieldAddressKey(EntityType.SolanaTransaction_Timestamp, [], fieldName), value]]
+						))
+					),
 				})),
 				$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
 					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$program')]: instruction.$program,
+						...(instruction.data != null && {
+							[entityFieldAddressKey(EntityType.SolanaInstruction, [], 'data')]: instruction.data,
+						}),
+						[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$$accounts')]: instruction.$$accounts.map((account) => ({
+							[EntityMetaKey.Selector]: account[EntityMetaKey.Selector],
+						})),
+					},
 				})),
 			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
-				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: async ({ $transaction, slot, source }, context) => {
-					if (source !== Source.Helius_Rest) throw new Error(`Helius_Rest: unsupported source ${source}`)
-					const transaction = await getTransaction(
-						$transaction,
-						context
-					)
-					if (BigInt(transaction.slot) !== slot) throw new Error('Helius_Rest: SolanaTransaction_Timestamp id does not match transaction slot')
-					return heliusTransactionTimestampFields(
-						$transaction,
-						transaction
-					)
+				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: {
+					resolve: async ({ $transaction, slot, source }, context) => {
+						if (source !== Source.Helius_Rest) throw new Error(`Helius_Rest: unsupported source ${source}`)
+						const transaction = await getTransaction(
+							$transaction,
+							context
+						)
+						if (BigInt(transaction.slot) !== slot) throw new Error('Helius_Rest: SolanaTransaction_Timestamp id does not match transaction slot')
+						return heliusTransactionTimestampFields(
+							$transaction,
+							transaction
+						)
+					},
 				},
 			}
 		})({
@@ -191,17 +213,19 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }, context) => {
-					const transaction = await getTransaction(
-						$transaction,
-						context
-					)
-					const instruction = heliusInstructionRows(
-						$transaction,
-						transaction
-					).find((instruction) => instruction[EntityMetaKey.Selector].indexInTransaction === indexInTransaction)
-					if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${String(indexInTransaction)}`)
-					return instruction
+				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: {
+					resolve: async ({ $transaction, indexInTransaction }, context) => {
+						const transaction = await getTransaction(
+							$transaction,
+							context
+						)
+						const instruction = heliusInstructionRows(
+							$transaction,
+							transaction
+						).find((instruction) => instruction[EntityMetaKey.Selector].indexInTransaction === indexInTransaction)
+						if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${String(indexInTransaction)}`)
+						return instruction
+					},
 				},
 			}
 		})({
@@ -216,19 +240,30 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: async (entitySelector, context) => (
-					heliusInstructionRows(
-						entitySelector,
-						await getTransaction(
+				[SolanaTransactionSelector.NetworkSignature]: {
+					resolve: async (entitySelector, context) => (
+						heliusInstructionRows(
 							entitySelector,
-							context
+							await getTransaction(
+								entitySelector,
+								context
+							)
 						)
-					)
-				),
+					),
+				},
 			}
 		})({
 				$$instructions: (instructions) => instructions.map((instruction) => ({
 					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$program')]: instruction.$program,
+						...(instruction.data != null && {
+							[entityFieldAddressKey(EntityType.SolanaInstruction, [], 'data')]: instruction.data,
+						}),
+						[entityFieldAddressKey(EntityType.SolanaInstruction, [], '$$accounts')]: instruction.$$accounts.map((account) => ({
+							[EntityMetaKey.Selector]: account[EntityMetaKey.Selector],
+						})),
+					},
 				})),
 			}),
 	],

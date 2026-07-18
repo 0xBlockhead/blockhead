@@ -37,5 +37,8 @@
 			})
 		}
 		id='x-users'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

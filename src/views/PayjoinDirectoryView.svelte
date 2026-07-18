@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -38,9 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const payjoinDirectory = $derived(selection({
-		sources: [
-			Source.PayjoinDirectory_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			ohttpGatewayUrl: true,
 			ohttpKeyConfig: true,
@@ -69,29 +66,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={payjoinDirectory}>
-			{#snippet Pending()}
-				{[String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={payjoinDirectory}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={payjoinDirectory}>
-			{#snippet Pending()}
-				{[String((pendingEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={payjoinDirectory}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,26 +99,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									directoryUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const directoryUrl = pendingEntity.directoryUrl}
-							{#if directoryUrl !== undefined && directoryUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(directoryUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(directoryUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const directoryUrl = resolvedEntity.directoryUrl}
@@ -143,34 +127,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.PayjoinDirectory_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							ohttpGatewayUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ohttpGatewayUrl = pendingEntity.ohttpGatewayUrl}
-					{#if ohttpGatewayUrl !== undefined && ohttpGatewayUrl !== null}
-						<div>
-							<dt>ohttp gateway URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(ohttpGatewayUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(ohttpGatewayUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ohttpGatewayUrl = resolvedEntity.ohttpGatewayUrl}
@@ -195,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxPayloadBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxPayloadBytes = pendingEntity.maxPayloadBytes}
-					{#if maxPayloadBytes !== undefined && maxPayloadBytes !== null}
-						<div>
-							<dt>max payload bytes</dt>
-							<dd>
-								<NumberValue value={Number(maxPayloadBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxPayloadBytes = resolvedEntity.maxPayloadBytes}
@@ -220,7 +172,9 @@
 						<div>
 							<dt>max payload bytes</dt>
 							<dd>
-								<NumberValue value={Number(maxPayloadBytes)} />
+								<NumberValue
+									value={maxPayloadBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -232,27 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.PayjoinDirectory_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							ohttpKeyConfig: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ohttpKeyConfig = pendingEntity.ohttpKeyConfig}
-					{#if ohttpKeyConfig !== undefined && ohttpKeyConfig !== null}
-						<div>
-							<dt>ohttp key config</dt>
-							<dd>
-								<TruncatedValue value={String((ohttpKeyConfig) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ohttpKeyConfig = resolvedEntity.ohttpKeyConfig}

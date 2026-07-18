@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,12 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaAddress = $derived(selection({
-		sources: [
-			Source.KaspaExplorer_Rest,
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Rest,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa address')
 	const viewDomId = $derived('kaspa-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -76,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaAddress}>
-			{#snippet Pending()}
-				{title || 'kaspa address'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,19 +101,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -152,11 +140,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -164,12 +149,12 @@
 
 				{#snippet SectionKaspaAddressTransactions({ id, label, open })}
 					<KaspaTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa transactions.'
 						open={open}
 						title={label}
@@ -179,12 +164,12 @@
 
 				{#snippet SectionKaspaAddressUtxos({ id, label, open })}
 					<KaspaAddressUtxo_TimestampsView
-						selection={
-							selection.$$utxos({
-								count: true,
-							})
-						}
+						selection={selection.$$utxos}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa UTXO observations.'
 						open={open}
 						title={label}
@@ -207,11 +192,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -219,12 +201,12 @@
 
 				{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
 					<KaspaAddress_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa address observations.'
 						open={open}
 						title={label}

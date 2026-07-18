@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -39,24 +40,16 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const activityPubInstance = $derived(selection({
-		sources: [
-			Source.Mastodon_Rest,
-		],
-		fields: {
-			title: true,
-			description: true,
-			version: true,
-		},
+		sources: selection.sources,
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')
+	const titleFallback = $derived([String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')
 	const viewDomId = $derived('activity-pub-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import ActivityPubInstancePeersView from '$/views/ActivityPubInstancePeersView.svelte'
-	import ActivityPubInstanceModeratedDomainsView from '$/views/ActivityPubInstanceModeratedDomainsView.svelte'
+	import ActivityPubInstance_TimestampsView from '$/views/ActivityPubInstance_TimestampsView.svelte'
 </script>
 
 
@@ -65,35 +58,46 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
+			instanceOrigin: encodeURIComponent(String(pendingEntity.instanceOrigin ?? '')),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={activityPubInstance}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary resource={activityPubInstance}>
-			{#snippet Pending()}
-				{[String((pendingEntity.source) ?? ''), String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.source) ?? ''), String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? ''), String((resolvedEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const instanceOrigin0 = pendingEntity.instanceOrigin}
+					{#if instanceOrigin0 !== undefined && instanceOrigin0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(instanceOrigin0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(instanceOrigin0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={activityPubInstance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const instanceOrigin0 = resolvedEntity.instanceOrigin}
+					{#if instanceOrigin0 !== undefined && instanceOrigin0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(instanceOrigin0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(instanceOrigin0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -110,26 +114,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									instanceOrigin: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const instanceOrigin = pendingEntity.instanceOrigin}
-							{#if instanceOrigin !== undefined && instanceOrigin !== null}
-								<svelte:element
-									this={'a'}
-									href={String(instanceOrigin)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(instanceOrigin)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const instanceOrigin = resolvedEntity.instanceOrigin}
@@ -148,175 +139,22 @@
 				</dd>
 			</div>
 		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Source</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							title: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>Title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title = resolvedEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>Title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							version: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							description: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<ActivityPubInstancePeersView
+			<ActivityPubInstance_TimestampsView
 				selection={
-						selection.$$peers({
+						selection.$$timestamps({
 							sources: [
 								Source.Mastodon_Rest,
 							],
 							count: true,
 						})
 					}
-				title='Peers'
-				emptyText='No public peers reported for this ActivityPub instance.'
-				id='ActivityPubInstancePeersView-peers'
-			/>
-
-			<ActivityPubInstanceModeratedDomainsView
-				selection={
-						selection.$$moderatedDomains({
-							sources: [
-								Source.Mastodon_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Moderated domains'
-				emptyText='No public moderated domains reported for this ActivityPub instance.'
-				id='ActivityPubInstanceModeratedDomainsView-moderated-domains'
+				title='Observations'
+				emptyText='No ActivityPub instance observations yet.'
+				id='ActivityPubInstance_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

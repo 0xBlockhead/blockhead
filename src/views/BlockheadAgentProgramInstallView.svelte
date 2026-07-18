@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAgentProgramInstall = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			command: true,
 			updatedAt: true,
@@ -76,52 +73,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadAgentProgramInstall}>
-			{#snippet Pending()}
-				{[String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentProgramInstall}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAgentProgramInstall}>
-			{#snippet Pending()}
-				{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.command) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentProgramInstall}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.command) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadAgentProgramInstall}>
-			{#snippet Pending()}
-				{@const updatedAt0 = pendingEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const updatedAt0 = resolvedEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const updatedAt0 = pendingEntity.updatedAt}
+			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(updatedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentProgramInstall}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const updatedAt0 = resolvedEntity.updatedAt}
+					{#if updatedAt0 !== undefined && updatedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(updatedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									installId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const installId = pendingEntity.installId}
-							{#if installId !== undefined && installId !== null}
-								{String((installId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const installId = resolvedEntity.installId}
@@ -159,8 +150,6 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -186,24 +175,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							installPath: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const installPath = pendingEntity.installPath}
-					{#if installPath !== undefined && installPath !== null}
-						<div>
-							<dt>install path</dt>
-							<dd>
-								{String((installPath) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const installPath = resolvedEntity.installPath}
@@ -221,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							command: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const command = pendingEntity.command}
-					{#if command !== undefined && command !== null}
-						<div>
-							<dt>command</dt>
-							<dd>
-								{String((command) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const command = resolvedEntity.command}
@@ -258,24 +225,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							argsHashAlgorithm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const argsHashAlgorithm = pendingEntity.argsHashAlgorithm}
-					{#if argsHashAlgorithm !== undefined && argsHashAlgorithm !== null}
-						<div>
-							<dt>args hash algorithm</dt>
-							<dd>
-								<TruncatedValue value={String((argsHashAlgorithm) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const argsHashAlgorithm = resolvedEntity.argsHashAlgorithm}
@@ -293,24 +249,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							argsHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const argsHash = pendingEntity.argsHash}
-					{#if argsHash !== undefined && argsHash !== null}
-						<div>
-							<dt>args hash</dt>
-							<dd>
-								<TruncatedValue value={String((argsHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const argsHash = resolvedEntity.argsHash}
@@ -328,24 +273,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							environmentScope: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const environmentScope = pendingEntity.environmentScope}
-					{#if environmentScope !== undefined && environmentScope !== null}
-						<div>
-							<dt>environment scope</dt>
-							<dd>
-								{String((environmentScope) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const environmentScope = resolvedEntity.environmentScope}
@@ -365,24 +299,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -400,24 +323,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAt = pendingEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAt = resolvedEntity.updatedAt}

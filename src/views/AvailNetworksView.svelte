@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvailNetworkView from '$/views/AvailNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvailNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(availNetworks) => [...new Map(availNetworks.values.map((availNetwork) => [availNetwork[EntityMetaKey.SelectorKey], availNetwork])).values()]}
+	getKey={(availNetwork) => availNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avail networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(availNetworks)}
-			{@const uniqueAvailNetworks = [...new Map(availNetworks.values.map((availNetwork) => [availNetwork[EntityMetaKey.SelectorKey], availNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={availNetworks.totalCount}
-				getKey={(availNetwork) => availNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueAvailNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avail networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: availNetwork })}
-					{@const availNetworkFields = { ...availNetwork[EntityMetaKey.Selector], ...availNetwork }}
-					{@const selection = select(EntityType.AvailNetwork, availNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvailNetworkView
-						selection={selection}
-						prefetched={availNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvailNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: availNetwork })}
+		{@const availNetworkFields = { ...availNetwork[EntityMetaKey.Selector], ...availNetwork }}
+		{@const selection = select(EntityType.AvailNetwork, availNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvailNetworkView
+			selection={selection}
+			prefetched={availNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

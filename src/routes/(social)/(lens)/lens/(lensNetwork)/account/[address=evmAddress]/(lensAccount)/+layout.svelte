@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,9 @@
 			{@const DetailView = LensAccountView}
 
 			<DetailView
-				selection={select(EntityType.LensAccount, data.selector)}
+				selection={select(EntityType.LensAccount, data.selector, { sources: [
+		Source.Lens_Graphql,
+	] })}
 				href={
 					resolve('/lens/account/[address=evmAddress]', {
 						address: params.address,

@@ -1,4 +1,5 @@
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
@@ -19,12 +20,14 @@ const blockParam = (blockNumber: bigint | 'latest') => (
 type JsonRpcRequestBase = {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
+	binding?: SourceBinding
 }
 
-export const getBlockNumber = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
+export const getBlockNumber = ({ rpcUrl, origins, binding }: JsonRpcRequestBase) => (
 	jsonRpc<string>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_blockNumber',
 		params: [],
 	})
@@ -35,10 +38,11 @@ export const getBlockNumber = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gasprice
  * @see https://github.com/ethereum/execution-apis
  */
-export const getGasPrice = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
+export const getGasPrice = ({ rpcUrl, origins, binding }: JsonRpcRequestBase) => (
 	jsonRpc<string>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_gasPrice',
 		params: [],
 	})
@@ -47,6 +51,7 @@ export const getGasPrice = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
 export const getBlockByNumber = ({
 	rpcUrl,
 	origins,
+	binding,
 	blockNumber,
 	txObjects,
 }: {
@@ -56,6 +61,7 @@ export const getBlockByNumber = ({
 	jsonRpc<RpcBlockHeader | null>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getBlockByNumber',
 		params: [blockParam(blockNumber), txObjects],
 	})
@@ -64,6 +70,7 @@ export const getBlockByNumber = ({
 export const getBlockByHash = ({
 	rpcUrl,
 	origins,
+	binding,
 	blockHash,
 	txObjects,
 }: {
@@ -73,6 +80,7 @@ export const getBlockByHash = ({
 	jsonRpc<RpcBlockHeader | null>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getBlockByHash',
 		params: [blockHash, txObjects],
 	})
@@ -81,6 +89,7 @@ export const getBlockByHash = ({
 export const getTransactionByHash = ({
 	rpcUrl,
 	origins,
+	binding,
 	txHash,
 }: {
 	txHash: `0x${string}`
@@ -88,6 +97,7 @@ export const getTransactionByHash = ({
 	jsonRpc<RpcTransaction | null>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getTransactionByHash',
 		params: [txHash],
 	})
@@ -96,6 +106,7 @@ export const getTransactionByHash = ({
 export const getTransactionReceipt = ({
 	rpcUrl,
 	origins,
+	binding,
 	txHash,
 }: {
 	txHash: `0x${string}`
@@ -103,6 +114,7 @@ export const getTransactionReceipt = ({
 	jsonRpc<RpcReceipt | null>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getTransactionReceipt',
 		params: [txHash],
 	})
@@ -119,6 +131,7 @@ const quantityHex = (value: bigint) => (
 export const getFeeHistory = ({
 	rpcUrl,
 	origins,
+	binding,
 	blockCount,
 	newestBlock,
 	rewardPercentiles,
@@ -130,6 +143,7 @@ export const getFeeHistory = ({
 	jsonRpc<RpcFeeHistory>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_feeHistory',
 		params: [
 			quantityHex(BigInt(blockCount)),
@@ -142,10 +156,11 @@ export const getFeeHistory = ({
 /**
  * `@see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml` — not supported on all networks.
  */
-export const getMaxPriorityFeePerGas = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
+export const getMaxPriorityFeePerGas = ({ rpcUrl, origins, binding }: JsonRpcRequestBase) => (
 	jsonRpc<string>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_maxPriorityFeePerGas',
 		params: [],
 	})
@@ -155,6 +170,7 @@ export const getMaxPriorityFeePerGas = ({ rpcUrl, origins }: JsonRpcRequestBase)
 export const getStorageAt = ({
 	rpcUrl,
 	origins,
+	binding,
 	address,
 	slotQuantityHex,
 	blockTag = 'latest',
@@ -166,6 +182,7 @@ export const getStorageAt = ({
 	jsonRpc<`0x${string}`>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getStorageAt',
 		params: [
 			address,
@@ -179,6 +196,7 @@ export const getStorageAt = ({
 export const getCode = ({
 	rpcUrl,
 	origins,
+	binding,
 	address,
 	blockTag = 'latest',
 }: {
@@ -188,6 +206,7 @@ export const getCode = ({
 	jsonRpc<`0x${string}`>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_getCode',
 		params: [
 			address,
@@ -199,6 +218,7 @@ export const getCode = ({
 export const getCall = ({
 	rpcUrl,
 	origins,
+	binding,
 	to,
 	data,
 	blockTag = 'latest',
@@ -210,6 +230,7 @@ export const getCall = ({
 	jsonRpc<`0x${string}`>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'eth_call',
 		params: [
 			{
@@ -222,10 +243,11 @@ export const getCall = ({
 )
 
 /** Geth-compatible txpool inspection — often disabled on public RPCs. */
-export const getTxpoolStatus = ({ rpcUrl, origins }: JsonRpcRequestBase) => (
+export const getTxpoolStatus = ({ rpcUrl, origins, binding }: JsonRpcRequestBase) => (
 	jsonRpc<RpcTxpoolStatus>({
 		rpcUrl,
 		origins,
+		binding,
 		method: 'txpool_status',
 		params: [],
 	})

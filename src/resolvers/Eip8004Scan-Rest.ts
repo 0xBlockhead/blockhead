@@ -13,6 +13,8 @@ import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
+import { Eip8004AgentRegistrationSelector } from '$/schema/Eip8004AgentRegistration.ts'
+import { Eip8004AgentServiceEndpointSelector } from '$/schema/Eip8004AgentServiceEndpoint.ts'
 import { EvmNftSelector } from '$/schema/EvmNft.ts'
 
 export default {
@@ -20,52 +22,177 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Eip8004Scan_Rest, {
-			entityType: EntityType.EvmNft,
+			entityType: EntityType.Eip8004AgentRegistration,
 			resolve: {
-				[EvmNftSelector.EvmContractTokenId]: async ({ $contract, tokenId }) => {
-					const { fetchAgentDetail } = await import(
-						'$/sources/Eip8004Scan/Rest/queries.ts'
-					)
-					const detail = await fetchAgentDetail({
-						chainId: Number($contract.$network.caip2.reference),
-						tokenId,
-					})
-					if (detail == null) {
-						throw new Error(
-							`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`
+				[Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId]: {
+					resolve: async ({
+						namespace,
+						chainId,
+						identityRegistry,
+						agentId,
+					}) => {
+						if (namespace !== 'eip155')
+							throw new Error('Eip8004Scan_Rest: unsupported registration namespace')
+						if (!Number.isSafeInteger(chainId) || chainId <= 0)
+							throw new Error('Eip8004Scan_Rest: invalid registration chain ID')
+
+						const { fetchAgentDetail } = await import(
+							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-					}
-					if (detail.contractAddress !== $contract.address.toLowerCase()) {
-						throw new Error(
-							`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`
+						const detail = await fetchAgentDetail({
+							chainId,
+							tokenId: agentId,
+						})
+						if (detail == null)
+							throw new Error('Eip8004Scan_Rest: agent registration not found')
+						if (
+							detail.chainId !== chainId
+							|| detail.contractAddress !== identityRegistry.toLowerCase()
+							|| detail.tokenId !== agentId
 						)
-					}
-					return {
-						standard: EvmNftStandard.Erc721,
-						format: EvmNftFormat.Eip8004Registration,
-						tokenUri: detail.agentUri,
-						agentRegistry: `eip155:${String(detail.chainId)}:${detail.contractAddress}`,
-						agentId: detail.tokenId,
-						agentUri: detail.agentUri,
-						fetchedAt: detail.fetchedAt,
-						...(detail.agentWallet != null && {
-							$agentWallet: {
+							throw new Error('Eip8004Scan_Rest: response registration does not match request')
+
+						return {
+							namespace,
+							chainId,
+							identityRegistry,
+							agentId,
+							$evmNft: {
 								[EntityMetaKey.Selector]: {
-									address: EvmAddress.assert(detail.agentWallet),
+									$contract: {
+										$network: {
+											caip2: {
+												namespace: 'eip155' as const,
+												reference: String(chainId),
+											},
+										},
+										address: identityRegistry,
+									},
+									tokenId: agentId,
 								},
 							},
-						}),
-						...(detail.name != null && { name: detail.name }),
-						...(detail.description != null && { description: detail.description }),
-						...(detail.image != null && { image: detail.image }),
-						...(detail.registrationTypeIri != null && {
-							registrationTypeIri: detail.registrationTypeIri,
-						}),
-						...(detail.x402Support != null && { x402Support: detail.x402Support }),
-						...(detail.active != null && { active: detail.active }),
-						...(detail.supportedTrust != null && { supportedTrust: detail.supportedTrust }),
-						...(detail.contactEndpoint != null && { contactEndpoint: detail.contactEndpoint }),
-					}
+						}
+					},
+				},
+			},
+		})({
+			namespace: (registration) => registration.namespace,
+			chainId: (registration) => registration.chainId,
+			identityRegistry: (registration) => registration.identityRegistry,
+			agentId: (registration) => registration.agentId,
+			$evmNft: (registration) => registration.$evmNft,
+		}),
+
+		defineResolver(Source.Eip8004Scan_Rest, {
+			entityType: EntityType.Eip8004AgentServiceEndpoint,
+			resolve: {
+				[Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl]: {
+					resolve: async ({
+						$registrationFile,
+						endpointKind,
+						endpointUrl,
+					}) => {
+						const {
+							namespace,
+							chainId,
+							identityRegistry,
+							agentId,
+						} = $registrationFile.$registration
+						if (namespace !== 'eip155')
+							throw new Error('Eip8004Scan_Rest: unsupported service endpoint namespace')
+						if (!Number.isSafeInteger(chainId) || chainId <= 0)
+							throw new Error('Eip8004Scan_Rest: invalid service endpoint chain ID')
+
+						const { fetchAgentDetail } = await import(
+							'$/sources/Eip8004Scan/Rest/queries.ts'
+						)
+						const detail = await fetchAgentDetail({
+							chainId,
+							tokenId: agentId,
+						})
+						if (detail == null)
+							throw new Error('Eip8004Scan_Rest: service endpoint registration not found')
+						if (
+							detail.chainId !== chainId
+							|| detail.contractAddress !== identityRegistry.toLowerCase()
+							|| detail.tokenId !== agentId
+							|| detail.agentUri !== $registrationFile.fileUrl
+						)
+							throw new Error('Eip8004Scan_Rest: service endpoint registration does not match request')
+
+						const service = detail.services.find((candidate) => (
+							candidate.endpointKind === endpointKind
+							&& candidate.endpointUrl === endpointUrl
+						))
+						if (service == null)
+							throw new Error('Eip8004Scan_Rest: service endpoint not found')
+
+						return {
+							$registrationFile,
+							...service,
+						}
+					},
+				},
+			},
+		})({
+			$registrationFile: (endpoint) => endpoint.$registrationFile,
+			endpointKind: (endpoint) => endpoint.endpointKind,
+			endpointUrl: (endpoint) => endpoint.endpointUrl,
+			name: (endpoint) => endpoint.name,
+			version: (endpoint) => endpoint.version,
+			protocolKind: (endpoint) => endpoint.protocolKind,
+			active: (endpoint) => endpoint.active,
+		}),
+
+		defineResolver(Source.Eip8004Scan_Rest, {
+			entityType: EntityType.EvmNft,
+			resolve: {
+				[EvmNftSelector.EvmContractTokenId]: {
+					resolve: async ({ $contract, tokenId }) => {
+						const { fetchAgentDetail } = await import(
+							'$/sources/Eip8004Scan/Rest/queries.ts'
+						)
+						const detail = await fetchAgentDetail({
+							chainId: Number($contract.$network.caip2.reference),
+							tokenId,
+						})
+						if (detail == null) {
+							throw new Error(
+								`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`
+							)
+						}
+						if (detail.contractAddress !== $contract.address.toLowerCase()) {
+							throw new Error(
+								`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`
+							)
+						}
+						return {
+							standard: EvmNftStandard.Erc721,
+							format: EvmNftFormat.Eip8004Registration,
+							tokenUri: detail.agentUri,
+							agentRegistry: `eip155:${String(detail.chainId)}:${detail.contractAddress}`,
+							agentId: detail.tokenId,
+							agentUri: detail.agentUri,
+							fetchedAt: detail.fetchedAt,
+							...(detail.agentWallet != null && {
+								$agentWallet: {
+									[EntityMetaKey.Selector]: {
+										address: EvmAddress.assert(detail.agentWallet),
+									},
+								},
+							}),
+							...(detail.name != null && { name: detail.name }),
+							...(detail.description != null && { description: detail.description }),
+							...(detail.image != null && { image: detail.image }),
+							...(detail.registrationTypeIri != null && {
+								registrationTypeIri: detail.registrationTypeIri,
+							}),
+							...(detail.x402Support != null && { x402Support: detail.x402Support }),
+							...(detail.active != null && { active: detail.active }),
+							...(detail.supportedTrust != null && { supportedTrust: detail.supportedTrust }),
+							...(detail.contactEndpoint != null && { contactEndpoint: detail.contactEndpoint }),
+						}
+					},
 				},
 			}
 		})({
@@ -92,25 +219,27 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
-					const { fetchAgentList } = await import(
-						'$/sources/Eip8004Scan/Rest/queries.ts'
-					)
-					const limit = resolverContextRowLimit(context)
-					const agents = await fetchAgentList({ limit })
-					return (
-						agents.map((agent) => ({
-							[EntityMetaKey.Selector]: {
-								$contract: {
-									$network: {
-										caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },
+				[_GlobalSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { fetchAgentList } = await import(
+							'$/sources/Eip8004Scan/Rest/queries.ts'
+						)
+						const limit = resolverContextRowLimit(context)
+						const agents = await fetchAgentList({ limit })
+						return (
+							agents.map((agent) => ({
+								[EntityMetaKey.Selector]: {
+									$contract: {
+										$network: {
+											caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },
+										},
+										address: EvmAddress.assert(agent.contractAddress),
 									},
-									address: EvmAddress.assert(agent.contractAddress),
+									tokenId: agent.tokenId,
 								},
-								tokenId: agent.tokenId,
-							},
-						}))
-					)
+							}))
+						)
+					},
 				},
 			},
 		})({

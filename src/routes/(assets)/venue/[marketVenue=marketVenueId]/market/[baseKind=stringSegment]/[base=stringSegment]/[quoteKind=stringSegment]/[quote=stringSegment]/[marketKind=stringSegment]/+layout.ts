@@ -26,7 +26,7 @@ export const load: LayoutLoad = ({ params }) => {
 				:
 					'Currency'
 				),
-				assetKey: decodeURIComponent(params.base),
+				assetKey: params.base,
 			},
 			$quote: {
 				kind: (
@@ -38,10 +38,10 @@ export const load: LayoutLoad = ({ params }) => {
 				:
 					'Currency'
 				),
-				assetKey: decodeURIComponent(params.quote),
+				assetKey: params.quote,
 			},
 			$marketVenue: {
-				marketVenueId: decodeURIComponent(params.marketVenue),
+				marketVenueId: params.marketVenue,
 			},
 			marketKind: params.marketKind,
 		}

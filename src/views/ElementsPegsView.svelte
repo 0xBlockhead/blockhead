@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ElementsPegView from '$/views/ElementsPegView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					direction: true,
-					pegTransactionId: true,
-					amountSats: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsPeg}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ElementsPeg}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				direction: true,
+				pegTransactionId: true,
+				amountSats: true,
+			},
+		})
+	}
+	getResourceItems={(elementsPegs) => [...new Map(elementsPegs.values.map((elementsPeg) => [elementsPeg[EntityMetaKey.SelectorKey], elementsPeg])).values()]}
+	getKey={(elementsPeg) => elementsPeg[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Elements pegs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(elementsPegs)}
-			{@const uniqueElementsPegs = [...new Map(elementsPegs.values.map((elementsPeg) => [elementsPeg[EntityMetaKey.SelectorKey], elementsPeg])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsPeg}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={elementsPegs.totalCount}
-				getKey={(elementsPeg) => elementsPeg[EntityMetaKey.SelectorKey]}
-				items={uniqueElementsPegs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Elements pegs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: elementsPeg })}
-					{@const elementsPegFields = { ...elementsPeg[EntityMetaKey.Selector], ...elementsPeg }}
-					{@const selection = select(EntityType.ElementsPeg, elementsPeg[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ElementsPegView
-						selection={selection}
-						prefetched={elementsPegFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ElementsPeg}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: elementsPeg })}
+		{@const elementsPegFields = { ...elementsPeg[EntityMetaKey.Selector], ...elementsPeg }}
+		{@const selection = select(EntityType.ElementsPeg, elementsPeg[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ElementsPegView
+			selection={selection}
+			prefetched={elementsPegFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

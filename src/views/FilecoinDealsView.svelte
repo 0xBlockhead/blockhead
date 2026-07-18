@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinDealView from '$/views/FilecoinDealView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					dealId: true,
-					$provider: true,
-					$client: true,
-					verifiedDeal: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinDeal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinDeal}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				dealId: true,
+				$provider: true,
+				$client: true,
+				verifiedDeal: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinDeals) => [...new Map(filecoinDeals.values.map((filecoinDeal) => [filecoinDeal[EntityMetaKey.SelectorKey], filecoinDeal])).values()]}
+	getKey={(filecoinDeal) => filecoinDeal[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin deals yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinDeals)}
-			{@const uniqueFilecoinDeals = [...new Map(filecoinDeals.values.map((filecoinDeal) => [filecoinDeal[EntityMetaKey.SelectorKey], filecoinDeal])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinDeal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinDeals.totalCount}
-				getKey={(filecoinDeal) => filecoinDeal[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinDeals}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin deals yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinDeal })}
-					{@const filecoinDealFields = { ...filecoinDeal[EntityMetaKey.Selector], ...filecoinDeal }}
-					{@const selection = select(EntityType.FilecoinDeal, filecoinDeal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinDealView
-						selection={selection}
-						prefetched={filecoinDealFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinDeal}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinDeal })}
+		{@const filecoinDealFields = { ...filecoinDeal[EntityMetaKey.Selector], ...filecoinDeal }}
+		{@const selection = select(EntityType.FilecoinDeal, filecoinDeal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinDealView
+			selection={selection}
+			prefetched={filecoinDealFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

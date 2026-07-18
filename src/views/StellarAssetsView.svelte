@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarAssetView from '$/views/StellarAssetView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarAsset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarAssets) => [...new Map(stellarAssets.values.map((stellarAsset) => [stellarAsset[EntityMetaKey.SelectorKey], stellarAsset])).values()]}
+	getKey={(stellarAsset) => stellarAsset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar assets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarAssets)}
-			{@const uniqueStellarAssets = [...new Map(stellarAssets.values.map((stellarAsset) => [stellarAsset[EntityMetaKey.SelectorKey], stellarAsset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarAssets.totalCount}
-				getKey={(stellarAsset) => stellarAsset[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarAssets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar assets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarAsset })}
-					{@const stellarAssetFields = { ...stellarAsset[EntityMetaKey.Selector], ...stellarAsset }}
-					{@const selection = select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarAssetView
-						selection={selection}
-						prefetched={stellarAssetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarAsset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarAsset })}
+		{@const stellarAssetFields = { ...stellarAsset[EntityMetaKey.Selector], ...stellarAsset }}
+		{@const selection = select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarAssetView
+			selection={selection}
+			prefetched={stellarAssetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

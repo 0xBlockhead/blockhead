@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadMoneroOutputStateView from '$/views/BlockheadMoneroOutputStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txHash: true,
-					outputIndex: true,
-					amountAtomicUnits: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroOutputState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadMoneroOutputState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txHash: true,
+				outputIndex: true,
+				amountAtomicUnits: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadMoneroOutputStates) => [...new Map(blockheadMoneroOutputStates.values.map((blockheadMoneroOutputState) => [blockheadMoneroOutputState[EntityMetaKey.SelectorKey], blockheadMoneroOutputState])).values()]}
+	getKey={(blockheadMoneroOutputState) => blockheadMoneroOutputState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead monero output states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadMoneroOutputStates)}
-			{@const uniqueBlockheadMoneroOutputStates = [...new Map(blockheadMoneroOutputStates.values.map((blockheadMoneroOutputState) => [blockheadMoneroOutputState[EntityMetaKey.SelectorKey], blockheadMoneroOutputState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroOutputState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadMoneroOutputStates.totalCount}
-				getKey={(blockheadMoneroOutputState) => blockheadMoneroOutputState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadMoneroOutputStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead monero output states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadMoneroOutputState })}
-					{@const blockheadMoneroOutputStateFields = { ...blockheadMoneroOutputState[EntityMetaKey.Selector], ...blockheadMoneroOutputState }}
-					{@const selection = select(EntityType.BlockheadMoneroOutputState, blockheadMoneroOutputState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadMoneroOutputStateView
-						selection={selection}
-						prefetched={blockheadMoneroOutputStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadMoneroOutputState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadMoneroOutputState })}
+		{@const blockheadMoneroOutputStateFields = { ...blockheadMoneroOutputState[EntityMetaKey.Selector], ...blockheadMoneroOutputState }}
+		{@const selection = select(EntityType.BlockheadMoneroOutputState, blockheadMoneroOutputState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadMoneroOutputStateView
+			selection={selection}
+			prefetched={blockheadMoneroOutputStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

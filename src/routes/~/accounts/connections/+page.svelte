@@ -37,5 +37,8 @@
 			})
 		}
 		id='blockhead-wallet-connections'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

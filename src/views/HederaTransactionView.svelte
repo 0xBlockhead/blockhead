@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTransaction = $derived(selection({}))
+	const hederaTransaction = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera transaction')
 	const viewDomId = $derived('hedera-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -72,16 +74,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaTransaction}>
-			{#snippet Pending()}
-				{title || 'hedera transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -110,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									consensusTimestamp: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const consensusTimestamp = pendingEntity.consensusTimestamp}
-							{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-								{String((consensusTimestamp) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
@@ -140,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionId = pendingEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								{String((transactionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionId = resolvedEntity.transactionId}
@@ -170,19 +160,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nonce: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nonce = pendingEntity.nonce}
-							{#if nonce !== undefined && nonce !== null}
-								{String((nonce) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nonce = resolvedEntity.nonce}
@@ -200,19 +184,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionType = pendingEntity.transactionType}
-							{#if transactionType !== undefined && transactionType !== null}
-								{String((transactionType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionType = resolvedEntity.transactionType}
@@ -227,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payerAccount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payerAccount = pendingEntity.payerAccount}
-					{#if payerAccount !== undefined && payerAccount !== null}
-						<div>
-							<dt>payer account</dt>
-							<dd>
-								<TruncatedValue value={String((payerAccount) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payerAccount = resolvedEntity.payerAccount}
@@ -262,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							result: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const result = pendingEntity.result}
-					{#if result !== undefined && result !== null}
-						<div>
-							<dt>result</dt>
-							<dd>
-								{String((result) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const result = resolvedEntity.result}
@@ -297,24 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chargedTxFeeTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chargedTxFeeTinybar = pendingEntity.chargedTxFeeTinybar}
-					{#if chargedTxFeeTinybar !== undefined && chargedTxFeeTinybar !== null}
-						<div>
-							<dt>charged transaction fee tinybar</dt>
-							<dd>
-								{String((chargedTxFeeTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chargedTxFeeTinybar = resolvedEntity.chargedTxFeeTinybar}
@@ -332,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validStartTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validStartTimestamp = pendingEntity.validStartTimestamp}
-					{#if validStartTimestamp !== undefined && validStartTimestamp !== null}
-						<div>
-							<dt>valid start timestamp</dt>
-							<dd>
-								{String((validStartTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validStartTimestamp = resolvedEntity.validStartTimestamp}
@@ -367,24 +301,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeAccountId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeAccountId = pendingEntity.nodeAccountId}
-					{#if nodeAccountId !== undefined && nodeAccountId !== null}
-						<div>
-							<dt>node account ID</dt>
-							<dd>
-								<TruncatedValue value={String((nodeAccountId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeAccountId = resolvedEntity.nodeAccountId}
@@ -402,24 +325,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scheduled: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scheduled = pendingEntity.scheduled}
-					{#if scheduled !== undefined && scheduled !== null}
-						<div>
-							<dt>scheduled</dt>
-							<dd>
-								{scheduled ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scheduled = resolvedEntity.scheduled}
@@ -437,8 +349,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaBlock)}
 					{#if hederaBlock != null && hederaBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -459,8 +369,6 @@
 			<ResourceBoundary
 				resource={selection.$schedule}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaSchedule)}
 					{#if hederaSchedule != null && hederaSchedule[EntityMetaKey.Selector] != null}
 						<div>
@@ -499,11 +407,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-a'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -511,12 +416,12 @@
 
 				{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
 					<HederaHbarTransfersView
-						selection={
-							selection.$$hbarTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$hbarTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No hbar transfers.'
 						open={open}
 						title={label}
@@ -526,12 +431,12 @@
 
 				{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
 					<HederaTokenTransfersView
-						selection={
-							selection.$$tokenTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$tokenTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No token transfers.'
 						open={open}
 						title={label}
@@ -554,11 +459,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-b'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity continued</HeadingComponent>
 					</header>
@@ -566,12 +468,12 @@
 
 				{#snippet SectionHederaTransactionContractResults({ id, label, open })}
 					<HederaContractResultsView
-						selection={
-							selection.$$contractResults({
-								count: true,
-							})
-						}
+						selection={selection.$$contractResults}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No contract results.'
 						open={open}
 						title={label}

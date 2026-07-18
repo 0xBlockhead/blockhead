@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAgentProviderCall = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 		},
@@ -96,16 +93,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAgentProviderCall}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent provider call'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentProviderCall}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,24 +130,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTurn: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTurn = pendingEntity.indexInTurn}
-							{#if indexInTurn !== undefined && indexInTurn !== null}
-								<NumberValue value={Number(indexInTurn)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTurn = resolvedEntity.indexInTurn}
 							{#if indexInTurn !== undefined && indexInTurn !== null}
-								<NumberValue value={Number(indexInTurn)} />
+								<NumberValue
+									value={indexInTurn}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -160,8 +153,6 @@
 			<ResourceBoundary
 				resource={selection.$connection}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -182,8 +173,6 @@
 			<ResourceBoundary
 				resource={selection.$provider}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiModelProvider)}
 					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
 						<div>
@@ -204,8 +193,6 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -226,8 +213,6 @@
 			<ResourceBoundary
 				resource={selection.$operation}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiProviderApiOperation)}
 					{#if aiProviderApiOperation != null && aiProviderApiOperation[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,8 +235,6 @@
 			<ResourceBoundary
 				resource={selection.$mcpToolCall}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(mcpToolCall)}
 					{#if mcpToolCall != null && mcpToolCall[EntityMetaKey.Selector] != null}
 						<div>
@@ -272,8 +255,6 @@
 			<ResourceBoundary
 				resource={selection.$a2aTask}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(a2aTask)}
 					{#if a2aTask != null && a2aTask[EntityMetaKey.Selector] != null}
 						<div>
@@ -294,8 +275,6 @@
 			<ResourceBoundary
 				resource={selection.$acpSession}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(acpSession)}
 					{#if acpSession != null && acpSession[EntityMetaKey.Selector] != null}
 						<div>
@@ -316,8 +295,6 @@
 			<ResourceBoundary
 				resource={selection.$acpPromptTurn}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(acpPromptTurn)}
 					{#if acpPromptTurn != null && acpPromptTurn[EntityMetaKey.Selector] != null}
 						<div>
@@ -340,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerRequestId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerRequestId = pendingEntity.providerRequestId}
-					{#if providerRequestId !== undefined && providerRequestId !== null}
-						<div>
-							<dt>provider request ID</dt>
-							<dd>
-								{String((providerRequestId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerRequestId = resolvedEntity.providerRequestId}
@@ -375,24 +341,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerResponseId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerResponseId = pendingEntity.providerResponseId}
-					{#if providerResponseId !== undefined && providerResponseId !== null}
-						<div>
-							<dt>provider response ID</dt>
-							<dd>
-								{String((providerResponseId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerResponseId = resolvedEntity.providerResponseId}
@@ -410,24 +365,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -445,24 +389,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}
@@ -482,24 +415,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							startedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const startedAt = pendingEntity.startedAt}
-					{#if startedAt !== undefined && startedAt !== null}
-						<div>
-							<dt>started AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(startedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const startedAt = resolvedEntity.startedAt}
@@ -517,24 +439,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							completedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const completedAt = pendingEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
-						<div>
-							<dt>completed AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const completedAt = resolvedEntity.completedAt}
@@ -552,24 +463,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latencyMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latencyMs = pendingEntity.latencyMs}
-					{#if latencyMs !== undefined && latencyMs !== null}
-						<div>
-							<dt>latency ms</dt>
-							<dd>
-								<NumberValue value={Number(latencyMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latencyMs = resolvedEntity.latencyMs}
@@ -577,7 +477,9 @@
 						<div>
 							<dt>latency ms</dt>
 							<dd>
-								<NumberValue value={Number(latencyMs)} />
+								<NumberValue
+									value={latencyMs}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -589,24 +491,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							requestHashAlgorithm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const requestHashAlgorithm = pendingEntity.requestHashAlgorithm}
-					{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
-						<div>
-							<dt>request hash algorithm</dt>
-							<dd>
-								<TruncatedValue value={String((requestHashAlgorithm) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const requestHashAlgorithm = resolvedEntity.requestHashAlgorithm}
@@ -624,24 +515,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							requestHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const requestHash = pendingEntity.requestHash}
-					{#if requestHash !== undefined && requestHash !== null}
-						<div>
-							<dt>request hash</dt>
-							<dd>
-								<TruncatedValue value={String((requestHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const requestHash = resolvedEntity.requestHash}
@@ -659,24 +539,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseHashAlgorithm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseHashAlgorithm = pendingEntity.responseHashAlgorithm}
-					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
-						<div>
-							<dt>response hash algorithm</dt>
-							<dd>
-								<TruncatedValue value={String((responseHashAlgorithm) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseHashAlgorithm = resolvedEntity.responseHashAlgorithm}
@@ -694,24 +563,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseHash = pendingEntity.responseHash}
-					{#if responseHash !== undefined && responseHash !== null}
-						<div>
-							<dt>response hash</dt>
-							<dd>
-								<TruncatedValue value={String((responseHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseHash = resolvedEntity.responseHash}
@@ -731,24 +589,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							inputTokenCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const inputTokenCount = pendingEntity.inputTokenCount}
-					{#if inputTokenCount !== undefined && inputTokenCount !== null}
-						<div>
-							<dt>input token count</dt>
-							<dd>
-								<NumberValue value={Number(inputTokenCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const inputTokenCount = resolvedEntity.inputTokenCount}
@@ -756,7 +603,9 @@
 						<div>
 							<dt>input token count</dt>
 							<dd>
-								<NumberValue value={Number(inputTokenCount)} />
+								<NumberValue
+									value={inputTokenCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -766,24 +615,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							outputTokenCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const outputTokenCount = pendingEntity.outputTokenCount}
-					{#if outputTokenCount !== undefined && outputTokenCount !== null}
-						<div>
-							<dt>output token count</dt>
-							<dd>
-								<NumberValue value={Number(outputTokenCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const outputTokenCount = resolvedEntity.outputTokenCount}
@@ -791,7 +629,9 @@
 						<div>
 							<dt>output token count</dt>
 							<dd>
-								<NumberValue value={Number(outputTokenCount)} />
+								<NumberValue
+									value={outputTokenCount}
+								/>
 							</dd>
 						</div>
 					{/if}

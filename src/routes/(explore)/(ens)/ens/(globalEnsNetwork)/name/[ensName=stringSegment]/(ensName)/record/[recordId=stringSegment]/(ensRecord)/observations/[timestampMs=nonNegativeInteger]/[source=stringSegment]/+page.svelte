@@ -28,15 +28,15 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$record: {
-			$name: {
-				name: decodeURIComponent(params.ensName),
+			$record: {
+				$name: {
+					name: decodeURIComponent(params.ensName),
+				},
+				recordKey: decodeURIComponent(params.recordId),
 			},
-			recordKey: decodeURIComponent(params.recordId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			value: true,
 		},

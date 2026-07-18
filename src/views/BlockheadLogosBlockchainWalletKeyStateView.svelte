@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLogosBlockchainWalletKeyState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.LogosBlockchainNode_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state')
 	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -70,37 +66,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Logos blockchain wallet key state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
-			{#snippet Pending()}
-				<BlockheadLogosBlockchainNodeStateView
-					selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BlockheadLogosBlockchainNodeStateView
-					selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<BlockheadLogosBlockchainNodeStateView
+						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<BlockheadLogosBlockchainNodeStateView
+						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,19 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									publicKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const publicKey = pendingEntity.publicKey}
-							{#if publicKey !== undefined && publicKey !== null}
-								{String((publicKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const publicKey = resolvedEntity.publicKey}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ComplianceModuleView from '$/views/ComplianceModuleView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ComplianceModule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ComplianceModule}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(complianceModules) => [...new Map(complianceModules.values.map((complianceModule) => [complianceModule[EntityMetaKey.SelectorKey], complianceModule])).values()]}
+	getKey={(complianceModule) => complianceModule[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Compliance modules yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(complianceModules)}
-			{@const uniqueComplianceModules = [...new Map(complianceModules.values.map((complianceModule) => [complianceModule[EntityMetaKey.SelectorKey], complianceModule])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ComplianceModule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={complianceModules.totalCount}
-				getKey={(complianceModule) => complianceModule[EntityMetaKey.SelectorKey]}
-				items={uniqueComplianceModules}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Compliance modules yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: complianceModule })}
-					{@const complianceModuleFields = { ...complianceModule[EntityMetaKey.Selector], ...complianceModule }}
-					{@const selection = select(EntityType.ComplianceModule, complianceModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ComplianceModuleView
-						selection={selection}
-						prefetched={complianceModuleFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ComplianceModule}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: complianceModule })}
+		{@const complianceModuleFields = { ...complianceModule[EntityMetaKey.Selector], ...complianceModule }}
+		{@const selection = select(EntityType.ComplianceModule, complianceModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ComplianceModuleView
+			selection={selection}
+			prefetched={complianceModuleFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkAccount = $derived(selection({}))
+	const evmNetworkAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('EVM network account')
 	const viewDomId = $derived('evm-network-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -81,69 +83,69 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNetworkAccount}>
-			{#snippet Pending()}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$actor.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmNetworkAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$actor.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmNetworkAccount}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmNetworkAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -207,11 +209,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -219,12 +218,12 @@
 
 				{#snippet SectionEvmNetworkAccountTransactions({ id, label, open })}
 					<EvmTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions yet.'
 						open={open}
 						title={label}
@@ -234,12 +233,12 @@
 
 				{#snippet SectionEvmNetworkAccountTokenTransfers({ id, label, open })}
 					<EvmTokenTransfersView
-						selection={
-							selection.$$tokenTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$tokenTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No token transfers yet.'
 						open={open}
 						title={label}
@@ -249,12 +248,12 @@
 
 				{#snippet SectionEvmNetworkAccountInternalTransfers({ id, label, open })}
 					<EvmInternalTransfersView
-						selection={
-							selection.$$internalTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$internalTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No internal transfers yet.'
 						open={open}
 						title={label}
@@ -281,11 +280,8 @@
 				}
 				data-card
 				class='network-view-collapsible-balances'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balances and allowances</HeadingComponent>
 					</header>
@@ -293,13 +289,12 @@
 
 				{#snippet SectionEvmNetworkAccountOwnedCoins({ id, label, open })}
 					<EvmNetworkActorCoinBalancesView
-						selection={
-							selection.$$ownedCoins({
-								count: true,
-							})
-						}
-						href={resolve('/~/accounts/balances')}
+						selection={selection.$$ownedCoins}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No owned coins yet.'
 						open={open}
 						title={label}
@@ -309,12 +304,12 @@
 
 				{#snippet SectionEvmNetworkAccountAllowances({ id, label, open })}
 					<EvmActorCoinAllowancesView
-						selection={
-							selection.$$erc20TokenAllowances({
-								count: true,
-							})
-						}
+						selection={selection.$$erc20TokenAllowances}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No allowances yet.'
 						open={open}
 						title={label}
@@ -337,11 +332,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -349,12 +341,12 @@
 
 				{#snippet SectionEvmNetworkAccountTimestamps({ id, label, open })}
 					<EvmNetworkAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No account observations yet.'
 						open={open}
 						title={label}

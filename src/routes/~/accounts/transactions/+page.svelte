@@ -3,17 +3,16 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import WalletAccountPortfolio from '$/components/WalletAccountPortfolio.svelte'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
 </script>
 
 
@@ -23,19 +22,10 @@
 
 
 <Page>
-	<BlockheadBridgeTransactionsView
-		href={resolve('/~/accounts/transactions')}
-		title='Transactions'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$bridgeTransactions',
-			}).$$bridgeTransactions({
-				sources: [
-					Source.Local_Internal,
-				],
-				count: true,
-			})
-		}
-		id='bridge-transactions'
+	<HeadingComponent>Transactions</HeadingComponent>
+
+	<WalletAccountPortfolio
+		facet='transactions'
+		id='account-transactions'
 	/>
 </Page>

@@ -37,5 +37,8 @@
 			})
 		}
 		id='blockhead-room-peers'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

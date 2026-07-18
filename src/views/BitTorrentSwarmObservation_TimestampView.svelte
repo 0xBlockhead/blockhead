@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitTorrentSwarmObservationTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			peerCount: true,
 			seedCount: true,
@@ -69,58 +70,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.peerCount) ?? ''), String((pendingEntity.seedCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent swarm observation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.peerCount) ?? ''), String((resolvedEntity.seedCount) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.peerCount) ?? ''), String((pendingEntity.seedCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.peerCount) ?? ''), String((resolvedEntity.seedCount) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bitTorrentSwarmObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -172,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -201,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerCount = pendingEntity.peerCount}
-					{#if peerCount !== undefined && peerCount !== null}
-						<div>
-							<dt>peer count</dt>
-							<dd>
-								<NumberValue value={Number(peerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerCount = resolvedEntity.peerCount}
@@ -226,7 +204,9 @@
 						<div>
 							<dt>peer count</dt>
 							<dd>
-								<NumberValue value={Number(peerCount)} />
+								<NumberValue
+									value={peerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -236,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seedCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seedCount = pendingEntity.seedCount}
-					{#if seedCount !== undefined && seedCount !== null}
-						<div>
-							<dt>seed count</dt>
-							<dd>
-								<NumberValue value={Number(seedCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seedCount = resolvedEntity.seedCount}
@@ -261,7 +230,9 @@
 						<div>
 							<dt>seed count</dt>
 							<dd>
-								<NumberValue value={Number(seedCount)} />
+								<NumberValue
+									value={seedCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -271,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							completedCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const completedCount = pendingEntity.completedCount}
-					{#if completedCount !== undefined && completedCount !== null}
-						<div>
-							<dt>completed count</dt>
-							<dd>
-								<NumberValue value={Number(completedCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const completedCount = resolvedEntity.completedCount}
@@ -296,7 +256,9 @@
 						<div>
 							<dt>completed count</dt>
 							<dd>
-								<NumberValue value={Number(completedCount)} />
+								<NumberValue
+									value={completedCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -306,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							availability: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const availability = pendingEntity.availability}
-					{#if availability !== undefined && availability !== null}
-						<div>
-							<dt>availability</dt>
-							<dd>
-								<NumberValue value={Number(availability)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const availability = resolvedEntity.availability}
@@ -331,7 +282,9 @@
 						<div>
 							<dt>availability</dt>
 							<dd>
-								<NumberValue value={Number(availability)} />
+								<NumberValue
+									value={availability}
+								/>
 							</dd>
 						</div>
 					{/if}

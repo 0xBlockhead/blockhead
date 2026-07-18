@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidNetworkView from '$/views/HyperliquidNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(hyperliquidNetworks) => [...new Map(hyperliquidNetworks.values.map((hyperliquidNetwork) => [hyperliquidNetwork[EntityMetaKey.SelectorKey], hyperliquidNetwork])).values()]}
+	getKey={(hyperliquidNetwork) => hyperliquidNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidNetworks)}
-			{@const uniqueHyperliquidNetworks = [...new Map(hyperliquidNetworks.values.map((hyperliquidNetwork) => [hyperliquidNetwork[EntityMetaKey.SelectorKey], hyperliquidNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidNetworks.totalCount}
-				getKey={(hyperliquidNetwork) => hyperliquidNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidNetwork })}
-					{@const hyperliquidNetworkFields = { ...hyperliquidNetwork[EntityMetaKey.Selector], ...hyperliquidNetwork }}
-					{@const selection = select(EntityType.HyperliquidNetwork, hyperliquidNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidNetworkView
-						selection={selection}
-						prefetched={hyperliquidNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidNetwork })}
+		{@const hyperliquidNetworkFields = { ...hyperliquidNetwork[EntityMetaKey.Selector], ...hyperliquidNetwork }}
+		{@const selection = select(EntityType.HyperliquidNetwork, hyperliquidNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidNetworkView
+			selection={selection}
+			prefetched={hyperliquidNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

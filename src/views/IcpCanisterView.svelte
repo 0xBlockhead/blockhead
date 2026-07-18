@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCanister = $derived(selection({}))
+	const icpCanister = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP canister')
 	const viewDomId = $derived('icp-canister-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -70,16 +72,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpCanister}>
-			{#snippet Pending()}
-				{title || 'ICP canister'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpCanister}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,19 +103,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									canisterId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const canisterId = pendingEntity.canisterId}
-							{#if canisterId !== undefined && canisterId !== null}
-								{String((canisterId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const canisterId = resolvedEntity.canisterId}
@@ -150,11 +146,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -162,12 +155,12 @@
 
 				{#snippet SectionIcpCanisterMethods({ id, label, open })}
 					<IcpCanisterMethodsView
-						selection={
-							selection.$$methods({
-								count: true,
-							})
-						}
+						selection={selection.$$methods}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No methods.'
 						open={open}
 						title={label}
@@ -177,12 +170,12 @@
 
 				{#snippet SectionIcpCanisterMetadata({ id, label, open })}
 					<IcpCanisterMetadataEntriesView
-						selection={
-							selection.$$metadata({
-								count: true,
-							})
-						}
+						selection={selection.$$metadata}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No metadata.'
 						open={open}
 						title={label}
@@ -192,12 +185,12 @@
 
 				{#snippet SectionIcpCanisterLogs({ id, label, open })}
 					<IcpCanisterLog_TimestampsView
-						selection={
-							selection.$$logs({
-								count: true,
-							})
-						}
+						selection={selection.$$logs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No logs.'
 						open={open}
 						title={label}
@@ -224,11 +217,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -236,12 +226,12 @@
 
 				{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
 					<IcpCertifiedStatesView
-						selection={
-							selection.$$certifiedStates({
-								count: true,
-							})
-						}
+						selection={selection.$$certifiedStates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No certified states.'
 						open={open}
 						title={label}
@@ -251,12 +241,12 @@
 
 				{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
 					<IcpRequestStatusesView
-						selection={
-							selection.$$requestStatuses({
-								count: true,
-							})
-						}
+						selection={selection.$$requestStatuses}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No request statuses.'
 						open={open}
 						title={label}
@@ -279,11 +269,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -291,12 +278,12 @@
 
 				{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
 					<IcpCanister_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

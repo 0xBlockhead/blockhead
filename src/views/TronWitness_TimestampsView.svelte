@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TronWitness_TimestampView from '$/views/TronWitness_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronWitness_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TronWitness_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tronWitnessTimestamps) => [...new Map(tronWitnessTimestamps.values.map((tronWitnessTimestamp) => [tronWitnessTimestamp[EntityMetaKey.SelectorKey], tronWitnessTimestamp])).values()]}
+	getKey={(tronWitnessTimestamp) => tronWitnessTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tron witness observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tronWitnessTimestamps)}
-			{@const uniqueTronWitnessTimestamps = [...new Map(tronWitnessTimestamps.values.map((tronWitnessTimestamp) => [tronWitnessTimestamp[EntityMetaKey.SelectorKey], tronWitnessTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronWitness_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tronWitnessTimestamps.totalCount}
-				getKey={(tronWitnessTimestamp) => tronWitnessTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTronWitnessTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tron witness observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tronWitnessTimestamp })}
-					{@const tronWitnessTimestampFields = { ...tronWitnessTimestamp[EntityMetaKey.Selector], ...tronWitnessTimestamp }}
-					{@const selection = select(EntityType.TronWitness_Timestamp, tronWitnessTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TronWitness_TimestampView
-						selection={selection}
-						prefetched={tronWitnessTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TronWitness_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tronWitnessTimestamp })}
+		{@const tronWitnessTimestampFields = { ...tronWitnessTimestamp[EntityMetaKey.Selector], ...tronWitnessTimestamp }}
+		{@const selection = select(EntityType.TronWitness_Timestamp, tronWitnessTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TronWitness_TimestampView
+			selection={selection}
+			prefetched={tronWitnessTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BridgeRouteView from '$/views/BridgeRouteView.svelte'
 </script>
@@ -62,98 +61,65 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					fromChainId: true,
-					toChainId: true,
-					estimatedCostUsd: true,
-					estimatedDurationSeconds: true,
-					fromToken: true,
-					toToken: true,
-					fromAmount: true,
-					fromAddress: true,
-					slippage: true,
-					toAddress: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeRoute}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BridgeRoute}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				fromChainId: true,
+				toChainId: true,
+				estimatedCostUsd: true,
+				estimatedDurationSeconds: true,
+				fromToken: true,
+				toToken: true,
+				fromAmount: true,
+				fromAddress: true,
+				slippage: true,
+				toAddress: true,
+			},
+		})
+	}
+	getResourceItems={(bridgeRoutes) => [...new Map(bridgeRoutes.values.map((bridgeRoute) => [bridgeRoute[EntityMetaKey.SelectorKey], bridgeRoute])).values()]}
+	getKey={(bridgeRoute) => bridgeRoute[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bridge routes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bridgeRoutes)}
-			{@const uniqueBridgeRoutes = [...new Map(bridgeRoutes.values.map((bridgeRoute) => [bridgeRoute[EntityMetaKey.SelectorKey], bridgeRoute])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeRoute}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bridgeRoutes.totalCount}
-				getKey={(bridgeRoute) => bridgeRoute[EntityMetaKey.SelectorKey]}
-				items={uniqueBridgeRoutes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bridge routes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bridgeRoute })}
-					{@const bridgeRouteFields = { ...bridgeRoute[EntityMetaKey.Selector], ...bridgeRoute }}
-					{@const selection = select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const bridgeRouteHrefFields = { ...bridgeRoute, ...bridgeRoute[EntityMetaKey.Selector] }}
-					<BridgeRouteView
-						selection={selection}
-						prefetched={bridgeRouteFields}
-						href={
-							(bridgeRouteHrefFields.fromChainId !== undefined && bridgeRouteHrefFields.toChainId !== undefined && bridgeRouteHrefFields.fromToken !== undefined && bridgeRouteHrefFields.toToken !== undefined && bridgeRouteHrefFields.fromAmount !== undefined && bridgeRouteHrefFields.fromAddress !== undefined && bridgeRouteHrefFields.slippage !== undefined && bridgeRouteHrefFields.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
-								fromChainId: String(bridgeRouteHrefFields.fromChainId ?? ''),
-								toChainId: String(bridgeRouteHrefFields.toChainId ?? ''),
-								fromToken: String(bridgeRouteHrefFields.fromToken ?? ''),
-								toToken: String(bridgeRouteHrefFields.toToken ?? ''),
-								fromAmount: String(bridgeRouteHrefFields.fromAmount ?? ''),
-								fromAddress: String(bridgeRouteHrefFields.fromAddress ?? ''),
-								slippage: String(bridgeRouteHrefFields.slippage ?? ''),
-								toAddress: String(bridgeRouteHrefFields.toAddress ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BridgeRoute}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bridgeRoute })}
+		{@const bridgeRouteFields = { ...bridgeRoute[EntityMetaKey.Selector], ...bridgeRoute }}
+		{@const selection = select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const bridgeRouteHrefFields = { ...bridgeRoute, ...bridgeRoute[EntityMetaKey.Selector] }}
+		<BridgeRouteView
+			selection={selection}
+			prefetched={bridgeRouteFields}
+			href={
+				(bridgeRouteHrefFields.fromChainId !== undefined && bridgeRouteHrefFields.toChainId !== undefined && bridgeRouteHrefFields.fromToken !== undefined && bridgeRouteHrefFields.toToken !== undefined && bridgeRouteHrefFields.fromAmount !== undefined && bridgeRouteHrefFields.fromAddress !== undefined && bridgeRouteHrefFields.slippage !== undefined && bridgeRouteHrefFields.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
+					fromChainId: String(bridgeRouteHrefFields.fromChainId ?? ''),
+					toChainId: String(bridgeRouteHrefFields.toChainId ?? ''),
+					fromToken: String(bridgeRouteHrefFields.fromToken ?? ''),
+					toToken: String(bridgeRouteHrefFields.toToken ?? ''),
+					fromAmount: String(bridgeRouteHrefFields.fromAmount ?? ''),
+					fromAddress: String(bridgeRouteHrefFields.fromAddress ?? ''),
+					slippage: String(bridgeRouteHrefFields.slippage ?? ''),
+					toAddress: String(bridgeRouteHrefFields.toAddress ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

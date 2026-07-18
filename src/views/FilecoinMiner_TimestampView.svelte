@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -42,12 +44,10 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const filecoinMinerTimestamp = $derived(selection({
-		sources: [
-			Source.Lotus_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
+			timestampMs: true,
 			qualityAdjustedPower: true,
-			height: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp')
@@ -69,70 +69,92 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.height !== undefined && pendingEntity.tipsetKey !== undefined && pendingEntity.source !== undefined && pendingEntity.$miner !== undefined && pendingEntity.$miner.minerAddress !== undefined && pendingEntity.$miner.$network !== undefined && pendingEntity.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+			height: String(pendingEntity.height ?? ''),
+			tipsetKey: String(pendingEntity.tipsetKey ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			minerAddress: String(pendingEntity.$miner.minerAddress ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$miner.$network.caip2) ?? ''),
+		}) : pendingEntity.height !== undefined && pendingEntity.tipsetKey !== undefined && pendingEntity.source !== undefined && pendingEntity.$miner !== undefined && pendingEntity.$miner.minerAddress !== undefined && pendingEntity.$miner.$network !== undefined && pendingEntity.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+			height: String(pendingEntity.height ?? ''),
+			tipsetKey: String(pendingEntity.tipsetKey ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			minerAddress: String(pendingEntity.$miner.minerAddress ?? ''),
+			network: String(pendingEntity.$miner.$network.slug ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={filecoinMinerTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinMinerTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={filecoinMinerTimestamp}>
-			{#snippet Pending()}
-				{@const qualityAdjustedPower0 = pendingEntity.qualityAdjustedPower}
-				{#if qualityAdjustedPower0 !== undefined && qualityAdjustedPower0 !== null}
-					<NumberValue value={Number(qualityAdjustedPower0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const qualityAdjustedPower0 = resolvedEntity.qualityAdjustedPower}
-				{#if qualityAdjustedPower0 !== undefined && qualityAdjustedPower0 !== null}
-					<NumberValue value={Number(qualityAdjustedPower0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const qualityAdjustedPower0 = pendingEntity.qualityAdjustedPower}
+					{#if qualityAdjustedPower0 !== undefined && qualityAdjustedPower0 !== null}
+						<NumberValue
+							value={qualityAdjustedPower0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinMinerTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const qualityAdjustedPower0 = resolvedEntity.qualityAdjustedPower}
+					{#if qualityAdjustedPower0 !== undefined && qualityAdjustedPower0 !== null}
+						<NumberValue
+							value={qualityAdjustedPower0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={filecoinMinerTimestamp}>
-			{#snippet Pending()}
-				{@const height0 = pendingEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(height0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const height0 = resolvedEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(height0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const height0 = pendingEntity.height}
+			{#if height0 !== undefined && height0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={height0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinMinerTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const height0 = resolvedEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={height0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,6 +164,15 @@
 				<dd>
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner, {})}
+						href={
+							(selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+								minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+								minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
+								network: String(selection.entitySelector.$miner.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -154,19 +185,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -184,19 +209,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -208,97 +227,81 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							height: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const height = pendingEntity.height}
-					{#if height !== undefined && height !== null}
-						<div>
-							<dt>Height</dt>
-							<dd>
-								<NumberValue value={Number(height)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+			<div>
+				<dt>Height</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									height: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const height = resolvedEntity.height}
+							{#if height !== undefined && height !== null}
+								<NumberValue
+									value={height}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height = resolvedEntity.height}
-					{#if height !== undefined && height !== null}
-						<div>
-							<dt>Height</dt>
-							<dd>
-								<NumberValue value={Number(height)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							tipsetKey: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const tipsetKey = pendingEntity.tipsetKey}
-					{#if tipsetKey !== undefined && tipsetKey !== null}
-						<div>
-							<dt>Tipset key</dt>
-							<dd>
+			<div>
+				<dt>Tipset key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									tipsetKey: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const tipsetKey = resolvedEntity.tipsetKey}
+							{#if tipsetKey !== undefined && tipsetKey !== null}
 								{String((tipsetKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tipsetKey = resolvedEntity.tipsetKey}
-					{#if tipsetKey !== undefined && tipsetKey !== null}
-						<div>
-							<dt>Tipset key</dt>
-							<dd>
-								{String((tipsetKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$tipset}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(filecoinTipset)}
-					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Tipset</dt>
-							<dd>
+			<div>
+				<dt>Tipset</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection.$tipset({
+								sources: [
+									Source.Lotus_JsonRpc,
+								],
+							})
+						}
+					>
+						{#snippet children(filecoinTipset)}
+							{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 								<FilecoinTipsetView
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={
@@ -309,8 +312,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -319,6 +320,15 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
+									href={
+										(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+											network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -337,8 +347,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -347,6 +355,15 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
+									href={
+										(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+											network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -359,27 +376,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							peerId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerId = pendingEntity.peerId}
-					{#if peerId !== undefined && peerId !== null}
-						<div>
-							<dt>Peer ID</dt>
-							<dd>
-								{String((peerId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerId = resolvedEntity.peerId}
@@ -399,27 +402,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							rawBytePower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rawBytePower = pendingEntity.rawBytePower}
-					{#if rawBytePower !== undefined && rawBytePower !== null}
-						<div>
-							<dt>Raw byte power</dt>
-							<dd>
-								<NumberValue value={Number(rawBytePower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rawBytePower = resolvedEntity.rawBytePower}
@@ -427,7 +416,9 @@
 						<div>
 							<dt>Raw byte power</dt>
 							<dd>
-								<NumberValue value={Number(rawBytePower)} />
+								<NumberValue
+									value={rawBytePower}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -437,27 +428,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							qualityAdjustedPower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const qualityAdjustedPower = pendingEntity.qualityAdjustedPower}
-					{#if qualityAdjustedPower !== undefined && qualityAdjustedPower !== null}
-						<div>
-							<dt>Quality adjusted power</dt>
-							<dd>
-								<NumberValue value={Number(qualityAdjustedPower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const qualityAdjustedPower = resolvedEntity.qualityAdjustedPower}
@@ -465,7 +442,9 @@
 						<div>
 							<dt>Quality adjusted power</dt>
 							<dd>
-								<NumberValue value={Number(qualityAdjustedPower)} />
+								<NumberValue
+									value={qualityAdjustedPower}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -475,27 +454,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							networkRawBytePower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const networkRawBytePower = pendingEntity.networkRawBytePower}
-					{#if networkRawBytePower !== undefined && networkRawBytePower !== null}
-						<div>
-							<dt>Network raw byte power</dt>
-							<dd>
-								<NumberValue value={Number(networkRawBytePower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const networkRawBytePower = resolvedEntity.networkRawBytePower}
@@ -503,7 +468,9 @@
 						<div>
 							<dt>Network raw byte power</dt>
 							<dd>
-								<NumberValue value={Number(networkRawBytePower)} />
+								<NumberValue
+									value={networkRawBytePower}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -513,27 +480,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							networkQualityAdjustedPower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const networkQualityAdjustedPower = pendingEntity.networkQualityAdjustedPower}
-					{#if networkQualityAdjustedPower !== undefined && networkQualityAdjustedPower !== null}
-						<div>
-							<dt>Network quality adjusted power</dt>
-							<dd>
-								<NumberValue value={Number(networkQualityAdjustedPower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const networkQualityAdjustedPower = resolvedEntity.networkQualityAdjustedPower}
@@ -541,7 +494,9 @@
 						<div>
 							<dt>Network quality adjusted power</dt>
 							<dd>
-								<NumberValue value={Number(networkQualityAdjustedPower)} />
+								<NumberValue
+									value={networkQualityAdjustedPower}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -551,27 +506,39 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
+						fields: {
+							activeSectorCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activeSectorCount = resolvedEntity.activeSectorCount}
+					{#if activeSectorCount !== undefined && activeSectorCount !== null}
+						<div>
+							<dt>Active sectors</dt>
+							<dd>
+								<NumberValue
+									value={activeSectorCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
 						fields: {
 							liveSectorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const liveSectorCount = pendingEntity.liveSectorCount}
-					{#if liveSectorCount !== undefined && liveSectorCount !== null}
-						<div>
-							<dt>Live sectors</dt>
-							<dd>
-								<NumberValue value={Number(liveSectorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const liveSectorCount = resolvedEntity.liveSectorCount}
@@ -579,7 +546,9 @@
 						<div>
 							<dt>Live sectors</dt>
 							<dd>
-								<NumberValue value={Number(liveSectorCount)} />
+								<NumberValue
+									value={liveSectorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -589,24 +558,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							faultySectorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const faultySectorCount = pendingEntity.faultySectorCount}
-					{#if faultySectorCount !== undefined && faultySectorCount !== null}
-						<div>
-							<dt>Faulty sectors</dt>
-							<dd>
-								<NumberValue value={Number(faultySectorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const faultySectorCount = resolvedEntity.faultySectorCount}
@@ -614,7 +572,9 @@
 						<div>
 							<dt>Faulty sectors</dt>
 							<dd>
-								<NumberValue value={Number(faultySectorCount)} />
+								<NumberValue
+									value={faultySectorCount}
+								/>
 							</dd>
 						</div>
 					{/if}

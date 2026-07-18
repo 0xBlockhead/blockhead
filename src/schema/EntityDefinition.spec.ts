@@ -1367,4 +1367,25 @@ describe('entity selectors', () => {
 			])
 		)
 	})
+
+	it('models Farcaster connections by opaque connection ID', () => {
+		const definition = schema.find(({ entityType }) => (
+			entityType === EntityType.BlockheadFarcasterAccountConnection
+		))
+		if (definition == null)
+			throw new Error('Blockhead Farcaster account connection schema missing')
+
+		expect(definition.selectors).toEqual([{
+			name: 'ConnectionId',
+			fields: ['connectionId'],
+		}])
+		expect(entityFieldDefinitions(definition).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'connectionId',
+				'$user',
+				'associationFingerprint',
+			])
+		)
+		expect(entityFieldDefinitions(definition).map(({ name }) => name)).not.toContain('fid')
+	})
 })

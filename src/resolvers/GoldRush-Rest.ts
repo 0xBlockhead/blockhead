@@ -37,69 +37,71 @@ export default {
 		defineResolver(Source.GoldRushFoundational_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: async ({ $network, txHash }) => {
-					if ($network.caip2.namespace !== 'eip155')
-						throw new Error('GoldRushFoundational_Rest: unsupported chain')
+				[EvmTransactionSelector.EvmNetworkTxHash]: {
+					resolve: async ({ $network, txHash }) => {
+						if ($network.caip2.namespace !== 'eip155')
+							throw new Error('GoldRushFoundational_Rest: unsupported chain')
 
-					const chainName = (
-						$network.caip2.reference === '1' ?
-							'eth-mainnet'
-						:
-							undefined
-					)
-					if (chainName == null)
-						throw new Error(`GoldRushFoundational_Rest: unsupported chain ${$network.caip2.reference}`)
+						const chainName = (
+							$network.caip2.reference === '1' ?
+								'eth-mainnet'
+							:
+								undefined
+						)
+						if (chainName == null)
+							throw new Error(`GoldRushFoundational_Rest: unsupported chain ${$network.caip2.reference}`)
 
-					const { transaction } = await getTransaction({
-						chainId: 1,
-						chainName,
-						txHash,
-					})
-					const fromAddress = hexLowerOfByteSize(transaction.from_address, 20)
-					const toAddress = transaction.to_address == null ? undefined : hexLowerOfByteSize(transaction.to_address, 20)
-					if (fromAddress == null)
-						throw new Error('GoldRushFoundational_Rest: transaction has an invalid from address')
-					if (transaction.to_address != null && toAddress == null)
-						throw new Error('GoldRushFoundational_Rest: transaction has an invalid to address')
+						const { transaction } = await getTransaction({
+							chainId: 1,
+							chainName,
+							txHash,
+						})
+						const fromAddress = hexLowerOfByteSize(transaction.from_address, 20)
+						const toAddress = transaction.to_address == null ? undefined : hexLowerOfByteSize(transaction.to_address, 20)
+						if (fromAddress == null)
+							throw new Error('GoldRushFoundational_Rest: transaction has an invalid from address')
+						if (transaction.to_address != null && toAddress == null)
+							throw new Error('GoldRushFoundational_Rest: transaction has an invalid to address')
 
-					return {
-						$block: {
-							[EntityMetaKey.Selector]: {
-								$network,
-								blockNumber: BigInt(transaction.block_height),
-							},
-						} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-						indexInBlock: transaction.tx_offset,
-						$from: {
-							[EntityMetaKey.Selector]: {
-								address: fromAddress,
-							},
-						} satisfies Entity<typeof schema, EntityType.EvmAccount>,
-						...(toAddress != null && {
-							$to: {
+						return {
+							$block: {
 								[EntityMetaKey.Selector]: {
-									address: toAddress,
+									$network,
+									blockNumber: BigInt(transaction.block_height),
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							indexInBlock: transaction.tx_offset,
+							$from: {
+								[EntityMetaKey.Selector]: {
+									address: fromAddress,
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
-						}),
-						value: nonnegativeBigInt(transaction.value),
-						gas: nonnegativeSafeBigInt(transaction.gas_offered),
-						gasPrice: nonnegativeSafeBigInt(transaction.gas_price),
-						gasUsed: nonnegativeSafeBigInt(transaction.gas_spent),
-						executionStatus: transaction.successful ?
-							EvmTransactionExecutionStatus.Success
-						:
-							EvmTransactionExecutionStatus.Failed,
-						$$logs: transaction.log_events.map((log) => ({
-							[EntityMetaKey.Selector]: {
-								$transaction: {
-									$network,
-									txHash,
+							...(toAddress != null && {
+								$to: {
+									[EntityMetaKey.Selector]: {
+										address: toAddress,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+							}),
+							value: nonnegativeBigInt(transaction.value),
+							gas: nonnegativeSafeBigInt(transaction.gas_offered),
+							gasPrice: nonnegativeSafeBigInt(transaction.gas_price),
+							gasUsed: nonnegativeSafeBigInt(transaction.gas_spent),
+							executionStatus: transaction.successful ?
+								EvmTransactionExecutionStatus.Success
+							:
+								EvmTransactionExecutionStatus.Failed,
+							$$logs: transaction.log_events.map((log) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: {
+										$network,
+										txHash,
+									},
+									indexInTransaction: log.log_offset,
 								},
-								indexInTransaction: log.log_offset,
-							},
-						} satisfies Entity<typeof schema, EntityType.EvmLog>)),
-					}
+							} satisfies Entity<typeof schema, EntityType.EvmLog>)),
+						}
+					},
 				},
 			},
 		})({

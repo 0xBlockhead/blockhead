@@ -53,13 +53,15 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[BittensorNetworkSelector.Network]: async ({ $network }) => {
-					assertBittensorMainnet($network)
-					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
-					}
+				[BittensorNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						assertBittensorMainnet($network)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+						}
+					},
 				}
 			}
 		})({
@@ -69,50 +71,52 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork_Timestamp,
 			resolve: {
-				[BittensorNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
-					assertBittensorMainnet($network)
-					const {
-						getMainnetRpcUrl,
-						getAllDynamicInfo,
-						getAllMetagraphs,
-						getFinalizedHead,
-						getHeader,
-						getRuntimeVersion,
-						getSubnetsInfo,
-						getSystemHealth,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const [
-						finalizedBlockHash,
-						runtimeVersion,
-						systemHealth,
-						subnetsInfo,
-						dynamicInfo,
-						metagraphs,
-					] = await Promise.all([
-						getFinalizedHead({ rpcUrl: getMainnetRpcUrl }),
-						getRuntimeVersion({ rpcUrl: getMainnetRpcUrl }),
-						getSystemHealth({ rpcUrl: getMainnetRpcUrl }),
-						getSubnetsInfo({ rpcUrl: getMainnetRpcUrl }),
-						getAllDynamicInfo({ rpcUrl: getMainnetRpcUrl }),
-						getAllMetagraphs({ rpcUrl: getMainnetRpcUrl }),
-					])
-					return {
-						finalizedBlockHash,
-						finalizedBlockNumber: blockNumberFromHeader(await getHeader({
-							rpcUrl: getMainnetRpcUrl,
-							blockHash: finalizedBlockHash,
-						})),
-						runtimeSpecName: runtimeVersion.specName,
-						runtimeSpecVersion: runtimeVersion.specVersion,
-						runtimeImplVersion: runtimeVersion.implVersion,
-						peerCount: systemHealth.peers,
-						isSyncing: systemHealth.isSyncing,
-						shouldHavePeers: systemHealth.shouldHavePeers,
-						subnetCount: compactLengthFromScaleBytes(dynamicInfo),
-						subnetsInfoByteLength: subnetsInfo.length,
-						dynamicInfoByteLength: dynamicInfo.length,
-						metagraphsByteLength: metagraphs.length,
-					}
+				[BittensorNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+					resolve: async ({ $network }) => {
+						assertBittensorMainnet($network)
+						const {
+							getMainnetRpcUrl,
+							getAllDynamicInfo,
+							getAllMetagraphs,
+							getFinalizedHead,
+							getHeader,
+							getRuntimeVersion,
+							getSubnetsInfo,
+							getSystemHealth,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const [
+							finalizedBlockHash,
+							runtimeVersion,
+							systemHealth,
+							subnetsInfo,
+							dynamicInfo,
+							metagraphs,
+						] = await Promise.all([
+							getFinalizedHead({ rpcUrl: getMainnetRpcUrl }),
+							getRuntimeVersion({ rpcUrl: getMainnetRpcUrl }),
+							getSystemHealth({ rpcUrl: getMainnetRpcUrl }),
+							getSubnetsInfo({ rpcUrl: getMainnetRpcUrl }),
+							getAllDynamicInfo({ rpcUrl: getMainnetRpcUrl }),
+							getAllMetagraphs({ rpcUrl: getMainnetRpcUrl }),
+						])
+						return {
+							finalizedBlockHash,
+							finalizedBlockNumber: blockNumberFromHeader(await getHeader({
+								rpcUrl: getMainnetRpcUrl,
+								blockHash: finalizedBlockHash,
+							})),
+							runtimeSpecName: runtimeVersion.specName,
+							runtimeSpecVersion: runtimeVersion.specVersion,
+							runtimeImplVersion: runtimeVersion.implVersion,
+							peerCount: systemHealth.peers,
+							isSyncing: systemHealth.isSyncing,
+							shouldHavePeers: systemHealth.shouldHavePeers,
+							subnetCount: compactLengthFromScaleBytes(dynamicInfo),
+							subnetsInfoByteLength: subnetsInfo.length,
+							dynamicInfoByteLength: dynamicInfo.length,
+							metagraphsByteLength: metagraphs.length,
+						}
+					},
 				}
 			}
 		})({
@@ -133,33 +137,35 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorBlock,
 			resolve: {
-				[BittensorBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber, hash: hashSelector }) => {
-					assertBittensorMainnet($network)
-					const {
-						getMainnetRpcUrl,
-						getBlock,
-						getBlockHash,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const hash = hashSelector
-					const block = await getBlock({
-						rpcUrl: getMainnetRpcUrl,
-						blockHash: hash,
-					})
-					return {
-						hash,
-						...(blockNumber > 0n && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									blockNumber: blockNumberFromHeader(block.block.header) - 1n,
-									hash: block.block.header.parentHash,
+				[BittensorBlockSelector.NetworkBlockNumberHash]: {
+					resolve: async ({ $network, blockNumber, hash: hashSelector }) => {
+						assertBittensorMainnet($network)
+						const {
+							getMainnetRpcUrl,
+							getBlock,
+							getBlockHash,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const hash = hashSelector
+						const block = await getBlock({
+							rpcUrl: getMainnetRpcUrl,
+							blockHash: hash,
+						})
+						return {
+							hash,
+							...(blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										blockNumber: blockNumberFromHeader(block.block.header) - 1n,
+										hash: block.block.header.parentHash,
+									},
 								},
-							},
-						}),
-						stateRoot: block.block.header.stateRoot,
-						extrinsicsRoot: block.block.header.extrinsicsRoot,
-						extrinsicCount: block.block.extrinsics.length,
-					}
+							}),
+							stateRoot: block.block.header.stateRoot,
+							extrinsicsRoot: block.block.header.extrinsicsRoot,
+							extrinsicCount: block.block.extrinsics.length,
+						}
+					},
 				}
 			}
 		})({
@@ -173,38 +179,40 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[BittensorSubnetSelector.NetworkNetuid]: async ({ $network, netuid }) => {
-					assertBittensorMainnet($network)
-					const {
-						getMainnetRpcUrl,
-						getDynamicInfo,
-						getSubnetHyperparams,
-						getSubnetInfo,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const [
-						subnetInfo,
-						dynamicInfo,
-						hyperparams,
-					] = await Promise.all([
-						getSubnetInfo({
-							rpcUrl: getMainnetRpcUrl,
+				[BittensorSubnetSelector.NetworkNetuid]: {
+					resolve: async ({ $network, netuid }) => {
+						assertBittensorMainnet($network)
+						const {
+							getMainnetRpcUrl,
+							getDynamicInfo,
+							getSubnetHyperparams,
+							getSubnetInfo,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const [
+							subnetInfo,
+							dynamicInfo,
+							hyperparams,
+						] = await Promise.all([
+							getSubnetInfo({
+								rpcUrl: getMainnetRpcUrl,
+								netuid: netuid,
+							}),
+							getDynamicInfo({
+								rpcUrl: getMainnetRpcUrl,
+								netuid: netuid,
+							}),
+							getSubnetHyperparams({
+								rpcUrl: getMainnetRpcUrl,
+								netuid: netuid,
+							}),
+						])
+						return {
 							netuid: netuid,
-						}),
-						getDynamicInfo({
-							rpcUrl: getMainnetRpcUrl,
-							netuid: netuid,
-						}),
-						getSubnetHyperparams({
-							rpcUrl: getMainnetRpcUrl,
-							netuid: netuid,
-						}),
-					])
-					return {
-						netuid: netuid,
-						subnetInfoByteLength: subnetInfo.length,
-						dynamicInfoByteLength: dynamicInfo.length,
-						hyperparamsByteLength: hyperparams.length,
-					}
+							subnetInfoByteLength: subnetInfo.length,
+							dynamicInfoByteLength: dynamicInfo.length,
+							hyperparamsByteLength: hyperparams.length,
+						}
+					},
 				}
 			}
 		})({
@@ -217,18 +225,20 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorMetagraph_Timestamp,
 			resolve: {
-				[BittensorMetagraph_TimestampSelector.SubnetTimestampMsSource]: async ({ $subnet }) => {
-					assertBittensorMainnet($subnet.$network)
-					const {
-						getMainnetRpcUrl,
-						getMetagraph,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					return {
-						metagraphByteLength: (await getMetagraph({
-							rpcUrl: getMainnetRpcUrl,
-							netuid: $subnet.netuid,
-						})).length,
-					}
+				[BittensorMetagraph_TimestampSelector.SubnetTimestampMsSource]: {
+					resolve: async ({ $subnet }) => {
+						assertBittensorMainnet($subnet.$network)
+						const {
+							getMainnetRpcUrl,
+							getMetagraph,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						return {
+							metagraphByteLength: (await getMetagraph({
+								rpcUrl: getMainnetRpcUrl,
+								netuid: $subnet.netuid,
+							})).length,
+						}
+					},
 				}
 			}
 		})({
@@ -238,11 +248,13 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNeuron,
 			resolve: {
-				[BittensorNeuronSelector.BittensorSubnetUid]: async ({ $subnet, uid }) => {
-					assertBittensorMainnet($subnet.$network)
-					return {
-						uid: uid,
-					}
+				[BittensorNeuronSelector.BittensorSubnetUid]: {
+					resolve: async ({ $subnet, uid }) => {
+						assertBittensorMainnet($subnet.$network)
+						return {
+							uid: uid,
+						}
+					},
 				}
 			}
 		})({
@@ -252,17 +264,19 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertBittensorMainnet(network)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								timestampMs: Date.now(),
-								source: Source.Bittensor_JsonRpc,
+				[NetworkSelector.Slug]: {
+					resolve: async (network) => {
+						assertBittensorMainnet(network)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									timestampMs: Date.now(),
+									source: Source.Bittensor_JsonRpc,
+								},
 							},
-						},
-					]
+						]
+					},
 				}
 			}
 		})({
@@ -274,17 +288,19 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[BittensorNetworkSelector.Network]: async ({ $network }) => {
-					assertBittensorMainnet($network)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								timestampMs: Date.now(),
-								source: Source.Bittensor_JsonRpc,
+				[BittensorNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						assertBittensorMainnet($network)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									timestampMs: Date.now(),
+									source: Source.Bittensor_JsonRpc,
+								},
 							},
-						},
-					]
+						]
+					},
 				}
 			}
 		})({
@@ -294,33 +310,35 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertBittensorMainnet(network)
-					const {
-						getMainnetRpcUrl,
-						getFinalizedHead,
-						getHeader,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const finalizedBlockHash = await getFinalizedHead({
-						rpcUrl: getMainnetRpcUrl,
-					})
-					const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
-						rpcUrl: getMainnetRpcUrl,
-						blockHash: finalizedBlockHash,
-					}))
-					return Array.from({
-						length: Math.min(
-							1,
-							Number(finalizedBlockNumber + 1n),
-							resolverContextRowLimit(context)
-						),
-					}, () => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							blockNumber: finalizedBlockNumber,
-							hash: finalizedBlockHash,
-						},
-					}))
+				[NetworkSelector.Slug]: {
+					resolve: async (network, context) => {
+						assertBittensorMainnet(network)
+						const {
+							getMainnetRpcUrl,
+							getFinalizedHead,
+							getHeader,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const finalizedBlockHash = await getFinalizedHead({
+							rpcUrl: getMainnetRpcUrl,
+						})
+						const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
+							rpcUrl: getMainnetRpcUrl,
+							blockHash: finalizedBlockHash,
+						}))
+						return Array.from({
+							length: Math.min(
+								1,
+								Number(finalizedBlockNumber + 1n),
+								resolverContextRowLimit(context)
+							),
+						}, () => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								blockNumber: finalizedBlockNumber,
+								hash: finalizedBlockHash,
+							},
+						}))
+					},
 				}
 			}
 		})({
@@ -332,33 +350,35 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[BittensorNetworkSelector.Network]: async ({ $network }, context) => {
-					assertBittensorMainnet($network)
-					const {
-						getMainnetRpcUrl,
-						getFinalizedHead,
-						getHeader,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const finalizedBlockHash = await getFinalizedHead({
-						rpcUrl: getMainnetRpcUrl,
-					})
-					const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
-						rpcUrl: getMainnetRpcUrl,
-						blockHash: finalizedBlockHash,
-					}))
-					return Array.from({
-						length: Math.min(
-							1,
-							Number(finalizedBlockNumber + 1n),
-							resolverContextRowLimit(context)
-						),
-					}, () => ({
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							blockNumber: finalizedBlockNumber,
-							hash: finalizedBlockHash,
-						},
-					}))
+				[BittensorNetworkSelector.Network]: {
+					resolve: async ({ $network }, context) => {
+						assertBittensorMainnet($network)
+						const {
+							getMainnetRpcUrl,
+							getFinalizedHead,
+							getHeader,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const finalizedBlockHash = await getFinalizedHead({
+							rpcUrl: getMainnetRpcUrl,
+						})
+						const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
+							rpcUrl: getMainnetRpcUrl,
+							blockHash: finalizedBlockHash,
+						}))
+						return Array.from({
+							length: Math.min(
+								1,
+								Number(finalizedBlockNumber + 1n),
+								resolverContextRowLimit(context)
+							),
+						}, () => ({
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								blockNumber: finalizedBlockNumber,
+								hash: finalizedBlockHash,
+							},
+						}))
+					},
 				}
 			}
 		})({
@@ -368,22 +388,24 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertBittensorMainnet(network)
-					const {
-						getMainnetRpcUrl,
-						getAllDynamicInfo,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					return Array.from({
-						length: compactLengthFromScaleBytes(await getAllDynamicInfo({
-							rpcUrl: getMainnetRpcUrl,
-						})) ?? 0,
-					}, (_value, netuid) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							netuid,
-						},
-					}))
+				[NetworkSelector.Slug]: {
+					resolve: async (network) => {
+						assertBittensorMainnet(network)
+						const {
+							getMainnetRpcUrl,
+							getAllDynamicInfo,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						return Array.from({
+							length: compactLengthFromScaleBytes(await getAllDynamicInfo({
+								rpcUrl: getMainnetRpcUrl,
+							})) ?? 0,
+						}, (_value, netuid) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								netuid,
+							},
+						}))
+					},
 				}
 			}
 		})({
@@ -395,22 +417,24 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[BittensorNetworkSelector.Network]: async ({ $network }) => {
-					assertBittensorMainnet($network)
-					const {
-						getMainnetRpcUrl,
-						getAllDynamicInfo,
-					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					return Array.from({
-						length: compactLengthFromScaleBytes(await getAllDynamicInfo({
-							rpcUrl: getMainnetRpcUrl,
-						})) ?? 0,
-					}, (_value, netuid) => ({
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							netuid,
-						},
-					}))
+				[BittensorNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						assertBittensorMainnet($network)
+						const {
+							getMainnetRpcUrl,
+							getAllDynamicInfo,
+						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						return Array.from({
+							length: compactLengthFromScaleBytes(await getAllDynamicInfo({
+								rpcUrl: getMainnetRpcUrl,
+							})) ?? 0,
+						}, (_value, netuid) => ({
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								netuid,
+							},
+						}))
+					},
 				}
 			}
 		})({
@@ -420,17 +444,19 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[BittensorSubnetSelector.NetworkNetuid]: async (entitySelector) => {
-					assertBittensorMainnet(entitySelector.$network)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$subnet: entitySelector,
-								timestampMs: Date.now(),
-								source: Source.Bittensor_JsonRpc,
+				[BittensorSubnetSelector.NetworkNetuid]: {
+					resolve: async (entitySelector) => {
+						assertBittensorMainnet(entitySelector.$network)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$subnet: entitySelector,
+									timestampMs: Date.now(),
+									source: Source.Bittensor_JsonRpc,
+								},
 							},
-						},
-					]
+						]
+					},
 				}
 			}
 		})({
@@ -440,9 +466,11 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[BittensorSubnetSelector.NetworkNetuid]: async ({ $network }) => {
-					assertBittensorMainnet($network)
-					return []
+				[BittensorSubnetSelector.NetworkNetuid]: {
+					resolve: async ({ $network }) => {
+						assertBittensorMainnet($network)
+						return []
+					},
 				}
 			}
 		})({

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aMessageView from '$/views/A2aMessageView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					messageId: true,
-					role: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aMessage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				messageId: true,
+				role: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(a2aMessages) => [...new Map(a2aMessages.values.map((a2aMessage) => [a2aMessage[EntityMetaKey.SelectorKey], a2aMessage])).values()]}
+	getKey={(a2aMessage) => a2aMessage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A messages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aMessages)}
-			{@const uniqueA2aMessages = [...new Map(a2aMessages.values.map((a2aMessage) => [a2aMessage[EntityMetaKey.SelectorKey], a2aMessage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aMessages.totalCount}
-				getKey={(a2aMessage) => a2aMessage[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aMessages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A messages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aMessage })}
-					{@const a2aMessageFields = { ...a2aMessage[EntityMetaKey.Selector], ...a2aMessage }}
-					{@const selection = select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aMessageView
-						selection={selection}
-						prefetched={a2aMessageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aMessage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aMessage })}
+		{@const a2aMessageFields = { ...a2aMessage[EntityMetaKey.Selector], ...a2aMessage }}
+		{@const selection = select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aMessageView
+			selection={selection}
+			prefetched={a2aMessageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -39,7 +40,9 @@
 			{@const DetailView = LiquidityPoolView}
 
 			<DetailView
-				selection={select(EntityType.LiquidityPool, data.selector)}
+				selection={select(EntityType.LiquidityPool, data.selector, { sources: [
+		Source.Dexscreener_OpenApi,
+	] })}
 				href={
 					resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 						chainId: params.chainId,

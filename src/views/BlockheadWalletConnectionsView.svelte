@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$wallet: true,
-					status: true,
-					connectionKey: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletConnection}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$wallet: true,
+				status: true,
+				connectionKey: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletConnections) => [...new Map(blockheadWalletConnections.values.map((blockheadWalletConnection) => [blockheadWalletConnection[EntityMetaKey.SelectorKey], blockheadWalletConnection])).values()]}
+	getKey={(blockheadWalletConnection) => blockheadWalletConnection[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Wallet connections yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletConnections)}
-			{@const uniqueBlockheadWalletConnections = [...new Map(blockheadWalletConnections.values.map((blockheadWalletConnection) => [blockheadWalletConnection[EntityMetaKey.SelectorKey], blockheadWalletConnection])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletConnections.totalCount}
-				getKey={(blockheadWalletConnection) => blockheadWalletConnection[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletConnections}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Wallet connections yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletConnection })}
-					{@const blockheadWalletConnectionFields = { ...blockheadWalletConnection[EntityMetaKey.Selector], ...blockheadWalletConnection }}
-					{@const selection = select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadWalletConnectionHrefFields = { ...blockheadWalletConnection, ...blockheadWalletConnection[EntityMetaKey.Selector] }}
-					<BlockheadWalletConnectionView
-						selection={selection}
-						prefetched={blockheadWalletConnectionFields}
-						href={
-							(blockheadWalletConnectionHrefFields.connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-								connectionKey: String(blockheadWalletConnectionHrefFields.connectionKey ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletConnection}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletConnection })}
+		{@const blockheadWalletConnectionFields = { ...blockheadWalletConnection[EntityMetaKey.Selector], ...blockheadWalletConnection }}
+		{@const selection = select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadWalletConnectionHrefFields = { ...blockheadWalletConnection, ...blockheadWalletConnection[EntityMetaKey.Selector] }}
+		<BlockheadWalletConnectionView
+			selection={selection}
+			prefetched={blockheadWalletConnectionFields}
+			href={
+				(blockheadWalletConnectionHrefFields.connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+					connectionKey: String(blockheadWalletConnectionHrefFields.connectionKey ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

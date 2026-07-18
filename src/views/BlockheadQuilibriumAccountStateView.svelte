@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadQuilibriumAccountState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.QuilibriumNode_Grpc,
-		],
+		sources: selection.sources,
 		fields: {
 			accountKind: true,
 		},
@@ -78,74 +74,74 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadQuilibriumAccountState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium account state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumAccountState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadQuilibriumAccountState}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumAccountState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadQuilibriumAccountState}>
-			{#snippet Pending()}
-				{@const accountKind0 = pendingEntity.accountKind}
-				{#if accountKind0 !== undefined && accountKind0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((accountKind0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const accountKind0 = resolvedEntity.accountKind}
-				{#if accountKind0 !== undefined && accountKind0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((accountKind0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const accountKind0 = pendingEntity.accountKind}
+			{#if accountKind0 !== undefined && accountKind0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((accountKind0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumAccountState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const accountKind0 = resolvedEntity.accountKind}
+					{#if accountKind0 !== undefined && accountKind0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((accountKind0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -224,19 +214,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountAddress = pendingEntity.accountAddress}
-							{#if accountAddress !== undefined && accountAddress !== null}
-								<TruncatedValue value={String((accountAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountAddress = resolvedEntity.accountAddress}
@@ -251,24 +235,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							accountKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const accountKind = pendingEntity.accountKind}
-					{#if accountKind !== undefined && accountKind !== null}
-						<div>
-							<dt>account kind</dt>
-							<dd>
-								<TruncatedValue value={String((accountKind) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const accountKind = resolvedEntity.accountKind}
@@ -288,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							allowanceAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allowanceAddress = pendingEntity.allowanceAddress}
-					{#if allowanceAddress !== undefined && allowanceAddress !== null}
-						<div>
-							<dt>allowance address</dt>
-							<dd>
-								<TruncatedValue value={String((allowanceAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allowanceAddress = resolvedEntity.allowanceAddress}
@@ -323,24 +285,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signatureKeyAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signatureKeyAddress = pendingEntity.signatureKeyAddress}
-					{#if signatureKeyAddress !== undefined && signatureKeyAddress !== null}
-						<div>
-							<dt>signature key address</dt>
-							<dd>
-								<TruncatedValue value={String((signatureKeyAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signatureKeyAddress = resolvedEntity.signatureKeyAddress}
@@ -358,24 +309,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							keyRingRefCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const keyRingRefCount = pendingEntity.keyRingRefCount}
-					{#if keyRingRefCount !== undefined && keyRingRefCount !== null}
-						<div>
-							<dt>key ring ref count</dt>
-							<dd>
-								<NumberValue value={Number(keyRingRefCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const keyRingRefCount = resolvedEntity.keyRingRefCount}
@@ -383,7 +323,9 @@
 						<div>
 							<dt>key ring ref count</dt>
 							<dd>
-								<NumberValue value={Number(keyRingRefCount)} />
+								<NumberValue
+									value={keyRingRefCount}
+								/>
 							</dd>
 						</div>
 					{/if}

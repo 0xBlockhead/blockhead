@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadRadicleSeedObservationTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle seed observation timestamp')
 	const viewDomId = $derived('blockhead-radicle-seed-observation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -70,60 +67,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle seed observation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<RadicleRepositoryView
-						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<RadicleRepositoryView
-						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<RadicleRepositoryView
+					selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<RadicleRepositoryView
+							selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -145,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nodeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nodeId = pendingEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nodeId = resolvedEntity.nodeId}
@@ -172,8 +163,6 @@
 			<ResourceBoundary
 				resource={selection.$observerNode}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadRadicleNodeState)}
 					{#if blockheadRadicleNodeState != null && blockheadRadicleNodeState[EntityMetaKey.Selector] != null}
 						<div>
@@ -197,19 +186,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -227,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -256,24 +233,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							advertised: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const advertised = pendingEntity.advertised}
-					{#if advertised !== undefined && advertised !== null}
-						<div>
-							<dt>advertised</dt>
-							<dd>
-								{advertised ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const advertised = resolvedEntity.advertised}
@@ -291,24 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reachable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reachable = pendingEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
-						<div>
-							<dt>reachable</dt>
-							<dd>
-								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reachable = resolvedEntity.reachable}
@@ -326,24 +281,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							refCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const refCount = pendingEntity.refCount}
-					{#if refCount !== undefined && refCount !== null}
-						<div>
-							<dt>ref count</dt>
-							<dd>
-								<NumberValue value={Number(refCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const refCount = resolvedEntity.refCount}
@@ -351,7 +295,9 @@
 						<div>
 							<dt>ref count</dt>
 							<dd>
-								<NumberValue value={Number(refCount)} />
+								<NumberValue
+									value={refCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -361,24 +307,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							objectCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const objectCount = pendingEntity.objectCount}
-					{#if objectCount !== undefined && objectCount !== null}
-						<div>
-							<dt>object count</dt>
-							<dd>
-								<NumberValue value={Number(objectCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const objectCount = resolvedEntity.objectCount}
@@ -386,7 +321,9 @@
 						<div>
 							<dt>object count</dt>
 							<dd>
-								<NumberValue value={Number(objectCount)} />
+								<NumberValue
+									value={objectCount}
+								/>
 							</dd>
 						</div>
 					{/if}

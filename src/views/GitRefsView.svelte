@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitRefView from '$/views/GitRefView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					refName: true,
-					refKind: true,
-					targetObjectId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitRef}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitRef}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				refName: true,
+				refKind: true,
+				targetObjectId: true,
+			},
+		})
+	}
+	getResourceItems={(gitRefs) => [...new Map(gitRefs.values.map((gitRef) => [gitRef[EntityMetaKey.SelectorKey], gitRef])).values()]}
+	getKey={(gitRef) => gitRef[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git refs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitRefs)}
-			{@const uniqueGitRefs = [...new Map(gitRefs.values.map((gitRef) => [gitRef[EntityMetaKey.SelectorKey], gitRef])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitRef}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitRefs.totalCount}
-				getKey={(gitRef) => gitRef[EntityMetaKey.SelectorKey]}
-				items={uniqueGitRefs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git refs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitRef })}
-					{@const gitRefFields = { ...gitRef[EntityMetaKey.Selector], ...gitRef }}
-					{@const selection = select(EntityType.GitRef, gitRef[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitRefView
-						selection={selection}
-						prefetched={gitRefFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitRef}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitRef })}
+		{@const gitRefFields = { ...gitRef[EntityMetaKey.Selector], ...gitRef }}
+		{@const selection = select(EntityType.GitRef, gitRef[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitRefView
+			selection={selection}
+			prefetched={gitRefFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGConsensusNetwork_TimestampView from '$/views/ZeroGConsensusNetwork_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$consensusNetwork: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$consensusNetwork: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGConsensusNetworkTimestamps) => [...new Map(zeroGConsensusNetworkTimestamps.values.map((zeroGConsensusNetworkTimestamp) => [zeroGConsensusNetworkTimestamp[EntityMetaKey.SelectorKey], zeroGConsensusNetworkTimestamp])).values()]}
+	getKey={(zeroGConsensusNetworkTimestamp) => zeroGConsensusNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g consensus network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGConsensusNetworkTimestamps)}
-			{@const uniqueZeroGConsensusNetworkTimestamps = [...new Map(zeroGConsensusNetworkTimestamps.values.map((zeroGConsensusNetworkTimestamp) => [zeroGConsensusNetworkTimestamp[EntityMetaKey.SelectorKey], zeroGConsensusNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGConsensusNetworkTimestamps.totalCount}
-				getKey={(zeroGConsensusNetworkTimestamp) => zeroGConsensusNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGConsensusNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g consensus network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGConsensusNetworkTimestamp })}
-					{@const zeroGConsensusNetworkTimestampFields = { ...zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], ...zeroGConsensusNetworkTimestamp }}
-					{@const selection = select(EntityType.ZeroGConsensusNetwork_Timestamp, zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGConsensusNetwork_TimestampView
-						selection={selection}
-						prefetched={zeroGConsensusNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGConsensusNetworkTimestamp })}
+		{@const zeroGConsensusNetworkTimestampFields = { ...zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], ...zeroGConsensusNetworkTimestamp }}
+		{@const selection = select(EntityType.ZeroGConsensusNetwork_Timestamp, zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGConsensusNetwork_TimestampView
+			selection={selection}
+			prefetched={zeroGConsensusNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

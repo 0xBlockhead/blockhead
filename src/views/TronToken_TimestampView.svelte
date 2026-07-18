@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,13 +40,17 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronTokenTimestamp = $derived(selection({}))
+	const tronTokenTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tron token timestamp')
 	const viewDomId = $derived('tron-token-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TronTokenView from '$/views/TronTokenView.svelte'
 </script>
 
@@ -63,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tronTokenTimestamp}>
-			{#snippet Pending()}
-				{title || 'tron token timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tronTokenTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockHeight = pendingEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
-						<div>
-							<dt>Block height</dt>
-							<dd>
-								{String((blockHeight) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockHeight = resolvedEntity.blockHeight}
@@ -186,27 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -224,27 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							symbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const symbol = pendingEntity.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const symbol = resolvedEntity.symbol}
@@ -262,27 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decimals = pendingEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								{String((decimals) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decimals = resolvedEntity.decimals}
@@ -300,27 +238,15 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							totalSupply: true,
+							decimals: true,
+							symbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalSupply = pendingEntity.totalSupply}
-					{#if totalSupply !== undefined && totalSupply !== null}
-						<div>
-							<dt>Total supply</dt>
-							<dd>
-								{String((totalSupply) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalSupply = resolvedEntity.totalSupply}
@@ -328,7 +254,12 @@
 						<div>
 							<dt>Total supply</dt>
 							<dd>
-								{String((totalSupply) ?? '')}
+								<NumberValue
+									value={totalSupply}
+									decimalPlaces={({ value: totalSupply, ...resolvedEntity }).decimals}
+								/>
+
+								<span>{({ value: totalSupply, ...resolvedEntity }).symbol == null ? '' : ` ${String(({ value: totalSupply, ...resolvedEntity }).symbol)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -338,27 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							holderCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const holderCount = pendingEntity.holderCount}
-					{#if holderCount !== undefined && holderCount !== null}
-						<div>
-							<dt>Holders</dt>
-							<dd>
-								{String((holderCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const holderCount = resolvedEntity.holderCount}
@@ -376,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transferCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transferCount = pendingEntity.transferCount}
-					{#if transferCount !== undefined && transferCount !== null}
-						<div>
-							<dt>Transfers</dt>
-							<dd>
-								{String((transferCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transferCount = resolvedEntity.transferCount}
@@ -411,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contractVerified: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contractVerified = pendingEntity.contractVerified}
-					{#if contractVerified !== undefined && contractVerified !== null}
-						<div>
-							<dt>Contract verified</dt>
-							<dd>
-								{contractVerified ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contractVerified = resolvedEntity.contractVerified}

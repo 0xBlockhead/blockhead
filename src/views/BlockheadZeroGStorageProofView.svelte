@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadZeroGStorageProof = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			verified: true,
 			proofKind: true,
@@ -76,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZeroGStorageProof}>
-			{#snippet Pending()}
-				{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g storage proof'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZeroGStorageProof}>
-			{#snippet Pending()}
-				{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g storage proof'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZeroGStorageProof}>
-			{#snippet Pending()}
-				{@const proofKind0 = pendingEntity.proofKind}
-				{#if proofKind0 !== undefined && proofKind0 !== null}
-					<span data-text="muted">
-						{String((proofKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const proofKind0 = resolvedEntity.proofKind}
-				{#if proofKind0 !== undefined && proofKind0 !== null}
-					<span data-text="muted">
-						{String((proofKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const proofKind0 = pendingEntity.proofKind}
+			{#if proofKind0 !== undefined && proofKind0 !== null}
+				<span data-text="muted">
+					{String((proofKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const proofKind0 = resolvedEntity.proofKind}
+					{#if proofKind0 !== undefined && proofKind0 !== null}
+						<span data-text="muted">
+							{String((proofKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									proofId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const proofId = pendingEntity.proofId}
-							{#if proofId !== undefined && proofId !== null}
-								{String((proofId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const proofId = resolvedEntity.proofId}
@@ -170,24 +160,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proofKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proofKind = pendingEntity.proofKind}
-					{#if proofKind !== undefined && proofKind !== null}
-						<div>
-							<dt>proof kind</dt>
-							<dd>
-								{String((proofKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proofKind = resolvedEntity.proofKind}
@@ -205,8 +184,6 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -227,8 +204,6 @@
 			<ResourceBoundary
 				resource={selection.$chunk}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadZeroGStoredChunk)}
 					{#if blockheadZeroGStoredChunk != null && blockheadZeroGStoredChunk[EntityMetaKey.Selector] != null}
 						<div>
@@ -252,19 +227,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									verified: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const verified = pendingEntity.verified}
-							{#if verified !== undefined && verified !== null}
-								{verified ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const verified = resolvedEntity.verified}
@@ -281,24 +250,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifiedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifiedAt = pendingEntity.verifiedAt}
-					{#if verifiedAt !== undefined && verifiedAt !== null}
-						<div>
-							<dt>verified AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(verifiedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifiedAt = resolvedEntity.verifiedAt}
@@ -316,24 +274,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifiedAtBlock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifiedAtBlock = pendingEntity.verifiedAtBlock}
-					{#if verifiedAtBlock !== undefined && verifiedAtBlock !== null}
-						<div>
-							<dt>verified AT block</dt>
-							<dd>
-								<NumberValue value={Number(verifiedAtBlock)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifiedAtBlock = resolvedEntity.verifiedAtBlock}
@@ -341,7 +288,9 @@
 						<div>
 							<dt>verified AT block</dt>
 							<dd>
-								<NumberValue value={Number(verifiedAtBlock)} />
+								<NumberValue
+									value={verifiedAtBlock}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -351,24 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

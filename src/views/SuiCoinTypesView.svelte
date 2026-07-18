@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiCoinTypeView from '$/views/SuiCoinTypeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiCoinType}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiCoinType}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiCoinTypes) => [...new Map(suiCoinTypes.values.map((suiCoinType) => [suiCoinType[EntityMetaKey.SelectorKey], suiCoinType])).values()]}
+	getKey={(suiCoinType) => suiCoinType[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui coin types yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiCoinTypes)}
-			{@const uniqueSuiCoinTypes = [...new Map(suiCoinTypes.values.map((suiCoinType) => [suiCoinType[EntityMetaKey.SelectorKey], suiCoinType])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiCoinType}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiCoinTypes.totalCount}
-				getKey={(suiCoinType) => suiCoinType[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiCoinTypes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui coin types yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiCoinType })}
-					{@const suiCoinTypeFields = { ...suiCoinType[EntityMetaKey.Selector], ...suiCoinType }}
-					{@const selection = select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiCoinTypeView
-						selection={selection}
-						prefetched={suiCoinTypeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiCoinType}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiCoinType })}
+		{@const suiCoinTypeFields = { ...suiCoinType[EntityMetaKey.Selector], ...suiCoinType }}
+		{@const selection = select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiCoinTypeView
+			selection={selection}
+			prefetched={suiCoinTypeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

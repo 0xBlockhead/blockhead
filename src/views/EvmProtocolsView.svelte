@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmProtocolView from '$/views/EvmProtocolView.svelte'
 </script>
@@ -62,80 +61,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					registryName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmProtocol}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				registryName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(evmProtocols) => [...new Map(evmProtocols.values.map((evmProtocol) => [evmProtocol[EntityMetaKey.SelectorKey], evmProtocol])).values()]}
+	getKey={(evmProtocol) => evmProtocol[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM protocols yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmProtocols)}
-			{@const uniqueEvmProtocols = [...new Map(evmProtocols.values.map((evmProtocol) => [evmProtocol[EntityMetaKey.SelectorKey], evmProtocol])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmProtocols.totalCount}
-				getKey={(evmProtocol) => evmProtocol[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmProtocols}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM protocols yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmProtocol })}
-					{@const evmProtocolFields = { ...evmProtocol[EntityMetaKey.Selector], ...evmProtocol }}
-					{@const selection = select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmProtocolHrefFields = { ...evmProtocol, ...evmProtocol[EntityMetaKey.Selector] }}
-					<EvmProtocolView
-						selection={selection}
-						prefetched={evmProtocolFields}
-						href={(evmProtocol[EntityMetaKey.Selector].scope === 'EvmProtocol' ? resolve('/evm') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmProtocol}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmProtocol })}
+		{@const evmProtocolFields = { ...evmProtocol[EntityMetaKey.Selector], ...evmProtocol }}
+		{@const selection = select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmProtocolHrefFields = { ...evmProtocol, ...evmProtocol[EntityMetaKey.Selector] }}
+		<EvmProtocolView
+			selection={selection}
+			prefetched={evmProtocolFields}
+			href={(evmProtocol[EntityMetaKey.Selector].scope === 'EvmProtocol' ? resolve('/evm') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

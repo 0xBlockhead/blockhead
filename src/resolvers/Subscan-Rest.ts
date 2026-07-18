@@ -36,28 +36,30 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber }, context) => {
-					assertPolkadotMainnet($network)
-					const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
-					const block = (await getBlock({
-						restBaseUrl: await subscanPolkadotRestBaseUrl(),
-						height: blockNumber,
-						publicEnv: context.publicEnv,
-					})).data
-					return {
-						hash: block.block_hash,
-						...(blockNumber > 0n && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									blockNumber: blockNumber - 1n,
-									hash: block.parent_hash,
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+					resolve: async ({ $network, blockNumber }, context) => {
+						assertPolkadotMainnet($network)
+						const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
+						const block = (await getBlock({
+							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							height: blockNumber,
+							publicEnv: context.publicEnv,
+						})).data
+						return {
+							hash: block.block_hash,
+							...(blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										blockNumber: blockNumber - 1n,
+										hash: block.parent_hash,
+									},
 								},
-							},
-						}),
-						stateRoot: block.state_root,
-						extrinsicsRoot: block.extrinsics_root,
-					}
+							}),
+							stateRoot: block.state_root,
+							extrinsicsRoot: block.extrinsics_root,
+						}
+					},
 				}
 			},
 		})({
@@ -70,35 +72,37 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[PolkadotExtrinsicSelector.BlockIndexInBlock]: async ({ $block, indexInBlock }, context) => {
-					assertPolkadotMainnet($block.$network)
-					const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
-					const extrinsic = (await getExtrinsic({
-						restBaseUrl: await subscanPolkadotRestBaseUrl(),
-						extrinsicIndex: `${$block.blockNumber.toString()}-${indexInBlock}`,
-						publicEnv: context.publicEnv,
-					})).data
-					return {
-						...(extrinsic.extrinsic_hash != null && {
-							hash: extrinsic.extrinsic_hash,
-						}),
-						...(extrinsic.account_id != null && {
-							$signer: {
+				[PolkadotExtrinsicSelector.BlockIndexInBlock]: {
+					resolve: async ({ $block, indexInBlock }, context) => {
+						assertPolkadotMainnet($block.$network)
+						const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
+						const extrinsic = (await getExtrinsic({
+							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							extrinsicIndex: `${$block.blockNumber.toString()}-${indexInBlock}`,
+							publicEnv: context.publicEnv,
+						})).data
+						return {
+							...(extrinsic.extrinsic_hash != null && {
+								hash: extrinsic.extrinsic_hash,
+							}),
+							...(extrinsic.account_id != null && {
+								$signer: {
+									[EntityMetaKey.Selector]: {
+										$network: $block.$network,
+										accountId: extrinsic.account_id,
+									},
+								},
+							}),
+							$pallet: {
 								[EntityMetaKey.Selector]: {
 									$network: $block.$network,
-									accountId: extrinsic.account_id,
+									palletName: extrinsic.call_module,
 								},
 							},
-						}),
-						$pallet: {
-							[EntityMetaKey.Selector]: {
-								$network: $block.$network,
-								palletName: extrinsic.call_module,
-							},
-						},
-						callName: extrinsic.call_module_function,
-						success: extrinsic.success,
-					}
+							callName: extrinsic.call_module_function,
+							success: extrinsic.success,
+						}
+					},
 				}
 			},
 		})({

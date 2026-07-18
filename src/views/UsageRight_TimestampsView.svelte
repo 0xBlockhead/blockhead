@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UsageRight_TimestampView from '$/views/UsageRight_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UsageRight_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.UsageRight_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(usageRightTimestamps) => [...new Map(usageRightTimestamps.values.map((usageRightTimestamp) => [usageRightTimestamp[EntityMetaKey.SelectorKey], usageRightTimestamp])).values()]}
+	getKey={(usageRightTimestamp) => usageRightTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Usage right observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(usageRightTimestamps)}
-			{@const uniqueUsageRightTimestamps = [...new Map(usageRightTimestamps.values.map((usageRightTimestamp) => [usageRightTimestamp[EntityMetaKey.SelectorKey], usageRightTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UsageRight_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={usageRightTimestamps.totalCount}
-				getKey={(usageRightTimestamp) => usageRightTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueUsageRightTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Usage right observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: usageRightTimestamp })}
-					{@const usageRightTimestampFields = { ...usageRightTimestamp[EntityMetaKey.Selector], ...usageRightTimestamp }}
-					{@const selection = select(EntityType.UsageRight_Timestamp, usageRightTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<UsageRight_TimestampView
-						selection={selection}
-						prefetched={usageRightTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.UsageRight_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: usageRightTimestamp })}
+		{@const usageRightTimestampFields = { ...usageRightTimestamp[EntityMetaKey.Selector], ...usageRightTimestamp }}
+		{@const selection = select(EntityType.UsageRight_Timestamp, usageRightTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<UsageRight_TimestampView
+			selection={selection}
+			prefetched={usageRightTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

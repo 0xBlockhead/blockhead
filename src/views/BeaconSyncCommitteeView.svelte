@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconSyncCommittee = $derived(selection({}))
+	const beaconSyncCommittee = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.period) ?? '') ? 'Sync committee #' + String((pendingEntity.period) ?? '') : '') || 'beacon sync committee')
 	const viewDomId = $derived('beacon-sync-committee-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -95,42 +97,42 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={beaconSyncCommittee}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={beaconSyncCommittee}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,24 +143,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									period: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const period = pendingEntity.period}
-							{#if period !== undefined && period !== null}
-								<NumberValue value={Number(period)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const period = resolvedEntity.period}
 							{#if period !== undefined && period !== null}
-								<NumberValue value={Number(period)} />
+								<NumberValue
+									value={period}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -171,24 +169,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									validatorIndices: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const validatorIndices = pendingEntity.validatorIndices}
-							{#if validatorIndices !== undefined && validatorIndices !== null}
-								<NumberValue value={Number(validatorIndices)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const validatorIndices = resolvedEntity.validatorIndices}
 							{#if validatorIndices !== undefined && validatorIndices !== null}
-								<NumberValue value={Number(validatorIndices)} />
+								<NumberValue
+									value={validatorIndices}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const magnetLink = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			infoHash: true,
@@ -70,35 +71,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={magnetLink}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={magnetLink}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={magnetLink}>
-			{#snippet Pending()}
-				{@const infoHash0 = pendingEntity.infoHash}
-				{#if infoHash0 !== undefined && infoHash0 !== null}
-					<TruncatedValue value={String((infoHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const infoHash0 = resolvedEntity.infoHash}
-				{#if infoHash0 !== undefined && infoHash0 !== null}
-					<TruncatedValue value={String((infoHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const infoHash0 = pendingEntity.infoHash}
+					{#if infoHash0 !== undefined && infoHash0 !== null}
+						<TruncatedValue value={String((infoHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={magnetLink}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const infoHash0 = resolvedEntity.infoHash}
+					{#if infoHash0 !== undefined && infoHash0 !== null}
+						<TruncatedValue value={String((infoHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -109,19 +110,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									magnetUri: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const magnetUri = pendingEntity.magnetUri}
-							{#if magnetUri !== undefined && magnetUri !== null}
-								<TruncatedValue value={String((magnetUri) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const magnetUri = resolvedEntity.magnetUri}
@@ -136,24 +131,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							infoHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const infoHash = pendingEntity.infoHash}
-					{#if infoHash !== undefined && infoHash !== null}
-						<div>
-							<dt>info hash</dt>
-							<dd>
-								<TruncatedValue value={String((infoHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const infoHash = resolvedEntity.infoHash}
@@ -171,24 +155,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							displayName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const displayName = pendingEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
-						<div>
-							<dt>display name</dt>
-							<dd>
-								{String((displayName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const displayName = resolvedEntity.displayName}
@@ -206,24 +179,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							exactLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const exactLength = pendingEntity.exactLength}
-					{#if exactLength !== undefined && exactLength !== null}
-						<div>
-							<dt>exact length</dt>
-							<dd>
-								<NumberValue value={Number(exactLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const exactLength = resolvedEntity.exactLength}
@@ -231,7 +193,9 @@
 						<div>
 							<dt>exact length</dt>
 							<dd>
-								<NumberValue value={Number(exactLength)} />
+								<NumberValue
+									value={exactLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -246,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									trackers: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const trackers = pendingEntity.trackers}
-							{#if trackers !== undefined && trackers !== null}
-								{trackers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const trackers = resolvedEntity.trackers}
@@ -276,19 +234,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									webSeeds: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const webSeeds = pendingEntity.webSeeds}
-							{#if webSeeds !== undefined && webSeeds !== null}
-								{webSeeds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const webSeeds = resolvedEntity.webSeeds}
@@ -306,19 +258,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									acceptableSources: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const acceptableSources = pendingEntity.acceptableSources}
-							{#if acceptableSources !== undefined && acceptableSources !== null}
-								{acceptableSources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const acceptableSources = resolvedEntity.acceptableSources}
@@ -333,8 +279,6 @@
 			<ResourceBoundary
 				resource={selection.$torrent}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bitTorrentMetainfo)}
 					{#if bitTorrentMetainfo != null && bitTorrentMetainfo[EntityMetaKey.Selector] != null}
 						<div>

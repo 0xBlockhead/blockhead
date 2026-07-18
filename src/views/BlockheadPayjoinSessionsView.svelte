@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadPayjoinSessionView from '$/views/BlockheadPayjoinSessionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					sessionId: true,
-					status: true,
-					role: true,
-					amountSats: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPayjoinSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadPayjoinSession}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				sessionId: true,
+				status: true,
+				role: true,
+				amountSats: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadPayjoinSessions) => [...new Map(blockheadPayjoinSessions.values.map((blockheadPayjoinSession) => [blockheadPayjoinSession[EntityMetaKey.SelectorKey], blockheadPayjoinSession])).values()]}
+	getKey={(blockheadPayjoinSession) => blockheadPayjoinSession[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead payjoin sessions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadPayjoinSessions)}
-			{@const uniqueBlockheadPayjoinSessions = [...new Map(blockheadPayjoinSessions.values.map((blockheadPayjoinSession) => [blockheadPayjoinSession[EntityMetaKey.SelectorKey], blockheadPayjoinSession])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPayjoinSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadPayjoinSessions.totalCount}
-				getKey={(blockheadPayjoinSession) => blockheadPayjoinSession[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadPayjoinSessions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead payjoin sessions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadPayjoinSession })}
-					{@const blockheadPayjoinSessionFields = { ...blockheadPayjoinSession[EntityMetaKey.Selector], ...blockheadPayjoinSession }}
-					{@const selection = select(EntityType.BlockheadPayjoinSession, blockheadPayjoinSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadPayjoinSessionView
-						selection={selection}
-						prefetched={blockheadPayjoinSessionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadPayjoinSession}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadPayjoinSession })}
+		{@const blockheadPayjoinSessionFields = { ...blockheadPayjoinSession[EntityMetaKey.Selector], ...blockheadPayjoinSession }}
+		{@const selection = select(EntityType.BlockheadPayjoinSession, blockheadPayjoinSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadPayjoinSessionView
+			selection={selection}
+			prefetched={blockheadPayjoinSessionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

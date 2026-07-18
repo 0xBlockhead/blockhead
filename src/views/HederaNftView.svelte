@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNft = $derived(selection({}))
+	const hederaNft = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera NFT')
 	const viewDomId = $derived('hedera-nft-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaNft}>
-			{#snippet Pending()}
-				{title || 'hedera NFT'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaNft}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									serialNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const serialNumber = pendingEntity.serialNumber}
-							{#if serialNumber !== undefined && serialNumber !== null}
-								{String((serialNumber) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const serialNumber = resolvedEntity.serialNumber}
@@ -120,24 +116,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metadata: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metadata = pendingEntity.metadata}
-					{#if metadata !== undefined && metadata !== null}
-						<div>
-							<dt>metadata</dt>
-							<dd>
-								{String((metadata) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metadata = resolvedEntity.metadata}
@@ -155,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdTimestamp = pendingEntity.createdTimestamp}
-					{#if createdTimestamp !== undefined && createdTimestamp !== null}
-						<div>
-							<dt>created timestamp</dt>
-							<dd>
-								{String((createdTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdTimestamp = resolvedEntity.createdTimestamp}

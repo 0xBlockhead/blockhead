@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarAccountSigner_TimestampView from '$/views/StellarAccountSigner_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccountSigner_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarAccountSigner_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarAccountSignerTimestamps) => [...new Map(stellarAccountSignerTimestamps.values.map((stellarAccountSignerTimestamp) => [stellarAccountSignerTimestamp[EntityMetaKey.SelectorKey], stellarAccountSignerTimestamp])).values()]}
+	getKey={(stellarAccountSignerTimestamp) => stellarAccountSignerTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar account signer observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarAccountSignerTimestamps)}
-			{@const uniqueStellarAccountSignerTimestamps = [...new Map(stellarAccountSignerTimestamps.values.map((stellarAccountSignerTimestamp) => [stellarAccountSignerTimestamp[EntityMetaKey.SelectorKey], stellarAccountSignerTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccountSigner_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarAccountSignerTimestamps.totalCount}
-				getKey={(stellarAccountSignerTimestamp) => stellarAccountSignerTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarAccountSignerTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar account signer observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarAccountSignerTimestamp })}
-					{@const stellarAccountSignerTimestampFields = { ...stellarAccountSignerTimestamp[EntityMetaKey.Selector], ...stellarAccountSignerTimestamp }}
-					{@const selection = select(EntityType.StellarAccountSigner_Timestamp, stellarAccountSignerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarAccountSigner_TimestampView
-						selection={selection}
-						prefetched={stellarAccountSignerTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarAccountSigner_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarAccountSignerTimestamp })}
+		{@const stellarAccountSignerTimestampFields = { ...stellarAccountSignerTimestamp[EntityMetaKey.Selector], ...stellarAccountSignerTimestamp }}
+		{@const selection = select(EntityType.StellarAccountSigner_Timestamp, stellarAccountSignerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarAccountSigner_TimestampView
+			selection={selection}
+			prefetched={stellarAccountSignerTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

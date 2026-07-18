@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarTrustlineView from '$/views/StellarTrustlineView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTrustline}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarTrustline}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarTrustlines) => [...new Map(stellarTrustlines.values.map((stellarTrustline) => [stellarTrustline[EntityMetaKey.SelectorKey], stellarTrustline])).values()]}
+	getKey={(stellarTrustline) => stellarTrustline[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar trustlines yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarTrustlines)}
-			{@const uniqueStellarTrustlines = [...new Map(stellarTrustlines.values.map((stellarTrustline) => [stellarTrustline[EntityMetaKey.SelectorKey], stellarTrustline])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTrustline}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarTrustlines.totalCount}
-				getKey={(stellarTrustline) => stellarTrustline[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarTrustlines}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar trustlines yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarTrustline })}
-					{@const stellarTrustlineFields = { ...stellarTrustline[EntityMetaKey.Selector], ...stellarTrustline }}
-					{@const selection = select(EntityType.StellarTrustline, stellarTrustline[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarTrustlineView
-						selection={selection}
-						prefetched={stellarTrustlineFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarTrustline}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarTrustline })}
+		{@const stellarTrustlineFields = { ...stellarTrustline[EntityMetaKey.Selector], ...stellarTrustline }}
+		{@const selection = select(EntityType.StellarTrustline, stellarTrustline[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarTrustlineView
+			selection={selection}
+			prefetched={stellarTrustlineFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -5,6 +5,7 @@ import {
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -37,14 +38,16 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async ({ $network }) => {
-					assertHyperliquidMainnet($network)
-					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
-						rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
-					}
+				[HyperliquidNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						assertHyperliquidMainnet($network)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+						}
+					},
 				}
 			},
 		})({
@@ -55,13 +58,15 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertHyperliquidMainnet(network)
-					return {
-						Hyperliquid: {
-							rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
-						},
-					}
+				[NetworkSelector.Slug]: {
+					resolve: async (network) => {
+						assertHyperliquidMainnet(network)
+						return {
+							Hyperliquid: {
+								rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+							},
+						}
+					},
 				}
 			},
 		})({
@@ -73,29 +78,75 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidBlock,
 			resolve: {
-				[HyperliquidBlockSelector.Height]: async ({ $network, height }) => {
-					assertHyperliquidMainnet($network)
+				[HyperliquidBlockSelector.Height]: {
+					resolve: async ({ $network, height }) => {
+						assertHyperliquidMainnet($network)
 
-					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const block = await getBlockByNumber({
-						rpcUrl: await hyperliquidEvmRpcUrl(),
-						height,
-						includeTransactions: true,
-					})
-					if (block == null) throw new Error(`Hyperliquid_JsonRpc: block not found for ${height.toString()}`)
-					return {
-						hash: block.hash,
-						timestampMs: Number(hexToBigInt(block.timestamp)) * 1000,
-						$$transactions: block.transactions.map((transaction) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								txHash: transaction.hash,
-							},
-							actionType: 'evm',
+						const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const block = await getBlockByNumber({
+							rpcUrl: await hyperliquidEvmRpcUrl(),
+							height,
+							includeTransactions: true,
+						})
+						if (block == null) throw new Error(`Hyperliquid_JsonRpc: block not found for ${height.toString()}`)
+						return {
+							hash: block.hash,
+							timestampMs: Number(hexToBigInt(block.timestamp)) * 1000,
+							$$transactions: block.transactions.map((transaction) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txHash: transaction.hash,
+								},
+													[EntityMetaKey.Fields]: {
+														[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], 'actionType')]: 'evm',
+								...(transaction.blockNumber != null && {
+														[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$block')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height: hexToBigInt(transaction.blockNumber),
+										},
+									},
+								}),
+								...(transaction.from != null && {
+														[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: transaction.from,
+										},
+									},
+													}),
+												},
+							})),
+						}
+					},
+				}
+			},
+		})({
+			hash: (snapshot) => snapshot.hash,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}),
+
+		defineResolver(Source.Hyperliquid_JsonRpc, {
+			entityType: EntityType.HyperliquidTransaction,
+			resolve: {
+				[HyperliquidTransactionSelector.NetworkTxHash]: {
+					resolve: async ({ $network, txHash }) => {
+						assertHyperliquidMainnet($network)
+						const {
+							getTransactionByHash,
+							getTransactionReceipt,
+						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const transaction = await getTransactionByHash({
+							rpcUrl: await hyperliquidEvmRpcUrl(),
+							txHash: txHash,
+						})
+						if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
+						return {
 							...(transaction.blockNumber != null && {
 								$block: {
 									[EntityMetaKey.Selector]: {
-										$network,
+										$network: $network,
 										height: hexToBigInt(transaction.blockNumber),
 									},
 								},
@@ -103,74 +154,36 @@ export default {
 							...(transaction.from != null && {
 								$account: {
 									[EntityMetaKey.Selector]: {
-										$network,
+										$network: $network,
 										address: transaction.from,
 									},
 								},
 							}),
-						})),
-					}
-				}
-			},
-		})({
-				hash: (snapshot) => snapshot.hash,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				$$transactions: (snapshot) => snapshot.$$transactions,
-			}),
-
-		defineResolver(Source.Hyperliquid_JsonRpc, {
-			entityType: EntityType.HyperliquidTransaction,
-			resolve: {
-				[HyperliquidTransactionSelector.NetworkTxHash]: async ({ $network, txHash }) => {
-					assertHyperliquidMainnet($network)
-					const {
-						getTransactionByHash,
-						getTransactionReceipt,
-					} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const transaction = await getTransactionByHash({
-						rpcUrl: await hyperliquidEvmRpcUrl(),
-						txHash: txHash,
-					})
-					if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
-					return {
-						...(transaction.blockNumber != null && {
-							$block: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: hexToBigInt(transaction.blockNumber),
-								},
-							},
-						}),
-						...(transaction.from != null && {
-							$account: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									address: transaction.from,
-								},
-							},
-						}),
-						actionType: 'evm',
-					}
-				}
-			},
-		})({
-				$block: (snapshot) => snapshot.$block,
-				$account: (snapshot) => snapshot.$account,
-				actionType: (snapshot) => snapshot.actionType,
-			}),
-
-		defineResolver(Source.Hyperliquid_JsonRpc, {
-			entityType: EntityType.HyperliquidTransaction,
-			resolve: {
-				[HyperliquidTransactionSelector.NetworkTxHash]: async (entitySelector) => [
-					{
-						[EntityMetaKey.Selector]: {
-							$transaction: entitySelector,
-							timestampMs: Date.now(),
-							source: Source.Hyperliquid_JsonRpc,
-						},
+							actionType: 'evm',
+						}
 					},
-				],
+				},
+			},
+		})({
+			$block: (snapshot) => snapshot.$block,
+			$account: (snapshot) => snapshot.$account,
+			actionType: (snapshot) => snapshot.actionType,
+		}),
+
+		defineResolver(Source.Hyperliquid_JsonRpc, {
+			entityType: EntityType.HyperliquidTransaction,
+			resolve: {
+				[HyperliquidTransactionSelector.NetworkTxHash]: {
+					resolve: async (entitySelector) => [
+						{
+							[EntityMetaKey.Selector]: {
+								$transaction: entitySelector,
+								timestampMs: Date.now(),
+								source: Source.Hyperliquid_JsonRpc,
+							},
+						},
+					],
+				},
 			},
 		})({
 				$$timestamps: (snapshot) => snapshot,
@@ -179,21 +192,23 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction_Timestamp,
 			resolve: {
-				[HyperliquidTransaction_TimestampSelector.TransactionTimestampMsSource]: async ({ $transaction }) => {
-					assertHyperliquidMainnet($transaction.$network)
-					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const receipt = await getTransactionReceipt({
-						rpcUrl: await hyperliquidEvmRpcUrl(),
-						txHash: $transaction.txHash,
-					})
-					return {
-						...(receipt?.status != null && {
-							status: receipt.status === '0x1' ? 'success' : 'failed',
-						}),
-						...(receipt?.blockNumber != null && {
-							blockNumber: hexToBigInt(receipt.blockNumber),
-						}),
-					}
+				[HyperliquidTransaction_TimestampSelector.TransactionTimestampMsSource]: {
+					resolve: async ({ $transaction }) => {
+						assertHyperliquidMainnet($transaction.$network)
+						const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const receipt = await getTransactionReceipt({
+							rpcUrl: await hyperliquidEvmRpcUrl(),
+							txHash: $transaction.txHash,
+						})
+						return {
+							...(receipt?.status != null && {
+								status: receipt.status === '0x1' ? 'success' : 'failed',
+							}),
+							...(receipt?.blockNumber != null && {
+								blockNumber: hexToBigInt(receipt.blockNumber),
+							}),
+						}
+					},
 				},
 			},
 		})({
@@ -204,23 +219,25 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
-					assertHyperliquidMainnet($network)
-					const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const headBlockHeight = hexToBigInt(await getBlockNumber({
-						rpcUrl: await hyperliquidEvmRpcUrl(),
-					}))
-					return Array.from({
-						length: Math.min(
-							Number(headBlockHeight + 1n),
-							resolverContextRowLimit(context)
-						),
-					}, (_value, blockOffset) => ({
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							height: headBlockHeight - BigInt(blockOffset),
-						},
-					}))
+				[HyperliquidNetworkSelector.Network]: {
+					resolve: async ({ $network }, context) => {
+						assertHyperliquidMainnet($network)
+						const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const headBlockHeight = hexToBigInt(await getBlockNumber({
+							rpcUrl: await hyperliquidEvmRpcUrl(),
+						}))
+						return Array.from({
+							length: Math.min(
+								Number(headBlockHeight + 1n),
+								resolverContextRowLimit(context)
+							),
+						}, (_value, blockOffset) => ({
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								height: headBlockHeight - BigInt(blockOffset),
+							},
+						}))
+					},
 				}
 			},
 		})({
@@ -230,23 +247,25 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertHyperliquidMainnet(network)
-					const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const headBlockHeight = hexToBigInt(await getBlockNumber({
-						rpcUrl: await hyperliquidEvmRpcUrl(),
-					}))
-					return Array.from({
-						length: Math.min(
-							Number(headBlockHeight + 1n),
-							resolverContextRowLimit(context)
-						),
-					}, (_value, blockOffset) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							height: headBlockHeight - BigInt(blockOffset),
-						},
-					}))
+				[NetworkSelector.Slug]: {
+					resolve: async (network, context) => {
+						assertHyperliquidMainnet(network)
+						const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const headBlockHeight = hexToBigInt(await getBlockNumber({
+							rpcUrl: await hyperliquidEvmRpcUrl(),
+						}))
+						return Array.from({
+							length: Math.min(
+								Number(headBlockHeight + 1n),
+								resolverContextRowLimit(context)
+							),
+						}, (_value, blockOffset) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								height: headBlockHeight - BigInt(blockOffset),
+							},
+						}))
+					},
 				}
 			},
 		})({
@@ -258,58 +277,62 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[HyperliquidNetworkSelector.Network]: async ({ $network }, context) => {
-					assertHyperliquidMainnet($network)
-					const {
-						getBlockByNumber,
-						getBlockNumber,
-					} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const rpcUrl = await hyperliquidEvmRpcUrl()
-					const headBlockHeight = hexToBigInt(await getBlockNumber({
-						rpcUrl,
-					}))
-					return (
-						await Promise.all(
-							Array.from({
-								length: Math.min(
-									Number(headBlockHeight + 1n),
-									16
-							),
-							}, async (_value, blockOffset) => (
-							await getBlockByNumber({
-								rpcUrl,
-								height: headBlockHeight - BigInt(blockOffset),
-								includeTransactions: true,
-							})
-							))
+				[HyperliquidNetworkSelector.Network]: {
+					resolve: async ({ $network }, context) => {
+						assertHyperliquidMainnet($network)
+						const {
+							getBlockByNumber,
+							getBlockNumber,
+						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const rpcUrl = await hyperliquidEvmRpcUrl()
+						const headBlockHeight = hexToBigInt(await getBlockNumber({
+							rpcUrl,
+						}))
+						return (
+							await Promise.all(
+								Array.from({
+									length: Math.min(
+										Number(headBlockHeight + 1n),
+										16
+								),
+								}, async (_value, blockOffset) => (
+								await getBlockByNumber({
+									rpcUrl,
+									height: headBlockHeight - BigInt(blockOffset),
+									includeTransactions: true,
+								})
+								))
+							)
 						)
-					)
-						.flatMap((block) => (
-							block?.transactions.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									txHash: transaction.hash,
-								},
-								actionType: 'evm',
-								...(transaction.blockNumber != null && {
-									$block: {
-										[EntityMetaKey.Selector]: {
-											$network: $network,
-											height: hexToBigInt(transaction.blockNumber),
-										},
+							.flatMap((block) => (
+								block?.transactions.map((transaction) => ({
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										txHash: transaction.hash,
 									},
-								}),
-								...(transaction.from != null && {
-									$account: {
-										[EntityMetaKey.Selector]: {
-											$network: $network,
-											address: transaction.from,
-										},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], 'actionType')]: 'evm',
+										...(transaction.blockNumber != null && {
+											[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$block')]: {
+											[EntityMetaKey.Selector]: {
+												$network: $network,
+												height: hexToBigInt(transaction.blockNumber),
+											},
+											},
+										}),
+										...(transaction.from != null && {
+											[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
+											[EntityMetaKey.Selector]: {
+												$network: $network,
+												address: transaction.from,
+											},
+											},
+										}),
 									},
-								}),
-							})) ?? []
-						))
-						.slice(0, resolverContextRowLimit(context))
+								})) ?? []
+							))
+							.slice(0, resolverContextRowLimit(context))
+					},
 				}
 			},
 		})({
@@ -319,64 +342,68 @@ export default {
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network, context) => {
-					assertHyperliquidMainnet(network)
-					const {
-						getBlockByNumber,
-						getBlockNumber,
-					} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const rpcUrl = await hyperliquidEvmRpcUrl()
-					const headBlockHeight = hexToBigInt(await getBlockNumber({
-						rpcUrl,
-					}))
-					return (
-						await Promise.all(
-							Array.from({
-								length: Math.min(
-									Number(headBlockHeight + 1n),
-									16
-								),
-							}, async (_value, blockOffset) => (
-								await getBlockByNumber({
-									rpcUrl,
-									height: headBlockHeight - BigInt(blockOffset),
-									includeTransactions: true,
-								})
-							))
+				[NetworkSelector.Slug]: {
+					resolve: async (network, context) => {
+						assertHyperliquidMainnet(network)
+						const {
+							getBlockByNumber,
+							getBlockNumber,
+						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const rpcUrl = await hyperliquidEvmRpcUrl()
+						const headBlockHeight = hexToBigInt(await getBlockNumber({
+							rpcUrl,
+						}))
+						return (
+							await Promise.all(
+								Array.from({
+									length: Math.min(
+										Number(headBlockHeight + 1n),
+										16
+									),
+								}, async (_value, blockOffset) => (
+									await getBlockByNumber({
+										rpcUrl,
+										height: headBlockHeight - BigInt(blockOffset),
+										includeTransactions: true,
+									})
+								))
+							)
 						)
-					)
-						.flatMap((block) => (
-							block?.transactions.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									txHash: transaction.hash,
-								},
-								actionType: 'evm',
-								...(transaction.blockNumber != null && {
-									$block: {
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											height: hexToBigInt(transaction.blockNumber),
-										},
+							.flatMap((block) => (
+								block?.transactions.map((transaction) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										txHash: transaction.hash,
 									},
-								}),
-								...(transaction.from != null && {
-									$account: {
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											address: transaction.from,
-										},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], 'actionType')]: 'evm',
+										...(transaction.blockNumber != null && {
+											[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$block')]: {
+												[EntityMetaKey.Selector]: {
+													$network: network,
+													height: hexToBigInt(transaction.blockNumber),
+												},
+											},
+										}),
+										...(transaction.from != null && {
+											[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
+												[EntityMetaKey.Selector]: {
+													$network: network,
+													address: transaction.from,
+												},
+											},
+										}),
 									},
-								}),
-							})) ?? []
-						))
-						.slice(0, resolverContextRowLimit(context))
+								})) ?? []
+							))
+							.slice(0, resolverContextRowLimit(context))
+					},
 				}
 			},
 		})({
-				Hyperliquid: {
-					$$transactions: (snapshot) => snapshot,
-				},
-			}),
+			Hyperliquid: {
+				$$transactions: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

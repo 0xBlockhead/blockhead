@@ -11,7 +11,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'EnvioHyperRpc_JsonRpc-130': {
+	'EnvioHyperRpc_JsonRpc-129': {
 		envKey: 'ENVIO_API_TOKEN',
 		injection: {
 			endpointTemplate: {
@@ -19,7 +19,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'EnvioHyperSync_RawHttp-131': {
+	'EnvioHyperSync_RawHttp-130': {
 		envKey: 'ENVIO_API_TOKEN',
 		injection: {
 			header: {
@@ -28,7 +28,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GetBlockRpc_JsonRpc-144': {
+	'GetBlockRpc_JsonRpc-143': {
 		envKey: 'GETBLOCK_API_KEY',
 		injection: {
 			endpointTemplate: {
@@ -36,7 +36,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GetBlockYellowstone_Grpc-145': {
+	'GetBlockYellowstone_Grpc-144': {
 		envKey: 'GETBLOCK_API_KEY',
 		injection: {
 			endpointTemplate: {
@@ -44,7 +44,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GoldRushFoundational_Rest-151': {
+	'GoldRushFoundational_Rest-150': {
 		envKey: 'COVALENT_API_KEY',
 		injection: {
 			header: {
@@ -53,12 +53,20 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'OpenAI_Rest-236': {
+	'OpenAI_Rest-235': {
 		envKey: 'OPENAI_API_KEY',
 		injection: {
 			header: {
 				name: 'authorization',
 				prefix: 'Bearer ',
+			},
+		},
+	},
+	'SpaceAndTime_MakeInfinite-275': {
+		envKey: 'MAKEINFINITE_API_KEY',
+		injection: {
+			header: {
+				name: 'apikey',
 			},
 		},
 	},

@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const filecoinNetworkTimestamp = $derived(selection({
-		sources: [
-			Source.Lotus_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			headHeight: true,
 			headTipsetKey: true,
@@ -77,64 +75,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={filecoinNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={filecoinNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const headHeight0 = pendingEntity.headHeight}
-				{#if headHeight0 !== undefined && headHeight0 !== null}
-					<NumberValue value={Number(headHeight0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const headHeight0 = resolvedEntity.headHeight}
-				{#if headHeight0 !== undefined && headHeight0 !== null}
-					<NumberValue value={Number(headHeight0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const headHeight0 = pendingEntity.headHeight}
+					{#if headHeight0 !== undefined && headHeight0 !== null}
+						<NumberValue
+							value={headHeight0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const headHeight0 = resolvedEntity.headHeight}
+					{#if headHeight0 !== undefined && headHeight0 !== null}
+						<NumberValue
+							value={headHeight0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={filecoinNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const headTipsetKey0 = pendingEntity.headTipsetKey}
-				{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
-					<span data-text="muted">
-						{String((headTipsetKey0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const headTipsetKey0 = resolvedEntity.headTipsetKey}
-				{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
-					<span data-text="muted">
-						{String((headTipsetKey0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const headTipsetKey0 = pendingEntity.headTipsetKey}
+			{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
+				<span data-text="muted">
+					{String((headTipsetKey0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const headTipsetKey0 = resolvedEntity.headTipsetKey}
+					{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
+						<span data-text="muted">
+							{String((headTipsetKey0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -163,19 +165,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -193,19 +189,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -220,27 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							headHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const headHeight = pendingEntity.headHeight}
-					{#if headHeight !== undefined && headHeight !== null}
-						<div>
-							<dt>Head height</dt>
-							<dd>
-								<NumberValue value={Number(headHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const headHeight = resolvedEntity.headHeight}
@@ -248,7 +224,9 @@
 						<div>
 							<dt>Head height</dt>
 							<dd>
-								<NumberValue value={Number(headHeight)} />
+								<NumberValue
+									value={headHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -258,27 +236,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							headTipsetKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const headTipsetKey = pendingEntity.headTipsetKey}
-					{#if headTipsetKey !== undefined && headTipsetKey !== null}
-						<div>
-							<dt>Head tipset key</dt>
-							<dd>
-								{String((headTipsetKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const headTipsetKey = resolvedEntity.headTipsetKey}
@@ -296,27 +260,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							headBlockCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const headBlockCount = pendingEntity.headBlockCount}
-					{#if headBlockCount !== undefined && headBlockCount !== null}
-						<div>
-							<dt>Head block count</dt>
-							<dd>
-								<NumberValue value={Number(headBlockCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const headBlockCount = resolvedEntity.headBlockCount}
@@ -324,7 +274,9 @@
 						<div>
 							<dt>Head block count</dt>
 							<dd>
-								<NumberValue value={Number(headBlockCount)} />
+								<NumberValue
+									value={headBlockCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -334,27 +286,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							headTimestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const headTimestampMs = pendingEntity.headTimestampMs}
-					{#if headTimestampMs !== undefined && headTimestampMs !== null}
-						<div>
-							<dt>Head timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(headTimestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const headTimestampMs = resolvedEntity.headTimestampMs}
@@ -378,8 +316,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -402,27 +338,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							networkVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const networkVersion = pendingEntity.networkVersion}
-					{#if networkVersion !== undefined && networkVersion !== null}
-						<div>
-							<dt>Network version</dt>
-							<dd>
-								<NumberValue value={Number(networkVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const networkVersion = resolvedEntity.networkVersion}
@@ -430,7 +352,9 @@
 						<div>
 							<dt>Network version</dt>
 							<dd>
-								<NumberValue value={Number(networkVersion)} />
+								<NumberValue
+									value={networkVersion}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -440,27 +364,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							lotusVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lotusVersion = pendingEntity.lotusVersion}
-					{#if lotusVersion !== undefined && lotusVersion !== null}
-						<div>
-							<dt>Lotus version</dt>
-							<dd>
-								{String((lotusVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lotusVersion = resolvedEntity.lotusVersion}
@@ -478,27 +388,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							lotusAgent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lotusAgent = pendingEntity.lotusAgent}
-					{#if lotusAgent !== undefined && lotusAgent !== null}
-						<div>
-							<dt>Lotus agent</dt>
-							<dd>
-								{String((lotusAgent) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lotusAgent = resolvedEntity.lotusAgent}
@@ -516,27 +412,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							blockDelaySeconds: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockDelaySeconds = pendingEntity.blockDelaySeconds}
-					{#if blockDelaySeconds !== undefined && blockDelaySeconds !== null}
-						<div>
-							<dt>Block delay seconds</dt>
-							<dd>
-								<NumberValue value={Number(blockDelaySeconds)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockDelaySeconds = resolvedEntity.blockDelaySeconds}
@@ -544,7 +426,9 @@
 						<div>
 							<dt>Block delay seconds</dt>
 							<dd>
-								<NumberValue value={Number(blockDelaySeconds)} />
+								<NumberValue
+									value={blockDelaySeconds}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -554,27 +438,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							totalRawBytePower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalRawBytePower = pendingEntity.totalRawBytePower}
-					{#if totalRawBytePower !== undefined && totalRawBytePower !== null}
-						<div>
-							<dt>Total raw byte power</dt>
-							<dd>
-								<NumberValue value={Number(totalRawBytePower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalRawBytePower = resolvedEntity.totalRawBytePower}
@@ -582,7 +452,9 @@
 						<div>
 							<dt>Total raw byte power</dt>
 							<dd>
-								<NumberValue value={Number(totalRawBytePower)} />
+								<NumberValue
+									value={totalRawBytePower}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -592,27 +464,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							totalQualityAdjustedPower: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalQualityAdjustedPower = pendingEntity.totalQualityAdjustedPower}
-					{#if totalQualityAdjustedPower !== undefined && totalQualityAdjustedPower !== null}
-						<div>
-							<dt>Total quality adjusted power</dt>
-							<dd>
-								<NumberValue value={Number(totalQualityAdjustedPower)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalQualityAdjustedPower = resolvedEntity.totalQualityAdjustedPower}
@@ -620,7 +478,9 @@
 						<div>
 							<dt>Total quality adjusted power</dt>
 							<dd>
-								<NumberValue value={Number(totalQualityAdjustedPower)} />
+								<NumberValue
+									value={totalQualityAdjustedPower}
+								/>
 							</dd>
 						</div>
 					{/if}

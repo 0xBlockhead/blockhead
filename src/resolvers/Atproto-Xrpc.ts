@@ -84,81 +84,44 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: async ({ did }) => {
-					const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const profile = await getProfile(did)
-					const displayName = optionalNonemptyString(profile.displayName)
-					const description = optionalNonemptyString(profile.description)
-					const indexedAt = optionalTimestampMs(profile.indexedAt)
-					return {
-						did: profile.did,
-						...(displayName != null && { displayName }),
-						handle: profile.handle,
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(profile.avatar, MediaType.Image)),
-						...((
-							bannerMedia
-					) => (
-						bannerMedia != null && {
-							$banner: bannerMedia,
-						}
-					))(mediaFromUrl(profile.banner, MediaType.Image)),
-						...(indexedAt != null && { indexedAt }),
-						...(description != null && { description }),
-					}
-				},
-				[AtprotoActorSelector.Handle]: async ({ handle }) => {
-					const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const profile = await getProfile(handle)
-					const displayName = optionalNonemptyString(profile.displayName)
-					const description = optionalNonemptyString(profile.description)
-					const indexedAt = optionalTimestampMs(profile.indexedAt)
-					return {
-						did: profile.did,
-						...(displayName != null && { displayName }),
-						handle: profile.handle,
-						...((
-							iconMedia
-					) => (
-						iconMedia != null && {
-							$icon: iconMedia,
-						}
-					))(mediaFromUrl(profile.avatar, MediaType.Image)),
-						...((
-							bannerMedia
-					) => (
-						bannerMedia != null && {
-							$banner: bannerMedia,
-						}
-					))(mediaFromUrl(profile.banner, MediaType.Image)),
-						...(indexedAt != null && { indexedAt }),
-						...(description != null && { description }),
-					}
+				[AtprotoActorSelector.Did]: {
+					resolve: async ({ did }) => ({
+						did,
+					}),
 				},
 			},
 		})({
 				did: (actor) => actor.did,
-				displayName: (actor) => actor.displayName,
+			}),
+
+		defineResolver(Source.Atproto_Xrpc, {
+			entityType: EntityType.AtprotoActor,
+			resolve: {
+				[AtprotoActorSelector.Handle]: {
+					resolve: async ({ handle }) => {
+						const { resolveHandle } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						return {
+							did: (await resolveHandle(handle)).did,
+							handle,
+						}
+					},
+				},
+			},
+		})({
+				did: (actor) => actor.did,
 				handle: (actor) => actor.handle,
-				$icon: (actor) => actor.$icon,
-				$banner: (actor) => actor.$banner,
-				indexedAt: (actor) => actor.indexedAt,
-				description: (actor) => actor.description,
 			}),
 
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: async ({ uri }) => {
-					const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const postView = (await getPosts([uri])).posts.at(0)
-					if (postView == null) throw new Error('Atproto_Xrpc: post not found')
-					return atprotoPostFieldsFromPostView(postView)
+				[AtprotoPostSelector.Uri]: {
+					resolve: async ({ uri }) => {
+						const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const postView = (await getPosts([uri])).posts.at(0)
+						if (postView == null) throw new Error('Atproto_Xrpc: post not found')
+						return atprotoPostFieldsFromPostView(postView)
+					},
 				}
 			},
 		})({
@@ -176,17 +139,34 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor_Timestamp,
 			resolve: {
-				[AtprotoActor_TimestampSelector.AtprotoActorTimestampMs]: async ({ $actor }) => {
-					const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const profile = await getProfile('did' in $actor ? $actor.did : $actor.handle)
-					return {
-						...(profile.followersCount != null && { followersCount: profile.followersCount }),
-						...(profile.followsCount != null && { followsCount: profile.followsCount }),
-						...(profile.postsCount != null && { postsCount: profile.postsCount }),
-					}
+				[AtprotoActor_TimestampSelector.AtprotoActorTimestampMsSource]: {
+					resolve: async ({ source }): Promise<{
+						source: string
+						handle: string
+						displayName?: string
+						description?: string
+						indexedAt?: number
+						$icon?: ReturnType<typeof mediaFromUrl>
+						$banner?: ReturnType<typeof mediaFromUrl>
+						followersCount?: number
+						followsCount?: number
+						postsCount?: number
+					}> => {
+						if (source !== Source.Atproto_Xrpc)
+							throw new Error(`Atproto_Xrpc: observation source mismatch ${source}`)
+
+						throw new Error('Atproto_Xrpc: historical actor observation is unavailable from the current appview')
+					},
 				}
 			},
 		})({
+				source: (timestamp) => timestamp.source,
+				handle: (timestamp) => timestamp.handle,
+				displayName: (timestamp) => timestamp.displayName,
+				description: (timestamp) => timestamp.description,
+				indexedAt: (timestamp) => timestamp.indexedAt,
+				$icon: (timestamp) => timestamp.$icon,
+				$banner: (timestamp) => timestamp.$banner,
 				followersCount: (timestamp) => timestamp.followersCount,
 				followsCount: (timestamp) => timestamp.followsCount,
 				postsCount: (timestamp) => timestamp.postsCount,
@@ -195,16 +175,18 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: {
-				[AtprotoPost_TimestampSelector.AtprotoPostTimestampMs]: async ({ $post }) => {
-					const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const postView = (await getPosts([$post.uri])).posts.at(0)
-					if (postView == null) throw new Error('Atproto_Xrpc: post not found')
-					return {
-						...(postView.likeCount != null && { likeCount: postView.likeCount }),
-						...(postView.repostCount != null && { repostCount: postView.repostCount }),
-						...(postView.replyCount != null && { replyCount: postView.replyCount }),
-						...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
-					}
+				[AtprotoPost_TimestampSelector.AtprotoPostTimestampMs]: {
+					resolve: async ({ $post }) => {
+						const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const postView = (await getPosts([$post.uri])).posts.at(0)
+						if (postView == null) throw new Error('Atproto_Xrpc: post not found')
+						return {
+							...(postView.likeCount != null && { likeCount: postView.likeCount }),
+							...(postView.repostCount != null && { repostCount: postView.repostCount }),
+							...(postView.replyCount != null && { replyCount: postView.replyCount }),
+							...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
+						}
+					},
 				}
 			},
 		})({
@@ -217,26 +199,28 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[_GlobalAtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const refs: { [EntityMetaKey.Selector]: { did: string } }[] = [
-						...atprotoNetworkSeedActors.map((seed) => ({
-							[EntityMetaKey.Selector]: { did: seed.did },
-						})),
-						...((await searchActorsTypeahead({
-							limit,
-							q: 'bsky',
-						})).actors ?? [])
-							.flatMap((actor) => {
-							const did = optionalNonemptyString(actor.did)
-							return did == null ?
-								[]
-							:
-								[{ [EntityMetaKey.Selector]: { did } }]
-							}),
-					]
-					return refs.slice(0, limit)
+				[_GlobalAtprotoNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const refs: { [EntityMetaKey.Selector]: { did: string } }[] = [
+							...atprotoNetworkSeedActors.map((seed) => ({
+								[EntityMetaKey.Selector]: { did: seed.did },
+							})),
+							...((await searchActorsTypeahead({
+								limit,
+								q: 'bsky',
+							})).actors ?? [])
+								.flatMap((actor) => {
+								const did = optionalNonemptyString(actor.did)
+								return did == null ?
+									[]
+								:
+									[{ [EntityMetaKey.Selector]: { did } }]
+								}),
+						]
+						return refs.slice(0, limit)
+					},
 				}
 			},
 		})({
@@ -246,22 +230,24 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[_GlobalAtprotoNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { searchPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await searchPosts({
-							limit,
-							q: 'bsky',
-						})).posts ?? [])
-							.flatMap((post) => {
-							const uri = optionalNonemptyString(post.uri)
-							return uri == null ?
-								[]
-							:
-								[{ [EntityMetaKey.Selector]: { uri } }]
-							})
-					)
+				[_GlobalAtprotoNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { searchPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						return (
+							((await searchPosts({
+								limit,
+								q: 'bsky',
+							})).posts ?? [])
+								.flatMap((post) => {
+								const uri = optionalNonemptyString(post.uri)
+								return uri == null ?
+									[]
+								:
+									[{ [EntityMetaKey.Selector]: { uri } }]
+								})
+						)
+					},
 				}
 			},
 		})({
@@ -271,33 +257,39 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: async ({ did }) => {
-					const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const profile = await getProfile(did)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$actor: {
-									did: profile.did,
+				[AtprotoActorSelector.Did]: {
+					resolve: async ({ did }) => {
+						const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const profile = await getProfile(did)
+						const displayName = optionalNonemptyString(profile.displayName)
+						const description = optionalNonemptyString(profile.description)
+						const indexedAt = optionalTimestampMs(profile.indexedAt)
+						const icon = mediaFromUrl(profile.avatar, MediaType.Image)
+						const banner = mediaFromUrl(profile.banner, MediaType.Image)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$actor: {
+										did,
+									},
+									timestampMs: Date.now(),
+									source: Source.Atproto_Xrpc,
 								},
-								timestampMs: Date.now(),
-							},
-						},
-					]
-				},
-				[AtprotoActorSelector.Handle]: async ({ handle }) => {
-					const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const profile = await getProfile(handle)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$actor: {
-									handle,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'source')]: Source.Atproto_Xrpc,
+									[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'handle')]: profile.handle,
+									...(displayName != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'displayName')]: displayName }),
+									...(description != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'description')]: description }),
+									...(indexedAt != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'indexedAt')]: indexedAt }),
+									...(icon != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$icon')]: icon }),
+									...(banner != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$banner')]: banner }),
+									...(profile.followersCount != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'followersCount')]: profile.followersCount }),
+									...(profile.followsCount != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'followsCount')]: profile.followsCount }),
+									...(profile.postsCount != null && { [entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'postsCount')]: profile.postsCount }),
 								},
-								timestampMs: Date.now(),
 							},
-						},
-					]
+						]
+					},
 				},
 			},
 		})({
@@ -307,37 +299,23 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: async ({ did }, context) => {
-					const { getAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const { feed } = await getAuthorFeed({
-						actor: did,
-						limit,
-						includePins: true,
-					})
-					return (
-						feed
-							.flatMap((feedItem) => {
-								if (feedItem.post.author.did !== did) return []
-				return [atprotoPostReferenceFromPostView(feedItem.post)]
-							})
-					)
-				},
-				[AtprotoActorSelector.Handle]: async ({ handle }, context) => {
-					const { getAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const { feed } = await getAuthorFeed({
-						actor: handle,
-						limit,
-						includePins: true,
-					})
-					return (
-						feed
-							.flatMap((feedItem) => {
-								if (feedItem.post.author.handle !== handle) return []
-				return [atprotoPostReferenceFromPostView(feedItem.post)]
-							})
-					)
+				[AtprotoActorSelector.Did]: {
+					resolve: async ({ did }, context) => {
+						const { getAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const { feed } = await getAuthorFeed({
+							actor: did,
+							limit,
+							includePins: true,
+						})
+						return (
+							feed
+								.flatMap((feedItem) => {
+									if (feedItem.post.author.did !== did) return []
+					return [atprotoPostReferenceFromPostView(feedItem.post)]
+								})
+						)
+					},
 				},
 			},
 		})({
@@ -347,18 +325,20 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: async ({ uri }) => {
-					const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const postView = (await getPosts([uri])).posts.at(0)
-					if (postView == null) throw new Error('Atproto_Xrpc: post not found')
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$post: { uri },
-								timestampMs: Date.now(),
+				[AtprotoPostSelector.Uri]: {
+					resolve: async ({ uri }) => {
+						const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const postView = (await getPosts([uri])).posts.at(0)
+						if (postView == null) throw new Error('Atproto_Xrpc: post not found')
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$post: { uri },
+									timestampMs: Date.now(),
+								},
 							},
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -368,41 +348,43 @@ export default {
 		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: async ({ uri }, context) => {
-					const { getPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const { thread } = await getPostThread(uri)
-					if (thread == null)
-						throw new Error(`Atproto_Xrpc: post thread not found for ${uri}`)
+				[AtprotoPostSelector.Uri]: {
+					resolve: async ({ uri }, context) => {
+						const { getPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const { thread } = await getPostThread(uri)
+						if (thread == null)
+							throw new Error(`Atproto_Xrpc: post thread not found for ${uri}`)
 
-					const threadPostUri = optionalNonemptyString(thread.post.uri)
-					if (threadPostUri == null)
-						throw new Error(`Atproto_Xrpc: post thread not found for ${uri}`)
-					const ancestors: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
-					let parent = thread.parent
-					while (parent != null) {
-						const parentUri = optionalNonemptyString(parent.post.uri)
-						if (parentUri == null) break
-						if (parentUri !== uri) {
-							ancestors.unshift(atprotoPostReferenceFromPostView(parent.post))
-						}
-						parent = parent.parent
-					}
-					const descendants: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
-					const walkReplies = (node: NonNullable<typeof thread>) => {
-						for (const reply of node.replies ?? []) {
-							const replyUri = optionalNonemptyString(reply.post.uri)
-							if (replyUri != null && replyUri !== uri) {
-								descendants.push(atprotoPostReferenceFromPostView(reply.post))
+						const threadPostUri = optionalNonemptyString(thread.post.uri)
+						if (threadPostUri == null)
+							throw new Error(`Atproto_Xrpc: post thread not found for ${uri}`)
+						const ancestors: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
+						let parent = thread.parent
+						while (parent != null) {
+							const parentUri = optionalNonemptyString(parent.post.uri)
+							if (parentUri == null) break
+							if (parentUri !== uri) {
+								ancestors.unshift(atprotoPostReferenceFromPostView(parent.post))
 							}
-							if (replyUri != null) walkReplies(reply)
+							parent = parent.parent
 						}
-					}
-					walkReplies(thread)
-					return [
-						...ancestors,
-						...descendants,
-					].slice(0, limit)
+						const descendants: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
+						const walkReplies = (node: NonNullable<typeof thread>) => {
+							for (const reply of node.replies ?? []) {
+								const replyUri = optionalNonemptyString(reply.post.uri)
+								if (replyUri != null && replyUri !== uri) {
+									descendants.push(atprotoPostReferenceFromPostView(reply.post))
+								}
+								if (replyUri != null) walkReplies(reply)
+							}
+						}
+						walkReplies(thread)
+						return [
+							...ancestors,
+							...descendants,
+						].slice(0, limit)
+					},
 				}
 			},
 		})({

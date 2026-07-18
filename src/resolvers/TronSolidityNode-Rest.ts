@@ -3,6 +3,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -145,25 +146,40 @@ const blockFields = (
 		txTrieRoot: rawBlock.txTrieRoot,
 		version: rawBlock.version,
 		transactionCount: block.transactions?.length,
-		$$transactions: (block.transactions ?? []).flatMap((transaction) => (
-			transaction.txID == null ?
-				[]
-			:
-				[{
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						transactionId: transaction.txID,
-					},
-					...transactionFields(
-						network,
-						transaction,
-						{
-							blockNumber: rawBlock.number,
-							blockTimeStamp: rawBlock.timestamp,
-						}
-					),
-				}]
-		)),
+		$$transactions: (block.transactions ?? []).flatMap((transaction) => {
+			if (transaction.txID == null) return []
+
+			const fields = transactionFields(
+				network,
+				transaction,
+				{
+					blockNumber: rawBlock.number,
+					blockTimeStamp: rawBlock.timestamp,
+				}
+			)
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					transactionId: transaction.txID,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: fields.blockHeight,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'timestampMs')]: fields.timestampMs,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'expirationTimestampMs')]: fields.expirationTimestampMs,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'contractType')]: fields.contractType,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'result')]: fields.result,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'feeSun')]: fields.feeSun,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], '$receipt')]: fields.$receipt,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], '$owner')]: fields.$owner,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], '$to')]: fields.$to,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], '$contract')]: fields.$contract,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'amountSun')]: fields.amountSun,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'assetName')]: fields.assetName,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'rawDataHex')]: fields.rawDataHex,
+					[entityFieldAddressKey(EntityType.TronTransaction, [], 'signatures')]: fields.signatures,
+				},
+			}]
+		}),
 	}
 }
 
@@ -174,16 +190,18 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: async ({ $network, height }) => {
-					assertTronMainnet($network)
-					const { getBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-					return blockFields(
-						$network,
-						await getBlockByNumber({
-							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
-							height: height,
-						})
-					)
+				[TronBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, height }) => {
+						assertTronMainnet($network)
+						const { getBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+						return blockFields(
+							$network,
+							await getBlockByNumber({
+								restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+								height: height,
+							})
+						)
+					},
 				}
 			},
 		})({
@@ -201,25 +219,27 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
-				[TronTransactionSelector.NetworkTransactionId]: async ({ $network, transactionId }) => {
-					assertTronMainnet($network)
-					const {
-						getTransactionById,
-						getTransactionInfoById,
-					} = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-					const transaction = await getTransactionById({
-						restBaseUrl: await tronSolidityNodeRestBaseUrl(),
-						transactionId: transactionId,
-					})
-					if (transaction.txID == null) throw new Error(`TronSolidityNode_Rest: transaction not found for ${transactionId}`)
-					return transactionFields(
-						$network,
-						transaction,
-						await getTransactionInfoById({
+				[TronTransactionSelector.NetworkTransactionId]: {
+					resolve: async ({ $network, transactionId }) => {
+						assertTronMainnet($network)
+						const {
+							getTransactionById,
+							getTransactionInfoById,
+						} = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+						const transaction = await getTransactionById({
 							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
 							transactionId: transactionId,
 						})
-					)
+						if (transaction.txID == null) throw new Error(`TronSolidityNode_Rest: transaction not found for ${transactionId}`)
+						return transactionFields(
+							$network,
+							transaction,
+							await getTransactionInfoById({
+								restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+								transactionId: transactionId,
+							})
+						)
+					},
 				}
 			},
 		})({
@@ -242,16 +262,18 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: async ({ $network, address }) => {
-					assertTronMainnet($network)
-					const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-					const account = await getAccount({
-						restBaseUrl: await tronSolidityNodeRestBaseUrl(),
-						address: address,
-					})
-					return {
-						name: account.account_name,
-					}
+				[TronAccountSelector.NetworkAddress]: {
+					resolve: async ({ $network, address }) => {
+						assertTronMainnet($network)
+						const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+						const account = await getAccount({
+							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							address: address,
+						})
+						return {
+							name: account.account_name,
+						}
+					},
 				}
 			},
 		})({
@@ -261,15 +283,17 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: async (entitySelector) => [
-					{
-						[EntityMetaKey.Selector]: {
-							$account: entitySelector,
-							timestampMs: Date.now(),
-							source: Source.TronSolidityNode_Rest,
+				[TronAccountSelector.NetworkAddress]: {
+					resolve: async (entitySelector) => [
+						{
+							[EntityMetaKey.Selector]: {
+								$account: entitySelector,
+								timestampMs: Date.now(),
+								source: Source.TronSolidityNode_Rest,
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		})({
 				$$timestamps: (snapshot) => snapshot,
@@ -278,20 +302,22 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
-				[TronAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
-					assertTronMainnet($account.$network)
-					const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-					const account = await getAccount({
-						restBaseUrl: await tronSolidityNodeRestBaseUrl(),
-						address: $account.address,
-					})
-					return {
-						...(account.balance != null && {
-							balanceSun: BigInt(account.balance),
-						}),
-						createdTimestampMs: account.create_time,
-						latestOperationTimestampMs: account.latest_opration_time,
-					}
+				[TronAccount_TimestampSelector.AccountTimestampMsSource]: {
+					resolve: async ({ $account }) => {
+						assertTronMainnet($account.$network)
+						const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+						const account = await getAccount({
+							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							address: $account.address,
+						})
+						return {
+							...(account.balance != null && {
+								balanceSun: BigInt(account.balance),
+							}),
+							createdTimestampMs: account.create_time,
+							latestOperationTimestampMs: account.latest_opration_time,
+						}
+					},
 				}
 			},
 		})({
@@ -303,13 +329,15 @@ export default {
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
-				[TronTransactionReceiptSelector.Transaction]: async ({ $transaction }) => {
-					assertTronMainnet($transaction.$network)
-					const { getTransactionInfoById } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-					return receiptFields(await getTransactionInfoById({
-						restBaseUrl: await tronSolidityNodeRestBaseUrl(),
-						transactionId: $transaction.transactionId,
-					}))
+				[TronTransactionReceiptSelector.Transaction]: {
+					resolve: async ({ $transaction }) => {
+						assertTronMainnet($transaction.$network)
+						const { getTransactionInfoById } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+						return receiptFields(await getTransactionInfoById({
+							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							transactionId: $transaction.transactionId,
+						}))
+					},
 				}
 			},
 		})({

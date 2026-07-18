@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					createdAt: true,
-					id: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoom}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadRoom}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				createdAt: true,
+				id: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadRooms) => [...new Map(blockheadRooms.values.map((blockheadRoom) => [blockheadRoom[EntityMetaKey.SelectorKey], blockheadRoom])).values()]}
+	getKey={(blockheadRoom) => blockheadRoom[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Rooms yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadRooms)}
-			{@const uniqueBlockheadRooms = [...new Map(blockheadRooms.values.map((blockheadRoom) => [blockheadRoom[EntityMetaKey.SelectorKey], blockheadRoom])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoom}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRooms.totalCount}
-				getKey={(blockheadRoom) => blockheadRoom[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadRooms}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Rooms yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadRoom })}
-					{@const blockheadRoomFields = { ...blockheadRoom[EntityMetaKey.Selector], ...blockheadRoom }}
-					{@const selection = select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadRoomHrefFields = { ...blockheadRoom, ...blockheadRoom[EntityMetaKey.Selector] }}
-					<BlockheadRoomView
-						selection={selection}
-						prefetched={blockheadRoomFields}
-						href={
-							(blockheadRoomHrefFields.id !== undefined ? resolve('/~/multiplayer/room/[roomId=stringSegment]', {
-								roomId: String(blockheadRoomHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadRoom}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadRoom })}
+		{@const blockheadRoomFields = { ...blockheadRoom[EntityMetaKey.Selector], ...blockheadRoom }}
+		{@const selection = select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadRoomHrefFields = { ...blockheadRoom, ...blockheadRoom[EntityMetaKey.Selector] }}
+		<BlockheadRoomView
+			selection={selection}
+			prefetched={blockheadRoomFields}
+			href={
+				(blockheadRoomHrefFields.id !== undefined ? resolve('/~/multiplayer/room/[roomId=stringSegment]', {
+					roomId: String(blockheadRoomHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

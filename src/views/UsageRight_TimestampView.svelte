@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const usageRightTimestamp = $derived(selection({}))
+	const usageRightTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('usage right timestamp')
 	const viewDomId = $derived('usage-right-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={usageRightTimestamp}>
-			{#snippet Pending()}
-				{title || 'usage right timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={usageRightTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -87,19 +89,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									subjectKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const subjectKey = pendingEntity.subjectKey}
-							{#if subjectKey !== undefined && subjectKey !== null}
-								{String((subjectKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subjectKey = resolvedEntity.subjectKey}
@@ -117,19 +113,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rightKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rightKey = pendingEntity.rightKey}
-							{#if rightKey !== undefined && rightKey !== null}
-								{String((rightKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rightKey = resolvedEntity.rightKey}
@@ -147,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -177,19 +161,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -207,19 +185,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sourceKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sourceKind = pendingEntity.sourceKind}
-							{#if sourceKind !== undefined && sourceKind !== null}
-								{String((sourceKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sourceKind = resolvedEntity.sourceKind}
@@ -237,19 +209,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rightKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rightKind = pendingEntity.rightKind}
-							{#if rightKind !== undefined && rightKind !== null}
-								{String((rightKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rightKind = resolvedEntity.rightKind}
@@ -266,8 +232,6 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -288,8 +252,6 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nftToken)}
 					{#if nftToken != null && nftToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -310,8 +272,6 @@
 			<ResourceBoundary
 				resource={selection.$user}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(account)}
 					{#if account != null && account[EntityMetaKey.Selector] != null}
 						<div>
@@ -332,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expiresAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expiresAt = pendingEntity.expiresAt}
-					{#if expiresAt !== undefined && expiresAt !== null}
-						<div>
-							<dt>expires AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expiresAt = resolvedEntity.expiresAt}
@@ -369,24 +318,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
-					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
-						<div>
-							<dt>ledger coordinate kind</dt>
-							<dd>
-								{String((ledgerCoordinateKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
@@ -404,24 +342,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateValue: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
-					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
-						<div>
-							<dt>ledger coordinate value</dt>
-							<dd>
-								{String((ledgerCoordinateValue) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}
@@ -439,24 +366,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contractAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contractAddress = pendingEntity.contractAddress}
-					{#if contractAddress !== undefined && contractAddress !== null}
-						<div>
-							<dt>contract address</dt>
-							<dd>
-								<TruncatedValue value={String((contractAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contractAddress = resolvedEntity.contractAddress}

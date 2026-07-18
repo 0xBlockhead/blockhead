@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import QuilibriumAccountView from '$/views/QuilibriumAccountView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					accountAddress: true,
-					$network: true,
-					accountKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.QuilibriumAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				accountAddress: true,
+				$network: true,
+				accountKind: true,
+			},
+		})
+	}
+	getResourceItems={(quilibriumAccounts) => [...new Map(quilibriumAccounts.values.map((quilibriumAccount) => [quilibriumAccount[EntityMetaKey.SelectorKey], quilibriumAccount])).values()]}
+	getKey={(quilibriumAccount) => quilibriumAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Quilibrium accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(quilibriumAccounts)}
-			{@const uniqueQuilibriumAccounts = [...new Map(quilibriumAccounts.values.map((quilibriumAccount) => [quilibriumAccount[EntityMetaKey.SelectorKey], quilibriumAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={quilibriumAccounts.totalCount}
-				getKey={(quilibriumAccount) => quilibriumAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueQuilibriumAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Quilibrium accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: quilibriumAccount })}
-					{@const quilibriumAccountFields = { ...quilibriumAccount[EntityMetaKey.Selector], ...quilibriumAccount }}
-					{@const selection = select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<QuilibriumAccountView
-						selection={selection}
-						prefetched={quilibriumAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.QuilibriumAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: quilibriumAccount })}
+		{@const quilibriumAccountFields = { ...quilibriumAccount[EntityMetaKey.Selector], ...quilibriumAccount }}
+		{@const selection = select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<QuilibriumAccountView
+			selection={selection}
+			prefetched={quilibriumAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmContractSourceBundle = $derived(selection({}))
+	const evmContractSourceBundle = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('EVM contract source bundle')
 	const viewDomId = $derived('evm-contract-source-bundle-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,11 +66,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmContractSourceBundle}>
-			{#snippet Pending()}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -77,16 +78,16 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmContractSourceBundle}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -95,19 +96,19 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmContractSourceBundle}>
-			{#snippet Pending()}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -116,16 +117,16 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmContractSourceBundle}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -134,11 +135,12 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

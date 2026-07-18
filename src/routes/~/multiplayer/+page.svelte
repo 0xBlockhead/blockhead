@@ -34,10 +34,6 @@
 			{ id: 'contacts', label: 'Contacts' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -54,8 +50,11 @@
 				selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
 					sources: [Source.Local_Internal],
 				})}
-				id='rooms'
-				open={true}
+						id='rooms'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
 			/>
 		{/snippet}
 
@@ -65,8 +64,11 @@
 				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
 					sources: [Source.Local_Internal],
 				})}
-				id='contacts'
-				open={true}
+						id='contacts'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

@@ -39,11 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterFeed = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			label: true,
 		},
@@ -78,29 +74,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterFeed}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterFeed}>
-			{#snippet Pending()}
-				{[String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -111,19 +107,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									variant: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const variant = pendingEntity.variant}
-							{#if variant !== undefined && variant !== null}
-								{String((variant) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const variant = resolvedEntity.variant}
@@ -140,24 +130,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fid = pendingEntity.fid}
-					{#if fid !== undefined && fid !== null}
-						<div>
-							<dt>FID</dt>
-							<dd>
-								<NumberValue value={Number(fid)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fid = resolvedEntity.fid}
@@ -165,7 +144,9 @@
 						<div>
 							<dt>FID</dt>
 							<dd>
-								<NumberValue value={Number(fid)} />
+								<NumberValue
+									value={fid}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -177,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							channelId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const channelId = pendingEntity.channelId}
-					{#if channelId !== undefined && channelId !== null}
-						<div>
-							<dt>Channel ID</dt>
-							<dd>
-								{String((channelId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const channelId = resolvedEntity.channelId}
@@ -214,24 +184,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							viewerFid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const viewerFid = pendingEntity.viewerFid}
-					{#if viewerFid !== undefined && viewerFid !== null}
-						<div>
-							<dt>Viewer FID</dt>
-							<dd>
-								<NumberValue value={Number(viewerFid)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const viewerFid = resolvedEntity.viewerFid}
@@ -239,7 +198,9 @@
 						<div>
 							<dt>Viewer FID</dt>
 							<dd>
-								<NumberValue value={Number(viewerFid)} />
+								<NumberValue
+									value={viewerFid}
+								/>
 							</dd>
 						</div>
 					{/if}

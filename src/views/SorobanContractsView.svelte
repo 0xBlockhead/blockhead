@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SorobanContractView from '$/views/SorobanContractView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SorobanContract}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(sorobanContracts) => [...new Map(sorobanContracts.values.map((sorobanContract) => [sorobanContract[EntityMetaKey.SelectorKey], sorobanContract])).values()]}
+	getKey={(sorobanContract) => sorobanContract[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Soroban contracts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(sorobanContracts)}
-			{@const uniqueSorobanContracts = [...new Map(sorobanContracts.values.map((sorobanContract) => [sorobanContract[EntityMetaKey.SelectorKey], sorobanContract])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={sorobanContracts.totalCount}
-				getKey={(sorobanContract) => sorobanContract[EntityMetaKey.SelectorKey]}
-				items={uniqueSorobanContracts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Soroban contracts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: sorobanContract })}
-					{@const sorobanContractFields = { ...sorobanContract[EntityMetaKey.Selector], ...sorobanContract }}
-					{@const selection = select(EntityType.SorobanContract, sorobanContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SorobanContractView
-						selection={selection}
-						prefetched={sorobanContractFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SorobanContract}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: sorobanContract })}
+		{@const sorobanContractFields = { ...sorobanContract[EntityMetaKey.Selector], ...sorobanContract }}
+		{@const selection = select(EntityType.SorobanContract, sorobanContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SorobanContractView
+			selection={selection}
+			prefetched={sorobanContractFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

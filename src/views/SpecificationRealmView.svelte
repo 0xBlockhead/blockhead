@@ -10,11 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { Source } from '$/sources/Source.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -44,9 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const specificationRealm = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			label: true,
 			labelPlural: true,
@@ -59,7 +52,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import SpecificationProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
 </script>
 
@@ -79,29 +71,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={specificationRealm}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={specificationRealm}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={specificationRealm}>
-			{#snippet Pending()}
-				{[String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || 'Specification realm'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={specificationRealm}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -115,24 +107,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							labelPlural: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const labelPlural = pendingEntity.labelPlural}
-					{#if labelPlural !== undefined && labelPlural !== null}
-						<div>
-							<dt>Label plural</dt>
-							<dd>
-								{String((labelPlural) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const labelPlural = resolvedEntity.labelPlural}
@@ -153,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									slug: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const slug = pendingEntity.slug}
-							{#if slug !== undefined && slug !== null}
-								{String((slug) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const slug = resolvedEntity.slug}

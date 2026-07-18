@@ -29,6 +29,7 @@ import {
 	ResolverOutputMaterialization,
 } from '$/collections/assertLoadedCollectionRows.ts'
 import {
+	type ProviderContinuation,
 	type ResolverContext,
 	type ResolverIndexes,
 	type ResolveLiveFieldHandle,
@@ -40,6 +41,7 @@ import {
 	fieldLoadedSubsetKey,
 	parseResolverSubset,
 	plainLoadSubsetKeyValue,
+	resolverDefinitionsKey,
 	resolverPartsKey,
 } from '$/resolvers/$resolvers.ts'
 import {
@@ -68,6 +70,8 @@ import {
 	entityFieldAddressKey,
 	entityFieldDefinitions,
 	entityFieldFacetPath,
+	entitySelectorKey,
+	entitySelectorsFromFields,
 	indexSchema,
 	validateEntitySelector,
 } from '$/schema/$schema.ts'
@@ -80,6 +84,7 @@ import {
 	type SourcePublicEnv,
 	indexSourceProviders,
 } from '$/sources/$sources.ts'
+import { Source } from '$/sources/Source.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 
@@ -123,11 +128,13 @@ type PersistedCollectionLoadedSubset = {
 	rowCount: number
 	sourceRowCounts: Partial<Record<string, number>>
 	sourceRowKeys: Readonly<Record<string, readonly (string | number)[]>>
+	continuationBySource: Readonly<Partial<Record<string, ProviderContinuation>>>
 }
 
 type PersistedCollectionSourceOutcome = {
 	source: string
 	status: PersistedCollectionSourceStatus
+	continuation?: ProviderContinuation
 	error?: string
 }
 
@@ -138,6 +145,7 @@ type PersistedCollectionRowsLoadResult<_Row extends PersistedCollectionRow> = {
 
 type PersistedCollectionHydratedRows<_Row extends PersistedCollectionRow> = {
 	allRows: readonly _Row[]
+	retainedRows: readonly _Row[]
 	rows: readonly _Row[]
 	invalidSources: readonly string[]
 	malformedRowKeys: readonly (string | number)[]
@@ -154,6 +162,7 @@ export type PersistedCollectionLoadFailure = {
 export type PersistedCollectionLoadFailures = {
 	list: PersistedCollectionLoadFailure[]
 	add(failure: PersistedCollectionLoadFailure): void
+	clear(collectionId: string): void
 	subscribe(listener: () => void): () => void
 }
 
@@ -167,21 +176,74 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	persistence: PersistedCollectionPersistence
 	getKey(row: _Row): string | number
 	loadedKey(loadSubsetOptions: LoadSubsetOptions): string
+	additionalLoadedKeys?(row: _Row, loadSubsetOptions: LoadSubsetOptions): readonly string[]
 	sources(loadSubsetOptions: LoadSubsetOptions): readonly string[]
 	persistedRows(
 		loadSubsetOptions: LoadSubsetOptions,
 		rows: readonly _Row[],
 		marker: PersistedCollectionLoadedSubset | undefined
 	): PersistedCollectionHydratedRows<_Row>
-	loadRows(loadSubsetOptions: LoadSubsetOptions, sources: readonly string[]): Promise<PersistedCollectionRowsLoadResult<_Row>>
+	localAuthoritySourceRowKeys?(
+		loadSubsetOptions: LoadSubsetOptions,
+		rows: readonly _Row[]
+	): Readonly<Record<string, readonly (string | number)[]>>
+	loadRows(
+		loadSubsetOptions: LoadSubsetOptions,
+		sources: readonly string[],
+		providerContinuationTokenBySource?: Readonly<Record<string, string>>
+	): Promise<PersistedCollectionRowsLoadResult<_Row>>
 	waitForPersistence?(collectionId: string): Promise<void>
 	events: ClientEvent[]
 	collectionLoadFailures: PersistedCollectionLoadFailures
-	setWriteRows(writeRows: (rows: readonly _Row[]) => void): void
-	setReplaceRows(replaceRows: (predicate: (row: _Row) => boolean, rows: readonly _Row[]) => void): void
+	setWriteRows(writeRows: (
+		rows: readonly _Row[],
+		authority?: LocalMutationAuthorityChange
+	) => void): void
+	setReplaceRows(replaceRows: (
+		predicate: (row: _Row) => boolean,
+		rows: readonly _Row[],
+		authority?: LocalMutationAuthorityChange
+	) => void): void
 	setRefreshRows(refreshRows: () => void): void
+	setLocalMutationAuthority(
+		hasLocalMutationAuthority: (selectorKey: string, authorityKey: string) => boolean,
+		recordLocalMutationAuthority: (
+			selectorKey: string,
+			authorityKey: string,
+			resolution: 'present' | 'resolved' | 'deleted'
+		) => void,
+		clearLocalMutationAuthority: (selectorKey: string) => void
+	): void
+	setContinuationForRows(
+		continuationForRows: (
+			parentSelectorKey: string,
+			sourceRowKeys: Readonly<Record<string, readonly (string | number)[]>>,
+			sources?: readonly string[]
+		) => readonly PersistedCollectionContinuation[]
+	): void
+	notifyLocalMutationAuthorityChange(): void
+	notifyContinuationChange(): void
 	mountLive?(loadSubsetOptions: LoadSubsetOptions): () => void
 }
+
+export type PersistedCollectionContinuation = {
+	readonly source: string
+	readonly metadata: ProviderContinuation
+	readonly loading: boolean
+	readonly loadMore: () => Promise<void>
+	readonly cancel: () => void
+}
+
+type LocalMutationAuthorityChange =
+	| {
+		readonly selectorKey: string
+		readonly authorityKey: string
+		readonly resolution: 'present' | 'resolved' | 'deleted'
+	}
+	| {
+		readonly selectorKey: string
+		readonly clearSelector: true
+	}
 
 export type EntityCollectionItem<
 	_Schema extends Schema = Schema,
@@ -231,20 +293,55 @@ export type PersistedCollectionRowCollection<
 	PersistedCollectionRowCollectionUtils<_Row>
 >
 
+export type MutationCollection<
+	_Row extends object,
+> = Pick<
+	PersistedCollectionRowCollection<_Row>,
+	| 'delete'
+	| 'toArray'
+> & {
+	utils: Pick<
+		PersistedCollectionRowCollectionUtils<_Row>,
+		| 'deleteSelectorRowsAndAuthority'
+		| 'replaceRows'
+		| 'replaceRowsWithAuthority'
+		| 'writeUpsert'
+		| 'writeUpsertWithAuthority'
+	>
+}
+
 type PersistedCollectionRowCollectionUtils<
 	_Row extends object,
 > = UtilsRecord & {
 	dataUpdatedAt: number
+	hasLocalMutationAuthority(selectorKey: string, authorityKey: string): boolean
+	subscribeLocalMutationAuthorityChanges(update: () => void): () => void
 	replaceRows(predicate: (row: _Row) => boolean, rows: readonly _Row[]): void
+	replaceRowsWithAuthority(
+		predicate: (row: _Row) => boolean,
+		rows: readonly _Row[],
+		selectorKey: string,
+		authorityKey: string,
+		resolution: 'present' | 'resolved' | 'deleted'
+	): void
 	writeUpsert(row: _Row | readonly _Row[]): void
+	writeUpsertWithAuthority(
+		row: _Row | readonly _Row[],
+		selectorKey: string,
+		authorityKey: string,
+		resolution: 'present' | 'resolved' | 'deleted'
+	): void
+	deleteSelectorRowsAndAuthority(
+		predicate: (row: _Row) => boolean,
+		selectorKey: string
+	): void
 	refresh(): void
-}
-
-type EntityCollectionWriteSurface = {
-	delete(key: string | number): void
-	utils: {
-		writeUpsert(row: object | object[]): void
-	}
+	continuationForRows(
+		parentSelectorKey: string,
+		sourceRowKeys: Readonly<Record<string, readonly (string | number)[]>>,
+		sources?: readonly string[]
+	): readonly PersistedCollectionContinuation[]
+	subscribeContinuationChanges(update: () => void): () => void
 }
 
 type ClientLiveSubscription = {
@@ -269,10 +366,51 @@ export type EntityFieldCountCollections<
 export type EntityCollectionsContext<
 	_Schema extends Schema = Schema,
 > = {
-	entityCollections: Record<string, EntityCollectionWriteSurface>
-	entityFieldCollections: Record<string, Record<string, EntityCollectionWriteSurface>>
-	entityFieldCountCollections: Record<string, Record<string, EntityCollectionWriteSurface | undefined>>
+	entityCollections: Record<string, MutationCollection<EntityCollectionItem<_Schema>>>
+	entityFieldCollections: Record<string, Record<string, MutationCollection<EntityFieldCollectionItem<_Schema>>>>
+	entityFieldCountCollections: Record<string, Record<string, MutationCollection<EntityFieldCountCollectionItem<_Schema>> | undefined>>
 }
+
+export const localMutationAuthorityKey = ({
+	source,
+	entityType,
+	selectorKey,
+	fieldName,
+	fieldAddressKey,
+	facetPathKey,
+	filterKey,
+	valueKey,
+	valueIndex,
+}: {
+	source: string
+	entityType: string
+	selectorKey: string
+	fieldName?: string
+	fieldAddressKey?: string
+	facetPathKey?: string
+	filterKey?: string
+	valueKey?: string
+	valueIndex?: number
+}) => stringify(
+	fieldName === undefined ?
+		[
+			source,
+			entityType,
+			selectorKey,
+		]
+	:
+		[
+			source,
+			entityType,
+			selectorKey,
+			fieldName,
+			fieldAddressKey,
+			facetPathKey,
+			filterKey,
+			valueKey,
+			valueIndex,
+		]
+)
 
 export type ClientContext<
 	_Schema extends Schema = Schema,
@@ -281,11 +419,15 @@ export type ClientContext<
 	schema: _Schema
 	entityDefinitionByType: Record<string, EntityDefinition>
 	projectionDefinitionByEntityTypeAndPath: Record<string, EntityProjectionDefinition | undefined>
-	entityFieldDefinitionByEntityTypePathAndName: EntityFieldDefinitionByEntityTypePathAndName<_Schema>
+	entityFieldDefinitionByEntityTypePathAndName:
+		& EntityFieldDefinitionByEntityTypePathAndName<_Schema>
+		& Readonly<Record<string, Readonly<Record<string, EntityFieldDefinition | undefined>>>>
 	entitySelectorDefinitionByEntityTypeAndName: EntitySelectorDefinitionByEntityTypeAndName<_Schema>
 	entityCollections: EntityCollections<_Schema>
 	entityFieldCollections: EntityFieldCollections<_Schema>
 	entityFieldCountCollections: EntityFieldCountCollections<_Schema>
+	materializedReferenceEntityKeys: Set<string>
+	materializedReferenceFieldValueByAddress: Map<string, unknown>
 	liveSubscriptions: Map<string, ClientLiveSubscription>
 	resolverIndexes: ResolverIndexes<_Schema, _Source, ResolverContext>
 	resolverPublicEnvBySource: ReadonlyMap<string, SourcePublicEnv>
@@ -309,11 +451,12 @@ export type SubscribeSelection<
 	_EntityType extends EntityType<_Schema>,
 	_FieldRow extends object = Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema, _EntityType>>>,
 	_FacetPath extends EntityProjectionPath<_Schema, _EntityType> = readonly [],
-> = Omit<LoadSubsetOptions, 'orderBy'> & {
+> = Omit<LoadSubsetOptions, 'orderBy' | 'where'> & {
 	readonly sources?: readonly string[]
 	readonly count?: boolean
 	readonly fields?: SubscribeSelectedFields<_Schema, _EntityType, _FieldRow, _FacetPath>
 	readonly selectorSources?: readonly string[]
+	readonly where?: (context: { row: _FieldRow }) => object
 	readonly orderBy?: DeclarativeOrderBy<_FieldRow>
 }
 
@@ -647,6 +790,7 @@ const persistedCollectionLoadedSubset = (
 		|| !('rowCount' in value)
 		|| !('sourceRowCounts' in value)
 		|| !('sourceRowKeys' in value)
+		|| !('continuationBySource' in value)
 	)
 		return undefined
 
@@ -660,6 +804,8 @@ const persistedCollectionLoadedSubset = (
 		|| typeof value.sourceRowCounts !== 'object'
 		|| value.sourceRowKeys == null
 		|| typeof value.sourceRowKeys !== 'object'
+		|| value.continuationBySource == null
+		|| typeof value.continuationBySource !== 'object'
 	)
 		return undefined
 
@@ -692,8 +838,38 @@ const persistedCollectionLoadedSubset = (
 	if (sourceRowCountEntries.reduce((total, [, count]) => total + count, 0) !== value.rowCount)
 		return undefined
 
+	const continuationBySource = Object.fromEntries(Object.keys(value.continuationBySource).flatMap((source) => {
+		const continuation = Object.getOwnPropertyDescriptor(value.continuationBySource, source)?.value
+		if (
+			continuation == null
+			|| typeof continuation !== 'object'
+			|| typeof continuation.operation !== 'string'
+			|| continuation.operation === ''
+			|| typeof continuation.target !== 'string'
+			|| continuation.target === ''
+			|| (
+				continuation.viewerScope !== undefined
+				&& typeof continuation.viewerScope !== 'string'
+			)
+			|| typeof continuation.terminal !== 'boolean'
+			|| (
+				continuation.terminal ?
+					continuation.token !== undefined
+				:
+					typeof continuation.token !== 'string'
+					|| continuation.token === ''
+			)
+		)
+			return []
+
+		return [[source, continuation]]
+	}))
+	if (Object.keys(continuationBySource).length !== Object.keys(value.continuationBySource).length)
+		return undefined
+
 	return {
 		collectionId: value.collectionId,
+		continuationBySource,
 		loadedKey: value.loadedKey,
 		rowCount: value.rowCount,
 		sourceRowCounts: Object.fromEntries(sourceRowCountEntries),
@@ -749,6 +925,20 @@ const productSubsetOwnedRows = <
 		new Set(marker.sourceRowKeys[source] ?? []),
 	]))
 	return rows.filter((row) => rowKeysBySource.get(row[EntityMetaKey.Source])?.has(getKey(row)) === true)
+}
+
+const entityLoadedSubsetKey = (
+	loadSubsetOptions: LoadSubsetOptions,
+	selectorKeys = parseResolverSubset(loadSubsetOptions).selectorKeys
+) => {
+	const subset = parseResolverSubset(loadSubsetOptions)
+	return stringify({
+		filters: subset.filters.filter((filter) => filter.fieldPath[0] !== EntityMetaKey.SelectorKey),
+		sorts: subset.sorts,
+		pagination: subset.pagination,
+		sources: subset.sources,
+		selectorKeys,
+	})
 }
 
 const productSubsetLoadedMissReason = (
@@ -844,6 +1034,7 @@ export const persistedCollectionRemoteResult = <
 >({
 	collectionId,
 	loadedKey,
+	additionalLoadedKeys,
 	marker,
 	persistedRows,
 	loaded,
@@ -854,6 +1045,7 @@ export const persistedCollectionRemoteResult = <
 }: {
 	collectionId: string
 	loadedKey: string
+	additionalLoadedKeys?: readonly string[]
 	marker?: PersistedCollectionLoadedSubset
 	persistedRows: readonly _Row[]
 	loaded: PersistedCollectionRowsLoadResult<_Row>
@@ -862,7 +1054,7 @@ export const persistedCollectionRemoteResult = <
 	invalidSources?: readonly string[]
 	getKey(row: _Row): string | number
 }) => {
-	const outcomes = [
+	const outcomes: PersistedCollectionSourceOutcome[] = [
 		...loaded.outcomes,
 		...remoteSources
 			.filter((source) => !loaded.outcomes.some((outcome) => outcome.source === source))
@@ -920,6 +1112,22 @@ export const persistedCollectionRemoteResult = <
 	]
 	const sourceRowCounts = productSourceRowCounts(rows, completedSources)
 	const sourceRowKeys = productSourceRowKeys(rows, completedSources, getKey)
+	const continuationBySource = Object.fromEntries([
+		...Object.entries(marker?.continuationBySource ?? {}).filter(([source]) => (
+			completedSources.includes(source)
+			&& (
+				!remoteSources.includes(source)
+				|| failedSources.has(source)
+			)
+		)),
+		...outcomes.flatMap((outcome) => (
+			outcome.status === PersistedCollectionSourceStatus.Completed
+			&& outcome.continuation !== undefined ?
+				[[outcome.source, outcome.continuation] as const]
+			:
+				[]
+		)),
+	])
 	const failedOutcomes = outcomes.filter((outcome) => (
 		outcome.status === PersistedCollectionSourceStatus.Failed
 	))
@@ -928,6 +1136,7 @@ export const persistedCollectionRemoteResult = <
 		failedOutcomes,
 		nextMarker: {
 			collectionId,
+			continuationBySource,
 			loadedKey,
 			rowCount: completedSources.reduce((total, source) => total + (sourceRowCounts[source] ?? 0), 0),
 			sourceRowCounts,
@@ -941,20 +1150,119 @@ export const persistedCollectionRemoteResult = <
 	}
 }
 
+export const persistedCollectionAppendResult = <
+	const _Row extends PersistedCollectionRow,
+>({
+	collectionId,
+	loadedKey,
+	marker,
+	persistedRows,
+	loaded,
+	source,
+	getKey,
+	getValueIdentity,
+	setValueIndex,
+}: {
+	collectionId: string
+	loadedKey: string
+	marker: PersistedCollectionLoadedSubset
+	persistedRows: readonly _Row[]
+	loaded: PersistedCollectionRowsLoadResult<_Row>
+	source: string
+	getKey(row: _Row): string | number
+	getValueIdentity(row: _Row): string
+	setValueIndex(row: _Row, valueIndex: number): _Row
+}) => {
+	const continuation = marker.continuationBySource[source]
+	if (continuation == null || continuation.terminal)
+		throw new Error(`${collectionId} source ${source} has no executable continuation`)
+
+	const outcomes = loaded.outcomes.filter((outcome) => outcome.source === source)
+	const failed = (
+		outcomes.length !== 1
+		|| outcomes[0]?.status !== PersistedCollectionSourceStatus.Completed
+	)
+	const appendedSourceRows = failed ?
+		persistedRows.filter((row) => row[EntityMetaKey.Source] === source)
+	:
+		[
+			...new Map([
+				...persistedRows.filter((row) => row[EntityMetaKey.Source] === source),
+				...loaded.rows.filter((row) => row[EntityMetaKey.Source] === source),
+			].map((row) => [
+				getValueIdentity(row),
+				row,
+			])).values(),
+		].map(setValueIndex)
+
+	return persistedCollectionRemoteResult({
+		collectionId,
+		loadedKey,
+		marker,
+		persistedRows,
+		loaded: {
+			rows: [
+				...loaded.rows.filter((row) => row[EntityMetaKey.Source] !== source),
+				...appendedSourceRows,
+			],
+			outcomes: loaded.outcomes,
+		},
+		remoteSources: [source],
+		requestedSources: Object.keys(marker.sourceRowCounts),
+		getKey,
+	})
+}
+
 const persistedCollectionUtils = <
 	_Row extends PersistedCollectionRow
 >() => {
-	let writeRows: ((rows: readonly _Row[]) => void) | undefined
-	let replaceRows: ((predicate: (row: _Row) => boolean, rows: readonly _Row[]) => void) | undefined
+	let writeRows: ((
+		rows: readonly _Row[],
+		authority?: LocalMutationAuthorityChange
+	) => void) | undefined
+	let replaceRows: ((
+		predicate: (row: _Row) => boolean,
+		rows: readonly _Row[],
+		authority?: LocalMutationAuthorityChange
+	) => void) | undefined
 	let refreshRows: (() => void) | undefined
-	let pendingRows: _Row[] = []
+	let continuationForRows: ((
+		parentSelectorKey: string,
+		sourceRowKeys: Readonly<Record<string, readonly (string | number)[]>>,
+		sources?: readonly string[]
+	) => readonly PersistedCollectionContinuation[]) | undefined
+	let hasLocalMutationAuthority = (_selectorKey: string, _authorityKey: string) => false
+	let recordLocalMutationAuthority:
+		| ((
+			selectorKey: string,
+			authorityKey: string,
+			resolution: 'present' | 'resolved' | 'deleted'
+		) => void)
+		| undefined
+	let clearLocalMutationAuthority: ((selectorKey: string) => void) | undefined
+	const continuationSubscribers = new Set<() => void>()
+	const localMutationAuthoritySubscribers = new Set<() => void>()
+	let pendingWrites: {
+		rows: readonly _Row[]
+		authority?: LocalMutationAuthorityChange
+	}[] = []
 	let pendingReplacements: {
 		predicate: (row: _Row) => boolean
 		rows: readonly _Row[]
+		authority?: LocalMutationAuthorityChange
 	}[] = []
 	let refreshPending = false
 	const utils: PersistedCollectionRowCollectionUtils<_Row> = {
 		dataUpdatedAt: 0,
+		hasLocalMutationAuthority(selectorKey, authorityKey) {
+			return hasLocalMutationAuthority(selectorKey, authorityKey)
+		},
+		subscribeLocalMutationAuthorityChanges(update) {
+			localMutationAuthoritySubscribers.add(update)
+			return () => {
+				localMutationAuthoritySubscribers.delete(update)
+			}
+		},
 		replaceRows(predicate, rows) {
 			utils.dataUpdatedAt = Date.now()
 			if (replaceRows === undefined)
@@ -965,12 +1273,81 @@ const persistedCollectionUtils = <
 			else
 				replaceRows(predicate, rows)
 		},
+		replaceRowsWithAuthority(predicate, rows, selectorKey, authorityKey, resolution) {
+			utils.dataUpdatedAt = Date.now()
+			const authority = {
+				selectorKey,
+				authorityKey,
+				resolution,
+			} as const
+			if (replaceRows === undefined)
+				pendingReplacements.push({
+					predicate,
+					rows,
+					authority,
+				})
+			else
+				replaceRows(
+					predicate,
+					rows,
+					authority
+				)
+			if (replaceRows !== undefined)
+				for (const subscriber of localMutationAuthoritySubscribers)
+					subscriber()
+		},
 		writeUpsert(row) {
 			utils.dataUpdatedAt = Date.now()
 			if (writeRows === undefined)
-				pendingRows.push(...(Array.isArray(row) ? row : [row]))
+				pendingWrites.push({
+					rows: Array.isArray(row) ? row : [row],
+				})
 			else
 				writeRows(Array.isArray(row) ? row : [row])
+		},
+		writeUpsertWithAuthority(row, selectorKey, authorityKey, resolution) {
+			utils.dataUpdatedAt = Date.now()
+			const rows = Array.isArray(row) ? row : [row]
+			const authority = {
+				selectorKey,
+				authorityKey,
+				resolution,
+			} as const
+			if (writeRows === undefined)
+				pendingWrites.push({
+					rows,
+					authority,
+				})
+			else
+				writeRows(
+					rows,
+					authority
+				)
+			if (writeRows !== undefined)
+				for (const subscriber of localMutationAuthoritySubscribers)
+					subscriber()
+		},
+		deleteSelectorRowsAndAuthority(predicate, selectorKey) {
+			utils.dataUpdatedAt = Date.now()
+			const authority = {
+				selectorKey,
+				clearSelector: true,
+			} as const
+			if (replaceRows === undefined)
+				pendingReplacements.push({
+					predicate,
+					rows: [],
+					authority,
+				})
+			else
+				replaceRows(
+					predicate,
+					[],
+					authority
+				)
+			if (replaceRows !== undefined)
+				for (const subscriber of localMutationAuthoritySubscribers)
+					subscriber()
 		},
 		refresh() {
 			if (refreshRows === undefined)
@@ -978,20 +1355,51 @@ const persistedCollectionUtils = <
 			else
 				refreshRows()
 		},
+		continuationForRows(parentSelectorKey, sourceRowKeys, sources) {
+			return continuationForRows?.(
+				parentSelectorKey,
+				sourceRowKeys,
+				sources
+			) ?? []
+		},
+		subscribeContinuationChanges(update) {
+			continuationSubscribers.add(update)
+			return () => {
+				continuationSubscribers.delete(update)
+			}
+		},
 	}
 	return {
 		utils,
-		setWriteRows(nextWriteRows: (rows: readonly _Row[]) => void) {
+		setWriteRows(nextWriteRows: (
+			rows: readonly _Row[],
+			authority?: LocalMutationAuthorityChange
+		) => void) {
 			writeRows = nextWriteRows
-			if (pendingRows.length > 0) {
-				writeRows(pendingRows)
-				pendingRows = []
+			for (const pendingWrite of pendingWrites) {
+				writeRows(pendingWrite.rows, pendingWrite.authority)
+				if (pendingWrite.authority !== undefined)
+					for (const subscriber of localMutationAuthoritySubscribers)
+						subscriber()
 			}
+			pendingWrites = []
 		},
-		setReplaceRows(nextReplaceRows: (predicate: (row: _Row) => boolean, rows: readonly _Row[]) => void) {
+		setReplaceRows(nextReplaceRows: (
+			predicate: (row: _Row) => boolean,
+			rows: readonly _Row[],
+			authority?: LocalMutationAuthorityChange
+		) => void) {
 			replaceRows = nextReplaceRows
-			for (const pendingReplacement of pendingReplacements)
-				replaceRows(pendingReplacement.predicate, pendingReplacement.rows)
+			for (const pendingReplacement of pendingReplacements) {
+				replaceRows(
+					pendingReplacement.predicate,
+					pendingReplacement.rows,
+					pendingReplacement.authority
+				)
+				if (pendingReplacement.authority !== undefined)
+					for (const subscriber of localMutationAuthoritySubscribers)
+						subscriber()
+			}
 			pendingReplacements = []
 		},
 		setRefreshRows(nextRefreshRows: () => void) {
@@ -1000,6 +1408,42 @@ const persistedCollectionUtils = <
 				refreshPending = false
 				refreshRows()
 			}
+		},
+		setContinuationForRows(nextContinuationForRows: (
+			parentSelectorKey: string,
+			sourceRowKeys: Readonly<Record<string, readonly (string | number)[]>>,
+			sources?: readonly string[]
+		) => readonly PersistedCollectionContinuation[]) {
+			continuationForRows = nextContinuationForRows
+		},
+		setLocalMutationAuthority(
+			nextHasLocalMutationAuthority: (selectorKey: string, authorityKey: string) => boolean,
+			nextRecordLocalMutationAuthority: (
+				selectorKey: string,
+				authorityKey: string,
+				resolution: 'present' | 'resolved' | 'deleted'
+			) => void,
+			nextClearLocalMutationAuthority: (selectorKey: string) => void
+		) {
+			hasLocalMutationAuthority = nextHasLocalMutationAuthority
+			recordLocalMutationAuthority = (selectorKey, authorityKey, resolution) => {
+				nextRecordLocalMutationAuthority(selectorKey, authorityKey, resolution)
+				for (const subscriber of localMutationAuthoritySubscribers)
+					subscriber()
+			}
+			clearLocalMutationAuthority = (selectorKey) => {
+				nextClearLocalMutationAuthority(selectorKey)
+				for (const subscriber of localMutationAuthoritySubscribers)
+					subscriber()
+			}
+		},
+		notifyLocalMutationAuthorityChange() {
+			for (const subscriber of localMutationAuthoritySubscribers)
+				subscriber()
+		},
+		notifyContinuationChange() {
+			for (const continuationSubscriber of continuationSubscribers)
+				continuationSubscriber()
 		},
 	}
 }
@@ -1012,8 +1456,10 @@ const persistedCollectionSync = <
 	persistence,
 	getKey,
 	loadedKey,
+	additionalLoadedKeys,
 	sources,
 	persistedRows,
+	localAuthoritySourceRowKeys,
 	loadRows,
 	waitForPersistence,
 	events,
@@ -1021,9 +1467,14 @@ const persistedCollectionSync = <
 	setWriteRows,
 	setReplaceRows,
 	setRefreshRows,
+	setLocalMutationAuthority,
+	setContinuationForRows,
+	notifyLocalMutationAuthorityChange,
+	notifyContinuationChange,
 	mountLive,
 }: PersistedCollectionSyncOptions<_Row>): SyncConfig<_Row, string | number> => {
 	const inFlightLoads = new Map<string, Promise<void>>()
+	const inFlightAppendAbortControllerByKey = new Map<string, AbortController>()
 	const forceRemoteKeys = new Set<string>()
 
 	return {
@@ -1040,7 +1491,20 @@ const persistedCollectionSync = <
 				loadSubsetOptions: LoadSubsetOptions
 			}>()
 			const liveCleanupByLoadSubsetOptions = new WeakMap<LoadSubsetOptions, () => void>()
-			setWriteRows((rows) => {
+			const applyLocalMutationAuthority = (authority: LocalMutationAuthorityChange) => {
+				if ('clearSelector' in authority) {
+					for (const { key } of metadata?.collection.list(`localMutationAuthority:${authority.selectorKey}:`) ?? [])
+						metadata?.collection.delete(key)
+					return
+				}
+
+				const key = `localMutationAuthority:${authority.selectorKey}:${authority.authorityKey}`
+				if (authority.resolution === 'deleted')
+					metadata?.collection.delete(key)
+				else
+					metadata?.collection.set(key, true)
+			}
+		setWriteRows((rows, authority) => {
 				begin({
 					immediate: true,
 				})
@@ -1056,9 +1520,15 @@ const persistedCollectionSync = <
 						value: row,
 					})
 				}
+				if (authority !== undefined)
+					applyLocalMutationAuthority(authority)
 				commit()
+				if (authority !== undefined) {
+					collectionLoadFailures.clear(collectionId)
+					notifyLocalMutationAuthorityChange()
+				}
 			})
-			setReplaceRows((predicate, rows) => {
+			setReplaceRows((predicate, rows, authority) => {
 				begin({
 					immediate: true,
 				})
@@ -1073,8 +1543,40 @@ const persistedCollectionSync = <
 						type: 'insert',
 						value: row,
 					})
+				if (authority !== undefined)
+					applyLocalMutationAuthority(authority)
 				commit()
+				if (authority !== undefined) {
+					collectionLoadFailures.clear(collectionId)
+					notifyLocalMutationAuthorityChange()
+				}
 			})
+			setLocalMutationAuthority(
+				(selectorKey, authorityKey) => (
+					metadata?.collection.get(`localMutationAuthority:${selectorKey}:${authorityKey}`) === true
+				),
+				(selectorKey, authorityKey, resolution) => {
+					begin({
+						immediate: true,
+					})
+					applyLocalMutationAuthority({
+						selectorKey,
+						authorityKey,
+						resolution,
+					})
+					commit()
+				},
+				(selectorKey) => {
+					begin({
+						immediate: true,
+					})
+					applyLocalMutationAuthority({
+						selectorKey,
+						clearSelector: true,
+					})
+					commit()
+				}
+			)
 			const loadSubset = async (loadSubsetOptions: LoadSubsetOptions) => {
 				const key = loadedKey(loadSubsetOptions)
 				const inFlightLoad = inFlightLoads.get(key)
@@ -1086,7 +1588,39 @@ const persistedCollectionSync = <
 				const load = (async () => {
 					const requestedSources = sources(loadSubsetOptions)
 					const metadataKey = `loadedSubset:${schemaVersion}:${key}`
-					const marker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
+					const persistedMarker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
+					const localSourceRowKeys = localAuthoritySourceRowKeys?.(
+						loadSubsetOptions,
+						collection.toArray
+					) ?? {}
+					const marker = (
+						Object.keys(localSourceRowKeys).length === 0 ?
+							persistedMarker
+						:
+							{
+								collectionId,
+								continuationBySource: persistedMarker?.continuationBySource ?? {},
+								loadedKey: key,
+								sourceRowCounts: {
+									...persistedMarker?.sourceRowCounts,
+									...Object.fromEntries(Object.entries(localSourceRowKeys).map(([source, rowKeys]) => [
+										source,
+										rowKeys.length,
+									])),
+								},
+								sourceRowKeys: {
+									...persistedMarker?.sourceRowKeys,
+									...localSourceRowKeys,
+								},
+								rowCount: Object.values({
+									...persistedMarker?.sourceRowCounts,
+									...Object.fromEntries(Object.entries(localSourceRowKeys).map(([source, rowKeys]) => [
+										source,
+										rowKeys.length,
+									])),
+								}).reduce<number>((total, count) => total + (count ?? 0), 0),
+							}
+					)
 					const hydratedRows = persistedRows(
 						loadSubsetOptions,
 						collection.toArray,
@@ -1132,12 +1666,22 @@ const persistedCollectionSync = <
 							status: PersistedCollectionLoadStatus.Loading,
 							reason: hydrationPlan.missReason,
 						})
+						const loadedRows = await loadRows(loadSubsetOptions, hydrationPlan.remoteSources)
+						const currentLocalSourceRowKeys = localAuthoritySourceRowKeys?.(
+							loadSubsetOptions,
+							collection.toArray
+						) ?? {}
+						if (Object.keys(currentLocalSourceRowKeys).length > 0) {
+							collectionLoadFailures.clear(collectionId)
+							markReady()
+							return
+						}
 						const remoteResult = persistedCollectionRemoteResult({
 							collectionId,
 							loadedKey: key,
 							marker: hydrationPlan.marker,
-							persistedRows: hydratedRows.rows,
-							loaded: await loadRows(loadSubsetOptions, hydrationPlan.remoteSources),
+							persistedRows: hydratedRows.retainedRows,
+							loaded: loadedRows,
 							remoteSources: hydrationPlan.remoteSources,
 							requestedSources,
 							invalidSources: hydratedRows.invalidSources,
@@ -1211,6 +1755,26 @@ const persistedCollectionSync = <
 							})
 
 						metadata?.collection.set(metadataKey, remoteResult.nextMarker)
+						if (additionalLoadedKeys !== undefined)
+							for (const row of remoteResult.rows)
+								for (const additionalLoadedKey of additionalLoadedKeys(row, loadSubsetOptions)) {
+									if (additionalLoadedKey === key)
+										continue
+
+									const additionalRowKey = getKey(row)
+									metadata?.collection.set(`loadedSubset:${schemaVersion}:${additionalLoadedKey}`, {
+										collectionId,
+										continuationBySource: {},
+										loadedKey: additionalLoadedKey,
+										rowCount: 1,
+										sourceRowCounts: {
+											[row[EntityMetaKey.Source]]: 1,
+										},
+										sourceRowKeys: {
+											[row[EntityMetaKey.Source]]: [additionalRowKey],
+										},
+									})
+								}
 						commit()
 						await waitForPersistence?.(collectionId)
 						if (persistence.adapter.loadCollectionMetadata !== undefined)
@@ -1233,6 +1797,8 @@ const persistedCollectionSync = <
 										persistedMarker.sourceRowKeys[source]?.length === keys.length
 										&& keys.every((key) => persistedMarker.sourceRowKeys[source]?.includes(key) === true)
 									))
+									&& stringify(persistedMarker.continuationBySource)
+									=== stringify(remoteResult.nextMarker.continuationBySource)
 								)
 									break
 
@@ -1301,6 +1867,228 @@ const persistedCollectionSync = <
 					inFlightLoads.delete(key)
 				}
 			}
+			const appendSubset = async (
+				loadSubsetOptions: LoadSubsetOptions,
+				source: string,
+				expectedContinuation: ProviderContinuation
+			) => {
+				if (expectedContinuation.terminal)
+					throw new Error(`${collectionId} source ${source} continuation is terminal`)
+
+				const key = loadedKey(loadSubsetOptions)
+				const appendKey = `append:${key}:${source}`
+				const inFlightLoad = inFlightLoads.get(appendKey)
+				if (inFlightLoad !== undefined) {
+					await inFlightLoad
+					return
+				}
+
+				const load = (async () => {
+					const abortController = new AbortController()
+					inFlightAppendAbortControllerByKey.set(appendKey, abortController)
+					const metadataKey = `loadedSubset:${schemaVersion}:${key}`
+					const marker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
+					const currentContinuation = marker?.continuationBySource[source]
+					if (
+						marker?.collectionId !== collectionId
+						|| marker.loadedKey !== key
+						|| currentContinuation == null
+						|| currentContinuation.terminal
+						|| stringify(currentContinuation) !== stringify(expectedContinuation)
+					)
+						throw new Error(`${collectionId} source ${source} continuation changed before append`)
+
+					const hydratedRows = persistedRows(
+						loadSubsetOptions,
+						collection.toArray,
+						marker
+					)
+					const loaded = await Promise.race([
+						loadRows(
+							loadSubsetOptions,
+							[source],
+							{
+								[source]: currentContinuation.token,
+							}
+						),
+						new Promise<never>((_resolve, reject) => {
+							abortController.signal.addEventListener('abort', () => {
+								reject(new DOMException('The continuation request was cancelled.', 'AbortError'))
+							}, {
+								once: true,
+							})
+						}),
+					])
+					if (abortController.signal.aborted)
+						throw new DOMException('The continuation request was cancelled.', 'AbortError')
+
+					const appended = persistedCollectionAppendResult({
+						collectionId,
+						loadedKey: key,
+						marker,
+						persistedRows: hydratedRows.retainedRows,
+						loaded,
+						source,
+						getKey,
+						getValueIdentity: (row) => (
+							'valueKey' in row ?
+								String(row.valueKey)
+							:
+								String(getKey(row))
+						),
+						setValueIndex: (row, valueIndex) => (
+							'valueIndex' in row ?
+								{
+									...row,
+									valueIndex,
+								}
+							:
+								row
+						),
+					})
+					const latestMarker = persistedCollectionLoadedSubset(
+						metadata?.collection.get(metadataKey)
+					)
+					if (
+						!activeLoadSubsets.has(key)
+						|| latestMarker?.collectionId !== collectionId
+						|| latestMarker.loadedKey !== key
+						|| stringify(latestMarker.continuationBySource[source])
+						!== stringify(expectedContinuation)
+					)
+						throw new Error(`${collectionId} source ${source} continuation became stale during append`)
+
+					const otherOwnedRowKeys = new Set(
+						(metadata?.collection.list() ?? []).flatMap(({ key: otherMetadataKey, value }) => {
+							if (
+								otherMetadataKey === metadataKey
+								|| !otherMetadataKey.startsWith(`loadedSubset:${schemaVersion}:`)
+							)
+								return []
+
+							const otherMarker = persistedCollectionLoadedSubset(value)
+							return (
+								otherMarker?.collectionId === collectionId ?
+									Object.values(otherMarker.sourceRowKeys).flat()
+								:
+									[]
+							)
+						})
+					)
+					begin()
+					for (const rowKey of marker.sourceRowKeys[source] ?? []) {
+						if (otherOwnedRowKeys.has(rowKey))
+							continue
+
+						const row = collection.get(rowKey)
+						if (row !== undefined)
+							write({
+								type: 'delete',
+								value: row,
+							})
+					}
+					for (const row of appended.rows.filter((row) => row[EntityMetaKey.Source] === source)) {
+						if (collection.has(getKey(row)))
+							write({
+								type: 'delete',
+								value: row,
+							})
+						write({
+							type: 'insert',
+							value: row,
+						})
+					}
+					metadata?.collection.set(metadataKey, appended.nextMarker)
+					commit()
+					await waitForPersistence?.(collectionId)
+
+					if (appended.failedOutcomes.length > 0) {
+						for (const outcome of appended.failedOutcomes)
+							collectionLoadFailures.add({
+								collectionId,
+								selectorKeys: parseResolverSubset(loadSubsetOptions).selectorKeys,
+								parentSelectorKeys: parseResolverSubset(loadSubsetOptions).parentSelectorKeys,
+								sources: [outcome.source],
+								error: `${outcome.source}: ${outcome.error ?? 'continuation failed'}`,
+							})
+						throw new Error(appended.failedOutcomes.map((outcome) => (
+							`${outcome.source}: ${outcome.error ?? 'continuation failed'}`
+						)).join('; '))
+					}
+				})()
+				inFlightLoads.set(appendKey, load)
+				notifyContinuationChange()
+				try {
+					await load
+				} finally {
+					inFlightLoads.delete(appendKey)
+					inFlightAppendAbortControllerByKey.delete(appendKey)
+					notifyContinuationChange()
+				}
+			}
+			setContinuationForRows((parentSelectorKey, sourceRowKeys, selectedSources) => {
+				const candidates = [...activeLoadSubsets].flatMap(([key, activeLoadSubset]) => {
+					const subset = parseResolverSubset(activeLoadSubset.loadSubsetOptions)
+					if (!subset.parentSelectorKeys.includes(parentSelectorKey))
+						return []
+
+					const marker = persistedCollectionLoadedSubset(
+						metadata?.collection.get(`loadedSubset:${schemaVersion}:${key}`)
+					)
+					if (marker?.collectionId !== collectionId || marker.loadedKey !== key)
+						return []
+
+					return Object.entries(marker.continuationBySource).flatMap(([source, continuation]) => {
+						if (continuation === undefined)
+							return []
+
+						if (
+							selectedSources != null
+							&& !selectedSources.includes(source)
+						)
+							return []
+
+						const expectedRowKeys = marker.sourceRowKeys[source] ?? []
+						const actualRowKeys = sourceRowKeys[source] ?? []
+						if (
+							expectedRowKeys.length !== actualRowKeys.length
+							|| expectedRowKeys.some((rowKey) => !actualRowKeys.includes(rowKey))
+						)
+							return []
+
+						return [{
+							key,
+							loadSubsetOptions: activeLoadSubset.loadSubsetOptions,
+							source,
+							continuation,
+						}]
+					})
+				})
+				return candidates.flatMap((candidate) => (
+					candidates.some((other) => (
+						other !== candidate
+						&& other.source === candidate.source
+						&& other.key !== candidate.key
+					)) ?
+						[]
+					:
+						[{
+							source: candidate.source,
+							metadata: candidate.continuation,
+							loading: inFlightLoads.has(`append:${candidate.key}:${candidate.source}`),
+							loadMore: () => appendSubset(
+								candidate.loadSubsetOptions,
+								candidate.source,
+								candidate.continuation
+							),
+							cancel: () => {
+								inFlightAppendAbortControllerByKey
+									.get(`append:${candidate.key}:${candidate.source}`)
+									?.abort()
+							},
+						}]
+				))
+			})
 			setRefreshRows(() => {
 				for (const [key, activeLoadSubset] of activeLoadSubsets) {
 					forceRemoteKeys.add(key)
@@ -1329,9 +2117,12 @@ const persistedCollectionSync = <
 					liveCleanupByLoadSubsetOptions.delete(loadSubsetOptions)
 					const key = loadedKey(loadSubsetOptions)
 					const activeLoadSubset = activeLoadSubsets.get(key)
-					if (activeLoadSubset == null || activeLoadSubset.count === 1)
+					if (activeLoadSubset == null || activeLoadSubset.count === 1) {
 						activeLoadSubsets.delete(key)
-					else
+						for (const [appendKey, abortController] of inFlightAppendAbortControllerByKey)
+							if (appendKey.startsWith(`append:${key}:`))
+								abortController.abort()
+					} else
 						activeLoadSubsets.set(key, {
 							...activeLoadSubset,
 							count: activeLoadSubset.count - 1,
@@ -1348,10 +2139,14 @@ const resolverContext = <
 >(
 	context: ClientContext<_Schema, _Source>,
 	source: string,
-	subset: ReturnType<typeof parseResolverSubset>
+	subset: ReturnType<typeof parseResolverSubset>,
+	providerContinuationToken?: string
 ): ResolverContext => ({
 	...subset,
 	publicEnv: context.resolverPublicEnvBySource.get(source) ?? {},
+	...(providerContinuationToken !== undefined && {
+		providerContinuationToken,
+	}),
 })
 
 const resolverSnapshotSubsetKey = (
@@ -1375,7 +2170,8 @@ const resolverSnapshot = async <
 	resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, ResolverContext>,
 	entityDefinition: EntityDefinition,
 	entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
-	subset: ReturnType<typeof parseResolverSubset>
+	subset: ReturnType<typeof parseResolverSubset>,
+	providerContinuationToken?: string
 ) => {
 	const selectorName = validateEntitySelector(
 		context.schema,
@@ -1396,6 +2192,7 @@ const resolverSnapshot = async <
 			String(resolver.definitionIndex),
 			stringify(entitySelector),
 			resolverSnapshotSubsetKey(subset),
+			providerContinuationToken,
 		],
 		queryFn: async () => ({
 			snapshot: await Promise.resolve(resolve(
@@ -1403,7 +2200,8 @@ const resolverSnapshot = async <
 				resolverContext(
 					context,
 					String(resolver.source),
-					subset
+					subset,
+					providerContinuationToken
 				)
 			)),
 		}),
@@ -1436,6 +2234,53 @@ const resolvableSources = (
 	)].filter((source) => resolverSourceSet.has(source)))
 }
 
+const resolverAppliesToEntitySelector = <
+	const _Schema extends Schema,
+	const _Source extends string,
+>(
+	schema: _Schema,
+	entityDefinition: EntityDefinition,
+	resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, ResolverContext>,
+	entitySelector: EntitySelector<_Schema, EntityType<_Schema>>
+) => {
+	const selectorName = validateEntitySelector(
+		schema,
+		entityDefinition,
+		entitySelector
+	).name
+	return (
+		resolver.resolve[selectorName] != null
+		&& resolver.appliesTo(selectorName, entitySelector)
+	)
+}
+
+const applicableResolverSources = <
+	const _Schema extends Schema,
+	const _Source extends string,
+>(
+	schema: _Schema,
+	entityDefinition: EntityDefinition,
+	subset: ReturnType<typeof parseResolverSubset>,
+	defaultSources: readonly string[] | undefined,
+	resolvers: readonly SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, ResolverContext>[],
+	entitySelectors: readonly EntitySelector<_Schema, EntityType<_Schema>>[]
+) => {
+	const resolvable = resolvableSources(
+		subset,
+		defaultSources,
+		resolvers.map((resolver) => String(resolver.source))
+	)
+	return new Set([...resolvable].filter((source) => resolvers.some((resolver) => (
+		String(resolver.source) === source
+		&& entitySelectors.some((entitySelector) => resolverAppliesToEntitySelector(
+			schema,
+			entityDefinition,
+			resolver,
+			entitySelector
+		))
+	))))
+}
+
 export const entityResolverSourcesForSelectorKeys = <
 	const _Schema extends Schema,
 	const _Source extends string,
@@ -1451,24 +2296,27 @@ export const entityResolverSourcesForSelectorKeys = <
 	>[],
 	requestedSources?: readonly string[]
 ) => {
-	const selectors = selectorKeys.map((selectorKey) => validateEntitySelector(
+	const entitySelectors = selectorKeys.map((selectorKey) => parse(selectorKey))
+	const sources = new Set(requestedSources ?? entitySelectors.flatMap((entitySelector) => validateEntitySelector(
 		schema,
 		entityDefinition,
-		parse(selectorKey)
-	))
-
-	return resolvers
-		.filter((resolver) => (
-			(
-				requestedSources
-				?? selectors.flatMap((selector) => selector.fields.flatMap((fieldName) => (
-					entityDefinition.fields.find((fieldDefinition) => fieldDefinition.name === fieldName)?.defaultSources
-					?? []
-				)))
-			).includes(String(resolver.source))
-			&& selectors.some((selector) => resolver.resolve[selector.name] != null)
-		))
-		.map((resolver) => String(resolver.source))
+		entitySelector
+	).fields.flatMap((fieldName) => (
+		entityDefinition.fields.find((fieldDefinition) => fieldDefinition.name === fieldName)?.defaultSources
+		?? []
+	))))
+	return [...new Set(resolvers.flatMap((resolver) => (
+		sources.has(String(resolver.source))
+		&& entitySelectors.some((entitySelector) => resolverAppliesToEntitySelector(
+				schema,
+				entityDefinition,
+				resolver,
+				entitySelector
+			)) ?
+			[String(resolver.source)]
+		:
+			[]
+	)))]
 }
 
 const parentSelectorsFromSubset = (
@@ -1477,6 +2325,26 @@ const parentSelectorsFromSubset = (
 	selector: parse(selectorKey),
 	selectorKey,
 }))
+
+const resolverPartsForEntitySelectors = <
+	const _Schema extends Schema,
+	const _Source extends string,
+>(
+	schema: _Schema,
+	entityDefinition: EntityDefinition,
+	entitySelectors: readonly EntitySelector<_Schema, EntityType<_Schema>>[],
+	resolverPartsBySelectorAndField: ResolverIndexes<_Schema, _Source>['resolverValuePartsByEntityTypeSelectorAndFieldName'],
+	entityType: string,
+	facetPath: EntityFacetPath,
+	fieldName: string
+) => [...new Set(entitySelectors.flatMap((entitySelector) => (
+	resolverPartsBySelectorAndField[resolverPartsKey(
+		entityType,
+		validateEntitySelector(schema, entityDefinition, entitySelector).name,
+		facetPath,
+		fieldName
+	)] ?? []
+)))]
 
 const countFilterKeysFromSubset = (
 	subset: ReturnType<typeof parseResolverSubset>
@@ -1498,8 +2366,69 @@ const fieldCanCompleteEmpty = (
 		definition.cardinality === EntityFieldCardinality.Zero
 		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
 		|| definition.cardinality === EntityFieldCardinality.Many
-		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
-	)
+	|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
+)
+
+const cacheMaterializedReferenceFields = <
+	const _Schema extends Schema
+>(
+	context: ClientContext<_Schema>,
+	entityType: string,
+	source: string,
+	reference: Record<string, unknown>
+) => {
+	const selectorKey = String(reference[EntityMetaKey.SelectorKey])
+	context.materializedReferenceEntityKeys.add(stringify([
+		entityType,
+		selectorKey,
+		source,
+	]))
+	const fields = reference[EntityMetaKey.Fields]
+	if (fields == null || typeof fields !== 'object' || Array.isArray(fields))
+		return
+
+	for (const [fieldAddressKey, value] of Object.entries(Object.fromEntries<unknown>(
+		Object.entries(fields)
+	))) {
+		context.materializedReferenceFieldValueByAddress.set(stringify([
+			entityType,
+			selectorKey,
+			fieldAddressKey,
+			source,
+		]), value)
+
+		const definition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][fieldAddressKey]
+		if (
+			definition == null
+			|| definition.type === EntityFieldType.Primitive
+		)
+			continue
+
+		let nestedReferences = [value]
+		if (entityFieldCardinalityIsMultiple(definition.cardinality)) {
+			if (!Array.isArray(value))
+				continue
+
+			nestedReferences = value
+		}
+
+		for (const nestedReference of nestedReferences) {
+			if (
+				nestedReference == null
+				|| typeof nestedReference !== 'object'
+				|| Array.isArray(nestedReference)
+			)
+				continue
+
+			cacheMaterializedReferenceFields(
+				context,
+				definition.entityType,
+				source,
+				Object.fromEntries<unknown>(Object.entries(nestedReference))
+			)
+		}
+	}
+}
 
 const loadEntityRows = async <
 	const _Schema extends Schema
@@ -1511,12 +2440,21 @@ const loadEntityRows = async <
 ) => {
 	const subset = parseResolverSubset(loadSubsetOptions)
 	const entityDefinition = context.entityDefinitionByType[entityType]
-	const resolvers = context.resolverIndexes.resolverDefinitionsByEntityType[entityType] ?? []
-	const sources = new Set(sourceNames ?? resolvableSources(
+	const entitySelectors = subset.selectorKeys.map((selectorKey) => parse(selectorKey))
+	const resolvers = [...new Set(entitySelectors.flatMap((entitySelector) => (
+		context.resolverIndexes.resolverDefinitionsByEntityTypeAndSelectorName[resolverDefinitionsKey(
+			entityType,
+			validateEntitySelector(context.schema, entityDefinition, entitySelector).name
+		)] ?? []
+	)))]
+	const sources = applicableResolverSources(
+		context.schema,
+		entityDefinition,
 		subset,
-		undefined,
-		resolvers.map((resolver) => String(resolver.source))
-	))
+		sourceNames,
+		resolvers,
+		entitySelectors
+	)
 	const results = await Promise.all(subset.selectorKeys.flatMap((selectorKey) => (
 		resolvers.flatMap(async (resolver) => {
 			if (!sources.has(String(resolver.source)))
@@ -1531,29 +2469,20 @@ const loadEntityRows = async <
 				entityDefinition,
 				entitySelector
 			).name
-			if (resolver.resolve[selectorName] == null)
+			if (
+				resolver.resolve[selectorName] == null
+				|| !resolver.appliesTo(selectorName, entitySelector)
+			)
 				return {
 					rows: [],
 					outcomes: [],
 				}
 
-			try {
-				const snapshot = await resolverSnapshot(
-					context,
-					resolver,
-					entityDefinition,
-					entitySelector,
-					subset
-				)
-				if (snapshot === undefined)
-					return {
-						rows: [],
-						outcomes: [{
-							source: String(resolver.source),
-							status: PersistedCollectionSourceStatus.Completed,
-						}],
-					}
-
+			if (context.materializedReferenceEntityKeys.has(stringify([
+				entityType,
+				selectorKey,
+				String(resolver.source),
+			])))
 				return {
 					rows: materializeResolverOutput({
 						kind: ResolverOutputMaterialization.Entity,
@@ -1563,8 +2492,69 @@ const loadEntityRows = async <
 						selector: entitySelector,
 						selectorKey,
 						source: String(resolver.source),
-						snapshot,
+						snapshot: undefined,
 					}),
+					outcomes: [{
+						source: String(resolver.source),
+						status: PersistedCollectionSourceStatus.Completed,
+					}],
+				}
+
+				try {
+					const snapshot = await resolverSnapshot(
+						context,
+						resolver,
+						entityDefinition,
+						entitySelector,
+						subset
+					)
+				if (snapshot === undefined)
+					return {
+						rows: [],
+						outcomes: [{
+							source: String(resolver.source),
+							status: PersistedCollectionSourceStatus.Completed,
+						}],
+					}
+
+					const snapshotObject = Object(snapshot)
+					const resolvedSelectors = entitySelectorsFromFields(
+						context.schema,
+						entityDefinition,
+						entitySelector,
+						snapshotObject
+					)
+					const materializedFields = Object.fromEntries(entityDefinition.fields.flatMap((fieldDefinition) => (
+						Object.hasOwn(snapshotObject, fieldDefinition.name) ?
+							[[
+								entityFieldAddressKey(entityType, [], fieldDefinition.name),
+								snapshotObject[fieldDefinition.name],
+							]]
+					:
+						[]
+				)))
+				for (const resolvedSelector of resolvedSelectors)
+					cacheMaterializedReferenceFields(
+						context,
+						entityType,
+						String(resolver.source),
+						{
+							[EntityMetaKey.SelectorKey]: entitySelectorKey(context.schema, entityDefinition, resolvedSelector),
+							[EntityMetaKey.Fields]: materializedFields,
+						}
+					)
+
+				return {
+					rows: resolvedSelectors.flatMap((resolvedSelector) => materializeResolverOutput({
+						kind: ResolverOutputMaterialization.Entity,
+						schema: context.schema,
+						schemaIndex: context,
+						entityDefinition,
+						selector: resolvedSelector,
+							selectorKey: entitySelectorKey(context.schema, entityDefinition, resolvedSelector),
+							source: String(resolver.source),
+							snapshot: snapshotObject,
+						})),
 					outcomes: [{
 						source: String(resolver.source),
 						status: PersistedCollectionSourceStatus.Completed,
@@ -1596,21 +2586,31 @@ const loadFieldRows = async <
 	entityType: string,
 	definition: EntityFieldDefinition,
 	loadSubsetOptions: LoadSubsetOptions,
-	sourceNames?: readonly string[]
+	sourceNames?: readonly string[],
+	providerContinuationTokenBySource?: Readonly<Record<string, string>>
 ) => {
 	const subset = parseResolverSubset(loadSubsetOptions)
 	const entityDefinition = context.entityDefinitionByType[entityType]
 	const fieldName = definition.name
 	const facetPath = entityFieldFacetPath(definition)
-	const resolverParts = context.resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
-		resolverPartsKey(entityType, facetPath, fieldName)
-	] ?? []
-	const sources = new Set(sourceNames ?? resolvableSources(
-		subset,
-		definition.defaultSources,
-		resolverParts.map((resolverPart) => String(resolverPart.source))
-	))
 	const parentSelectors = parentSelectorsFromSubset(subset)
+	const resolverParts = resolverPartsForEntitySelectors(
+		context.schema,
+		entityDefinition,
+		parentSelectors.map(({ selector }) => selector),
+		context.resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName,
+		entityType,
+		facetPath,
+		fieldName
+	)
+	const sources = applicableResolverSources(
+		context.schema,
+		entityDefinition,
+		subset,
+		sourceNames ?? definition.defaultSources,
+		resolverParts.map((resolverPart) => resolverPart.resolver),
+		parentSelectors.map(({ selector }) => selector)
+	)
 	const results = await Promise.all(parentSelectors.flatMap(({
 		selector: parentSelector,
 		selectorKey: parentSelectorKey,
@@ -1620,6 +2620,52 @@ const loadFieldRows = async <
 			entityDefinition,
 			parentSelector
 		).name
+		const fieldAddressKey = entityFieldAddressKey(entityType, facetPath, fieldName)
+		const materializedFieldSources = [...requestedSources(
+			subset,
+			sourceNames ?? definition.defaultSources,
+			resolverParts.map((resolverPart) => String(resolverPart.source))
+		)].filter((source) => (
+			context.materializedReferenceFieldValueByAddress.has(stringify([
+				entityType,
+				parentSelectorKey,
+				fieldAddressKey,
+				source,
+			]))
+		))
+		if (materializedFieldSources.length > 0)
+			return [...requestedSources(
+				subset,
+				sourceNames ?? definition.defaultSources,
+				resolverParts.map((resolverPart) => String(resolverPart.source))
+			)].map((source) => Promise.resolve({
+				rows: (
+					materializedFieldSources.includes(source) ?
+						materializeResolverOutput({
+							kind: ResolverOutputMaterialization.Field,
+							schema: context.schema,
+							schemaIndex: context,
+							entityDefinition,
+							parentSelector,
+							parentSelectorKey,
+							source,
+							fieldDefinition: definition,
+							value: context.materializedReferenceFieldValueByAddress.get(stringify([
+								entityType,
+								parentSelectorKey,
+								fieldAddressKey,
+								source,
+							])),
+						})
+					:
+						[]
+				),
+				outcomes: [{
+					source,
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			}))
+
 		const selectorOwnsField = (
 			entityDefinition.selectors
 				.find((selectorDefinition) => selectorDefinition.name === selectorName)
@@ -1628,9 +2674,13 @@ const loadFieldRows = async <
 			?? false
 		)
 		if (selectorOwnsField) {
+			const selectorSources = [...sources].filter((source) => resolverParts.some((resolverPart) => (
+				String(resolverPart.source) === source
+				&& resolverPart.resolver.appliesTo(selectorName, parentSelector)
+			)))
 			const selectorValue = parentSelector[fieldName]
 			if (selectorValue === undefined)
-				return [...sources].map((source) => Promise.resolve({
+				return selectorSources.map((source) => Promise.resolve({
 					rows: [],
 					outcomes: [{
 						source,
@@ -1645,7 +2695,7 @@ const loadFieldRows = async <
 				:
 					selectorValue
 			)
-			return [...sources].map((source) => Promise.resolve({
+			return selectorSources.map((source) => Promise.resolve({
 				rows: materializeResolverOutput({
 					kind: ResolverOutputMaterialization.Field,
 					schema: context.schema,
@@ -1671,7 +2721,10 @@ const loadFieldRows = async <
 					outcomes: [],
 				}
 
-			if (resolverPart.resolver.resolve[selectorName] == null)
+			if (
+				resolverPart.resolver.resolve[selectorName] == null
+				|| !resolverPart.resolver.appliesTo(selectorName, parentSelector)
+			)
 				return {
 					rows: [],
 					outcomes: [],
@@ -1683,7 +2736,8 @@ const loadFieldRows = async <
 					resolverPart.resolver,
 					entityDefinition,
 					parentSelector,
-					subset
+					subset,
+					providerContinuationTokenBySource?.[String(resolverPart.source)]
 				)
 				if (snapshot === undefined)
 					return fieldCanCompleteEmpty(definition) ?
@@ -1720,7 +2774,8 @@ const loadFieldRows = async <
 					resolverContext(
 						context,
 						String(resolverPart.source),
-						subset
+						subset,
+						providerContinuationTokenBySource?.[String(resolverPart.source)]
 					)
 				)
 				if (
@@ -1736,8 +2791,7 @@ const loadFieldRows = async <
 						}],
 					}
 
-				return {
-					rows: materializeResolverOutput({
+				const rows = materializeResolverOutput({
 						kind: ResolverOutputMaterialization.Field,
 						schema: context.schema,
 						schemaIndex: context,
@@ -1747,10 +2801,41 @@ const loadFieldRows = async <
 						source: String(resolverPart.source),
 						fieldDefinition: definition,
 						value,
-					}),
+					})
+				if (definition.type !== EntityFieldType.Primitive)
+					for (const row of rows) {
+						if (
+							row[EntityMetaKey.Value] == null
+							|| typeof row[EntityMetaKey.Value] !== 'object'
+							|| Array.isArray(row[EntityMetaKey.Value])
+						)
+							continue
+
+						cacheMaterializedReferenceFields(
+							context,
+							definition.entityType,
+							String(resolverPart.source),
+							Object.fromEntries<unknown>(Object.entries(row[EntityMetaKey.Value]))
+						)
+					}
+
+				return {
+					rows,
 					outcomes: [{
 						source: String(resolverPart.source),
 						status: PersistedCollectionSourceStatus.Completed,
+						...(resolverPart.continuation !== undefined && {
+							continuation: resolverPart.continuation(
+								snapshot,
+								parentSelector,
+								resolverContext(
+									context,
+									String(resolverPart.source),
+									subset,
+									providerContinuationTokenBySource?.[String(resolverPart.source)]
+								)
+							),
+						}),
 					}],
 				}
 			} catch (error) {
@@ -1786,15 +2871,24 @@ const loadCountRows = async <
 	const fieldName = definition.name
 	const facetPath = entityFieldFacetPath(definition)
 	const filterKeys = countFilterKeysFromSubset(subset)
-	const resolverParts = context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[
-		resolverPartsKey(entityType, facetPath, fieldName)
-	] ?? []
-	const sources = new Set(sourceNames ?? resolvableSources(
-		subset,
-		definition.defaultSources,
-		resolverParts.map((resolverPart) => String(resolverPart.source))
-	))
 	const parentSelectors = parentSelectorsFromSubset(subset)
+	const resolverParts = resolverPartsForEntitySelectors(
+		context.schema,
+		entityDefinition,
+		parentSelectors.map(({ selector }) => selector),
+		context.resolverIndexes.resolverCountPartsByEntityTypeSelectorAndFieldName,
+		entityType,
+		facetPath,
+		fieldName
+	)
+	const sources = applicableResolverSources(
+		context.schema,
+		entityDefinition,
+		subset,
+		sourceNames ?? definition.defaultSources,
+		resolverParts.map((resolverPart) => resolverPart.resolver),
+		parentSelectors.map(({ selector }) => selector)
+	)
 	const results = await Promise.all(parentSelectors.flatMap(({
 		selector: parentSelector,
 		selectorKey: parentSelectorKey,
@@ -1806,11 +2900,15 @@ const loadCountRows = async <
 					outcomes: [],
 				}
 
-			if (resolverPart.resolver.resolve[validateEntitySelector(
+			const selectorName = validateEntitySelector(
 				context.schema,
 				entityDefinition,
 				parentSelector
-			).name] == null)
+			).name
+			if (
+				resolverPart.resolver.resolve[selectorName] == null
+				|| !resolverPart.resolver.appliesTo(selectorName, parentSelector)
+			)
 				return {
 					rows: [],
 					outcomes: [],
@@ -1917,20 +3015,32 @@ const mountFieldLive = <
 			&& part.facetPath.length === facetPath.length
 			&& part.facetPath.every((facetName, index) => facetName === facetPath[index])
 		))
-	const fieldLiveParts = context.resolverIndexes.resolverLivePartsByEntityTypeAndFieldName[fieldAddressKey] ?? []
-	const sources = resolvableSources(
+	const parentSelectors = parentSelectorsFromSubset(subset)
+	const fieldLiveParts = resolverPartsForEntitySelectors(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		parentSelectors.map(({ selector }) => selector),
+		context.resolverIndexes.resolverLivePartsByEntityTypeSelectorAndFieldName,
+		entityType,
+		facetPath,
+		definition.name
+	)
+	const sources = applicableResolverSources(
+		context.schema,
+		context.entityDefinitionByType[entityType],
 		subset,
 		definition.defaultSources,
 		[
-			...rootLiveParts.map((part) => String(part.source)),
-			...fieldLiveParts.map((part) => String(part.source)),
-		]
+			...rootLiveParts.map((part) => part.resolver),
+			...fieldLiveParts.map((part) => part.resolver),
+		],
+		parentSelectors.map(({ selector }) => selector)
 	)
 	const releases: (() => void)[] = []
 	for (const {
 		selector: parentEntitySelector,
 		selectorKey: parentSelectorKey,
-	} of parentSelectorsFromSubset(subset)) {
+	} of parentSelectors) {
 		const selectorName = validateEntitySelector(
 			context.schema,
 			context.entityDefinitionByType[entityType],
@@ -1940,14 +3050,29 @@ const mountFieldLive = <
 			invalidate: (fieldNames: readonly EntityFieldName<_Schema, EntityType<_Schema>>[]) => {
 				for (const fieldName of fieldNames) {
 					const liveFieldAddressKey = entityFieldAddressKey(entityType, liveFacetPath, fieldName)
-					context.queryClient.removeQueries({
+					const resolverDefinitionIndexes = new Set(
+						resolverPartsForEntitySelectors(
+							context.schema,
+							context.entityDefinitionByType[entityType],
+							[parentEntitySelector],
+							context.resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName,
+							entityType,
+							liveFacetPath,
+							fieldName
+						)
+							.filter((part) => String(part.source) === source)
+							.map((part) => String(part.resolver.definitionIndex))
+					)
+					void context.queryClient.invalidateQueries({
 						predicate: (query) => (
 							query.queryKey[0] === 'client'
 							&& query.queryKey[1] === 'resolverSnapshot'
 							&& query.queryKey[2] === source
 							&& query.queryKey[3] === entityType
+							&& resolverDefinitionIndexes.has(String(query.queryKey[5]))
 							&& query.queryKey[6] === stringify(parentEntitySelector)
 						),
+						refetchType: 'none',
 					})
 					context.entityFieldCollections[entityType][liveFieldAddressKey]?.utils.refresh()
 				}
@@ -2086,7 +3211,10 @@ const mountFieldLive = <
 		}
 
 		for (const part of rootLiveParts) {
-			if (!sources.has(String(part.source)))
+			if (
+				!sources.has(String(part.source))
+				|| !part.resolver.appliesTo(selectorName, parentEntitySelector)
+			)
 				continue
 
 			const source = String(part.source)
@@ -2113,6 +3241,7 @@ const mountFieldLive = <
 		for (const part of fieldLiveParts) {
 			if (
 				!sources.has(String(part.source))
+				|| !part.resolver.appliesTo(selectorName, parentEntitySelector)
 				|| !(part.parentSelectors ?? Object.keys(part.resolver.resolve)).includes(selectorName)
 				|| part.resolveLive == null
 			)
@@ -2230,6 +3359,8 @@ export const client = <
 	const entityCollections: EntityCollections<_Schema> = {}
 	const entityFieldCollections: EntityFieldCollections<_Schema> = {}
 	const entityFieldCountCollections: EntityFieldCountCollections<_Schema> = {}
+	const materializedReferenceEntityKeys = new Set<string>()
+	const materializedReferenceFieldValueByAddress = new Map<string, unknown>()
 	const liveSubscriptions = new Map<string, ClientLiveSubscription>()
 	const events: ClientEvent[] = []
 	const collectionLoadFailureListeners = new Set<() => void>()
@@ -2237,6 +3368,15 @@ export const client = <
 		list: [],
 		add(failure) {
 			this.list.push(failure)
+			for (const listener of collectionLoadFailureListeners)
+				listener()
+		},
+		clear(collectionId) {
+			const retained = this.list.filter((failure) => failure.collectionId !== collectionId)
+			if (retained.length === this.list.length)
+				return
+
+			this.list.splice(0, this.list.length, ...retained)
 			for (const listener of collectionLoadFailureListeners)
 				listener()
 		},
@@ -2271,13 +3411,11 @@ export const client = <
 						row[EntityMetaKey.Source],
 						row[EntityMetaKey.SelectorKey],
 					]),
-					loadedKey: (loadSubsetOptions) => stringify(plainLoadSubsetKeyValue({
-						where: loadSubsetOptions.where,
-						orderBy: loadSubsetOptions.orderBy,
-						limit: loadSubsetOptions.limit,
-						cursor: loadSubsetOptions.cursor,
-						offset: loadSubsetOptions.offset,
-					})),
+					loadedKey: entityLoadedSubsetKey,
+					additionalLoadedKeys: (row, loadSubsetOptions) => [entityLoadedSubsetKey(
+						loadSubsetOptions,
+						[row[EntityMetaKey.SelectorKey]]
+					)],
 					sources: (loadSubsetOptions) => {
 						const subset = parseResolverSubset(loadSubsetOptions)
 						return entityResolverSourcesForSelectorKeys(
@@ -2287,6 +3425,44 @@ export const client = <
 							entityResolvers,
 							subset.sources
 						)
+					},
+					localAuthoritySourceRowKeys: (
+						loadSubsetOptions,
+						rows
+					): Readonly<Record<string, readonly (string | number)[]>> => {
+						const subset = parseResolverSubset(loadSubsetOptions)
+						if (
+							subset.selectorKeys.length === 0
+							|| (
+								subset.sources !== undefined
+								&& !subset.sources.includes(Source.Local_Internal)
+							)
+							|| subset.filters.some((filter) => (
+								filter.fieldPath[0] !== EntityMetaKey.SelectorKey
+								&& filter.fieldPath[0] !== EntityMetaKey.Source
+							))
+							|| !subset.selectorKeys.every((selectorKey) => (
+								entityCollectionUtils.utils.hasLocalMutationAuthority(
+									selectorKey,
+									localMutationAuthorityKey({
+										source: Source.Local_Internal,
+										entityType: entityDefinition.entityType,
+										selectorKey,
+									})
+								)
+							))
+						)
+							return {}
+
+						return {
+							[Source.Local_Internal]: rows.filter((row) => (
+								row[EntityMetaKey.Source] === Source.Local_Internal
+								&& subset.selectorKeys.includes(row[EntityMetaKey.SelectorKey])
+							)).map((row) => stringify([
+								row[EntityMetaKey.Source],
+								row[EntityMetaKey.SelectorKey],
+							])),
+						}
 					},
 					persistedRows: (loadSubsetOptions, rows, marker) => {
 						const subset = parseResolverSubset(loadSubsetOptions)
@@ -2300,7 +3476,10 @@ export const client = <
 						const allRows = productSubsetOwnedRows(
 							marker,
 							rows,
-							[...sources],
+							[...new Set([
+								...sources,
+								...Object.keys(marker?.sourceRowKeys ?? {}),
+							])],
 							(row) => stringify([
 								row[EntityMetaKey.Source],
 								row[EntityMetaKey.SelectorKey],
@@ -2309,6 +3488,23 @@ export const client = <
 						const invalidSources = new Set<string>()
 						const malformedRowKeys = new Set<string | number>()
 						const materializedRows = allRows.flatMap((row) => {
+							const rowKey = stringify([
+								row[EntityMetaKey.Source],
+								row[EntityMetaKey.SelectorKey],
+							])
+							if (!entityResolvers.some((resolver) => (
+								String(resolver.source) === row[EntityMetaKey.Source]
+								&& resolverAppliesToEntitySelector(
+									schema,
+									entityDefinition,
+									resolver,
+									row[EntityMetaKey.Selector]
+								)
+							))) {
+								malformedRowKeys.add(rowKey)
+								return []
+							}
+
 							try {
 								return materializeResolverOutput({
 									kind: ResolverOutputMaterialization.Entity,
@@ -2322,16 +3518,17 @@ export const client = <
 								})
 							} catch {
 								invalidSources.add(row[EntityMetaKey.Source])
-								malformedRowKeys.add(stringify([
-									row[EntityMetaKey.Source],
-									row[EntityMetaKey.SelectorKey],
-								]))
+								malformedRowKeys.add(rowKey)
 								return []
 							}
 						})
 						return {
 							allRows,
-							rows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+							retainedRows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+							rows: materializedRows.filter((row) => (
+								!invalidSources.has(row[EntityMetaKey.Source])
+								&& sources.has(row[EntityMetaKey.Source])
+							)),
 							invalidSources: [...invalidSources],
 							malformedRowKeys: [...malformedRowKeys],
 						}
@@ -2348,6 +3545,10 @@ export const client = <
 					setWriteRows: entityCollectionUtils.setWriteRows,
 					setReplaceRows: entityCollectionUtils.setReplaceRows,
 					setRefreshRows: entityCollectionUtils.setRefreshRows,
+					setLocalMutationAuthority: entityCollectionUtils.setLocalMutationAuthority,
+					setContinuationForRows: entityCollectionUtils.setContinuationForRows,
+					notifyLocalMutationAuthorityChange: entityCollectionUtils.notifyLocalMutationAuthorityChange,
+					notifyContinuationChange: entityCollectionUtils.notifyContinuationChange,
 				}),
 				getKey: (row) => stringify([
 					row[EntityMetaKey.Source],
@@ -2424,30 +3625,119 @@ export const client = <
 							loadedKey: (loadSubsetOptions) => stringify(fieldLoadedSubsetKey(loadSubsetOptions)),
 							sources: (loadSubsetOptions) => {
 								const subset = parseResolverSubset(loadSubsetOptions)
-								const resolverParts = resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
-									resolverPartsKey(entityDefinition.entityType, facetPath, definition.name)
-								] ?? []
+								const resolverParts = resolverPartsForEntitySelectors(
+									schema,
+									entityDefinition,
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector),
+									resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName,
+									entityDefinition.entityType,
+									facetPath,
+									definition.name
+								)
 								return [
-									...resolvableSources(
+									...applicableResolverSources(
+										schema,
+										entityDefinition,
 										subset,
 										definition.defaultSources,
-										resolverParts.map((resolverPart) => String(resolverPart.source))
+										resolverParts.map((resolverPart) => resolverPart.resolver),
+										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
 								]
 							},
+							localAuthoritySourceRowKeys: (
+								loadSubsetOptions,
+								rows
+							): Readonly<Record<string, readonly (string | number)[]>> => {
+								const subset = parseResolverSubset(loadSubsetOptions)
+								if (
+									subset.parentSelectorKeys.length === 0
+									|| (
+										subset.sources !== undefined
+										&& !subset.sources.includes(Source.Local_Internal)
+									)
+									|| !subset.parentSelectorKeys.every((selectorKey) => (
+										entityFieldCardinalityIsMultiple(definition.cardinality) ?
+											entityFieldCollectionUtils.utils.hasLocalMutationAuthority(
+												selectorKey,
+												localMutationAuthorityKey({
+													source: Source.Local_Internal,
+													entityType: entityDefinition.entityType,
+													selectorKey,
+													fieldName: definition.name,
+													fieldAddressKey,
+													facetPathKey: stringify(facetPath),
+												})
+											)
+											|| entityFieldCountCollections[entityDefinition.entityType][fieldAddressKey]
+												?.utils.hasLocalMutationAuthority(
+													selectorKey,
+													localMutationAuthorityKey({
+														source: Source.Local_Internal,
+														entityType: entityDefinition.entityType,
+														selectorKey,
+														fieldName: definition.name,
+														fieldAddressKey,
+														facetPathKey: stringify(facetPath),
+														filterKey: stringify({}),
+													})
+												) === true
+										:
+											entityFieldCollectionUtils.utils.hasLocalMutationAuthority(
+												selectorKey,
+												localMutationAuthorityKey({
+													source: Source.Local_Internal,
+													entityType: entityDefinition.entityType,
+													selectorKey,
+													fieldName: definition.name,
+													fieldAddressKey,
+													facetPathKey: stringify(facetPath),
+												})
+											)
+									))
+								)
+									return {}
+
+								return {
+									[Source.Local_Internal]: rows.filter((row) => (
+										row[EntityMetaKey.Source] === Source.Local_Internal
+										&& subset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+										&& row.facetPathKey === stringify(facetPath)
+									)).map((row) => stringify([
+										row[EntityMetaKey.Source],
+										row[EntityMetaKey.ParentSelectorKey],
+										row.facetPathKey,
+										row.valueKey,
+										row.valueIndex,
+									])),
+								}
+							},
 							persistedRows: (loadSubsetOptions, rows, marker) => {
 								const subset = parseResolverSubset(loadSubsetOptions)
-								const sources = resolvableSources(
+								const resolverParts = resolverPartsForEntitySelectors(
+									schema,
+									entityDefinition,
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector),
+									resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName,
+									entityDefinition.entityType,
+									facetPath,
+									definition.name
+								)
+								const sources = applicableResolverSources(
+									schema,
+									entityDefinition,
 									subset,
 									definition.defaultSources,
-									(resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
-										resolverPartsKey(entityDefinition.entityType, facetPath, definition.name)
-									] ?? []).map((resolverPart) => String(resolverPart.source))
+									resolverParts.map((resolverPart) => resolverPart.resolver),
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 								)
 								const allRows = productSubsetOwnedRows(
 									marker,
 									rows,
-									[...sources],
+									[...new Set([
+										...sources,
+										...Object.keys(marker?.sourceRowKeys ?? {}),
+									])],
 									(row) => stringify([
 										row[EntityMetaKey.Source],
 										row[EntityMetaKey.ParentSelectorKey],
@@ -2459,6 +3749,28 @@ export const client = <
 								const invalidSources = new Set<string>()
 								const malformedRowKeys = new Set<string | number>()
 								const materializedRows = allRows.flatMap((row) => {
+									const rowKey = stringify([
+										row[EntityMetaKey.Source],
+										row[EntityMetaKey.ParentSelectorKey],
+										row.facetPathKey,
+										row.valueKey,
+										row.valueIndex,
+									])
+									if (!resolverParts.some((resolverPart) => (
+										String(resolverPart.source) === row[EntityMetaKey.Source]
+										&& resolverPart.resolver.appliesTo(
+											validateEntitySelector(
+												schema,
+												entityDefinition,
+												row[EntityMetaKey.ParentSelector]
+											).name,
+											row[EntityMetaKey.ParentSelector]
+										)
+									))) {
+										malformedRowKeys.add(rowKey)
+										return []
+									}
+
 									try {
 										const materializedRow = materializeResolverOutput({
 										kind: ResolverOutputMaterialization.Field,
@@ -2496,13 +3808,7 @@ export const client = <
 										}]
 									} catch {
 										invalidSources.add(row[EntityMetaKey.Source])
-										malformedRowKeys.add(stringify([
-											row[EntityMetaKey.Source],
-											row[EntityMetaKey.ParentSelectorKey],
-											row.facetPathKey,
-											row.valueKey,
-											row.valueIndex,
-										]))
+										malformedRowKeys.add(rowKey)
 										return []
 									}
 								})
@@ -2534,17 +3840,26 @@ export const client = <
 								}
 								return {
 									allRows,
-									rows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+									retainedRows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+									rows: materializedRows.filter((row) => (
+										!invalidSources.has(row[EntityMetaKey.Source])
+										&& sources.has(row[EntityMetaKey.Source])
+									)),
 									invalidSources: [...invalidSources],
 									malformedRowKeys: [...malformedRowKeys],
 								}
 							},
-							loadRows: (loadSubsetOptions, sources) => loadFieldRows(
+							loadRows: (
+								loadSubsetOptions,
+								sources,
+								providerContinuationTokenBySource
+							) => loadFieldRows(
 								requireContext(),
 								entityDefinition.entityType,
 								definition,
 								loadSubsetOptions,
-								sources
+								sources,
+								providerContinuationTokenBySource
 							),
 							waitForPersistence,
 							events,
@@ -2552,6 +3867,11 @@ export const client = <
 							setWriteRows: entityFieldCollectionUtils.setWriteRows,
 							setReplaceRows: entityFieldCollectionUtils.setReplaceRows,
 							setRefreshRows: entityFieldCollectionUtils.setRefreshRows,
+							setLocalMutationAuthority: entityFieldCollectionUtils.setLocalMutationAuthority,
+							setContinuationForRows: entityFieldCollectionUtils.setContinuationForRows,
+							notifyLocalMutationAuthorityChange:
+								entityFieldCollectionUtils.notifyLocalMutationAuthorityChange,
+							notifyContinuationChange: entityFieldCollectionUtils.notifyContinuationChange,
 							mountLive: (loadSubsetOptions) => mountFieldLive(
 								requireContext(),
 								entityDefinition.entityType,
@@ -2612,30 +3932,105 @@ export const client = <
 							loadedKey: (loadSubsetOptions) => stringify(countLoadedSubsetKey(loadSubsetOptions)),
 							sources: (loadSubsetOptions) => {
 								const subset = parseResolverSubset(loadSubsetOptions)
-								const resolverParts = resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[
-									resolverPartsKey(entityDefinition.entityType, facetPath, definition.name)
-								] ?? []
+								const resolverParts = resolverPartsForEntitySelectors(
+									schema,
+									entityDefinition,
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector),
+									resolverIndexes.resolverCountPartsByEntityTypeSelectorAndFieldName,
+									entityDefinition.entityType,
+									facetPath,
+									definition.name
+								)
 								return [
-									...resolvableSources(
+									...applicableResolverSources(
+										schema,
+										entityDefinition,
 										subset,
 										definition.defaultSources,
-										resolverParts.map((resolverPart) => String(resolverPart.source))
+										resolverParts.map((resolverPart) => resolverPart.resolver),
+										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
 								]
 							},
+							localAuthoritySourceRowKeys: (
+								loadSubsetOptions,
+								rows
+							): Readonly<Record<string, readonly (string | number)[]>> => {
+								const subset = parseResolverSubset(loadSubsetOptions)
+								if (
+									subset.parentSelectorKeys.length === 0
+									|| (
+										subset.sources !== undefined
+										&& !subset.sources.includes(Source.Local_Internal)
+									)
+									|| !subset.parentSelectorKeys.every((selectorKey) => (
+										entityFieldCountCollectionUtils.utils.hasLocalMutationAuthority(
+											selectorKey,
+											localMutationAuthorityKey({
+												source: Source.Local_Internal,
+												entityType: entityDefinition.entityType,
+												selectorKey,
+												fieldName: definition.name,
+												fieldAddressKey,
+												facetPathKey: stringify(facetPath),
+												filterKey: stringify({}),
+											})
+										)
+										|| entityFieldCollectionUtils.utils.hasLocalMutationAuthority(
+											selectorKey,
+											localMutationAuthorityKey({
+												source: Source.Local_Internal,
+												entityType: entityDefinition.entityType,
+												selectorKey,
+												fieldName: definition.name,
+												fieldAddressKey,
+												facetPathKey: stringify(facetPath),
+											})
+										)
+									))
+								)
+									return {}
+
+								return {
+									[Source.Local_Internal]: rows.filter((row) => (
+										row[EntityMetaKey.Source] === Source.Local_Internal
+										&& subset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+										&& row.facetPathKey === stringify(facetPath)
+										&& row.filterKey === stringify({})
+									)).map((row) => stringify([
+										row[EntityMetaKey.Source],
+										row[EntityMetaKey.ParentSelectorKey],
+										row.facetPathKey,
+										row.filterKey,
+									])),
+								}
+							},
 							persistedRows: (loadSubsetOptions, rows, marker) => {
 								const subset = parseResolverSubset(loadSubsetOptions)
-								const sources = resolvableSources(
+								const resolverParts = resolverPartsForEntitySelectors(
+									schema,
+									entityDefinition,
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector),
+									resolverIndexes.resolverCountPartsByEntityTypeSelectorAndFieldName,
+									entityDefinition.entityType,
+									facetPath,
+									definition.name
+								)
+								const sources = applicableResolverSources(
+									schema,
+									entityDefinition,
 									subset,
 									definition.defaultSources,
-									(resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[
-										resolverPartsKey(entityDefinition.entityType, facetPath, definition.name)
-									] ?? []).map((resolverPart) => String(resolverPart.source))
+									resolverParts.map((resolverPart) => resolverPart.resolver),
+									parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 								)
 								const allRows = productSubsetOwnedRows(
 									marker,
 									rows,
-									[...sources],
+									[...new Set([
+										...sources,
+										...Object.keys(marker?.sourceRowKeys ?? {}),
+									])],
 									(row) => stringify([
 										row[EntityMetaKey.Source],
 										row[EntityMetaKey.ParentSelectorKey],
@@ -2646,6 +4041,27 @@ export const client = <
 								const invalidSources = new Set<string>()
 								const malformedRowKeys = new Set<string | number>()
 								const materializedRows = allRows.flatMap((row) => {
+									const rowKey = stringify([
+										row[EntityMetaKey.Source],
+										row[EntityMetaKey.ParentSelectorKey],
+										row.facetPathKey,
+										row.filterKey,
+									])
+									if (!resolverParts.some((resolverPart) => (
+										String(resolverPart.source) === row[EntityMetaKey.Source]
+										&& resolverPart.resolver.appliesTo(
+											validateEntitySelector(
+												schema,
+												entityDefinition,
+												row[EntityMetaKey.ParentSelector]
+											).name,
+											row[EntityMetaKey.ParentSelector]
+										)
+									))) {
+										malformedRowKeys.add(rowKey)
+										return []
+									}
+
 									try {
 										const materializedRow = materializeResolverOutput({
 										kind: ResolverOutputMaterialization.Count,
@@ -2668,18 +4084,17 @@ export const client = <
 										return [materializedRow]
 									} catch {
 										invalidSources.add(row[EntityMetaKey.Source])
-										malformedRowKeys.add(stringify([
-											row[EntityMetaKey.Source],
-											row[EntityMetaKey.ParentSelectorKey],
-											row.facetPathKey,
-											row.filterKey,
-										]))
+										malformedRowKeys.add(rowKey)
 										return []
 									}
 								})
 								return {
 									allRows,
-									rows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+									retainedRows: materializedRows.filter((row) => !invalidSources.has(row[EntityMetaKey.Source])),
+									rows: materializedRows.filter((row) => (
+										!invalidSources.has(row[EntityMetaKey.Source])
+										&& sources.has(row[EntityMetaKey.Source])
+									)),
 									invalidSources: [...invalidSources],
 									malformedRowKeys: [...malformedRowKeys],
 								}
@@ -2697,6 +4112,11 @@ export const client = <
 							setWriteRows: entityFieldCountCollectionUtils.setWriteRows,
 							setReplaceRows: entityFieldCountCollectionUtils.setReplaceRows,
 							setRefreshRows: entityFieldCountCollectionUtils.setRefreshRows,
+							setLocalMutationAuthority: entityFieldCountCollectionUtils.setLocalMutationAuthority,
+							setContinuationForRows: entityFieldCountCollectionUtils.setContinuationForRows,
+							notifyLocalMutationAuthorityChange:
+								entityFieldCountCollectionUtils.notifyLocalMutationAuthorityChange,
+							notifyContinuationChange: entityFieldCountCollectionUtils.notifyContinuationChange,
 						}),
 						getKey: (row) => stringify([
 							row[EntityMetaKey.Source],
@@ -2730,6 +4150,8 @@ export const client = <
 		entityCollections,
 		entityFieldCollections,
 		entityFieldCountCollections,
+		materializedReferenceEntityKeys,
+		materializedReferenceFieldValueByAddress,
 		liveSubscriptions,
 		select: (
 			entityType,

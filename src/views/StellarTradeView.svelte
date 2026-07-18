@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarTrade = $derived(selection({}))
+	const stellarTrade = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar trade')
 	const viewDomId = $derived('stellar-trade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -69,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarTrade}>
-			{#snippet Pending()}
-				{title || 'stellar trade'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarTrade}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,19 +102,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tradeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tradeId = pendingEntity.tradeId}
-							{#if tradeId !== undefined && tradeId !== null}
-								{String((tradeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tradeId = resolvedEntity.tradeId}
@@ -130,19 +126,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -157,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCloseTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCloseTimeMs = pendingEntity.ledgerCloseTimeMs}
-					{#if ledgerCloseTimeMs !== undefined && ledgerCloseTimeMs !== null}
-						<div>
-							<dt>ledger close time ms</dt>
-							<dd>
-								{String((ledgerCloseTimeMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCloseTimeMs = resolvedEntity.ledgerCloseTimeMs}
@@ -192,8 +171,6 @@
 			<ResourceBoundary
 				resource={selection.$baseAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -214,8 +191,6 @@
 			<ResourceBoundary
 				resource={selection.$counterAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -236,8 +211,6 @@
 			<ResourceBoundary
 				resource={selection.$baseOffer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
 						<div>
@@ -258,8 +231,6 @@
 			<ResourceBoundary
 				resource={selection.$counterOffer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
 						<div>
@@ -280,8 +251,6 @@
 			<ResourceBoundary
 				resource={selection.$baseLiquidityPool}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -302,8 +271,6 @@
 			<ResourceBoundary
 				resource={selection.$counterLiquidityPool}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -324,8 +291,6 @@
 			<ResourceBoundary
 				resource={selection.$baseAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -346,8 +311,6 @@
 			<ResourceBoundary
 				resource={selection.$counterAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -368,24 +331,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							baseAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const baseAmount = pendingEntity.baseAmount}
-					{#if baseAmount !== undefined && baseAmount !== null}
-						<div>
-							<dt>base amount</dt>
-							<dd>
-								{String((baseAmount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const baseAmount = resolvedEntity.baseAmount}
@@ -403,24 +355,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							counterAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const counterAmount = pendingEntity.counterAmount}
-					{#if counterAmount !== undefined && counterAmount !== null}
-						<div>
-							<dt>counter amount</dt>
-							<dd>
-								{String((counterAmount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const counterAmount = resolvedEntity.counterAmount}
@@ -438,24 +379,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							priceNumerator: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const priceNumerator = pendingEntity.priceNumerator}
-					{#if priceNumerator !== undefined && priceNumerator !== null}
-						<div>
-							<dt>price numerator</dt>
-							<dd>
-								{String((priceNumerator) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const priceNumerator = resolvedEntity.priceNumerator}
@@ -473,24 +403,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							priceDenominator: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const priceDenominator = pendingEntity.priceDenominator}
-					{#if priceDenominator !== undefined && priceDenominator !== null}
-						<div>
-							<dt>price denominator</dt>
-							<dd>
-								{String((priceDenominator) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const priceDenominator = resolvedEntity.priceDenominator}
@@ -508,8 +427,6 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null && stellarTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -530,8 +447,6 @@
 			<ResourceBoundary
 				resource={selection.$operation}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarOperation)}
 					{#if stellarOperation != null && stellarOperation[EntityMetaKey.Selector] != null}
 						<div>

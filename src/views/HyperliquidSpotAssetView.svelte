@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const hyperliquidSpotAsset = $derived(selection({
-		sources: [
-			Source.Hyperliquid_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			szDecimals: true,
@@ -80,74 +77,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidSpotAsset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'hyperliquid spot asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidSpotAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={hyperliquidSpotAsset}>
-			{#snippet Pending()}
-				{@const assetId0 = pendingEntity.assetId}
-				{#if assetId0 !== undefined && assetId0 !== null}
-					<NumberValue value={Number(assetId0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const assetId0 = resolvedEntity.assetId}
-				{#if assetId0 !== undefined && assetId0 !== null}
-					<NumberValue value={Number(assetId0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const assetId0 = pendingEntity.assetId}
+					{#if assetId0 !== undefined && assetId0 !== null}
+						<NumberValue
+							value={assetId0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={hyperliquidSpotAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const assetId0 = resolvedEntity.assetId}
+					{#if assetId0 !== undefined && assetId0 !== null}
+						<NumberValue
+							value={assetId0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={hyperliquidSpotAsset}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={hyperliquidSpotAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -176,24 +177,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetId = pendingEntity.assetId}
-							{#if assetId !== undefined && assetId !== null}
-								<NumberValue value={Number(assetId)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetId = resolvedEntity.assetId}
 							{#if assetId !== undefined && assetId !== null}
-								<NumberValue value={Number(assetId)} />
+								<NumberValue
+									value={assetId}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -203,27 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Hyperliquid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -241,27 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Hyperliquid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							szDecimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const szDecimals = pendingEntity.szDecimals}
-					{#if szDecimals !== undefined && szDecimals !== null}
-						<div>
-							<dt>sz decimals</dt>
-							<dd>
-								<NumberValue value={Number(szDecimals)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const szDecimals = resolvedEntity.szDecimals}
@@ -269,7 +238,9 @@
 						<div>
 							<dt>sz decimals</dt>
 							<dd>
-								<NumberValue value={Number(szDecimals)} />
+								<NumberValue
+									value={szDecimals}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -281,27 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Hyperliquid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							weiDecimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const weiDecimals = pendingEntity.weiDecimals}
-					{#if weiDecimals !== undefined && weiDecimals !== null}
-						<div>
-							<dt>wei decimals</dt>
-							<dd>
-								<NumberValue value={Number(weiDecimals)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const weiDecimals = resolvedEntity.weiDecimals}
@@ -309,7 +266,9 @@
 						<div>
 							<dt>wei decimals</dt>
 							<dd>
-								<NumberValue value={Number(weiDecimals)} />
+								<NumberValue
+									value={weiDecimals}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -319,27 +278,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Hyperliquid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							tokenId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenId = pendingEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
-						<div>
-							<dt>Token ID</dt>
-							<dd>
-								<TruncatedValue value={String((tokenId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenId = resolvedEntity.tokenId}
@@ -375,11 +320,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -387,12 +329,12 @@
 
 				{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={
-							selection.$$basePairs({
-								count: true,
-							})
-						}
+						selection={selection.$$basePairs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No base pairs.'
 						open={open}
 						title={label}
@@ -402,12 +344,12 @@
 
 				{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={
-							selection.$$quotePairs({
-								count: true,
-							})
-						}
+						selection={selection.$$quotePairs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No quote pairs.'
 						open={open}
 						title={label}

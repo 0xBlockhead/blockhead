@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SorobanWasmView from '$/views/SorobanWasmView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanWasm}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SorobanWasm}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(sorobanWasmModules) => [...new Map(sorobanWasmModules.values.map((sorobanWasm) => [sorobanWasm[EntityMetaKey.SelectorKey], sorobanWasm])).values()]}
+	getKey={(sorobanWasm) => sorobanWasm[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Soroban Wasm modules yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(sorobanWasmModules)}
-			{@const uniqueSorobanWasmModules = [...new Map(sorobanWasmModules.values.map((sorobanWasm) => [sorobanWasm[EntityMetaKey.SelectorKey], sorobanWasm])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanWasm}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={sorobanWasmModules.totalCount}
-				getKey={(sorobanWasm) => sorobanWasm[EntityMetaKey.SelectorKey]}
-				items={uniqueSorobanWasmModules}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Soroban Wasm modules yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: sorobanWasm })}
-					{@const sorobanWasmFields = { ...sorobanWasm[EntityMetaKey.Selector], ...sorobanWasm }}
-					{@const selection = select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SorobanWasmView
-						selection={selection}
-						prefetched={sorobanWasmFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SorobanWasm}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: sorobanWasm })}
+		{@const sorobanWasmFields = { ...sorobanWasm[EntityMetaKey.Selector], ...sorobanWasm }}
+		{@const selection = select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SorobanWasmView
+			selection={selection}
+			prefetched={sorobanWasmFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

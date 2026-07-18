@@ -3,7 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { EvmTopicHash, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export enum EvmLogSelector {
@@ -44,7 +44,7 @@ export const EvmLog = entity({
 	topic0: {
 		label: 'Topic 0',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: (EvmTopicHash),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
@@ -87,7 +87,7 @@ export const EvmLog = entity({
 			signatureHash: {
 				label: 'Signature hash',
 				type: EntityFieldType.Primitive,
-				primitiveType: (ZeroExHex),
+				primitiveType: (EvmTopicHash),
 				cardinality: EntityFieldCardinality.One,
 			},
 		})({

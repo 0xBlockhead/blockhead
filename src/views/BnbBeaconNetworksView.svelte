@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbBeaconNetworkView from '$/views/BnbBeaconNetworkView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-					decommissionedAtMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbBeaconNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+				decommissionedAtMs: true,
+			},
+		})
+	}
+	getResourceItems={(bnbBeaconNetworks) => [...new Map(bnbBeaconNetworks.values.map((bnbBeaconNetwork) => [bnbBeaconNetwork[EntityMetaKey.SelectorKey], bnbBeaconNetwork])).values()]}
+	getKey={(bnbBeaconNetwork) => bnbBeaconNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb beacon networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbBeaconNetworks)}
-			{@const uniqueBnbBeaconNetworks = [...new Map(bnbBeaconNetworks.values.map((bnbBeaconNetwork) => [bnbBeaconNetwork[EntityMetaKey.SelectorKey], bnbBeaconNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbBeaconNetworks.totalCount}
-				getKey={(bnbBeaconNetwork) => bnbBeaconNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbBeaconNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb beacon networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbBeaconNetwork })}
-					{@const bnbBeaconNetworkFields = { ...bnbBeaconNetwork[EntityMetaKey.Selector], ...bnbBeaconNetwork }}
-					{@const selection = select(EntityType.BnbBeaconNetwork, bnbBeaconNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbBeaconNetworkView
-						selection={selection}
-						prefetched={bnbBeaconNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbBeaconNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbBeaconNetwork })}
+		{@const bnbBeaconNetworkFields = { ...bnbBeaconNetwork[EntityMetaKey.Selector], ...bnbBeaconNetwork }}
+		{@const selection = select(EntityType.BnbBeaconNetwork, bnbBeaconNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbBeaconNetworkView
+			selection={selection}
+			prefetched={bnbBeaconNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

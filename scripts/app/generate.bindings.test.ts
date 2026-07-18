@@ -167,7 +167,6 @@ test('owns Esplora target identities without object stringification', () => {
 			.map(({ binding }) => binding.target.key),
 		[
 			'bip122:000000000019d6689c085ae165831e93',
-			'bitcoin',
 			'liquid',
 		]
 	)

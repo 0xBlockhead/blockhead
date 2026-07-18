@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZeroGStoredChunkView from '$/views/BlockheadZeroGStoredChunkView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					dataRoot: true,
-					chunkIndex: true,
-					present: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStoredChunk}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZeroGStoredChunk}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				dataRoot: true,
+				chunkIndex: true,
+				present: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZeroGStoredChunks) => [...new Map(blockheadZeroGStoredChunks.values.map((blockheadZeroGStoredChunk) => [blockheadZeroGStoredChunk[EntityMetaKey.SelectorKey], blockheadZeroGStoredChunk])).values()]}
+	getKey={(blockheadZeroGStoredChunk) => blockheadZeroGStoredChunk[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zero g stored chunks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZeroGStoredChunks)}
-			{@const uniqueBlockheadZeroGStoredChunks = [...new Map(blockheadZeroGStoredChunks.values.map((blockheadZeroGStoredChunk) => [blockheadZeroGStoredChunk[EntityMetaKey.SelectorKey], blockheadZeroGStoredChunk])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStoredChunk}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZeroGStoredChunks.totalCount}
-				getKey={(blockheadZeroGStoredChunk) => blockheadZeroGStoredChunk[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZeroGStoredChunks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zero g stored chunks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZeroGStoredChunk })}
-					{@const blockheadZeroGStoredChunkFields = { ...blockheadZeroGStoredChunk[EntityMetaKey.Selector], ...blockheadZeroGStoredChunk }}
-					{@const selection = select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZeroGStoredChunkView
-						selection={selection}
-						prefetched={blockheadZeroGStoredChunkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZeroGStoredChunk}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZeroGStoredChunk })}
+		{@const blockheadZeroGStoredChunkFields = { ...blockheadZeroGStoredChunk[EntityMetaKey.Selector], ...blockheadZeroGStoredChunk }}
+		{@const selection = select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZeroGStoredChunkView
+			selection={selection}
+			prefetched={blockheadZeroGStoredChunkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

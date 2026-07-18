@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAlgorandParticipationKey = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			firstValidRound: true,
 		},
@@ -74,52 +71,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-			{#snippet Pending()}
-				{[String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-			{#snippet Pending()}
-				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-			{#snippet Pending()}
-				{@const firstValidRound0 = pendingEntity.firstValidRound}
-				{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(firstValidRound0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const firstValidRound0 = resolvedEntity.firstValidRound}
-				{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(firstValidRound0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const firstValidRound0 = pendingEntity.firstValidRound}
+			{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={firstValidRound0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const firstValidRound0 = resolvedEntity.firstValidRound}
+					{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={firstValidRound0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,19 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nodeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nodeId = pendingEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nodeId = resolvedEntity.nodeId}
@@ -160,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									participationId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const participationId = pendingEntity.participationId}
-							{#if participationId !== undefined && participationId !== null}
-								{String((participationId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const participationId = resolvedEntity.participationId}
@@ -187,8 +176,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(algorandAccount)}
 					{#if algorandAccount != null && algorandAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -209,8 +196,6 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null && algorandNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							firstValidRound: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const firstValidRound = pendingEntity.firstValidRound}
-					{#if firstValidRound !== undefined && firstValidRound !== null}
-						<div>
-							<dt>first valid round</dt>
-							<dd>
-								<NumberValue value={Number(firstValidRound)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const firstValidRound = resolvedEntity.firstValidRound}
@@ -258,7 +232,9 @@
 						<div>
 							<dt>first valid round</dt>
 							<dd>
-								<NumberValue value={Number(firstValidRound)} />
+								<NumberValue
+									value={firstValidRound}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -268,24 +244,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastValidRound: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastValidRound = pendingEntity.lastValidRound}
-					{#if lastValidRound !== undefined && lastValidRound !== null}
-						<div>
-							<dt>last valid round</dt>
-							<dd>
-								<NumberValue value={Number(lastValidRound)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastValidRound = resolvedEntity.lastValidRound}
@@ -293,7 +258,9 @@
 						<div>
 							<dt>last valid round</dt>
 							<dd>
-								<NumberValue value={Number(lastValidRound)} />
+								<NumberValue
+									value={lastValidRound}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -303,24 +270,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							keyDilution: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const keyDilution = pendingEntity.keyDilution}
-					{#if keyDilution !== undefined && keyDilution !== null}
-						<div>
-							<dt>key dilution</dt>
-							<dd>
-								<NumberValue value={Number(keyDilution)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const keyDilution = resolvedEntity.keyDilution}
@@ -328,7 +284,9 @@
 						<div>
 							<dt>key dilution</dt>
 							<dd>
-								<NumberValue value={Number(keyDilution)} />
+								<NumberValue
+									value={keyDilution}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -340,24 +298,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							selectionKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const selectionKey = pendingEntity.selectionKey}
-					{#if selectionKey !== undefined && selectionKey !== null}
-						<div>
-							<dt>selection key</dt>
-							<dd>
-								{String((selectionKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const selectionKey = resolvedEntity.selectionKey}
@@ -375,24 +322,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							votingKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const votingKey = pendingEntity.votingKey}
-					{#if votingKey !== undefined && votingKey !== null}
-						<div>
-							<dt>voting key</dt>
-							<dd>
-								{String((votingKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const votingKey = resolvedEntity.votingKey}
@@ -410,24 +346,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stateProofKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stateProofKey = pendingEntity.stateProofKey}
-					{#if stateProofKey !== undefined && stateProofKey !== null}
-						<div>
-							<dt>state proof key</dt>
-							<dd>
-								{String((stateProofKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stateProofKey = resolvedEntity.stateProofKey}
@@ -447,24 +372,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							effectiveFirstRound: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const effectiveFirstRound = pendingEntity.effectiveFirstRound}
-					{#if effectiveFirstRound !== undefined && effectiveFirstRound !== null}
-						<div>
-							<dt>effective first round</dt>
-							<dd>
-								<NumberValue value={Number(effectiveFirstRound)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const effectiveFirstRound = resolvedEntity.effectiveFirstRound}
@@ -472,7 +386,9 @@
 						<div>
 							<dt>effective first round</dt>
 							<dd>
-								<NumberValue value={Number(effectiveFirstRound)} />
+								<NumberValue
+									value={effectiveFirstRound}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -482,24 +398,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							effectiveLastRound: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const effectiveLastRound = pendingEntity.effectiveLastRound}
-					{#if effectiveLastRound !== undefined && effectiveLastRound !== null}
-						<div>
-							<dt>effective last round</dt>
-							<dd>
-								<NumberValue value={Number(effectiveLastRound)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const effectiveLastRound = resolvedEntity.effectiveLastRound}
@@ -507,7 +412,9 @@
 						<div>
 							<dt>effective last round</dt>
 							<dd>
-								<NumberValue value={Number(effectiveLastRound)} />
+								<NumberValue
+									value={effectiveLastRound}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -517,24 +424,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSyncedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
-						<div>
-							<dt>last synced AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}

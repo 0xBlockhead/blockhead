@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CctpAllowanceView from '$/views/CctpAllowanceView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					apiHost: true,
-					allowance: true,
-					fetchedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpAllowance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CctpAllowance}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				apiHost: true,
+				allowance: true,
+				fetchedAt: true,
+			},
+		})
+	}
+	getResourceItems={(cctpAllowances) => [...new Map(cctpAllowances.values.map((cctpAllowance) => [cctpAllowance[EntityMetaKey.SelectorKey], cctpAllowance])).values()]}
+	getKey={(cctpAllowance) => cctpAllowance[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No CCTP allowances yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cctpAllowances)}
-			{@const uniqueCctpAllowances = [...new Map(cctpAllowances.values.map((cctpAllowance) => [cctpAllowance[EntityMetaKey.SelectorKey], cctpAllowance])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpAllowance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cctpAllowances.totalCount}
-				getKey={(cctpAllowance) => cctpAllowance[EntityMetaKey.SelectorKey]}
-				items={uniqueCctpAllowances}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No CCTP allowances yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cctpAllowance })}
-					{@const cctpAllowanceFields = { ...cctpAllowance[EntityMetaKey.Selector], ...cctpAllowance }}
-					{@const selection = select(EntityType.CctpAllowance, cctpAllowance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CctpAllowanceView
-						selection={selection}
-						prefetched={cctpAllowanceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CctpAllowance}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cctpAllowance })}
+		{@const cctpAllowanceFields = { ...cctpAllowance[EntityMetaKey.Selector], ...cctpAllowance }}
+		{@const selection = select(EntityType.CctpAllowance, cctpAllowance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CctpAllowanceView
+			selection={selection}
+			prefetched={cctpAllowanceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { Snippet } from 'svelte'
 	import { SvelteMap } from 'svelte/reactivity'
 
@@ -148,6 +149,7 @@
 							{@render LabelSnippet({ node })}
 						{:else if address.network}
 							<EntityId
+								entityType={EntityType.EvmNetworkAccount}
 								entitySelector={{
 									$network: {
 										caip2: {
@@ -165,6 +167,7 @@
 							</EntityId>
 						{:else}
 							<EntityId
+								entityType={EntityType.EvmAccount}
 								entitySelector={{ address: address.address }}
 								href={navHref}
 							>
@@ -280,6 +283,7 @@
 						{:else}
 							{#if address?.network}
 								<EntityId
+									entityType={EntityType.EvmNetworkAccount}
 									entitySelector={{
 										$network: {
 											caip2: {
@@ -296,6 +300,7 @@
 								</EntityId>
 							{:else if address}
 								<EntityId
+									entityType={EntityType.EvmAccount}
 									entitySelector={{ address: address.address }}
 								>
 									{#snippet children()}

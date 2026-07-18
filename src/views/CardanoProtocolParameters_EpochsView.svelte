@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoProtocolParameters_EpochView from '$/views/CardanoProtocolParameters_EpochView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoProtocolParameters_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoProtocolParameters_Epoch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoProtocolParametersEpochs) => [...new Map(cardanoProtocolParametersEpochs.values.map((cardanoProtocolParametersEpoch) => [cardanoProtocolParametersEpoch[EntityMetaKey.SelectorKey], cardanoProtocolParametersEpoch])).values()]}
+	getKey={(cardanoProtocolParametersEpoch) => cardanoProtocolParametersEpoch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano protocol parameters epochs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoProtocolParametersEpochs)}
-			{@const uniqueCardanoProtocolParametersEpochs = [...new Map(cardanoProtocolParametersEpochs.values.map((cardanoProtocolParametersEpoch) => [cardanoProtocolParametersEpoch[EntityMetaKey.SelectorKey], cardanoProtocolParametersEpoch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoProtocolParameters_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoProtocolParametersEpochs.totalCount}
-				getKey={(cardanoProtocolParametersEpoch) => cardanoProtocolParametersEpoch[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoProtocolParametersEpochs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano protocol parameters epochs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoProtocolParametersEpoch })}
-					{@const cardanoProtocolParametersEpochFields = { ...cardanoProtocolParametersEpoch[EntityMetaKey.Selector], ...cardanoProtocolParametersEpoch }}
-					{@const selection = select(EntityType.CardanoProtocolParameters_Epoch, cardanoProtocolParametersEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoProtocolParameters_EpochView
-						selection={selection}
-						prefetched={cardanoProtocolParametersEpochFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoProtocolParameters_Epoch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoProtocolParametersEpoch })}
+		{@const cardanoProtocolParametersEpochFields = { ...cardanoProtocolParametersEpoch[EntityMetaKey.Selector], ...cardanoProtocolParametersEpoch }}
+		{@const selection = select(EntityType.CardanoProtocolParameters_Epoch, cardanoProtocolParametersEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoProtocolParameters_EpochView
+			selection={selection}
+			prefetched={cardanoProtocolParametersEpochFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

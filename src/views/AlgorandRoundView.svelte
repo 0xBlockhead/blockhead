@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandRound = $derived(selection({}))
+	const algorandRound = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand round')
 	const viewDomId = $derived('algorand-round-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandRound}>
-			{#snippet Pending()}
-				{title || 'algorand round'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandRound}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									round: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const round = pendingEntity.round}
-							{#if round !== undefined && round !== null}
-								{String((round) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const round = resolvedEntity.round}
@@ -123,24 +119,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hash = resolvedEntity.hash}
@@ -160,24 +145,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -195,24 +169,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							genesisHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const genesisHash = pendingEntity.genesisHash}
-					{#if genesisHash !== undefined && genesisHash !== null}
-						<div>
-							<dt>genesis hash</dt>
-							<dd>
-								<TruncatedValue value={String((genesisHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const genesisHash = resolvedEntity.genesisHash}
@@ -230,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proposer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proposer = pendingEntity.proposer}
-					{#if proposer !== undefined && proposer !== null}
-						<div>
-							<dt>proposer</dt>
-							<dd>
-								{String((proposer) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proposer = resolvedEntity.proposer}

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiCheckpoint = $derived(selection({}))
+	const suiCheckpoint = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui checkpoint')
 	const viewDomId = $derived('sui-checkpoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiCheckpoint}>
-			{#snippet Pending()}
-				{title || 'Sui checkpoint'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiCheckpoint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sequence: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sequence = pendingEntity.sequence}
-							{#if sequence !== undefined && sequence !== null}
-								{String((sequence) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sequence = resolvedEntity.sequence}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									digest: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const digest = pendingEntity.digest}
-							{#if digest !== undefined && digest !== null}
-								<TruncatedValue value={String((digest) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const digest = resolvedEntity.digest}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const epoch = pendingEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
-						<div>
-							<dt>epoch</dt>
-							<dd>
-								{String((epoch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const epoch = resolvedEntity.epoch}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previousDigest: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previousDigest = pendingEntity.previousDigest}
-					{#if previousDigest !== undefined && previousDigest !== null}
-						<div>
-							<dt>previous digest</dt>
-							<dd>
-								<TruncatedValue value={String((previousDigest) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previousDigest = resolvedEntity.previousDigest}

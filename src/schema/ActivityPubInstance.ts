@@ -8,7 +8,7 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum ActivityPubInstanceSelector {
-	InstanceOriginSource = 'InstanceOriginSource',
+	InstanceOrigin = 'InstanceOrigin',
 }
 export const ActivityPubInstance = entity({
 	entityType: EntityType.ActivityPubInstance,
@@ -24,44 +24,10 @@ export const ActivityPubInstance = entity({
 		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.One,
 	},
-	source: {
-		label: 'Source',
-		description: 'The source that observes this ActivityPub instance.',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	title: {
-		label: 'Title',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	description: {
-		label: 'Description',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	version: {
-		label: 'Version',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$$peers: {
-		label: 'Peers',
+	$$timestamps: {
+		label: 'Observations',
 		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ActivityPubInstancePeer,
-		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Mastodon_Rest,
-		],
-	},
-	$$moderatedDomains: {
-		label: 'Moderated domains',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.ActivityPubInstanceModeratedDomain,
+		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Mastodon_Rest,
@@ -69,9 +35,8 @@ export const ActivityPubInstance = entity({
 	},
 })({
 	selectors: {
-		InstanceOriginSource: [
+		InstanceOrigin: [
 			'instanceOrigin',
-			'source',
 		],
 	},
 })

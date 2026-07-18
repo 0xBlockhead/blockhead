@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearAccessKey_TimestampView from '$/views/NearAccessKey_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					permission: true,
-					blockHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccessKey_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearAccessKey_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				permission: true,
+				blockHeight: true,
+			},
+		})
+	}
+	getResourceItems={(nearAccessKeyTimestamps) => [...new Map(nearAccessKeyTimestamps.values.map((nearAccessKeyTimestamp) => [nearAccessKeyTimestamp[EntityMetaKey.SelectorKey], nearAccessKeyTimestamp])).values()]}
+	getKey={(nearAccessKeyTimestamp) => nearAccessKeyTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near access key observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearAccessKeyTimestamps)}
-			{@const uniqueNearAccessKeyTimestamps = [...new Map(nearAccessKeyTimestamps.values.map((nearAccessKeyTimestamp) => [nearAccessKeyTimestamp[EntityMetaKey.SelectorKey], nearAccessKeyTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccessKey_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearAccessKeyTimestamps.totalCount}
-				getKey={(nearAccessKeyTimestamp) => nearAccessKeyTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNearAccessKeyTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near access key observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearAccessKeyTimestamp })}
-					{@const nearAccessKeyTimestampFields = { ...nearAccessKeyTimestamp[EntityMetaKey.Selector], ...nearAccessKeyTimestamp }}
-					{@const selection = select(EntityType.NearAccessKey_Timestamp, nearAccessKeyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearAccessKey_TimestampView
-						selection={selection}
-						prefetched={nearAccessKeyTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearAccessKey_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearAccessKeyTimestamp })}
+		{@const nearAccessKeyTimestampFields = { ...nearAccessKeyTimestamp[EntityMetaKey.Selector], ...nearAccessKeyTimestamp }}
+		{@const selection = select(EntityType.NearAccessKey_Timestamp, nearAccessKeyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearAccessKey_TimestampView
+			selection={selection}
+			prefetched={nearAccessKeyTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

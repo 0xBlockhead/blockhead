@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidOrder_TimestampView from '$/views/HyperliquidOrder_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidOrder_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidOrder_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidOrderTimestamps) => [...new Map(hyperliquidOrderTimestamps.values.map((hyperliquidOrderTimestamp) => [hyperliquidOrderTimestamp[EntityMetaKey.SelectorKey], hyperliquidOrderTimestamp])).values()]}
+	getKey={(hyperliquidOrderTimestamp) => hyperliquidOrderTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid order observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidOrderTimestamps)}
-			{@const uniqueHyperliquidOrderTimestamps = [...new Map(hyperliquidOrderTimestamps.values.map((hyperliquidOrderTimestamp) => [hyperliquidOrderTimestamp[EntityMetaKey.SelectorKey], hyperliquidOrderTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidOrder_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidOrderTimestamps.totalCount}
-				getKey={(hyperliquidOrderTimestamp) => hyperliquidOrderTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidOrderTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid order observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidOrderTimestamp })}
-					{@const hyperliquidOrderTimestampFields = { ...hyperliquidOrderTimestamp[EntityMetaKey.Selector], ...hyperliquidOrderTimestamp }}
-					{@const selection = select(EntityType.HyperliquidOrder_Timestamp, hyperliquidOrderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidOrder_TimestampView
-						selection={selection}
-						prefetched={hyperliquidOrderTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidOrder_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidOrderTimestamp })}
+		{@const hyperliquidOrderTimestampFields = { ...hyperliquidOrderTimestamp[EntityMetaKey.Selector], ...hyperliquidOrderTimestamp }}
+		{@const selection = select(EntityType.HyperliquidOrder_Timestamp, hyperliquidOrderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidOrder_TimestampView
+			selection={selection}
+			prefetched={hyperliquidOrderTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

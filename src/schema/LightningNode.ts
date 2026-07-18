@@ -44,12 +44,6 @@ export const LightningNode = entity({
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$localNodeStates: {
-		label: 'Local node states',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.BlockheadLightningNodeState,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		NetworkPublicKey: [

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,7 +46,9 @@
 			{@const DetailView = BridgeRouteView}
 
 			<DetailView
-				selection={select(EntityType.BridgeRoute, data.selector)}
+				selection={select(EntityType.BridgeRoute, data.selector, { sources: [
+		Source.Lifi_Rest,
+	] })}
 				href={
 					resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
 						fromChainId: params.fromChainId,

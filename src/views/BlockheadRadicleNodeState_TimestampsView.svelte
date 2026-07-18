@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadRadicleNodeState_TimestampView from '$/views/BlockheadRadicleNodeState_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					alias: true,
-					nodeVersion: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRadicleNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadRadicleNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				alias: true,
+				nodeVersion: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadRadicleNodeStateTimestamps) => [...new Map(blockheadRadicleNodeStateTimestamps.values.map((blockheadRadicleNodeStateTimestamp) => [blockheadRadicleNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadRadicleNodeStateTimestamp])).values()]}
+	getKey={(blockheadRadicleNodeStateTimestamp) => blockheadRadicleNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead radicle node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadRadicleNodeStateTimestamps)}
-			{@const uniqueBlockheadRadicleNodeStateTimestamps = [...new Map(blockheadRadicleNodeStateTimestamps.values.map((blockheadRadicleNodeStateTimestamp) => [blockheadRadicleNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadRadicleNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRadicleNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRadicleNodeStateTimestamps.totalCount}
-				getKey={(blockheadRadicleNodeStateTimestamp) => blockheadRadicleNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadRadicleNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead radicle node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadRadicleNodeStateTimestamp })}
-					{@const blockheadRadicleNodeStateTimestampFields = { ...blockheadRadicleNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadRadicleNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadRadicleNodeState_Timestamp, blockheadRadicleNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadRadicleNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadRadicleNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadRadicleNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadRadicleNodeStateTimestamp })}
+		{@const blockheadRadicleNodeStateTimestampFields = { ...blockheadRadicleNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadRadicleNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadRadicleNodeState_Timestamp, blockheadRadicleNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadRadicleNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadRadicleNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

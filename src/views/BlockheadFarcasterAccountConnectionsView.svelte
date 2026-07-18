@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
 </script>
@@ -62,85 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					displayName: true,
-					username: true,
-					fid: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadFarcasterAccountConnection}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$user: true,
+				authMethod: true,
+				connectionId: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadFarcasterAccountConnections) => [...new Map(blockheadFarcasterAccountConnections.values.map((blockheadFarcasterAccountConnection) => [blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey], blockheadFarcasterAccountConnection])).values()]}
+	getKey={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Farcaster account connections yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadFarcasterAccountConnections)}
-			{@const uniqueBlockheadFarcasterAccountConnections = [...new Map(blockheadFarcasterAccountConnections.values.map((blockheadFarcasterAccountConnection) => [blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey], blockheadFarcasterAccountConnection])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadFarcasterAccountConnections.totalCount}
-				getKey={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadFarcasterAccountConnections}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Farcaster account connections yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadFarcasterAccountConnection })}
-					{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
-					{@const selection = select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadFarcasterAccountConnectionHrefFields = { ...blockheadFarcasterAccountConnection, ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector] }}
-					<BlockheadFarcasterAccountConnectionView
-						selection={selection}
-						prefetched={blockheadFarcasterAccountConnectionFields}
-						href={
-							(blockheadFarcasterAccountConnectionHrefFields.fid !== undefined ? resolve('/farcaster/account/[accountId=nonNegativeInteger]', {
-								accountId: String(blockheadFarcasterAccountConnectionHrefFields.fid ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadFarcasterAccountConnection}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadFarcasterAccountConnection })}
+		{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
+		{@const selection = select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadFarcasterAccountConnectionHrefFields = { ...blockheadFarcasterAccountConnection, ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector] }}
+		<BlockheadFarcasterAccountConnectionView
+			selection={selection}
+			prefetched={blockheadFarcasterAccountConnectionFields}
+			href={
+				(blockheadFarcasterAccountConnectionHrefFields.connectionId !== undefined ? resolve('/farcaster/account/[connectionId=stringSegment]', {
+					connectionId: String(blockheadFarcasterAccountConnectionHrefFields.connectionId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ArweaveBlockView from '$/views/ArweaveBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					height: true,
-					timestampMs: true,
-					indepHash: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ArweaveBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				height: true,
+				timestampMs: true,
+				indepHash: true,
+			},
+		})
+	}
+	getResourceItems={(arweaveBlocks) => [...new Map(arweaveBlocks.values.map((arweaveBlock) => [arweaveBlock[EntityMetaKey.SelectorKey], arweaveBlock])).values()]}
+	getKey={(arweaveBlock) => arweaveBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Arweave blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(arweaveBlocks)}
-			{@const uniqueArweaveBlocks = [...new Map(arweaveBlocks.values.map((arweaveBlock) => [arweaveBlock[EntityMetaKey.SelectorKey], arweaveBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={arweaveBlocks.totalCount}
-				getKey={(arweaveBlock) => arweaveBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueArweaveBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Arweave blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: arweaveBlock })}
-					{@const arweaveBlockFields = { ...arweaveBlock[EntityMetaKey.Selector], ...arweaveBlock }}
-					{@const selection = select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ArweaveBlockView
-						selection={selection}
-						prefetched={arweaveBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ArweaveBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: arweaveBlock })}
+		{@const arweaveBlockFields = { ...arweaveBlock[EntityMetaKey.Selector], ...arweaveBlock }}
+		{@const selection = select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ArweaveBlockView
+			selection={selection}
+			prefetched={arweaveBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

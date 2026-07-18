@@ -122,7 +122,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SpecificationProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
@@ -144,83 +143,49 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: selectedSources,
-				count: true,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SpecificationProposal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SpecificationProposal}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			sources: selectedSources,
+			count: true,
+		})
+	}
+	getResourceItems={(specificationProposals) => [...new Map(specificationProposals.values.filter((specificationProposal) => (filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm) && (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory)).map((specificationProposal) => [specificationProposal[EntityMetaKey.SelectorKey], specificationProposal])).values()]}
+	getKey={(specificationProposal) => specificationProposal[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Specification proposals yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(specificationProposals)}
-			{@const uniqueSpecificationProposals = [...new Map(specificationProposals.values.filter((specificationProposal) => (filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm) && (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory)).map((specificationProposal) => [specificationProposal[EntityMetaKey.SelectorKey], specificationProposal])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SpecificationProposal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={specificationProposals.totalCount}
-				getKey={(specificationProposal) => specificationProposal[EntityMetaKey.SelectorKey]}
-				items={uniqueSpecificationProposals}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Specification proposals yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: specificationProposal })}
-					{@const specificationProposalFields = { ...specificationProposal[EntityMetaKey.Selector], ...specificationProposal }}
-					{@const selection = select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const specificationProposalHrefFields = { ...specificationProposal, ...specificationProposal[EntityMetaKey.Selector] }}
-					<SpecificationProposalView
-						selection={selection}
-						prefetched={specificationProposalFields}
-						href={
-							(specificationProposalHrefFields.realm !== undefined && specificationProposalHrefFields.category !== undefined && specificationProposalHrefFields.number !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
-								specificationRealmSlug: String(specificationRealmById[String(specificationProposalHrefFields.realm)].slug ?? ''),
-								proposalKindSlug: String(proposalCategoryById[String(specificationProposalHrefFields.category)].slug ?? ''),
-								proposalRef: `${String(String(proposalCategoryById[String(specificationProposalHrefFields.category)].label ?? '') ?? '')}-${String(specificationProposalHrefFields.number ?? '')}`,
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SpecificationProposal}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: specificationProposal })}
+		{@const specificationProposalFields = { ...specificationProposal[EntityMetaKey.Selector], ...specificationProposal }}
+		{@const selection = select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const specificationProposalHrefFields = { ...specificationProposal, ...specificationProposal[EntityMetaKey.Selector] }}
+		<SpecificationProposalView
+			selection={selection}
+			prefetched={specificationProposalFields}
+			href={
+				(specificationProposalHrefFields.realm !== undefined && specificationProposalHrefFields.category !== undefined && specificationProposalHrefFields.number !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
+					specificationRealmSlug: String(specificationRealmById[String(specificationProposalHrefFields.realm)].slug ?? ''),
+					proposalKindSlug: String(proposalCategoryById[String(specificationProposalHrefFields.category)].slug ?? ''),
+					proposalRef: `${String(String(proposalCategoryById[String(specificationProposalHrefFields.category)].label ?? '') ?? '')}-${String(specificationProposalHrefFields.number ?? '')}`,
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

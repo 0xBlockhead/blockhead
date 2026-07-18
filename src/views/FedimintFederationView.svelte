@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const fedimintFederation = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			name: true,
 			consensusVersion: true,
@@ -65,29 +66,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={fedimintFederation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={fedimintFederation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={fedimintFederation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={fedimintFederation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,19 +99,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									federationId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const federationId = pendingEntity.federationId}
-							{#if federationId !== undefined && federationId !== null}
-								{String((federationId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const federationId = resolvedEntity.federationId}
@@ -125,24 +120,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -160,24 +144,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consensusVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consensusVersion = pendingEntity.consensusVersion}
-					{#if consensusVersion !== undefined && consensusVersion !== null}
-						<div>
-							<dt>consensus version</dt>
-							<dd>
-								{String((consensusVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consensusVersion = resolvedEntity.consensusVersion}
@@ -197,24 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							guardianCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const guardianCount = pendingEntity.guardianCount}
-					{#if guardianCount !== undefined && guardianCount !== null}
-						<div>
-							<dt>guardian count</dt>
-							<dd>
-								<NumberValue value={Number(guardianCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const guardianCount = resolvedEntity.guardianCount}
@@ -222,7 +184,9 @@
 						<div>
 							<dt>guardian count</dt>
 							<dd>
-								<NumberValue value={Number(guardianCount)} />
+								<NumberValue
+									value={guardianCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -232,24 +196,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							guardianThreshold: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const guardianThreshold = pendingEntity.guardianThreshold}
-					{#if guardianThreshold !== undefined && guardianThreshold !== null}
-						<div>
-							<dt>guardian threshold</dt>
-							<dd>
-								<NumberValue value={Number(guardianThreshold)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const guardianThreshold = resolvedEntity.guardianThreshold}
@@ -257,7 +210,9 @@
 						<div>
 							<dt>guardian threshold</dt>
 							<dd>
-								<NumberValue value={Number(guardianThreshold)} />
+								<NumberValue
+									value={guardianThreshold}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -267,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clientConfigJson: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clientConfigJson = pendingEntity.clientConfigJson}
-					{#if clientConfigJson !== undefined && clientConfigJson !== null}
-						<div>
-							<dt>client config JSON</dt>
-							<dd>
-								{String((clientConfigJson) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clientConfigJson = resolvedEntity.clientConfigJson}
@@ -302,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moduleConfigJson: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moduleConfigJson = pendingEntity.moduleConfigJson}
-					{#if moduleConfigJson !== undefined && moduleConfigJson !== null}
-						<div>
-							<dt>module config JSON</dt>
-							<dd>
-								{String((moduleConfigJson) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moduleConfigJson = resolvedEntity.moduleConfigJson}

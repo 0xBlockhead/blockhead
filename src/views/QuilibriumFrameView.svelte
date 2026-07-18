@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const quilibriumFrame = $derived(selection({
-		sources: [
-			Source.QuilibriumNode_Grpc,
-		],
+		sources: selection.sources,
 		fields: {
 			frameHash: true,
 		},
@@ -77,58 +74,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={quilibriumFrame}>
-			{#snippet Pending()}
-				{@const frameNumber0 = pendingEntity.frameNumber}
-				{#if frameNumber0 !== undefined && frameNumber0 !== null}
-					<NumberValue value={Number(frameNumber0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const frameNumber0 = resolvedEntity.frameNumber}
-				{#if frameNumber0 !== undefined && frameNumber0 !== null}
-					<NumberValue value={Number(frameNumber0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const frameNumber0 = pendingEntity.frameNumber}
+					{#if frameNumber0 !== undefined && frameNumber0 !== null}
+						<NumberValue
+							value={frameNumber0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={quilibriumFrame}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const frameNumber0 = resolvedEntity.frameNumber}
+					{#if frameNumber0 !== undefined && frameNumber0 !== null}
+						<NumberValue
+							value={frameNumber0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={quilibriumFrame}>
-			{#snippet Pending()}
-				{[String((pendingEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || title || 'quilibrium frame'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={quilibriumFrame}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={quilibriumFrame}>
-			{#snippet Pending()}
-				{@const frameHash0 = pendingEntity.frameHash}
-				{#if frameHash0 !== undefined && frameHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((frameHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const frameHash0 = resolvedEntity.frameHash}
-				{#if frameHash0 !== undefined && frameHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((frameHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const frameHash0 = pendingEntity.frameHash}
+			{#if frameHash0 !== undefined && frameHash0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((frameHash0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={quilibriumFrame}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const frameHash0 = resolvedEntity.frameHash}
+					{#if frameHash0 !== undefined && frameHash0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((frameHash0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -157,24 +158,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									frameNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const frameNumber = pendingEntity.frameNumber}
-							{#if frameNumber !== undefined && frameNumber !== null}
-								<NumberValue value={Number(frameNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const frameNumber = resolvedEntity.frameNumber}
 							{#if frameNumber !== undefined && frameNumber !== null}
-								<NumberValue value={Number(frameNumber)} />
+								<NumberValue
+									value={frameNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -187,19 +184,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									shardKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const shardKey = pendingEntity.shardKey}
-							{#if shardKey !== undefined && shardKey !== null}
-								{String((shardKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const shardKey = resolvedEntity.shardKey}
@@ -214,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							frameHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const frameHash = pendingEntity.frameHash}
-					{#if frameHash !== undefined && frameHash !== null}
-						<div>
-							<dt>frame hash</dt>
-							<dd>
-								<TruncatedValue value={String((frameHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const frameHash = resolvedEntity.frameHash}
@@ -249,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -286,24 +255,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							difficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const difficulty = pendingEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
-						<div>
-							<dt>difficulty</dt>
-							<dd>
-								<NumberValue value={Number(difficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const difficulty = resolvedEntity.difficulty}
@@ -311,7 +269,9 @@
 						<div>
 							<dt>difficulty</dt>
 							<dd>
-								<NumberValue value={Number(difficulty)} />
+								<NumberValue
+									value={difficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -321,8 +281,6 @@
 			<ResourceBoundary
 				resource={selection.$shard}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(quilibriumShard)}
 					{#if quilibriumShard != null && quilibriumShard[EntityMetaKey.Selector] != null}
 						<div>
@@ -343,8 +301,6 @@
 			<ResourceBoundary
 				resource={selection.$prover}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(quilibriumProver)}
 					{#if quilibriumProver != null && quilibriumProver[EntityMetaKey.Selector] != null}
 						<div>

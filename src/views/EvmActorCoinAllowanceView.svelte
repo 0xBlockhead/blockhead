@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,11 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmActorCoinAllowance = $derived(selection({
-		sources: [
-			Source.EnvioHyperSync_RawHttp,
-			Source.SqdPortal_RawHttp,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('allowance')
 	const viewDomId = $derived('evm-actor-coin-allowance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -82,11 +77,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmActorCoinAllowance}>
-			{#snippet Pending()}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -95,16 +89,16 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmContractView
-					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmActorCoinAllowance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmContractView
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+						href={
 						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
@@ -113,42 +107,43 @@
 							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmActorCoinAllowance}>
-			{#snippet Pending()}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
+						href={
 						(selection.entitySelector.$spender.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$spender.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmActorCoinAllowance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
+						href={
 						(selection.entitySelector.$spender.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$spender.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -240,19 +235,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									interopAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const interopAddress = pendingEntity.interopAddress}
-							{#if interopAddress !== undefined && interopAddress !== null}
-								<TruncatedValue value={String((interopAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const interopAddress = resolvedEntity.interopAddress}
@@ -267,8 +256,6 @@
 			<ResourceBoundary
 				resource={selection.$spenderContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>

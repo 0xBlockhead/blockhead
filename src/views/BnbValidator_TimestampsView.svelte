@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbValidator_TimestampView from '$/views/BnbValidator_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					jailed: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbValidator_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbValidator_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				jailed: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(bnbValidatorTimestamps) => [...new Map(bnbValidatorTimestamps.values.map((bnbValidatorTimestamp) => [bnbValidatorTimestamp[EntityMetaKey.SelectorKey], bnbValidatorTimestamp])).values()]}
+	getKey={(bnbValidatorTimestamp) => bnbValidatorTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb validator observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbValidatorTimestamps)}
-			{@const uniqueBnbValidatorTimestamps = [...new Map(bnbValidatorTimestamps.values.map((bnbValidatorTimestamp) => [bnbValidatorTimestamp[EntityMetaKey.SelectorKey], bnbValidatorTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbValidator_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbValidatorTimestamps.totalCount}
-				getKey={(bnbValidatorTimestamp) => bnbValidatorTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbValidatorTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb validator observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbValidatorTimestamp })}
-					{@const bnbValidatorTimestampFields = { ...bnbValidatorTimestamp[EntityMetaKey.Selector], ...bnbValidatorTimestamp }}
-					{@const selection = select(EntityType.BnbValidator_Timestamp, bnbValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbValidator_TimestampView
-						selection={selection}
-						prefetched={bnbValidatorTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbValidator_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbValidatorTimestamp })}
+		{@const bnbValidatorTimestampFields = { ...bnbValidatorTimestamp[EntityMetaKey.Selector], ...bnbValidatorTimestamp }}
+		{@const selection = select(EntityType.BnbValidator_Timestamp, bnbValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbValidator_TimestampView
+			selection={selection}
+			prefetched={bnbValidatorTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

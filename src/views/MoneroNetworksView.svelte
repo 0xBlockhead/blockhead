@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
 </script>
@@ -62,79 +61,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoneroNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(moneroNetworks) => [...new Map(moneroNetworks.values.map((moneroNetwork) => [moneroNetwork[EntityMetaKey.SelectorKey], moneroNetwork])).values()]}
+	getKey={(moneroNetwork) => moneroNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Monero networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moneroNetworks)}
-			{@const uniqueMoneroNetworks = [...new Map(moneroNetworks.values.map((moneroNetwork) => [moneroNetwork[EntityMetaKey.SelectorKey], moneroNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moneroNetworks.totalCount}
-				getKey={(moneroNetwork) => moneroNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueMoneroNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Monero networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moneroNetwork })}
-					{@const moneroNetworkFields = { ...moneroNetwork[EntityMetaKey.Selector], ...moneroNetwork }}
-					{@const selection = select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoneroNetworkView
-						selection={selection}
-						prefetched={moneroNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoneroNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moneroNetwork })}
+		{@const moneroNetworkFields = { ...moneroNetwork[EntityMetaKey.Selector], ...moneroNetwork }}
+		{@const selection = select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoneroNetworkView
+			selection={selection}
+			prefetched={moneroNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

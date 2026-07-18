@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoTxInputView from '$/views/CardanoTxInputView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoTxInput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoTxInput}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoTxInputs) => [...new Map(cardanoTxInputs.values.map((cardanoTxInput) => [cardanoTxInput[EntityMetaKey.SelectorKey], cardanoTxInput])).values()]}
+	getKey={(cardanoTxInput) => cardanoTxInput[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano transaction inputs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoTxInputs)}
-			{@const uniqueCardanoTxInputs = [...new Map(cardanoTxInputs.values.map((cardanoTxInput) => [cardanoTxInput[EntityMetaKey.SelectorKey], cardanoTxInput])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoTxInput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoTxInputs.totalCount}
-				getKey={(cardanoTxInput) => cardanoTxInput[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoTxInputs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano transaction inputs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoTxInput })}
-					{@const cardanoTxInputFields = { ...cardanoTxInput[EntityMetaKey.Selector], ...cardanoTxInput }}
-					{@const selection = select(EntityType.CardanoTxInput, cardanoTxInput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoTxInputView
-						selection={selection}
-						prefetched={cardanoTxInputFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoTxInput}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoTxInput })}
+		{@const cardanoTxInputFields = { ...cardanoTxInput[EntityMetaKey.Selector], ...cardanoTxInput }}
+		{@const selection = select(EntityType.CardanoTxInput, cardanoTxInput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoTxInputView
+			selection={selection}
+			prefetched={cardanoTxInputFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

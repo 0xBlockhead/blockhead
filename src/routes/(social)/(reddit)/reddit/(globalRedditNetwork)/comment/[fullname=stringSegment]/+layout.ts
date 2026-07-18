@@ -15,7 +15,7 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		RedditCommentSchema,
 		{
-			fullname: params.fullname,
+			fullname: decodeURIComponent(params.fullname),
 		}
 	)
 	if (redditCommentFullnameSelector instanceof arktype.errors) error(404, 'Invalid RedditComment selector')

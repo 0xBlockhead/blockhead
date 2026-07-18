@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainNetworks) => [...new Map(dydxChainNetworks.values.map((dydxChainNetwork) => [dydxChainNetwork[EntityMetaKey.SelectorKey], dydxChainNetwork])).values()]}
+	getKey={(dydxChainNetwork) => dydxChainNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainNetworks)}
-			{@const uniqueDydxChainNetworks = [...new Map(dydxChainNetworks.values.map((dydxChainNetwork) => [dydxChainNetwork[EntityMetaKey.SelectorKey], dydxChainNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainNetworks.totalCount}
-				getKey={(dydxChainNetwork) => dydxChainNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainNetwork })}
-					{@const dydxChainNetworkFields = { ...dydxChainNetwork[EntityMetaKey.Selector], ...dydxChainNetwork }}
-					{@const selection = select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainNetworkView
-						selection={selection}
-						prefetched={dydxChainNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainNetwork })}
+		{@const dydxChainNetworkFields = { ...dydxChainNetwork[EntityMetaKey.Selector], ...dydxChainNetwork }}
+		{@const selection = select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainNetworkView
+			selection={selection}
+			prefetched={dydxChainNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

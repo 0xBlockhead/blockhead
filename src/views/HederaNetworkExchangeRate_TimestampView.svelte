@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNetworkExchangeRateTimestamp = $derived(selection({}))
+	const hederaNetworkExchangeRateTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera network exchange rate timestamp')
 	const viewDomId = $derived('hedera-network-exchange-rate-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaNetworkExchangeRateTimestamp}>
-			{#snippet Pending()}
-				{title || 'hedera network exchange rate timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaNetworkExchangeRateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -132,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -159,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							currentRateCentEquivalent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const currentRateCentEquivalent = pendingEntity.currentRateCentEquivalent}
-					{#if currentRateCentEquivalent !== undefined && currentRateCentEquivalent !== null}
-						<div>
-							<dt>current rate cent equivalent</dt>
-							<dd>
-								{String((currentRateCentEquivalent) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const currentRateCentEquivalent = resolvedEntity.currentRateCentEquivalent}
@@ -194,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							currentRateHbarEquivalent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const currentRateHbarEquivalent = pendingEntity.currentRateHbarEquivalent}
-					{#if currentRateHbarEquivalent !== undefined && currentRateHbarEquivalent !== null}
-						<div>
-							<dt>current rate HBAR equivalent</dt>
-							<dd>
-								{String((currentRateHbarEquivalent) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const currentRateHbarEquivalent = resolvedEntity.currentRateHbarEquivalent}
@@ -229,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							currentRateExpirationTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const currentRateExpirationTime = pendingEntity.currentRateExpirationTime}
-					{#if currentRateExpirationTime !== undefined && currentRateExpirationTime !== null}
-						<div>
-							<dt>current rate expiration time</dt>
-							<dd>
-								{String((currentRateExpirationTime) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const currentRateExpirationTime = resolvedEntity.currentRateExpirationTime}
@@ -264,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextRateCentEquivalent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextRateCentEquivalent = pendingEntity.nextRateCentEquivalent}
-					{#if nextRateCentEquivalent !== undefined && nextRateCentEquivalent !== null}
-						<div>
-							<dt>next rate cent equivalent</dt>
-							<dd>
-								{String((nextRateCentEquivalent) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextRateCentEquivalent = resolvedEntity.nextRateCentEquivalent}
@@ -299,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextRateHbarEquivalent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextRateHbarEquivalent = pendingEntity.nextRateHbarEquivalent}
-					{#if nextRateHbarEquivalent !== undefined && nextRateHbarEquivalent !== null}
-						<div>
-							<dt>next rate HBAR equivalent</dt>
-							<dd>
-								{String((nextRateHbarEquivalent) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextRateHbarEquivalent = resolvedEntity.nextRateHbarEquivalent}
@@ -334,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextRateExpirationTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextRateExpirationTime = pendingEntity.nextRateExpirationTime}
-					{#if nextRateExpirationTime !== undefined && nextRateExpirationTime !== null}
-						<div>
-							<dt>next rate expiration time</dt>
-							<dd>
-								{String((nextRateExpirationTime) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextRateExpirationTime = resolvedEntity.nextRateExpirationTime}

@@ -14,7 +14,6 @@
 	import { EvmNftFormat, EvmNftStandard } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -48,9 +47,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNft = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			format: true,
 			name: true,
@@ -102,16 +99,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNft}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmNft}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -154,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenId = pendingEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenId = resolvedEntity.tokenId}
@@ -184,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									standard: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const standard = pendingEntity.standard}
-							{#if standard !== undefined && standard !== null}
-								{String((standard) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const standard = resolvedEntity.standard}
@@ -214,19 +199,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									format: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const format = pendingEntity.format}
-							{#if format !== undefined && format !== null}
-								{String((format) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const format = resolvedEntity.format}
@@ -248,15 +227,8 @@
 						<dt>Agent registry</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection.agentRegistry({
-										fields: {
-											agentRegistry: true,
-										},
-									})
-								}
+								resource={projection.agentRegistry}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(agentRegistry)}
 									{#if agentRegistry !== undefined && agentRegistry !== null}
 										{String((agentRegistry) ?? '')}
@@ -270,15 +242,8 @@
 						<dt>Agent ID</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection.agentId({
-										fields: {
-											agentId: true,
-										},
-									})
-								}
+								resource={projection.agentId}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(agentId)}
 									{#if agentId !== undefined && agentId !== null}
 										{String((agentId) ?? '')}
@@ -289,15 +254,8 @@
 					</div>
 
 					<ResourceBoundary
-						resource={
-							projection.agentUri({
-								fields: {
-									agentUri: true,
-								},
-							})
-						}
+						resource={projection.agentUri}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(agentUri)}
 							{#if agentUri !== undefined && agentUri !== null}
 								<div>
@@ -318,15 +276,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.contactEndpoint({
-								fields: {
-									contactEndpoint: true,
-								},
-							})
-						}
+						resource={projection.contactEndpoint}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(contactEndpoint)}
 							{#if contactEndpoint !== undefined && contactEndpoint !== null}
 								<div>
@@ -342,8 +293,6 @@
 					<ResourceBoundary
 						resource={projection.$agentWallet}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(evmAccount)}
 							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 								<div>
@@ -375,15 +324,8 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.x402Support({
-								fields: {
-									x402Support: true,
-								},
-							})
-						}
+						resource={projection.x402Support}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(x402Support)}
 							{#if x402Support !== undefined && x402Support !== null}
 								<div>
@@ -401,24 +343,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							active: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const active = pendingEntity.active}
-					{#if active !== undefined && active !== null}
-						<div>
-							<dt>Active</dt>
-							<dd>
-								{active ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const active = resolvedEntity.active}
@@ -438,15 +369,8 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.supportedTrust({
-								fields: {
-									supportedTrust: true,
-								},
-							})
-						}
+						resource={projection.supportedTrust}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(supportedTrust)}
 							{#if supportedTrust !== undefined && supportedTrust !== null}
 								<div>
@@ -460,15 +384,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.registrationTypeIri({
-								fields: {
-									registrationTypeIri: true,
-								},
-							})
-						}
+						resource={projection.registrationTypeIri}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(registrationTypeIri)}
 							{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
 								<div>
@@ -482,15 +399,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.fetchedAt({
-								fields: {
-									fetchedAt: true,
-								},
-							})
-						}
+						resource={projection.fetchedAt}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(fetchedAt)}
 							{#if fetchedAt !== undefined && fetchedAt !== null}
 								<div>
@@ -509,6 +419,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						description: true,
 					},

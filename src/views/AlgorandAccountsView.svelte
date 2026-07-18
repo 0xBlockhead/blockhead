@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandAccountView from '$/views/AlgorandAccountView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandAccounts) => [...new Map(algorandAccounts.values.map((algorandAccount) => [algorandAccount[EntityMetaKey.SelectorKey], algorandAccount])).values()]}
+	getKey={(algorandAccount) => algorandAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandAccounts)}
-			{@const uniqueAlgorandAccounts = [...new Map(algorandAccounts.values.map((algorandAccount) => [algorandAccount[EntityMetaKey.SelectorKey], algorandAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandAccounts.totalCount}
-				getKey={(algorandAccount) => algorandAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandAccount })}
-					{@const algorandAccountFields = { ...algorandAccount[EntityMetaKey.Selector], ...algorandAccount }}
-					{@const selection = select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandAccountView
-						selection={selection}
-						prefetched={algorandAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandAccount })}
+		{@const algorandAccountFields = { ...algorandAccount[EntityMetaKey.Selector], ...algorandAccount }}
+		{@const selection = select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandAccountView
+			selection={selection}
+			prefetched={algorandAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

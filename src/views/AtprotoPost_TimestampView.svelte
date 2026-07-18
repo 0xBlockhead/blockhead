@@ -37,7 +37,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoPostTimestamp = $derived(selection({}))
+	const atprotoPostTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation')
 	const viewDomId = $derived('atproto-post-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -57,7 +59,7 @@
 	href={
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$post !== undefined && pendingEntity.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			uri: String(pendingEntity.$post.uri ?? ''),
+			uri: encodeURIComponent(String(pendingEntity.$post.uri ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -65,22 +67,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={atprotoPostTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={atprotoPostTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -91,19 +93,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -118,24 +114,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							likeCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const likeCount = pendingEntity.likeCount}
-					{#if likeCount !== undefined && likeCount !== null}
-						<div>
-							<dt>Likes</dt>
-							<dd>
-								<NumberValue value={Number(likeCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const likeCount = resolvedEntity.likeCount}
@@ -143,7 +128,9 @@
 						<div>
 							<dt>Likes</dt>
 							<dd>
-								<NumberValue value={Number(likeCount)} />
+								<NumberValue
+									value={likeCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -153,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							repostCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const repostCount = pendingEntity.repostCount}
-					{#if repostCount !== undefined && repostCount !== null}
-						<div>
-							<dt>Reposts</dt>
-							<dd>
-								<NumberValue value={Number(repostCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const repostCount = resolvedEntity.repostCount}
@@ -178,7 +154,9 @@
 						<div>
 							<dt>Reposts</dt>
 							<dd>
-								<NumberValue value={Number(repostCount)} />
+								<NumberValue
+									value={repostCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -188,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyCount = pendingEntity.replyCount}
-					{#if replyCount !== undefined && replyCount !== null}
-						<div>
-							<dt>Replies</dt>
-							<dd>
-								<NumberValue value={Number(replyCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyCount = resolvedEntity.replyCount}
@@ -213,7 +180,9 @@
 						<div>
 							<dt>Replies</dt>
 							<dd>
-								<NumberValue value={Number(replyCount)} />
+								<NumberValue
+									value={replyCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -223,24 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							quoteCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const quoteCount = pendingEntity.quoteCount}
-					{#if quoteCount !== undefined && quoteCount !== null}
-						<div>
-							<dt>Quotes</dt>
-							<dd>
-								<NumberValue value={Number(quoteCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const quoteCount = resolvedEntity.quoteCount}
@@ -248,7 +206,9 @@
 						<div>
 							<dt>Quotes</dt>
 							<dd>
-								<NumberValue value={Number(quoteCount)} />
+								<NumberValue
+									value={quoteCount}
+								/>
 							</dd>
 						</div>
 					{/if}

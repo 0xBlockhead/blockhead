@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					precompileName: true,
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmContract}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				precompileName: true,
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(evmContracts) => [...new Map(evmContracts.values.map((evmContract) => [evmContract[EntityMetaKey.SelectorKey], evmContract])).values()]}
+	getKey={(evmContract) => evmContract[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM contracts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmContracts)}
-			{@const uniqueEvmContracts = [...new Map(evmContracts.values.map((evmContract) => [evmContract[EntityMetaKey.SelectorKey], evmContract])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmContracts.totalCount}
-				getKey={(evmContract) => evmContract[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmContracts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM contracts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmContract })}
-					{@const evmContractFields = { ...evmContract[EntityMetaKey.Selector], ...evmContract }}
-					{@const selection = select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmContractHrefFields = { ...evmContract, ...evmContract[EntityMetaKey.Selector] }}
-					<EvmContractView
-						selection={selection}
-						prefetched={evmContractFields}
-						href={
-							(evmContractHrefFields.address !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(evmContractHrefFields.address ?? ''),
-								network: String(caip2StringFromValue(evmContractHrefFields.$network.caip2) ?? ''),
-							}) : evmContractHrefFields.address !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(evmContractHrefFields.address ?? ''),
-								network: String(evmContractHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmContract}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmContract })}
+		{@const evmContractFields = { ...evmContract[EntityMetaKey.Selector], ...evmContract }}
+		{@const selection = select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmContractHrefFields = { ...evmContract, ...evmContract[EntityMetaKey.Selector] }}
+		<EvmContractView
+			selection={selection}
+			prefetched={evmContractFields}
+			href={
+				(evmContractHrefFields.address !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+					address: String(evmContractHrefFields.address ?? ''),
+					network: String(caip2StringFromValue(evmContractHrefFields.$network.caip2) ?? ''),
+				}) : evmContractHrefFields.address !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+					address: String(evmContractHrefFields.address ?? ''),
+					network: String(evmContractHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitObjectVerification_TimestampView from '$/views/GitObjectVerification_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					status: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitObjectVerification_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitObjectVerification_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				status: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(gitObjectVerificationTimestamps) => [...new Map(gitObjectVerificationTimestamps.values.map((gitObjectVerificationTimestamp) => [gitObjectVerificationTimestamp[EntityMetaKey.SelectorKey], gitObjectVerificationTimestamp])).values()]}
+	getKey={(gitObjectVerificationTimestamp) => gitObjectVerificationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git object verification observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitObjectVerificationTimestamps)}
-			{@const uniqueGitObjectVerificationTimestamps = [...new Map(gitObjectVerificationTimestamps.values.map((gitObjectVerificationTimestamp) => [gitObjectVerificationTimestamp[EntityMetaKey.SelectorKey], gitObjectVerificationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitObjectVerification_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitObjectVerificationTimestamps.totalCount}
-				getKey={(gitObjectVerificationTimestamp) => gitObjectVerificationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGitObjectVerificationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git object verification observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitObjectVerificationTimestamp })}
-					{@const gitObjectVerificationTimestampFields = { ...gitObjectVerificationTimestamp[EntityMetaKey.Selector], ...gitObjectVerificationTimestamp }}
-					{@const selection = select(EntityType.GitObjectVerification_Timestamp, gitObjectVerificationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitObjectVerification_TimestampView
-						selection={selection}
-						prefetched={gitObjectVerificationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitObjectVerification_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitObjectVerificationTimestamp })}
+		{@const gitObjectVerificationTimestampFields = { ...gitObjectVerificationTimestamp[EntityMetaKey.Selector], ...gitObjectVerificationTimestamp }}
+		{@const selection = select(EntityType.GitObjectVerification_Timestamp, gitObjectVerificationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitObjectVerification_TimestampView
+			selection={selection}
+			prefetched={gitObjectVerificationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

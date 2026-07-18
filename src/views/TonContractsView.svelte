@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonContractView from '$/views/TonContractView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonContract}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonContracts) => [...new Map(tonContracts.values.map((tonContract) => [tonContract[EntityMetaKey.SelectorKey], tonContract])).values()]}
+	getKey={(tonContract) => tonContract[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON contracts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonContracts)}
-			{@const uniqueTonContracts = [...new Map(tonContracts.values.map((tonContract) => [tonContract[EntityMetaKey.SelectorKey], tonContract])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonContracts.totalCount}
-				getKey={(tonContract) => tonContract[EntityMetaKey.SelectorKey]}
-				items={uniqueTonContracts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON contracts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonContract })}
-					{@const tonContractFields = { ...tonContract[EntityMetaKey.Selector], ...tonContract }}
-					{@const selection = select(EntityType.TonContract, tonContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonContractView
-						selection={selection}
-						prefetched={tonContractFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonContract}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonContract })}
+		{@const tonContractFields = { ...tonContract[EntityMetaKey.Selector], ...tonContract }}
+		{@const selection = select(EntityType.TonContract, tonContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonContractView
+			selection={selection}
+			prefetched={tonContractFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

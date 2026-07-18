@@ -1,5 +1,5 @@
-import { getJson } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	SidecarAccountBalanceInfo,
 	SidecarBlock,
@@ -7,61 +7,42 @@ import type {
 	SidecarStakingValidators,
 } from '$/sources/SubstrateSidecar/Rest/types.ts'
 
-const substrateSidecarOrigin = 'http://127.0.0.1:8080' as const
-
-export const substrateSidecarRestEndpoints = [
-	{
-		url: substrateSidecarOrigin,
-		transportType: TransportType.Http,
-		providerName: 'Local Substrate Sidecar',
-	},
-] as const
-
-export const substrateSidecarOrigins = [
-	{
-		origin: substrateSidecarOrigin,
-		corsEnabled: false,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
 export const getBlock = ({
-	restBaseUrl,
+	binding,
 	blockId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	blockId: bigint | string
 }) => (
 	getJson<SidecarBlock>(
-		`${base(restBaseUrl)}/blocks/${String(blockId)}`,
-		{ origins: substrateSidecarOrigins }
+		binding,
+		`/blocks/${String(blockId)}`
 	)
 )
 
 export const getAccountBalanceInfo = ({
-	restBaseUrl,
+	binding,
 	accountId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	accountId: string
 }) => (
 	getJson<SidecarAccountBalanceInfo>(
-		`${base(restBaseUrl)}/accounts/${accountId}/balance-info`,
-		{ origins: substrateSidecarOrigins }
+		binding,
+		`/accounts/${accountId}/balance-info`
 	)
 )
 
-export const getRuntimeMetadata = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getRuntimeMetadata = ({ binding }: { binding: SourceBinding }) => (
 	getJson<SidecarRuntimeMetadata>(
-		`${base(restBaseUrl)}/runtime/metadata`,
-		{ origins: substrateSidecarOrigins }
+		binding,
+		'/runtime/metadata'
 	)
 )
 
-export const getStakingValidators = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getStakingValidators = ({ binding }: { binding: SourceBinding }) => (
 	getJson<SidecarStakingValidators>(
-		`${base(restBaseUrl)}/pallets/staking/validators`,
-		{ origins: substrateSidecarOrigins }
+		binding,
+		'/pallets/staking/validators'
 	)
 )

@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,9 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const xmtpConversation = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			peerInboxId: true,
 			topic: true,
@@ -75,58 +72,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xmtpConversation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'XMTP conversation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.topic) ?? ''), String((resolvedEntity.peerInboxId) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xmtpConversation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.topic) ?? ''), String((resolvedEntity.peerInboxId) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={xmtpConversation}>
-			{#snippet Pending()}
-				{@const id0 = pendingEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const id0 = pendingEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={xmtpConversation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const id0 = resolvedEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={xmtpConversation}>
-			{#snippet Pending()}
-				{@const createdAtMs0 = pendingEntity.createdAtMs}
-				{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAtMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAtMs0 = resolvedEntity.createdAtMs}
-				{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAtMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAtMs0 = pendingEntity.createdAtMs}
+			{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAtMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={xmtpConversation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAtMs0 = resolvedEntity.createdAtMs}
+					{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAtMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,24 +131,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consentState: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consentState = pendingEntity.consentState}
-					{#if consentState !== undefined && consentState !== null}
-						<div>
-							<dt>Consent</dt>
-							<dd>
-								{String((consentState) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consentState = resolvedEntity.consentState}
@@ -171,24 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerInboxId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerInboxId = pendingEntity.peerInboxId}
-					{#if peerInboxId !== undefined && peerInboxId !== null}
-						<div>
-							<dt>Peer inbox ID</dt>
-							<dd>
-								<TruncatedValue value={String((peerInboxId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerInboxId = resolvedEntity.peerInboxId}
@@ -208,24 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							topic: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const topic = pendingEntity.topic}
-					{#if topic !== undefined && topic !== null}
-						<div>
-							<dt>Topic</dt>
-							<dd>
-								<TruncatedValue value={String((topic) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const topic = resolvedEntity.topic}
@@ -245,24 +209,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAtMs = pendingEntity.createdAtMs}
-					{#if createdAtMs !== undefined && createdAtMs !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAtMs = resolvedEntity.createdAtMs}
@@ -285,19 +238,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								<TruncatedValue value={String((id) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}

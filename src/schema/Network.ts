@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { Caip2Namespace, Caip2Reference, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
+import { NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -24,7 +24,7 @@ export const Network = entity({
 		label: 'CAIP-2',
 		description: 'The chain identifier in CAIP-2 namespace and reference form.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'namespace': type.enumerated(...Object.values(Caip2Namespace)), 'reference': type.enumerated(...Object.values(Caip2Reference)) }),
+		primitiveType: type({ 'namespace': type('string'), 'reference': type('string') }),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slug: {
@@ -56,6 +56,7 @@ export const Network = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
+			Source.L2Beat_Rest,
 		],
 	},
 	executionModels: {
@@ -66,6 +67,7 @@ export const Network = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
+			Source.L2Beat_Rest,
 		],
 	},
 	$networkStack: {
@@ -75,6 +77,7 @@ export const Network = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
+			Source.L2Beat_Rest,
 		],
 	},
 	environment: {
@@ -268,6 +271,15 @@ export const Network = entity({
 				defaultSources: [
 					Source.Blockscout_Rest,
 					Source.Etherscan_Rest,
+				],
+			},
+			$$activityDays: {
+				label: 'Activity days',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.Network_Activity_Day,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.SpaceAndTime_MakeInfinite,
 				],
 			},
 			$$rpcUrls: {
@@ -531,6 +543,16 @@ export const Network = entity({
 				entityType: EntityType.EvmRollup,
 				cardinality: EntityFieldCardinality.Many,
 			},
+		})({
+			facets: {
+				EthereumBeacon: facet({
+					path: [
+						'Evm',
+						'consensusProtocol',
+					],
+					is: 'EthereumBeacon',
+				})({}),
+			},
 		}),
 		Cosmos: facet({
 			path: [
@@ -543,30 +565,45 @@ export const Network = entity({
 				type: EntityFieldType.Primitive,
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$blocks: {
 				label: 'Blocks',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CosmosBlock,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$accounts: {
 				label: 'Accounts',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CosmosAccount,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$validators: {
 				label: 'Validators',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CosmosValidator,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$governanceProposals: {
 				label: 'Governance proposals',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CosmosGovernanceProposal,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 		}),
 		Polkadot: facet({
@@ -580,36 +617,27 @@ export const Network = entity({
 				type: EntityFieldType.Primitive,
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Polkadot_JsonRpc,
+				],
 			},
 			$$blocks: {
 				label: 'Blocks',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.PolkadotBlock,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$assets: {
-				label: 'Assets',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.PolkadotAsset,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$assetBalanceTimestamps: {
-				label: 'Asset balance observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.PolkadotAssetBalance_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$referendums: {
-				label: 'Referendums',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.PolkadotReferendum,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Polkadot_JsonRpc,
+				],
 			},
 			$$validators: {
 				label: 'Validators',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.PolkadotValidator,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.SubstrateSidecar_Rest,
+				],
 			},
 		}),
 		Solana: facet({
@@ -623,48 +651,72 @@ export const Network = entity({
 				type: EntityFieldType.Primitive,
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$blocks: {
 				label: 'Blocks',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaBlock,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$transactions: {
 				label: 'Transactions',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaTransaction,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$accounts: {
 				label: 'Accounts',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaAccount,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$programs: {
 				label: 'Programs',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaProgram,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$tokenAccounts: {
 				label: 'Token accounts',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaTokenAccount,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$tokenMints: {
 				label: 'Token mints',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaTokenMint,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$validators: {
 				label: 'Validators',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SolanaValidator,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 		}),
 		Utxo: facet({
@@ -713,7 +765,7 @@ export const Network = entity({
 				entityType: EntityType.ZcashShieldedPool,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Zcashd_JsonRpc,
+					Source.Constants_Internal,
 				],
 			},
 		}),
@@ -799,37 +851,6 @@ export const Network = entity({
 				defaultSources: [
 					Source.ZeroGStorageScan_Rest,
 				],
-			},
-		}),
-		Quilibrium: facet({
-			path: [
-				'namespace',
-			],
-			is: 'Quilibrium',
-		})({
-			$$frames: {
-				label: 'Frames',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.QuilibriumFrame,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$provers: {
-				label: 'Provers',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.QuilibriumProver,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$shards: {
-				label: 'Shards',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.QuilibriumShard,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$accounts: {
-				label: 'Accounts',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.QuilibriumAccount,
-				cardinality: EntityFieldCardinality.Many,
 			},
 		}),
 		Filecoin: facet({
@@ -973,30 +994,6 @@ export const Network = entity({
 				entityType: EntityType.LightningNode,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 			},
-			$$channels: {
-				label: 'Channels',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.LightningChannel,
-				cardinality: EntityFieldCardinality.ZeroOrMany,
-			},
-			$$invoices: {
-				label: 'Invoices',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.BlockheadLightningInvoice,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$payments: {
-				label: 'Payments',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.BlockheadLightningPayment,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$localNodeStates: {
-				label: 'Local node states',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.BlockheadLightningNodeState,
-				cardinality: EntityFieldCardinality.Many,
-			},
 		}),
 		Cardano: facet({
 			path: [
@@ -1010,7 +1007,7 @@ export const Network = entity({
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$timestamps: {
@@ -1019,7 +1016,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$blocks: {
@@ -1028,7 +1025,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$transactions: {
@@ -1036,60 +1033,63 @@ export const Network = entity({
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoTransaction,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$addresses: {
-				label: 'Addresses',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.CardanoAddress,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$stakeCredentials: {
-				label: 'Stake credentials',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.CardanoStakeCredential,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 			$$stakePools: {
 				label: 'Stake pools',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoStakePool,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 			$$dReps: {
 				label: 'DReps',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoDRep,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 			$$governanceProposals: {
 				label: 'Governance proposals',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoGovernanceProposal,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$assets: {
 				label: 'Native assets',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoNativeAsset,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 			$$protocolParameterEpochs: {
 				label: 'Protocol parameter epochs',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoProtocolParameters_Epoch,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$constitutionEpochs: {
-				label: 'Constitution epochs',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.CardanoConstitution_Epoch,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 			$$committeeEpochs: {
 				label: 'Committee epochs',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.CardanoCommittee_Epoch,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
 			},
 		}),
 		Tron: facet({
@@ -1208,6 +1208,67 @@ export const Network = entity({
 				cardinality: EntityFieldCardinality.Many,
 			},
 		}),
+		Xrpl: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Xrpl',
+		})({
+			$$accounts: {
+				label: 'Accounts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplAccount,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+			$$amendments: {
+				label: 'Amendments',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplAmendment,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+			$$amms: {
+				label: 'AMMs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplAmm,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+			$$ledgerEntries: {
+				label: 'Ledger entries',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplLedgerEntry,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+			$$ledgers: {
+				label: 'Ledgers',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplLedger,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+			$$transactions: {
+				label: 'Transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.XrplTransaction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
+			},
+		}),
 		Hedera: facet({
 			path: [
 				'namespace',
@@ -1231,84 +1292,18 @@ export const Network = entity({
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HederaBlock,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$transactions: {
-				label: 'Transactions',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaTransaction,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.HederaMirrorNode_Rest,
+				],
 			},
 			$$accounts: {
 				label: 'Accounts',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HederaAccount,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$tokens: {
-				label: 'Tokens',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaToken,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$nfts: {
-				label: 'NFTs',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNft,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$contracts: {
-				label: 'Contracts',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaContract,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$topics: {
-				label: 'Topics',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaTopic,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$schedules: {
-				label: 'Schedules',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaSchedule,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$nodes: {
-				label: 'Nodes',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNode,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$timestamps: {
-				label: 'Observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNetwork_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$feeTimestamps: {
-				label: 'Fee observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNetworkFee_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$exchangeRateTimestamps: {
-				label: 'Exchange rate observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNetworkExchangeRate_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$stakeTimestamps: {
-				label: 'Stake observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNetworkStake_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$supplyTimestamps: {
-				label: 'Supply observations',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HederaNetworkSupply_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.HederaMirrorNode_Rest,
+				],
 			},
 		}),
 		Hyperliquid: facet({
@@ -1322,60 +1317,72 @@ export const Network = entity({
 				type: EntityFieldType.Primitive,
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_JsonRpc,
+				],
 			},
 			restEndpoints: {
 				label: 'REST endpoints',
 				type: EntityFieldType.Primitive,
 				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_Rest,
+				],
 			},
 			$$timestamps: {
 				label: 'Observations',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_Rest,
+				],
 			},
 			$$blocks: {
 				label: 'Blocks',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidBlock,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_JsonRpc,
+				],
 			},
 			$$transactions: {
 				label: 'Transactions',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidTransaction,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_JsonRpc,
+				],
 			},
 			$$validators: {
 				label: 'Validators',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidValidator,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_Rest,
+				],
 			},
 			$$spotAssets: {
 				label: 'Spot assets',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidSpotAsset,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$spotPairs: {
-				label: 'Spot pairs',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HyperliquidSpotPair,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_Rest,
+				],
 			},
 			$$perpMarkets: {
 				label: 'Perp markets',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.HyperliquidPerpMarket,
 				cardinality: EntityFieldCardinality.Many,
-			},
-			$$vaults: {
-				label: 'Vaults',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.HyperliquidVault,
-				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid_Rest,
+				],
 			},
 		}),
 	},

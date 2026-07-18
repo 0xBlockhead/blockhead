@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitBlob = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			mime: true,
 		},
@@ -70,35 +71,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitBlob}>
-			{#snippet Pending()}
-				{@const objectId0 = pendingEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const objectId0 = resolvedEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const objectId0 = pendingEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={gitBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const objectId0 = resolvedEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitBlob}>
-			{#snippet Pending()}
-				{[String((pendingEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git blob'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -109,19 +110,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectId = pendingEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectId = resolvedEntity.objectId}
@@ -139,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectFormat: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectFormat = pendingEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectFormat = resolvedEntity.objectFormat}
@@ -186,24 +175,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mime = pendingEntity.mime}
-					{#if mime !== undefined && mime !== null}
-						<div>
-							<dt>mime</dt>
-							<dd>
-								{String((mime) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mime = resolvedEntity.mime}
@@ -221,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							byteSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const byteSize = pendingEntity.byteSize}
-					{#if byteSize !== undefined && byteSize !== null}
-						<div>
-							<dt>byte size</dt>
-							<dd>
-								<NumberValue value={Number(byteSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const byteSize = resolvedEntity.byteSize}
@@ -246,7 +213,9 @@
 						<div>
 							<dt>byte size</dt>
 							<dd>
-								<NumberValue value={Number(byteSize)} />
+								<NumberValue
+									value={byteSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -257,6 +226,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						textSample: true,
 					},

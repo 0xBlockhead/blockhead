@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
@@ -63,85 +62,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Openchain_Rest,
-				],
-				fields: {
-					hex: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmSelector}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmSelector}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Openchain_Rest,
+			],
+			fields: {
+				hex: true,
+			},
+		})
+	}
+	getResourceItems={(evmSelectors) => [...new Map(evmSelectors.values.map((evmSelector) => [evmSelector[EntityMetaKey.SelectorKey], evmSelector])).values()]}
+	getKey={(evmSelector) => evmSelector[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM selectors yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmSelectors)}
-			{@const uniqueEvmSelectors = [...new Map(evmSelectors.values.map((evmSelector) => [evmSelector[EntityMetaKey.SelectorKey], evmSelector])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmSelector}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmSelectors.totalCount}
-				getKey={(evmSelector) => evmSelector[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmSelectors}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM selectors yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmSelector })}
-					{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
-					{@const selection = select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
-					<EvmSelectorView
-						selection={selection}
-						prefetched={evmSelectorFields}
-						href={
-							(evmSelectorHrefFields.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
-								hex: String(evmSelectorHrefFields.hex ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmSelector}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmSelector })}
+		{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
+		{@const selection = select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
+		<EvmSelectorView
+			selection={selection}
+			prefetched={evmSelectorFields}
+			href={
+				(evmSelectorHrefFields.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
+					hex: String(evmSelectorHrefFields.hex ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

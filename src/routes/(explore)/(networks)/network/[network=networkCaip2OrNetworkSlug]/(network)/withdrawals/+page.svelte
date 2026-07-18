@@ -52,6 +52,9 @@
 					})
 				}
 				id='beacon-withdrawals'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

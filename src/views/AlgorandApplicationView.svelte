@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const algorandApplication = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			creator: true,
 		},
@@ -71,60 +72,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandApplication}>
-			{#snippet Pending()}
-				{[String((pendingEntity.applicationId) ?? '')].filter(Boolean).join(' ') || title || 'algorand application'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.applicationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.applicationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandApplication}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.applicationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={algorandApplication}>
-			{#snippet Pending()}
-				<AlgorandNetworkView
-					selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AlgorandNetworkView
-					selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AlgorandNetworkView
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={algorandApplication}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AlgorandNetworkView
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={algorandApplication}>
-			{#snippet Pending()}
-				{@const creator0 = pendingEntity.creator}
-				{#if creator0 !== undefined && creator0 !== null}
-					<span data-text="muted">
-						{String((creator0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const creator0 = resolvedEntity.creator}
-				{#if creator0 !== undefined && creator0 !== null}
-					<span data-text="muted">
-						{String((creator0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const creator0 = pendingEntity.creator}
+			{#if creator0 !== undefined && creator0 !== null}
+				<span data-text="muted">
+					{String((creator0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={algorandApplication}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const creator0 = resolvedEntity.creator}
+					{#if creator0 !== undefined && creator0 !== null}
+						<span data-text="muted">
+							{String((creator0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -146,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									applicationId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const applicationId = pendingEntity.applicationId}
-							{#if applicationId !== undefined && applicationId !== null}
-								{String((applicationId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const applicationId = resolvedEntity.applicationId}
@@ -173,24 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							creator: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const creator = pendingEntity.creator}
-					{#if creator !== undefined && creator !== null}
-						<div>
-							<dt>creator</dt>
-							<dd>
-								{String((creator) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const creator = resolvedEntity.creator}
@@ -226,11 +210,8 @@
 				}
 				data-card
 				class='network-view-collapsible-state'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>State</HeadingComponent>
 					</header>
@@ -238,12 +219,12 @@
 
 				{#snippet SectionAlgorandAppBoxes({ id, label, open })}
 					<AlgorandBoxesView
-						selection={
-							selection.$$boxes({
-								count: true,
-							})
-						}
+						selection={selection.$$boxes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand boxes.'
 						open={open}
 						title={label}
@@ -253,12 +234,12 @@
 
 				{#snippet SectionAlgorandAppLocalState({ id, label, open })}
 					<AlgorandApplicationLocalState_RoundsView
-						selection={
-							selection.$$localStateRounds({
-								count: true,
-							})
-						}
+						selection={selection.$$localStateRounds}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand application local state rounds.'
 						open={open}
 						title={label}
@@ -281,11 +262,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -293,12 +271,12 @@
 
 				{#snippet SectionAlgorandAppTimestamps({ id, label, open })}
 					<AlgorandApplication_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand application observations.'
 						open={open}
 						title={label}

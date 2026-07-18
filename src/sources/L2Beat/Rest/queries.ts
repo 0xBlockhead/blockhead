@@ -3,17 +3,16 @@
  * @see https://l2beat.com/api/scaling/summary
  */
 
-import { getJson } from '$/lib/http.ts'
-import {
-	l2BeatOrigins,
-	origin,
-	scalingSummaryPath,
-} from '$/sources/L2Beat/Rest/constants.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { scalingSummaryPath } from '$/sources/L2Beat/Rest/constants.ts'
 import type { L2BeatScalingSummaryResponse } from '$/sources/L2Beat/Rest/types.ts'
 
-export const fetchScalingSummary = async (): Promise<L2BeatScalingSummaryResponse> => (
+export const fetchScalingSummary = async (
+	binding: SourceBinding,
+): Promise<L2BeatScalingSummaryResponse> => (
 	getJson<L2BeatScalingSummaryResponse>(
-		`${origin}${scalingSummaryPath}`,
-		{ origins: l2BeatOrigins }
+		binding,
+		scalingSummaryPath
 	)
 )

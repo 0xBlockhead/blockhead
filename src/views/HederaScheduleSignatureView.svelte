@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaScheduleSignature = $derived(selection({}))
+	const hederaScheduleSignature = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera schedule signature')
 	const viewDomId = $derived('hedera-schedule-signature-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaScheduleSignature}>
-			{#snippet Pending()}
-				{title || 'hedera schedule signature'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaScheduleSignature}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									publicKeyPrefix: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const publicKeyPrefix = pendingEntity.publicKeyPrefix}
-							{#if publicKeyPrefix !== undefined && publicKeyPrefix !== null}
-								{String((publicKeyPrefix) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const publicKeyPrefix = resolvedEntity.publicKeyPrefix}
@@ -122,24 +118,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consensusTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
-					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-						<div>
-							<dt>consensus timestamp</dt>
-							<dd>
-								{String((consensusTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
@@ -157,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signature = pendingEntity.signature}
-					{#if signature !== undefined && signature !== null}
-						<div>
-							<dt>signature</dt>
-							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signature = resolvedEntity.signature}
@@ -192,8 +166,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>

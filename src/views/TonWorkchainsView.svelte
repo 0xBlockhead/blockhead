@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonWorkchainView from '$/views/TonWorkchainView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonWorkchain}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonWorkchain}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonWorkchains) => [...new Map(tonWorkchains.values.map((tonWorkchain) => [tonWorkchain[EntityMetaKey.SelectorKey], tonWorkchain])).values()]}
+	getKey={(tonWorkchain) => tonWorkchain[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON workchains yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonWorkchains)}
-			{@const uniqueTonWorkchains = [...new Map(tonWorkchains.values.map((tonWorkchain) => [tonWorkchain[EntityMetaKey.SelectorKey], tonWorkchain])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonWorkchain}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonWorkchains.totalCount}
-				getKey={(tonWorkchain) => tonWorkchain[EntityMetaKey.SelectorKey]}
-				items={uniqueTonWorkchains}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON workchains yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonWorkchain })}
-					{@const tonWorkchainFields = { ...tonWorkchain[EntityMetaKey.Selector], ...tonWorkchain }}
-					{@const selection = select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonWorkchainView
-						selection={selection}
-						prefetched={tonWorkchainFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonWorkchain}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonWorkchain })}
+		{@const tonWorkchainFields = { ...tonWorkchain[EntityMetaKey.Selector], ...tonWorkchain }}
+		{@const selection = select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonWorkchainView
+			selection={selection}
+			prefetched={tonWorkchainFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

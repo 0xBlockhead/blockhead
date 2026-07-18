@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const availAppId = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 		},
@@ -69,35 +70,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={availAppId}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={availAppId}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={availAppId}>
-			{#snippet Pending()}
-				{@const appId0 = pendingEntity.appId}
-				{#if appId0 !== undefined && appId0 !== null}
-					<NumberValue value={Number(appId0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const appId0 = resolvedEntity.appId}
-				{#if appId0 !== undefined && appId0 !== null}
-					<NumberValue value={Number(appId0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const appId0 = pendingEntity.appId}
+					{#if appId0 !== undefined && appId0 !== null}
+						<NumberValue
+							value={appId0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={availAppId}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const appId0 = resolvedEntity.appId}
+					{#if appId0 !== undefined && appId0 !== null}
+						<NumberValue
+							value={appId0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,24 +124,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									appId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const appId = pendingEntity.appId}
-							{#if appId !== undefined && appId !== null}
-								<NumberValue value={Number(appId)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const appId = resolvedEntity.appId}
 							{#if appId !== undefined && appId !== null}
-								<NumberValue value={Number(appId)} />
+								<NumberValue
+									value={appId}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -146,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}

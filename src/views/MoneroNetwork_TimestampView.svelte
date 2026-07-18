@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moneroNetworkTimestamp = $derived(selection({
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			height: true,
 			status: true,
@@ -77,76 +74,80 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const height0 = pendingEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const height0 = resolvedEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const height0 = pendingEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const height0 = resolvedEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moneroNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const status0 = pendingEntity.status}
-				{#if status0 !== undefined && status0 !== null}
-					<span data-text="muted">
-						{String((status0) ?? '')}
-					</span>
-				{/if}
-				{@const synchronized1 = pendingEntity.synchronized}
-				{#if synchronized1 !== undefined && synchronized1 !== null}
-					<span data-text="muted">
-						{synchronized1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const status0 = resolvedEntity.status}
-				{#if status0 !== undefined && status0 !== null}
-					<span data-text="muted">
-						{String((status0) ?? '')}
-					</span>
-				{/if}
-				{@const synchronized1 = resolvedEntity.synchronized}
-				{#if synchronized1 !== undefined && synchronized1 !== null}
-					<span data-text="muted">
-						{synchronized1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const status0 = pendingEntity.status}
+			{#if status0 !== undefined && status0 !== null}
+				<span data-text="muted">
+					{String((status0) ?? '')}
+				</span>
+			{/if}
+			{@const synchronized1 = pendingEntity.synchronized}
+			{#if synchronized1 !== undefined && synchronized1 !== null}
+				<span data-text="muted">
+					{synchronized1 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={moneroNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status0 = resolvedEntity.status}
+					{#if status0 !== undefined && status0 !== null}
+						<span data-text="muted">
+							{String((status0) ?? '')}
+						</span>
+					{/if}
+					{@const synchronized1 = resolvedEntity.synchronized}
+					{#if synchronized1 !== undefined && synchronized1 !== null}
+						<span data-text="muted">
+							{synchronized1 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -175,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -205,19 +200,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -232,27 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							height: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const height = pendingEntity.height}
-					{#if height !== undefined && height !== null}
-						<div>
-							<dt>Height</dt>
-							<dd>
-								<NumberValue value={Number(height)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const height = resolvedEntity.height}
@@ -260,7 +235,9 @@
 						<div>
 							<dt>Height</dt>
 							<dd>
-								<NumberValue value={Number(height)} />
+								<NumberValue
+									value={height}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -270,27 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							targetHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const targetHeight = pendingEntity.targetHeight}
-					{#if targetHeight !== undefined && targetHeight !== null}
-						<div>
-							<dt>Target height</dt>
-							<dd>
-								<NumberValue value={Number(targetHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const targetHeight = resolvedEntity.targetHeight}
@@ -298,7 +261,9 @@
 						<div>
 							<dt>Target height</dt>
 							<dd>
-								<NumberValue value={Number(targetHeight)} />
+								<NumberValue
+									value={targetHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -308,27 +273,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							topBlockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const topBlockHash = pendingEntity.topBlockHash}
-					{#if topBlockHash !== undefined && topBlockHash !== null}
-						<div>
-							<dt>Top block hash</dt>
-							<dd>
-								<TruncatedValue value={String((topBlockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const topBlockHash = resolvedEntity.topBlockHash}
@@ -346,27 +297,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							difficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const difficulty = pendingEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
-						<div>
-							<dt>Difficulty</dt>
-							<dd>
-								<NumberValue value={Number(difficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const difficulty = resolvedEntity.difficulty}
@@ -374,7 +311,9 @@
 						<div>
 							<dt>Difficulty</dt>
 							<dd>
-								<NumberValue value={Number(difficulty)} />
+								<NumberValue
+									value={difficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -384,27 +323,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							wideDifficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const wideDifficulty = pendingEntity.wideDifficulty}
-					{#if wideDifficulty !== undefined && wideDifficulty !== null}
-						<div>
-							<dt>Wide difficulty</dt>
-							<dd>
-								<NumberValue value={Number(wideDifficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const wideDifficulty = resolvedEntity.wideDifficulty}
@@ -412,7 +337,9 @@
 						<div>
 							<dt>Wide difficulty</dt>
 							<dd>
-								<NumberValue value={Number(wideDifficulty)} />
+								<NumberValue
+									value={wideDifficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -422,27 +349,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							cumulativeDifficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cumulativeDifficulty = pendingEntity.cumulativeDifficulty}
-					{#if cumulativeDifficulty !== undefined && cumulativeDifficulty !== null}
-						<div>
-							<dt>Cumulative difficulty</dt>
-							<dd>
-								<NumberValue value={Number(cumulativeDifficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cumulativeDifficulty = resolvedEntity.cumulativeDifficulty}
@@ -450,7 +363,9 @@
 						<div>
 							<dt>Cumulative difficulty</dt>
 							<dd>
-								<NumberValue value={Number(cumulativeDifficulty)} />
+								<NumberValue
+									value={cumulativeDifficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -460,27 +375,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							wideCumulativeDifficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const wideCumulativeDifficulty = pendingEntity.wideCumulativeDifficulty}
-					{#if wideCumulativeDifficulty !== undefined && wideCumulativeDifficulty !== null}
-						<div>
-							<dt>Wide cumulative difficulty</dt>
-							<dd>
-								<NumberValue value={Number(wideCumulativeDifficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const wideCumulativeDifficulty = resolvedEntity.wideCumulativeDifficulty}
@@ -488,7 +389,9 @@
 						<div>
 							<dt>Wide cumulative difficulty</dt>
 							<dd>
-								<NumberValue value={Number(wideCumulativeDifficulty)} />
+								<NumberValue
+									value={wideCumulativeDifficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -500,27 +403,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							blockSizeLimit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockSizeLimit = pendingEntity.blockSizeLimit}
-					{#if blockSizeLimit !== undefined && blockSizeLimit !== null}
-						<div>
-							<dt>Block size limit</dt>
-							<dd>
-								<NumberValue value={Number(blockSizeLimit)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockSizeLimit = resolvedEntity.blockSizeLimit}
@@ -528,7 +417,9 @@
 						<div>
 							<dt>Block size limit</dt>
 							<dd>
-								<NumberValue value={Number(blockSizeLimit)} />
+								<NumberValue
+									value={blockSizeLimit}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -538,27 +429,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							blockSizeMedian: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockSizeMedian = pendingEntity.blockSizeMedian}
-					{#if blockSizeMedian !== undefined && blockSizeMedian !== null}
-						<div>
-							<dt>Block size median</dt>
-							<dd>
-								<NumberValue value={Number(blockSizeMedian)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockSizeMedian = resolvedEntity.blockSizeMedian}
@@ -566,7 +443,9 @@
 						<div>
 							<dt>Block size median</dt>
 							<dd>
-								<NumberValue value={Number(blockSizeMedian)} />
+								<NumberValue
+									value={blockSizeMedian}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -576,27 +455,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							blockWeightLimit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockWeightLimit = pendingEntity.blockWeightLimit}
-					{#if blockWeightLimit !== undefined && blockWeightLimit !== null}
-						<div>
-							<dt>Block weight limit</dt>
-							<dd>
-								<NumberValue value={Number(blockWeightLimit)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockWeightLimit = resolvedEntity.blockWeightLimit}
@@ -604,7 +469,9 @@
 						<div>
 							<dt>Block weight limit</dt>
 							<dd>
-								<NumberValue value={Number(blockWeightLimit)} />
+								<NumberValue
+									value={blockWeightLimit}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -614,27 +481,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							blockWeightMedian: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockWeightMedian = pendingEntity.blockWeightMedian}
-					{#if blockWeightMedian !== undefined && blockWeightMedian !== null}
-						<div>
-							<dt>Block weight median</dt>
-							<dd>
-								<NumberValue value={Number(blockWeightMedian)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockWeightMedian = resolvedEntity.blockWeightMedian}
@@ -642,7 +495,9 @@
 						<div>
 							<dt>Block weight median</dt>
 							<dd>
-								<NumberValue value={Number(blockWeightMedian)} />
+								<NumberValue
+									value={blockWeightMedian}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -652,27 +507,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							databaseSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const databaseSize = pendingEntity.databaseSize}
-					{#if databaseSize !== undefined && databaseSize !== null}
-						<div>
-							<dt>Database size</dt>
-							<dd>
-								<NumberValue value={Number(databaseSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const databaseSize = resolvedEntity.databaseSize}
@@ -680,7 +521,9 @@
 						<div>
 							<dt>Database size</dt>
 							<dd>
-								<NumberValue value={Number(databaseSize)} />
+								<NumberValue
+									value={databaseSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -690,27 +533,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							freeSpace: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const freeSpace = pendingEntity.freeSpace}
-					{#if freeSpace !== undefined && freeSpace !== null}
-						<div>
-							<dt>Free space</dt>
-							<dd>
-								<NumberValue value={Number(freeSpace)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const freeSpace = resolvedEntity.freeSpace}
@@ -718,7 +547,9 @@
 						<div>
 							<dt>Free space</dt>
 							<dd>
-								<NumberValue value={Number(freeSpace)} />
+								<NumberValue
+									value={freeSpace}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -728,27 +559,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							greyPeerlistSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const greyPeerlistSize = pendingEntity.greyPeerlistSize}
-					{#if greyPeerlistSize !== undefined && greyPeerlistSize !== null}
-						<div>
-							<dt>Grey peerlist size</dt>
-							<dd>
-								<NumberValue value={Number(greyPeerlistSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const greyPeerlistSize = resolvedEntity.greyPeerlistSize}
@@ -756,7 +573,9 @@
 						<div>
 							<dt>Grey peerlist size</dt>
 							<dd>
-								<NumberValue value={Number(greyPeerlistSize)} />
+								<NumberValue
+									value={greyPeerlistSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -766,27 +585,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							whitePeerlistSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const whitePeerlistSize = pendingEntity.whitePeerlistSize}
-					{#if whitePeerlistSize !== undefined && whitePeerlistSize !== null}
-						<div>
-							<dt>White peerlist size</dt>
-							<dd>
-								<NumberValue value={Number(whitePeerlistSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const whitePeerlistSize = resolvedEntity.whitePeerlistSize}
@@ -794,7 +599,9 @@
 						<div>
 							<dt>White peerlist size</dt>
 							<dd>
-								<NumberValue value={Number(whitePeerlistSize)} />
+								<NumberValue
+									value={whitePeerlistSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -806,27 +613,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							incomingConnections: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const incomingConnections = pendingEntity.incomingConnections}
-					{#if incomingConnections !== undefined && incomingConnections !== null}
-						<div>
-							<dt>Incoming connections</dt>
-							<dd>
-								<NumberValue value={Number(incomingConnections)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const incomingConnections = resolvedEntity.incomingConnections}
@@ -834,7 +627,9 @@
 						<div>
 							<dt>Incoming connections</dt>
 							<dd>
-								<NumberValue value={Number(incomingConnections)} />
+								<NumberValue
+									value={incomingConnections}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -844,27 +639,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							outgoingConnections: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const outgoingConnections = pendingEntity.outgoingConnections}
-					{#if outgoingConnections !== undefined && outgoingConnections !== null}
-						<div>
-							<dt>Outgoing connections</dt>
-							<dd>
-								<NumberValue value={Number(outgoingConnections)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const outgoingConnections = resolvedEntity.outgoingConnections}
@@ -872,7 +653,9 @@
 						<div>
 							<dt>Outgoing connections</dt>
 							<dd>
-								<NumberValue value={Number(outgoingConnections)} />
+								<NumberValue
+									value={outgoingConnections}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -882,27 +665,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							txCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const txCount = pendingEntity.txCount}
-					{#if txCount !== undefined && txCount !== null}
-						<div>
-							<dt>Transaction count</dt>
-							<dd>
-								<NumberValue value={Number(txCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const txCount = resolvedEntity.txCount}
@@ -910,7 +679,9 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								<NumberValue value={Number(txCount)} />
+								<NumberValue
+									value={txCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -920,27 +691,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							txPoolSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const txPoolSize = pendingEntity.txPoolSize}
-					{#if txPoolSize !== undefined && txPoolSize !== null}
-						<div>
-							<dt>Transaction pool size</dt>
-							<dd>
-								<NumberValue value={Number(txPoolSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const txPoolSize = resolvedEntity.txPoolSize}
@@ -948,7 +705,9 @@
 						<div>
 							<dt>Transaction pool size</dt>
 							<dd>
-								<NumberValue value={Number(txPoolSize)} />
+								<NumberValue
+									value={txPoolSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -958,27 +717,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							altBlocksCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const altBlocksCount = pendingEntity.altBlocksCount}
-					{#if altBlocksCount !== undefined && altBlocksCount !== null}
-						<div>
-							<dt>Alt blocks</dt>
-							<dd>
-								<NumberValue value={Number(altBlocksCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const altBlocksCount = resolvedEntity.altBlocksCount}
@@ -986,7 +731,9 @@
 						<div>
 							<dt>Alt blocks</dt>
 							<dd>
-								<NumberValue value={Number(altBlocksCount)} />
+								<NumberValue
+									value={altBlocksCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -996,27 +743,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							targetSeconds: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const targetSeconds = pendingEntity.targetSeconds}
-					{#if targetSeconds !== undefined && targetSeconds !== null}
-						<div>
-							<dt>Target seconds</dt>
-							<dd>
-								<NumberValue value={Number(targetSeconds)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const targetSeconds = resolvedEntity.targetSeconds}
@@ -1024,7 +757,9 @@
 						<div>
 							<dt>Target seconds</dt>
 							<dd>
-								<NumberValue value={Number(targetSeconds)} />
+								<NumberValue
+									value={targetSeconds}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -1034,27 +769,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							rpcConnections: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rpcConnections = pendingEntity.rpcConnections}
-					{#if rpcConnections !== undefined && rpcConnections !== null}
-						<div>
-							<dt>RPC connections</dt>
-							<dd>
-								<NumberValue value={Number(rpcConnections)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rpcConnections = resolvedEntity.rpcConnections}
@@ -1062,7 +783,9 @@
 						<div>
 							<dt>RPC connections</dt>
 							<dd>
-								<NumberValue value={Number(rpcConnections)} />
+								<NumberValue
+									value={rpcConnections}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -1074,27 +797,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							mainnet: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mainnet = pendingEntity.mainnet}
-					{#if mainnet !== undefined && mainnet !== null}
-						<div>
-							<dt>Mainnet</dt>
-							<dd>
-								{mainnet ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mainnet = resolvedEntity.mainnet}
@@ -1112,27 +821,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							nettype: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nettype = pendingEntity.nettype}
-					{#if nettype !== undefined && nettype !== null}
-						<div>
-							<dt>Network type</dt>
-							<dd>
-								{String((nettype) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nettype = resolvedEntity.nettype}
@@ -1150,27 +845,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							offline: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const offline = pendingEntity.offline}
-					{#if offline !== undefined && offline !== null}
-						<div>
-							<dt>Offline</dt>
-							<dd>
-								{offline ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const offline = resolvedEntity.offline}
@@ -1188,27 +869,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							synchronized: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const synchronized = pendingEntity.synchronized}
-					{#if synchronized !== undefined && synchronized !== null}
-						<div>
-							<dt>Synchronized</dt>
-							<dd>
-								{synchronized ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const synchronized = resolvedEntity.synchronized}
@@ -1226,27 +893,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							wasBootstrapEverUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const wasBootstrapEverUsed = pendingEntity.wasBootstrapEverUsed}
-					{#if wasBootstrapEverUsed !== undefined && wasBootstrapEverUsed !== null}
-						<div>
-							<dt>Bootstrap ever used</dt>
-							<dd>
-								{wasBootstrapEverUsed ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const wasBootstrapEverUsed = resolvedEntity.wasBootstrapEverUsed}
@@ -1264,27 +917,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -1302,27 +941,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>Status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}

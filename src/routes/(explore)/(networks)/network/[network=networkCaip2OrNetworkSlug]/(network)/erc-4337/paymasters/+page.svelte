@@ -52,6 +52,9 @@
 					})
 				}
 				id='erc4337-paymasters'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

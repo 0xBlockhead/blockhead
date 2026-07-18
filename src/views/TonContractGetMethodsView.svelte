@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonContractGetMethodView from '$/views/TonContractGetMethodView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContractGetMethod}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonContractGetMethod}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonContractGetMethods) => [...new Map(tonContractGetMethods.values.map((tonContractGetMethod) => [tonContractGetMethod[EntityMetaKey.SelectorKey], tonContractGetMethod])).values()]}
+	getKey={(tonContractGetMethod) => tonContractGetMethod[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON contract get methods yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonContractGetMethods)}
-			{@const uniqueTonContractGetMethods = [...new Map(tonContractGetMethods.values.map((tonContractGetMethod) => [tonContractGetMethod[EntityMetaKey.SelectorKey], tonContractGetMethod])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContractGetMethod}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonContractGetMethods.totalCount}
-				getKey={(tonContractGetMethod) => tonContractGetMethod[EntityMetaKey.SelectorKey]}
-				items={uniqueTonContractGetMethods}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON contract get methods yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonContractGetMethod })}
-					{@const tonContractGetMethodFields = { ...tonContractGetMethod[EntityMetaKey.Selector], ...tonContractGetMethod }}
-					{@const selection = select(EntityType.TonContractGetMethod, tonContractGetMethod[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonContractGetMethodView
-						selection={selection}
-						prefetched={tonContractGetMethodFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonContractGetMethod}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonContractGetMethod })}
+		{@const tonContractGetMethodFields = { ...tonContractGetMethod[EntityMetaKey.Selector], ...tonContractGetMethod }}
+		{@const selection = select(EntityType.TonContractGetMethod, tonContractGetMethod[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonContractGetMethodView
+			selection={selection}
+			prefetched={tonContractGetMethodFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

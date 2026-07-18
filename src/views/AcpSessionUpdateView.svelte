@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const acpSessionUpdate = $derived(selection({
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			updateKind: true,
 			timestampMs: true,
@@ -86,39 +83,39 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpSessionUpdate}>
-			{#snippet Pending()}
-				{[String((pendingEntity.updateKind) ?? '')].filter(Boolean).join(' ') || title || 'ACP session update'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.updateKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.updateKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpSessionUpdate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.updateKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={acpSessionUpdate}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={acpSessionUpdate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,24 +137,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sequence: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sequence = pendingEntity.sequence}
-							{#if sequence !== undefined && sequence !== null}
-								<NumberValue value={Number(sequence)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sequence = resolvedEntity.sequence}
 							{#if sequence !== undefined && sequence !== null}
-								<NumberValue value={Number(sequence)} />
+								<NumberValue
+									value={sequence}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -170,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									updateKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const updateKind = pendingEntity.updateKind}
-							{#if updateKind !== undefined && updateKind !== null}
-								{String((updateKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const updateKind = resolvedEntity.updateKind}
@@ -197,24 +184,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}

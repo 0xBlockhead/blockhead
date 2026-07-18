@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337Bundler_TimestampView from '$/views/Erc4337Bundler_TimestampView.svelte'
 </script>
@@ -63,93 +62,60 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					userOperationsCount: true,
-					source: true,
-					$bundler: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337Bundler_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Erc4337Bundler_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				userOperationsCount: true,
+				source: true,
+				$bundler: true,
+			},
+		})
+	}
+	getResourceItems={(erc4337BundlerTimestamps) => [...new Map(erc4337BundlerTimestamps.values.map((erc4337BundlerTimestamp) => [erc4337BundlerTimestamp[EntityMetaKey.SelectorKey], erc4337BundlerTimestamp])).values()]}
+	getKey={(erc4337BundlerTimestamp) => erc4337BundlerTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ERC-4337 bundler observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(erc4337BundlerTimestamps)}
-			{@const uniqueErc4337BundlerTimestamps = [...new Map(erc4337BundlerTimestamps.values.map((erc4337BundlerTimestamp) => [erc4337BundlerTimestamp[EntityMetaKey.SelectorKey], erc4337BundlerTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337Bundler_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337BundlerTimestamps.totalCount}
-				getKey={(erc4337BundlerTimestamp) => erc4337BundlerTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueErc4337BundlerTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ERC-4337 bundler observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: erc4337BundlerTimestamp })}
-					{@const erc4337BundlerTimestampFields = { ...erc4337BundlerTimestamp[EntityMetaKey.Selector], ...erc4337BundlerTimestamp }}
-					{@const selection = select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const erc4337BundlerTimestampHrefFields = { ...erc4337BundlerTimestamp, ...erc4337BundlerTimestamp[EntityMetaKey.Selector] }}
-					<Erc4337Bundler_TimestampView
-						selection={selection}
-						prefetched={erc4337BundlerTimestampFields}
-						href={
-							(erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
-								source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
-								address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
-								network: String(caip2StringFromValue(erc4337BundlerTimestampHrefFields.$bundler.$network.caip2) ?? ''),
-							}) : erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
-								source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
-								address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
-								network: String(erc4337BundlerTimestampHrefFields.$bundler.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Erc4337Bundler_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: erc4337BundlerTimestamp })}
+		{@const erc4337BundlerTimestampFields = { ...erc4337BundlerTimestamp[EntityMetaKey.Selector], ...erc4337BundlerTimestamp }}
+		{@const selection = select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const erc4337BundlerTimestampHrefFields = { ...erc4337BundlerTimestamp, ...erc4337BundlerTimestamp[EntityMetaKey.Selector] }}
+		<Erc4337Bundler_TimestampView
+			selection={selection}
+			prefetched={erc4337BundlerTimestampFields}
+			href={
+				(erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
+					source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
+					address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
+					network: String(caip2StringFromValue(erc4337BundlerTimestampHrefFields.$bundler.$network.caip2) ?? ''),
+				}) : erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
+					source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
+					address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
+					network: String(erc4337BundlerTimestampHrefFields.$bundler.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

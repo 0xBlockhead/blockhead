@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaScheduleTimestamp = $derived(selection({}))
+	const hederaScheduleTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera schedule timestamp')
 	const viewDomId = $derived('hedera-schedule-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaScheduleTimestamp}>
-			{#snippet Pending()}
-				{title || 'hedera schedule timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaScheduleTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -152,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							executedTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const executedTimestamp = pendingEntity.executedTimestamp}
-					{#if executedTimestamp !== undefined && executedTimestamp !== null}
-						<div>
-							<dt>executed timestamp</dt>
-							<dd>
-								{String((executedTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const executedTimestamp = resolvedEntity.executedTimestamp}
@@ -187,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deleted = pendingEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
-						<div>
-							<dt>deleted</dt>
-							<dd>
-								{deleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deleted = resolvedEntity.deleted}
@@ -222,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expirationTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expirationTime = pendingEntity.expirationTime}
-					{#if expirationTime !== undefined && expirationTime !== null}
-						<div>
-							<dt>expiration time</dt>
-							<dd>
-								{String((expirationTime) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expirationTime = resolvedEntity.expirationTime}
@@ -257,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							waitForExpiry: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const waitForExpiry = pendingEntity.waitForExpiry}
-					{#if waitForExpiry !== undefined && waitForExpiry !== null}
-						<div>
-							<dt>wait for expiry</dt>
-							<dd>
-								{waitForExpiry ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const waitForExpiry = resolvedEntity.waitForExpiry}
@@ -292,24 +238,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signatureCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signatureCount = pendingEntity.signatureCount}
-					{#if signatureCount !== undefined && signatureCount !== null}
-						<div>
-							<dt>signature count</dt>
-							<dd>
-								<TruncatedValue value={String((signatureCount) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signatureCount = resolvedEntity.signatureCount}
@@ -327,8 +262,6 @@
 			<ResourceBoundary
 				resource={selection.$executionTransaction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaTransaction)}
 					{#if hederaTransaction != null && hederaTransaction[EntityMetaKey.Selector] != null}
 						<div>

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XPostView from '$/views/XPostView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					text: true,
-					id: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XPost}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				text: true,
+				id: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(xPosts) => [...new Map(xPosts.values.map((xPost) => [xPost[EntityMetaKey.SelectorKey], xPost])).values()]}
+	getKey={(xPost) => xPost[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No X posts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xPosts)}
-			{@const uniqueXPosts = [...new Map(xPosts.values.map((xPost) => [xPost[EntityMetaKey.SelectorKey], xPost])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xPosts.totalCount}
-				getKey={(xPost) => xPost[EntityMetaKey.SelectorKey]}
-				items={uniqueXPosts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No X posts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xPost })}
-					{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
-					{@const selection = select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const xPostHrefFields = { ...xPost, ...xPost[EntityMetaKey.Selector] }}
-					<XPostView
-						selection={selection}
-						prefetched={xPostFields}
-						href={
-							(xPostHrefFields.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
-								postId: String(xPostHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XPost}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xPost })}
+		{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
+		{@const selection = select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const xPostHrefFields = { ...xPost, ...xPost[EntityMetaKey.Selector] }}
+		<XPostView
+			selection={selection}
+			prefetched={xPostFields}
+			href={
+				(xPostHrefFields.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+					postId: String(xPostHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

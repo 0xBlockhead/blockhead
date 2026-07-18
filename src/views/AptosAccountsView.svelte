@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosAccountView from '$/views/AptosAccountView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(aptosAccounts) => [...new Map(aptosAccounts.values.map((aptosAccount) => [aptosAccount[EntityMetaKey.SelectorKey], aptosAccount])).values()]}
+	getKey={(aptosAccount) => aptosAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosAccounts)}
-			{@const uniqueAptosAccounts = [...new Map(aptosAccounts.values.map((aptosAccount) => [aptosAccount[EntityMetaKey.SelectorKey], aptosAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosAccounts.totalCount}
-				getKey={(aptosAccount) => aptosAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosAccount })}
-					{@const aptosAccountFields = { ...aptosAccount[EntityMetaKey.Selector], ...aptosAccount }}
-					{@const selection = select(EntityType.AptosAccount, aptosAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosAccountView
-						selection={selection}
-						prefetched={aptosAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosAccount })}
+		{@const aptosAccountFields = { ...aptosAccount[EntityMetaKey.Selector], ...aptosAccount }}
+		{@const selection = select(EntityType.AptosAccount, aptosAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosAccountView
+			selection={selection}
+			prefetched={aptosAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

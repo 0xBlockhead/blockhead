@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const utxoTransaction = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			feeSats: true,
 			isCoinbase: true,
@@ -62,7 +63,6 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
-	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
 </script>
 
 
@@ -85,76 +85,76 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={utxoTransaction}>
-			{#snippet Pending()}
-				{@const txId0 = pendingEntity.txId}
-				{#if txId0 !== undefined && txId0 !== null}
-					<TruncatedValue value={String((txId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txId0 = resolvedEntity.txId}
-				{#if txId0 !== undefined && txId0 !== null}
-					<TruncatedValue value={String((txId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const txId0 = pendingEntity.txId}
+					{#if txId0 !== undefined && txId0 !== null}
+						<TruncatedValue value={String((txId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={utxoTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const txId0 = resolvedEntity.txId}
+					{#if txId0 !== undefined && txId0 !== null}
+						<TruncatedValue value={String((txId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={utxoTransaction}>
-			{#snippet Pending()}
-				{@const txId0 = pendingEntity.txId}
-				{#if txId0 !== undefined && txId0 !== null}
-					<TruncatedValue value={String((txId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txId0 = resolvedEntity.txId}
-				{#if txId0 !== undefined && txId0 !== null}
-					<TruncatedValue value={String((txId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const txId0 = pendingEntity.txId}
+					{#if txId0 !== undefined && txId0 !== null}
+						<TruncatedValue value={String((txId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={utxoTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const txId0 = resolvedEntity.txId}
+					{#if txId0 !== undefined && txId0 !== null}
+						<TruncatedValue value={String((txId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={utxoTransaction}>
-			{#snippet Pending()}
-				{@const feeSats0 = pendingEntity.feeSats}
-				{#if feeSats0 !== undefined && feeSats0 !== null}
-					<span data-text="muted">
-						{String((feeSats0) ?? '')}
-					</span>
-				{/if}
-				{@const isCoinbase1 = pendingEntity.isCoinbase}
-				{#if isCoinbase1 !== undefined && isCoinbase1 !== null}
-					<span data-text="muted">
-						{isCoinbase1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const feeSats0 = resolvedEntity.feeSats}
-				{#if feeSats0 !== undefined && feeSats0 !== null}
-					<span data-text="muted">
-						{String((feeSats0) ?? '')}
-					</span>
-				{/if}
-				{@const isCoinbase1 = resolvedEntity.isCoinbase}
-				{#if isCoinbase1 !== undefined && isCoinbase1 !== null}
-					<span data-text="muted">
-						{isCoinbase1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const feeSats0 = pendingEntity.feeSats}
+			{#if feeSats0 !== undefined && feeSats0 !== null}
+				<span data-text="muted">
+					{String((feeSats0) ?? '')}
+				</span>
+			{/if}
+			{@const isCoinbase1 = pendingEntity.isCoinbase}
+			{#if isCoinbase1 !== undefined && isCoinbase1 !== null}
+				<span data-text="muted">
+					{isCoinbase1 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={utxoTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feeSats0 = resolvedEntity.feeSats}
+					{#if feeSats0 !== undefined && feeSats0 !== null}
+						<span data-text="muted">
+							{String((feeSats0) ?? '')}
+						</span>
+					{/if}
+					{@const isCoinbase1 = resolvedEntity.isCoinbase}
+					{#if isCoinbase1 !== undefined && isCoinbase1 !== null}
+						<span data-text="muted">
+							{isCoinbase1 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -165,19 +165,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									txId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const txId = pendingEntity.txId}
-							{#if txId !== undefined && txId !== null}
-								<TruncatedValue value={String((txId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const txId = resolvedEntity.txId}
@@ -192,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -227,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lockTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lockTime = pendingEntity.lockTime}
-					{#if lockTime !== undefined && lockTime !== null}
-						<div>
-							<dt>Lock time</dt>
-							<dd>
-								{String((lockTime) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lockTime = resolvedEntity.lockTime}
@@ -262,24 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isCoinbase: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isCoinbase = pendingEntity.isCoinbase}
-					{#if isCoinbase !== undefined && isCoinbase !== null}
-						<div>
-							<dt>Coinbase</dt>
-							<dd>
-								{isCoinbase ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isCoinbase = resolvedEntity.isCoinbase}
@@ -299,24 +260,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sizeBytes = pendingEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
-						<div>
-							<dt>Size</dt>
-							<dd>
-								{String((sizeBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sizeBytes = resolvedEntity.sizeBytes}
@@ -334,24 +284,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							virtualSizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const virtualSizeBytes = pendingEntity.virtualSizeBytes}
-					{#if virtualSizeBytes !== undefined && virtualSizeBytes !== null}
-						<div>
-							<dt>Virtual size</dt>
-							<dd>
-								{String((virtualSizeBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const virtualSizeBytes = resolvedEntity.virtualSizeBytes}
@@ -369,24 +308,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							weightUnits: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const weightUnits = pendingEntity.weightUnits}
-					{#if weightUnits !== undefined && weightUnits !== null}
-						<div>
-							<dt>Weight</dt>
-							<dd>
-								{String((weightUnits) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const weightUnits = resolvedEntity.weightUnits}
@@ -404,24 +332,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feeSats: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeSats = pendingEntity.feeSats}
-					{#if feeSats !== undefined && feeSats !== null}
-						<div>
-							<dt>Fee</dt>
-							<dd>
-								<NumberValue value={Number(feeSats)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeSats = resolvedEntity.feeSats}
@@ -429,7 +346,9 @@
 						<div>
 							<dt>Fee</dt>
 							<dd>
-								<NumberValue value={Number(feeSats)} />
+								<NumberValue
+									value={feeSats}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -439,8 +358,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(utxoBlock)}
 					{#if utxoBlock != null && utxoBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -508,11 +425,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-a'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -520,12 +434,12 @@
 
 				{#snippet SectionUtxoTransactionInputs({ id, label, open })}
 					<UtxoInputsView
-						selection={
-							selection.$$inputs({
-								count: true,
-							})
-						}
+						selection={selection.$$inputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No inputs.'
 						open={open}
 						title={label}
@@ -535,53 +449,13 @@
 
 				{#snippet SectionUtxoTransactionOutputs({ id, label, open })}
 					<UtxoOutputsView
-						selection={
-							selection.$$outputs({
-								count: true,
-							})
-						}
+						selection={selection.$$outputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No outputs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-utxo-transaction-activity-b'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'utxo-transaction-zcash-shielded-actions',
-							label: 'Zcash Shielded Actions',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity-b'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity continued</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionUtxoTransactionZcashShieldedActions({ id, label, open })}
-					<ZcashShieldedActionsView
-						selection={
-							selection.$$zcashShieldedActions({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No zcash shielded actions.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

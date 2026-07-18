@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitPackfileView from '$/views/GitPackfileView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					packHash: true,
-					objectFormat: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitPackfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitPackfile}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				packHash: true,
+				objectFormat: true,
+			},
+		})
+	}
+	getResourceItems={(gitPackfiles) => [...new Map(gitPackfiles.values.map((gitPackfile) => [gitPackfile[EntityMetaKey.SelectorKey], gitPackfile])).values()]}
+	getKey={(gitPackfile) => gitPackfile[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git packfiles yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitPackfiles)}
-			{@const uniqueGitPackfiles = [...new Map(gitPackfiles.values.map((gitPackfile) => [gitPackfile[EntityMetaKey.SelectorKey], gitPackfile])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitPackfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitPackfiles.totalCount}
-				getKey={(gitPackfile) => gitPackfile[EntityMetaKey.SelectorKey]}
-				items={uniqueGitPackfiles}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git packfiles yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitPackfile })}
-					{@const gitPackfileFields = { ...gitPackfile[EntityMetaKey.Selector], ...gitPackfile }}
-					{@const selection = select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitPackfileView
-						selection={selection}
-						prefetched={gitPackfileFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitPackfile}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitPackfile })}
+		{@const gitPackfileFields = { ...gitPackfile[EntityMetaKey.Selector], ...gitPackfile }}
+		{@const selection = select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitPackfileView
+			selection={selection}
+			prefetched={gitPackfileFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

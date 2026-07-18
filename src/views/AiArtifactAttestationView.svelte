@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,11 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiArtifactAttestation = $derived(selection({
-		sources: [
-			Source.A2aWellKnown_Http,
-			Source.Eip8004Scan_Rest,
-			Source.Ipfs_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || 'AI artifact attestation')
 	const viewDomId = $derived('ai-artifact-attestation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -72,60 +67,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiArtifactAttestation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || 'AI artifact attestation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiArtifactAttestation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiArtifactAttestation}>
-			{#snippet Pending()}
-				<AiArtifactView
-					selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AiArtifactView
-					selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AiArtifactView
+						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={aiArtifactAttestation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AiArtifactView
+						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiArtifactAttestation}>
-			{#snippet Pending()}
-				{@const logEntryId0 = pendingEntity.logEntryId}
-				{#if logEntryId0 !== undefined && logEntryId0 !== null}
-					<span data-text="muted">
-						{String((logEntryId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const logEntryId0 = resolvedEntity.logEntryId}
-				{#if logEntryId0 !== undefined && logEntryId0 !== null}
-					<span data-text="muted">
-						{String((logEntryId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const logEntryId0 = pendingEntity.logEntryId}
+			{#if logEntryId0 !== undefined && logEntryId0 !== null}
+				<span data-text="muted">
+					{String((logEntryId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiArtifactAttestation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const logEntryId0 = resolvedEntity.logEntryId}
+					{#if logEntryId0 !== undefined && logEntryId0 !== null}
+						<span data-text="muted">
+							{String((logEntryId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									attestationKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const attestationKind = pendingEntity.attestationKind}
-							{#if attestationKind !== undefined && attestationKind !== null}
-								{String((attestationKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const attestationKind = resolvedEntity.attestationKind}
@@ -174,24 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							logEntryId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const logEntryId = pendingEntity.logEntryId}
-					{#if logEntryId !== undefined && logEntryId !== null}
-						<div>
-							<dt>log entry ID</dt>
-							<dd>
-								{String((logEntryId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const logEntryId = resolvedEntity.logEntryId}
@@ -209,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signatureHashAlgorithm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signatureHashAlgorithm = pendingEntity.signatureHashAlgorithm}
-					{#if signatureHashAlgorithm !== undefined && signatureHashAlgorithm !== null}
-						<div>
-							<dt>signature hash algorithm</dt>
-							<dd>
-								<TruncatedValue value={String((signatureHashAlgorithm) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signatureHashAlgorithm = resolvedEntity.signatureHashAlgorithm}
@@ -244,24 +211,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signatureHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signatureHash = pendingEntity.signatureHash}
-					{#if signatureHash !== undefined && signatureHash !== null}
-						<div>
-							<dt>signature hash</dt>
-							<dd>
-								<TruncatedValue value={String((signatureHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signatureHash = resolvedEntity.signatureHash}
@@ -281,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							certificateIdentity: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const certificateIdentity = pendingEntity.certificateIdentity}
-					{#if certificateIdentity !== undefined && certificateIdentity !== null}
-						<div>
-							<dt>certificate identity</dt>
-							<dd>
-								{String((certificateIdentity) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const certificateIdentity = resolvedEntity.certificateIdentity}
@@ -316,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							certificateIssuer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const certificateIssuer = pendingEntity.certificateIssuer}
-					{#if certificateIssuer !== undefined && certificateIssuer !== null}
-						<div>
-							<dt>certificate issuer</dt>
-							<dd>
-								<TruncatedValue value={String((certificateIssuer) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const certificateIssuer = resolvedEntity.certificateIssuer}
@@ -351,24 +285,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							logIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const logIndex = pendingEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
-						<div>
-							<dt>log index</dt>
-							<dd>
-								<NumberValue value={Number(logIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const logIndex = resolvedEntity.logIndex}
@@ -376,7 +299,9 @@
 						<div>
 							<dt>log index</dt>
 							<dd>
-								<NumberValue value={Number(logIndex)} />
+								<NumberValue
+									value={logIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -386,24 +311,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							integratedTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const integratedTime = pendingEntity.integratedTime}
-					{#if integratedTime !== undefined && integratedTime !== null}
-						<div>
-							<dt>integrated time</dt>
-							<dd>
-								<Timestamp timestamp={Number(integratedTime)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const integratedTime = resolvedEntity.integratedTime}

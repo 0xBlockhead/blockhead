@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
 </script>
@@ -62,85 +61,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					identifier: true,
-					pubkey: true,
-					kind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrArticle}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrArticle}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				identifier: true,
+				pubkey: true,
+				kind: true,
+				sensitive: true,
+				contentWarning: true,
+			},
+		})
+	}
+	getResourceItems={(nostrArticles) => [...new Map(nostrArticles.values.map((nostrArticle) => [nostrArticle[EntityMetaKey.SelectorKey], nostrArticle])).values()]}
+	getKey={(nostrArticle) => nostrArticle[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr articles yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrArticles)}
-			{@const uniqueNostrArticles = [...new Map(nostrArticles.values.map((nostrArticle) => [nostrArticle[EntityMetaKey.SelectorKey], nostrArticle])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrArticle}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrArticles.totalCount}
-				getKey={(nostrArticle) => nostrArticle[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrArticles}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr articles yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrArticle })}
-					{@const nostrArticleFields = { ...nostrArticle[EntityMetaKey.Selector], ...nostrArticle }}
-					{@const selection = select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const nostrArticleHrefFields = { ...nostrArticle, ...nostrArticle[EntityMetaKey.Selector] }}
-					<NostrArticleView
-						selection={selection}
-						prefetched={nostrArticleFields}
-						href={
-							(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticleHrefFields.pubkey !== undefined && nostrArticleHrefFields.identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
-								pubkey: String(nostrArticleHrefFields.pubkey ?? ''),
-								identifier: String(nostrArticleHrefFields.identifier ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrArticle}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrArticle })}
+		{@const nostrArticleFields = { ...nostrArticle[EntityMetaKey.Selector], ...nostrArticle }}
+		{@const selection = select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const nostrArticleHrefFields = { ...nostrArticle, ...nostrArticle[EntityMetaKey.Selector] }}
+		<NostrArticleView
+			selection={selection}
+			prefetched={nostrArticleFields}
+			href={
+				(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticleHrefFields.pubkey !== undefined && nostrArticleHrefFields.identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
+					pubkey: String(nostrArticleHrefFields.pubkey ?? ''),
+					identifier: String(nostrArticleHrefFields.identifier ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

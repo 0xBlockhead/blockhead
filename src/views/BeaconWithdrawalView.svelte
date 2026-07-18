@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconWithdrawal = $derived(selection({
-		sources: [
-			Source.Beacon_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			amountGwei: true,
 		},
@@ -99,51 +96,59 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={beaconWithdrawal}>
-			{#snippet Pending()}
-				{@const amountGwei0 = pendingEntity.amountGwei}
-				{#if amountGwei0 !== undefined && amountGwei0 !== null}
-					<NumberValue value={Number(amountGwei0)} />
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amountGwei0 = pendingEntity.amountGwei}
+					{#if amountGwei0 !== undefined && amountGwei0 !== null}
+						<NumberValue
+							value={amountGwei0}
+						/>
 
-					<span> gwei</span>
-				{/if}
-			{/snippet}
+						<span> gwei</span>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={beaconWithdrawal}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amountGwei0 = resolvedEntity.amountGwei}
+					{#if amountGwei0 !== undefined && amountGwei0 !== null}
+						<NumberValue
+							value={amountGwei0}
+						/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amountGwei0 = resolvedEntity.amountGwei}
-				{#if amountGwei0 !== undefined && amountGwei0 !== null}
-					<NumberValue value={Number(amountGwei0)} />
-
-					<span> gwei</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						<span> gwei</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={beaconWithdrawal}>
-			{#snippet Pending()}
-				{@const slot0 = pendingEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slot0 = resolvedEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<span data-text="muted">
+					<span>Slot </span>
+					<NumberValue
+						value={slot0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={beaconWithdrawal}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot0 = resolvedEntity.slot}
+					{#if slot0 !== undefined && slot0 !== null}
+						<span data-text="muted">
+							<span>Slot </span>
+							<NumberValue
+								value={slot0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,24 +159,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInSlot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInSlot = pendingEntity.indexInSlot}
-							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInSlot = resolvedEntity.indexInSlot}
 							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
+								<NumberValue
+									value={indexInSlot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -184,24 +185,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									slot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const slot = pendingEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const slot = resolvedEntity.slot}
 							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
+								<NumberValue
+									value={slot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -211,24 +208,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validatorIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validatorIndex = pendingEntity.validatorIndex}
-					{#if validatorIndex !== undefined && validatorIndex !== null}
-						<div>
-							<dt>Validator index</dt>
-							<dd>
-								<NumberValue value={Number(validatorIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validatorIndex = resolvedEntity.validatorIndex}
@@ -236,7 +222,9 @@
 						<div>
 							<dt>Validator index</dt>
 							<dd>
-								<NumberValue value={Number(validatorIndex)} />
+								<NumberValue
+									value={validatorIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -246,26 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amountGwei: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountGwei = pendingEntity.amountGwei}
-					{#if amountGwei !== undefined && amountGwei !== null}
-						<div>
-							<dt>Amount</dt>
-							<dd>
-								<NumberValue value={Number(amountGwei)} />
-
-								<span> gwei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountGwei = resolvedEntity.amountGwei}
@@ -273,7 +248,9 @@
 						<div>
 							<dt>Amount</dt>
 							<dd>
-								<NumberValue value={Number(amountGwei)} />
+								<NumberValue
+									value={amountGwei}
+								/>
 
 								<span> gwei</span>
 							</dd>
@@ -287,8 +264,6 @@
 			<ResourceBoundary
 				resource={selection.$validator}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(beaconValidator)}
 					{#if beaconValidator != null && beaconValidator[EntityMetaKey.Selector] != null}
 						<div>
@@ -318,8 +293,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>

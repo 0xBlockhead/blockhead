@@ -9,6 +9,13 @@ import {
 } from '$/sources/SourceBinding.ts'
 import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
+const sourceFetchQueueByEndpoint = new Map<string, {
+	activeCount: number
+	waiters: (() => void)[]
+}>()
+
+const sourceFetchConcurrency = 4
+
 export const httpOriginsForBinding = (
 	binding: SourceBinding
 ): readonly SourceOrigin[] => (
@@ -35,7 +42,7 @@ export const firstHttpUrlForBinding = (
 	return endpoint.locator
 }
 
-export const sourceFetch = (
+export const sourceFetch = async (
 	binding: SourceBinding,
 	url: string,
 	init?: RequestInit
@@ -48,20 +55,47 @@ export const sourceFetch = (
 			|| (endpoint.locator.includes('{') && url.startsWith(endpoint.locator.slice(0, endpoint.locator.indexOf('{'))))
 		)
 	))
-	if (binding.delivery === SourceDelivery.HttpProxy && (binding.proxyId == null || endpointIndex === -1))
+	const proxyId = binding.proxyId
+	if (binding.delivery === SourceDelivery.HttpProxy && (proxyId == null || endpointIndex === -1))
 		throw new Error(`${binding.source}: missing HTTP proxy identity or endpoint for ${url}`)
 
-	return corsFetch(url, {
-		delivery: binding.delivery,
-		init,
-		origins: httpOriginsForBinding(binding),
-		...(binding.delivery === SourceDelivery.HttpProxy && {
-			proxy: {
-				proxyId: binding.proxyId,
-				endpointIndex,
-			},
-		}),
-	})
+	const queueKey = `${binding.source}:${new URL(url).origin}`
+	const queue = sourceFetchQueueByEndpoint.get(queueKey) ?? {
+		activeCount: 0,
+		waiters: [],
+	}
+	sourceFetchQueueByEndpoint.set(queueKey, queue)
+	if (queue.activeCount >= sourceFetchConcurrency)
+		await new Promise<void>((resolve) => queue.waiters.push(resolve))
+
+	queue.activeCount++
+	try {
+		if (binding.delivery === SourceDelivery.HttpProxy) {
+			if (proxyId == null)
+				throw new Error(`${binding.source}: missing HTTP proxy identity for ${url}`)
+
+			return await corsFetch(url, {
+				delivery: binding.delivery,
+				init,
+				origins: httpOriginsForBinding(binding),
+				proxy: {
+					proxyId,
+					endpointIndex,
+				},
+			})
+		}
+
+		return await corsFetch(url, {
+			delivery: binding.delivery,
+			init,
+			origins: httpOriginsForBinding(binding),
+		})
+	} finally {
+		queue.activeCount--
+		queue.waiters.shift()?.()
+		if (queue.activeCount === 0 && queue.waiters.length === 0)
+			sourceFetchQueueByEndpoint.delete(queueKey)
+	}
 }
 
 export const sourceGetJson = <_Json>(
@@ -71,7 +105,7 @@ export const sourceGetJson = <_Json>(
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json<_Json>()
+	return response.json()
 })
 
 export const sourceGetText = (

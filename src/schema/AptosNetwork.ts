@@ -45,12 +45,6 @@ export const AptosNetwork = entity({
 		entityType: EntityType.AptosAccount,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$modules: {
-		label: 'modules',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.MoveModule,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$events: {
 		label: 'events',
 		type: EntityFieldType.EntitiesReference,

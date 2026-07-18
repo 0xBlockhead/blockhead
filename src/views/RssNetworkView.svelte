@@ -40,9 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const rssNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -56,6 +54,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RssFeedsView from '$/views/RssFeedsView.svelte'
@@ -73,29 +73,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={rssNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'RSS / Atom'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={rssNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={rssNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'RSS / Atom'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={rssNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -112,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocolName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocolName = pendingEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocolName = resolvedEntity.protocolName}
@@ -144,26 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									homeUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const homeUrl = pendingEntity.homeUrl}
-							{#if homeUrl !== undefined && homeUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(homeUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(homeUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const homeUrl = resolvedEntity.homeUrl}
@@ -187,31 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							docsUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const docsUrl = pendingEntity.docsUrl}
-					{#if docsUrl !== undefined && docsUrl !== null}
-						<div>
-							<dt>Docs URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(docsUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(docsUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const docsUrl = resolvedEntity.docsUrl}
@@ -238,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryName = pendingEntity.registryName}
-					{#if registryName !== undefined && registryName !== null}
-						<div>
-							<dt>Registry name</dt>
-							<dd>
-								{String((registryName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryName = resolvedEntity.registryName}
@@ -275,24 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							relationshipModel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const relationshipModel = pendingEntity.relationshipModel}
-					{#if relationshipModel !== undefined && relationshipModel !== null}
-						<div>
-							<dt>Connection model</dt>
-							<dd>
-								{String((relationshipModel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const relationshipModel = resolvedEntity.relationshipModel}
@@ -311,20 +252,49 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<RssFeedsView
-				selection={
-						selection.$$rssFeeds({
-							sources: [
-								Source.Constants_Internal,
-							],
-							count: true,
-						})
-					}
-				title='Feeds'
-				href={resolve('/rss/feeds')}
-				emptyText='No RSS feeds in this hub yet.'
-				id='RssFeedsView-rss-feeds'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-rss-network-feeds'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'rss-network-feeds',
+							label: 'Feeds',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Feeds</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRssNetworkFeeds({ id, label, open })}
+					<RssFeedsView
+						selection={
+							selection.$$rssFeeds({
+								sources: [
+									Source.Constants_Internal,
+								],
+							})
+						}
+						href={resolve('/rss/feeds')}
+						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No RSS feeds in this hub yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

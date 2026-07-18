@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const celestiaNamespace = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 			namespaceVersion: true,
@@ -71,35 +72,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={celestiaNamespace}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={celestiaNamespace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={celestiaNamespace}>
-			{#snippet Pending()}
-				{@const namespaceVersion0 = pendingEntity.namespaceVersion}
-				{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
-					<NumberValue value={Number(namespaceVersion0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const namespaceVersion0 = resolvedEntity.namespaceVersion}
-				{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
-					<NumberValue value={Number(namespaceVersion0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const namespaceVersion0 = pendingEntity.namespaceVersion}
+					{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
+						<NumberValue
+							value={namespaceVersion0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={celestiaNamespace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const namespaceVersion0 = resolvedEntity.namespaceVersion}
+					{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
+						<NumberValue
+							value={namespaceVersion0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,19 +126,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									namespaceId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const namespaceId = pendingEntity.namespaceId}
-							{#if namespaceId !== undefined && namespaceId !== null}
-								<TruncatedValue value={String((namespaceId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const namespaceId = resolvedEntity.namespaceId}
@@ -148,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							namespaceVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const namespaceVersion = pendingEntity.namespaceVersion}
-					{#if namespaceVersion !== undefined && namespaceVersion !== null}
-						<div>
-							<dt>namespace version</dt>
-							<dd>
-								<NumberValue value={Number(namespaceVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const namespaceVersion = resolvedEntity.namespaceVersion}
@@ -173,7 +161,9 @@
 						<div>
 							<dt>namespace version</dt>
 							<dd>
-								<NumberValue value={Number(namespaceVersion)} />
+								<NumberValue
+									value={namespaceVersion}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -183,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,11 @@
 			{@const DetailView = YoutubePlaylistView}
 
 			<DetailView
-				selection={select(EntityType.YoutubePlaylist, data.selector)}
+				selection={select(EntityType.YoutubePlaylist, data.selector, { sources: [
+		Source.Youtube_Rest,
+		Source.Piped_Rest,
+		Source.Constants_Internal,
+	] })}
 				href={
 					resolve('/youtube/playlist/[playlistId=stringSegment]', {
 						playlistId: params.playlistId,

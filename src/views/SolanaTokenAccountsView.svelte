@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaTokenAccountView from '$/views/SolanaTokenAccountView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					tokenAccountPubkey: true,
-					$mint: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTokenAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SolanaTokenAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				tokenAccountPubkey: true,
+				$mint: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(solanaTokenAccounts) => [...new Map(solanaTokenAccounts.values.map((solanaTokenAccount) => [solanaTokenAccount[EntityMetaKey.SelectorKey], solanaTokenAccount])).values()]}
+	getKey={(solanaTokenAccount) => solanaTokenAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Solana token accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(solanaTokenAccounts)}
-			{@const uniqueSolanaTokenAccounts = [...new Map(solanaTokenAccounts.values.map((solanaTokenAccount) => [solanaTokenAccount[EntityMetaKey.SelectorKey], solanaTokenAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTokenAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTokenAccounts.totalCount}
-				getKey={(solanaTokenAccount) => solanaTokenAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueSolanaTokenAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Solana token accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: solanaTokenAccount })}
-					{@const solanaTokenAccountFields = { ...solanaTokenAccount[EntityMetaKey.Selector], ...solanaTokenAccount }}
-					{@const selection = select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const solanaTokenAccountHrefFields = { ...solanaTokenAccount, ...solanaTokenAccount[EntityMetaKey.Selector] }}
-					<SolanaTokenAccountView
-						selection={selection}
-						prefetched={solanaTokenAccountFields}
-						href={
-							(solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
-								network: String(caip2StringFromValue(solanaTokenAccountHrefFields.$network.caip2) ?? ''),
-							}) : solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
-								network: String(solanaTokenAccountHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SolanaTokenAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: solanaTokenAccount })}
+		{@const solanaTokenAccountFields = { ...solanaTokenAccount[EntityMetaKey.Selector], ...solanaTokenAccount }}
+		{@const selection = select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const solanaTokenAccountHrefFields = { ...solanaTokenAccount, ...solanaTokenAccount[EntityMetaKey.Selector] }}
+		<SolanaTokenAccountView
+			selection={selection}
+			prefetched={solanaTokenAccountFields}
+			href={
+				(solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+					tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
+					network: String(caip2StringFromValue(solanaTokenAccountHrefFields.$network.caip2) ?? ''),
+				}) : solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+					tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
+					network: String(solanaTokenAccountHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

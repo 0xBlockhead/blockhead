@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbBeaconTokenTransfer = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			symbol: true,
 			amount: true,
@@ -69,60 +70,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token transfer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-			{#snippet Pending()}
-				{@const amount0 = pendingEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amount0 = resolvedEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amount0 = pendingEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amount0 = resolvedEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<BnbBeaconTransactionView
-						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<BnbBeaconTransactionView
-						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<BnbBeaconTransactionView
+					selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<BnbBeaconTransactionView
+							selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,24 +149,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transferIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transferIndex = pendingEntity.transferIndex}
-							{#if transferIndex !== undefined && transferIndex !== null}
-								<NumberValue value={Number(transferIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transferIndex = resolvedEntity.transferIndex}
 							{#if transferIndex !== undefined && transferIndex !== null}
-								<NumberValue value={Number(transferIndex)} />
+								<NumberValue
+									value={transferIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -174,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									symbol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const symbol = pendingEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const symbol = resolvedEntity.symbol}
@@ -203,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fromAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fromAddress = pendingEntity.fromAddress}
-					{#if fromAddress !== undefined && fromAddress !== null}
-						<div>
-							<dt>from address</dt>
-							<dd>
-								<TruncatedValue value={String((fromAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fromAddress = resolvedEntity.fromAddress}
@@ -238,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							toAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const toAddress = pendingEntity.toAddress}
-					{#if toAddress !== undefined && toAddress !== null}
-						<div>
-							<dt>to address</dt>
-							<dd>
-								<TruncatedValue value={String((toAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const toAddress = resolvedEntity.toAddress}
@@ -276,24 +249,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									amount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amount = pendingEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amount = resolvedEntity.amount}
 							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

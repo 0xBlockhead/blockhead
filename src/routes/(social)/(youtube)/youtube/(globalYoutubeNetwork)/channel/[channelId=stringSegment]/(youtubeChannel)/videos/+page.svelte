@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>Channel videos • Blockhead</title>
+	<title>Recent channel videos (bounded, date ordered) • Blockhead</title>
 </svelte:head>
 
 
@@ -36,7 +36,7 @@
 				channelId: params.channelId,
 			})
 		}
-		title='Channel videos'
+		title='Recent channel videos (bounded, date ordered)'
 		selection={
 			select(EntityType.YoutubeChannel, {
 				channelId: decodeURIComponent(params.channelId),
@@ -49,5 +49,8 @@
 			})
 		}
 		id='videos'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

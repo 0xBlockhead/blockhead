@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RssFeedView from '$/views/RssFeedView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					feedUrl: true,
-					lastBuildDate: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RssFeed}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				feedUrl: true,
+				lastBuildDate: true,
+			},
+		})
+	}
+	getResourceItems={(rssFeeds) => [...new Map(rssFeeds.values.map((rssFeed) => [rssFeed[EntityMetaKey.SelectorKey], rssFeed])).values()]}
+	getKey={(rssFeed) => rssFeed[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No RSS feeds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(rssFeeds)}
-			{@const uniqueRssFeeds = [...new Map(rssFeeds.values.map((rssFeed) => [rssFeed[EntityMetaKey.SelectorKey], rssFeed])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssFeeds.totalCount}
-				getKey={(rssFeed) => rssFeed[EntityMetaKey.SelectorKey]}
-				items={uniqueRssFeeds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No RSS feeds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: rssFeed })}
-					{@const rssFeedFields = { ...rssFeed[EntityMetaKey.Selector], ...rssFeed }}
-					{@const selection = select(EntityType.RssFeed, rssFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const rssFeedHrefFields = { ...rssFeed, ...rssFeed[EntityMetaKey.Selector] }}
-					<RssFeedView
-						selection={selection}
-						prefetched={rssFeedFields}
-						href={
-							(rssFeedHrefFields.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-								feedUrl: String(rssFeedHrefFields.feedUrl ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RssFeed}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: rssFeed })}
+		{@const rssFeedFields = { ...rssFeed[EntityMetaKey.Selector], ...rssFeed }}
+		{@const selection = select(EntityType.RssFeed, rssFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const rssFeedHrefFields = { ...rssFeed, ...rssFeed[EntityMetaKey.Selector] }}
+		<RssFeedView
+			selection={selection}
+			prefetched={rssFeedFields}
+			href={
+				(rssFeedHrefFields.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+					feedUrl: encodeURIComponent(String(rssFeedHrefFields.feedUrl ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

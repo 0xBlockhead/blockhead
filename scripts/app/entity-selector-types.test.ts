@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import {
+	cpSync,
+	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	rmSync,
@@ -11,7 +13,7 @@ import { spawnSync } from 'node:child_process'
 import test from 'node:test'
 import ts from 'typescript'
 
-test('requires nonempty selectors with existing singular fields at compile time', () => {
+test('requires nonempty selectors with existing One or ZeroOrOne fields at compile time', () => {
 	const root = process.cwd()
 	const typeTestRoot = mkdtempSync(path.join(tmpdir(), 'blockhead-app-selector-types-test-'))
 	const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
@@ -37,6 +39,15 @@ test('requires nonempty selectors with existing singular fields at compile time'
 
 	try {
 		const typeTestPath = path.join(typeTestRoot, 'entity-selector-types.types.ts')
+		mkdirSync(path.join(typeTestRoot, 'scripts/app/inputs'), { recursive: true })
+		cpSync(
+			path.join(root, 'scripts/app/inputs/source-target.ts'),
+			path.join(typeTestRoot, 'scripts/app/inputs/source-target.ts')
+		)
+		cpSync(
+			path.join(root, 'scripts/app/inputs/Network.ts'),
+			path.join(typeTestRoot, 'scripts/app/inputs/Network.ts')
+		)
 		writeFileSync(typeTestPath, `${appSource.slice(0, facetStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
 		const typeTestResult = spawnSync(
 			process.execPath,

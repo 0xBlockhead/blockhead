@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpRequestStatusTimestamp = $derived(selection({}))
+	const icpRequestStatusTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP request status timestamp')
 	const viewDomId = $derived('icp-request-status-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpRequestStatusTimestamp}>
-			{#snippet Pending()}
-				{title || 'ICP request status timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpRequestStatusTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyHash = pendingEntity.replyHash}
-					{#if replyHash !== undefined && replyHash !== null}
-						<div>
-							<dt>reply hash</dt>
-							<dd>
-								<TruncatedValue value={String((replyHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyHash = resolvedEntity.replyHash}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rejectCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rejectCode = pendingEntity.rejectCode}
-					{#if rejectCode !== undefined && rejectCode !== null}
-						<div>
-							<dt>reject code</dt>
-							<dd>
-								{String((rejectCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rejectCode = resolvedEntity.rejectCode}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rejectMessage: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rejectMessage = pendingEntity.rejectMessage}
-					{#if rejectMessage !== undefined && rejectMessage !== null}
-						<div>
-							<dt>reject message</dt>
-							<dd>
-								{String((rejectMessage) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rejectMessage = resolvedEntity.rejectMessage}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							certifiedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const certifiedAtMs = pendingEntity.certifiedAtMs}
-					{#if certifiedAtMs !== undefined && certifiedAtMs !== null}
-						<div>
-							<dt>certified AT ms</dt>
-							<dd>
-								{String((certifiedAtMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const certifiedAtMs = resolvedEntity.certifiedAtMs}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							certificateHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const certificateHash = pendingEntity.certificateHash}
-					{#if certificateHash !== undefined && certificateHash !== null}
-						<div>
-							<dt>certificate hash</dt>
-							<dd>
-								<TruncatedValue value={String((certificateHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const certificateHash = resolvedEntity.certificateHash}

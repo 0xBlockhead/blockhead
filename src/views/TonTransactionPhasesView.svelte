@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonTransactionPhaseView from '$/views/TonTransactionPhaseView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTransactionPhase}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonTransactionPhase}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonTransactionPhases) => [...new Map(tonTransactionPhases.values.map((tonTransactionPhase) => [tonTransactionPhase[EntityMetaKey.SelectorKey], tonTransactionPhase])).values()]}
+	getKey={(tonTransactionPhase) => tonTransactionPhase[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON transaction phases yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonTransactionPhases)}
-			{@const uniqueTonTransactionPhases = [...new Map(tonTransactionPhases.values.map((tonTransactionPhase) => [tonTransactionPhase[EntityMetaKey.SelectorKey], tonTransactionPhase])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTransactionPhase}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonTransactionPhases.totalCount}
-				getKey={(tonTransactionPhase) => tonTransactionPhase[EntityMetaKey.SelectorKey]}
-				items={uniqueTonTransactionPhases}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON transaction phases yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonTransactionPhase })}
-					{@const tonTransactionPhaseFields = { ...tonTransactionPhase[EntityMetaKey.Selector], ...tonTransactionPhase }}
-					{@const selection = select(EntityType.TonTransactionPhase, tonTransactionPhase[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonTransactionPhaseView
-						selection={selection}
-						prefetched={tonTransactionPhaseFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonTransactionPhase}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonTransactionPhase })}
+		{@const tonTransactionPhaseFields = { ...tonTransactionPhase[EntityMetaKey.Selector], ...tonTransactionPhase }}
+		{@const selection = select(EntityType.TonTransactionPhase, tonTransactionPhase[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonTransactionPhaseView
+			selection={selection}
+			prefetched={tonTransactionPhaseFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

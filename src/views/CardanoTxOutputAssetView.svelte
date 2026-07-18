@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoTxOutputAsset = $derived(selection({}))
+	const cardanoTxOutputAsset = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano transaction output asset')
 	const viewDomId = $derived('cardano-tx-output-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoTxOutputAsset}>
-			{#snippet Pending()}
-				{title || 'Cardano transaction output asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoTxOutputAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,19 +107,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									quantity: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const quantity = pendingEntity.quantity}
-							{#if quantity !== undefined && quantity !== null}
-								{String((quantity) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const quantity = resolvedEntity.quantity}

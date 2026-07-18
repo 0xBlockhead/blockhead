@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,7 +34,9 @@
 		{@const DetailView = GlobalSwarmAccessView}
 
 		<DetailView
-			selection={select(EntityType._GlobalSwarmAccess, data.selector)}
+			selection={select(EntityType._GlobalSwarmAccess, data.selector, { sources: [
+	Source.Constants_Internal,
+] })}
 			href={resolve('/swarm/access')}
 			layout={EntityLayout.SummaryInline}
 		/>

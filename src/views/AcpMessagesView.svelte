@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpMessageView from '$/views/AcpMessageView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					messageId: true,
-					role: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpMessage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				messageId: true,
+				role: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(acpMessages) => [...new Map(acpMessages.values.map((acpMessage) => [acpMessage[EntityMetaKey.SelectorKey], acpMessage])).values()]}
+	getKey={(acpMessage) => acpMessage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP messages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpMessages)}
-			{@const uniqueAcpMessages = [...new Map(acpMessages.values.map((acpMessage) => [acpMessage[EntityMetaKey.SelectorKey], acpMessage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpMessages.totalCount}
-				getKey={(acpMessage) => acpMessage[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpMessages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP messages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpMessage })}
-					{@const acpMessageFields = { ...acpMessage[EntityMetaKey.Selector], ...acpMessage }}
-					{@const selection = select(EntityType.AcpMessage, acpMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpMessageView
-						selection={selection}
-						prefetched={acpMessageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpMessage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpMessage })}
+		{@const acpMessageFields = { ...acpMessage[EntityMetaKey.Selector], ...acpMessage }}
+		{@const selection = select(EntityType.AcpMessage, acpMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpMessageView
+			selection={selection}
+			prefetched={acpMessageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

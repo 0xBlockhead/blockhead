@@ -23,6 +23,27 @@ type SchemaType<
 	(value: unknown): unknown
 }
 
+export type EntityDenomination =
+	| {
+		readonly kind: 'unit'
+		readonly unitField: string
+	}
+	| {
+		readonly kind: 'decimal'
+		readonly unitField: string
+		readonly decimalPlacesField: string
+	}
+
+export type EntityFieldQuantity =
+	| {
+		readonly kind: 'intrinsicUnit'
+		readonly unit: string
+	}
+	| {
+		readonly kind: 'denomination'
+		readonly owner: 'self' | readonly [`$${string}`, ...`$${string}`[]]
+	}
+
 export type EntityDefinition<
 	_EntityType extends string = string,
 	_Source extends string = string,
@@ -36,6 +57,7 @@ export type EntityDefinition<
 		readonly plural: string
 	}
 	readonly description?: string
+	readonly denomination?: EntityDenomination
 	readonly selectors: _Selectors
 	readonly fields: _Fields
 	readonly facets?: _Facets
@@ -159,6 +181,7 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 			type: EntityFieldType.Primitive
 			primitiveType: SchemaType
 			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+			quantity?: EntityFieldQuantity
 		}
 		| {
 			name: `$${string}`
@@ -194,6 +217,55 @@ export type EntityFacetCondition =
 	| {
 		readonly all: readonly [EntityFacetCondition, ...EntityFacetCondition[]]
 	}
+
+export type EntityFacetConditionPlan = {
+	readonly dependencies: readonly EntityFieldAddress[]
+	readonly predicates: readonly (
+		| {
+			readonly dependencyIndex: number
+			readonly itemIndex?: number
+			readonly is: string | number | boolean | null
+		}
+		| {
+			readonly dependencyIndex: number
+			readonly itemIndex?: number
+			readonly isOneOf: readonly (string | number | boolean | null)[]
+		}
+		| {
+			readonly dependencyIndex: number
+			readonly includes: string | number | boolean | null
+		}
+	)[]
+}
+
+export const evaluateEntityFacetConditionPlan = (
+	plan: EntityFacetConditionPlan,
+	dependencyValues: readonly unknown[]
+): ProjectionResolution => {
+	if (plan.dependencies.some((_, index) => dependencyValues[index] === undefined))
+		return ProjectionResolution.Blocked
+
+	return plan.predicates.every((predicate) => {
+		const dependencyValue = dependencyValues[predicate.dependencyIndex]
+		const conditionValue = (
+			'itemIndex' in predicate && predicate.itemIndex !== undefined && Array.isArray(dependencyValue) ?
+				dependencyValue[predicate.itemIndex]
+			:
+				dependencyValue
+		)
+
+		return (
+			'is' in predicate ?
+				conditionValue === predicate.is
+			: 'isOneOf' in predicate ?
+				predicate.isOneOf.some((value) => value === conditionValue)
+			: Array.isArray(conditionValue) ?
+				conditionValue.some((value) => value === predicate.includes)
+			:
+				false
+		)
+	}) ? ProjectionResolution.Applicable : ProjectionResolution.NotApplicable
+}
 
 type EntityFieldDefinitionInput<_Source extends string = string> = (
 	EntityFieldDefinition<_Source> extends infer _FieldDefinition ?
@@ -531,6 +603,7 @@ export const entity = <
 		readonly plural: string
 	}
 	readonly description?: string
+	readonly denomination?: EntityDenomination
 }) => <const _Fields extends EntityFieldDefinitionInputByName>(
 	fields: _Fields & EntityFieldDefinitionInputsWithValidNames<_Fields>
 ) => {
@@ -951,7 +1024,17 @@ export type EntityType<_Schema extends Schema> = _Schema[number]['entityType']
 export type EntityDefinitionForEntityType<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Extract<_Schema[number], { entityType: _EntityType }>
+> = (
+	_Schema extends {
+		readonly entityDefinitionByType: infer _EntityDefinitionByType extends Readonly<Record<string, EntityDefinition>>
+	} ?
+		_EntityType extends keyof _EntityDefinitionByType ?
+			_EntityDefinitionByType[_EntityType]
+		:
+			never
+	:
+		Extract<_Schema[number], { entityType: _EntityType }>
+)
 
 export type EntityDefinitionByType<_Schema extends Schema> = {
 	readonly [_EntityType in EntityType<_Schema>]: EntityDefinitionForEntityType<_Schema, _EntityType>
@@ -960,7 +1043,10 @@ export type EntityDefinitionByType<_Schema extends Schema> = {
 export type EntitySelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
+> = _EntityType extends EntityType<_Schema> ?
+	EntitySelectorFromDefinition<_Schema, EntityDefinitionForEntityType<_Schema, _EntityType>>
+:
+	never
 
 export type EntitySelectorName<
 	_Schema extends Schema,
@@ -1463,6 +1549,7 @@ export type EntityProjectionDefinition = {
 	readonly entityType: string
 	readonly facetPath: EntityFacetPath
 	readonly condition?: EntityFacetCondition
+	readonly conditionPlan: EntityFacetConditionPlan
 	readonly directDependencies: readonly EntityFieldAddress[]
 	readonly transitiveDependencies: readonly EntityFieldAddress[]
 	readonly topologicalIndex: number
@@ -1492,16 +1579,21 @@ export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> 
 }
 
 export const indexSchema = <const _Schema extends Schema>(
-	schema: _Schema
+	schema: _Schema,
+	generatedConditionPlanByEntityTypeAndPath?: Readonly<Record<string, EntityFacetConditionPlan | undefined>>
 ) => {
-	const conditionDependencies = (
+	const conditionLeaves = (
 		entityType: string,
 		condition: EntityFacetCondition | undefined
-	): EntityFieldAddress[] => {
+	): {
+		dependency: EntityFieldAddress
+		itemIndex?: number
+		condition: Exclude<EntityFacetCondition, { readonly all: readonly EntityFacetCondition[] }>
+	}[] => {
 		if (condition == null)
 			return []
 		if ('all' in condition)
-			return condition.all.flatMap((child) => conditionDependencies(entityType, child))
+			return condition.all.flatMap((child) => conditionLeaves(entityType, child))
 
 		const indexed = condition.path.at(-1)
 		const fieldName = typeof indexed === 'number' ? condition.path.at(-2) : indexed
@@ -1509,17 +1601,43 @@ export const indexSchema = <const _Schema extends Schema>(
 			return []
 
 		return [{
-			entityType,
-			facetPath: condition.path.slice(0, typeof indexed === 'number' ? -2 : -1).filter((segment): segment is string => typeof segment === 'string'),
-			fieldName,
+			dependency: {
+				entityType,
+				facetPath: condition.path.slice(0, typeof indexed === 'number' ? -2 : -1).filter((segment): segment is string => typeof segment === 'string'),
+				fieldName,
+			},
+			...(typeof indexed === 'number' && { itemIndex: indexed }),
+			condition,
 		}]
+	}
+	const conditionPlan = (
+		entityType: string,
+		conditions: readonly (EntityFacetCondition | undefined)[]
+	): EntityFacetConditionPlan => {
+		const leaves = conditions.flatMap((condition) => conditionLeaves(entityType, condition))
+		const dependencies = [...new Map(leaves.map(({ dependency }) => [
+			entityFieldAddressKey(dependency.entityType, dependency.facetPath, dependency.fieldName),
+			dependency,
+		])).values()]
+
+		return {
+			dependencies,
+			predicates: leaves.map(({ condition, dependency, itemIndex }) => ({
+				dependencyIndex: dependencies.findIndex((candidate) => (
+					entityFieldAddressKey(candidate.entityType, candidate.facetPath, candidate.fieldName)
+					=== entityFieldAddressKey(dependency.entityType, dependency.facetPath, dependency.fieldName)
+				)),
+				...(itemIndex !== undefined && { itemIndex }),
+				...('is' in condition ? { is: condition.is } : 'isOneOf' in condition ? { isOneOf: condition.isOneOf } : { includes: condition.includes }),
+			})),
+		}
 	}
 	let topologicalIndex = 0
 	const projectionDefinitionsForFacets = (
 		entityType: string,
 		facets: readonly EntityFacetDefinition[] | undefined,
 		parentPath: EntityFacetPath = [],
-		parentDependencies: readonly EntityFieldAddress[] = []
+		ancestorConditions: readonly EntityFacetCondition[] = []
 	): EntityProjectionDefinition[] => (
 		facets ?? []
 	).flatMap((facetDefinition) => {
@@ -1527,18 +1645,23 @@ export const indexSchema = <const _Schema extends Schema>(
 			...parentPath,
 			facetDefinition.name,
 		]
-		const directDependencies = conditionDependencies(entityType, facetDefinition.condition)
-		const transitiveDependencies = [...new Map([
-			...parentDependencies,
-			...directDependencies,
-		].map((dependency) => [
-			entityFieldAddressKey(dependency.entityType, dependency.facetPath, dependency.fieldName),
-			dependency,
-		])).values()]
+		const directDependencies = conditionPlan(entityType, [facetDefinition.condition]).dependencies
+		const generatedConditionPlan = generatedConditionPlanByEntityTypeAndPath?.[
+			entityFieldAddressKey(entityType, facetPath, '')
+		]
+		if (generatedConditionPlanByEntityTypeAndPath != null && generatedConditionPlan == null)
+			throw new Error(`${entityType}.${facetPath.join('.')} is missing its generated condition plan`)
+
+		const projectionConditionPlan = generatedConditionPlan ?? conditionPlan(entityType, [
+			...ancestorConditions,
+			facetDefinition.condition,
+		])
+		const transitiveDependencies = projectionConditionPlan.dependencies
 		const projectionDefinition = {
 			entityType,
 			facetPath,
 			condition: facetDefinition.condition,
+			conditionPlan: projectionConditionPlan,
 			directDependencies,
 			transitiveDependencies,
 			topologicalIndex: topologicalIndex++,
@@ -1555,7 +1678,10 @@ export const indexSchema = <const _Schema extends Schema>(
 				entityType,
 				facetDefinition.facets,
 				facetPath,
-				transitiveDependencies
+				[
+					...ancestorConditions,
+					...(facetDefinition.condition == null ? [] : [facetDefinition.condition]),
+				]
 			),
 		]
 	})
@@ -1564,6 +1690,10 @@ export const indexSchema = <const _Schema extends Schema>(
 			{
 				entityType: entityDefinition.entityType,
 				facetPath: [],
+				conditionPlan: {
+					dependencies: [],
+					predicates: [],
+				},
 				fields: entityDefinition.fields,
 				facets: entityDefinition.facets,
 				directDependencies: [],

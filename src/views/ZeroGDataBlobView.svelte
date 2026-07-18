@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGDataBlob = $derived(selection({
-		sources: [
-			Source.ZeroGStorageScan_Rest,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			sizeBytes: true,
 		},
@@ -79,74 +75,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGDataBlob}>
-			{#snippet Pending()}
-				{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || 'zero g data blob'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGDataBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGDataBlob}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zeroGDataBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGDataBlob}>
-			{#snippet Pending()}
-				{@const sizeBytes0 = pendingEntity.sizeBytes}
-				{#if sizeBytes0 !== undefined && sizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(sizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sizeBytes0 = resolvedEntity.sizeBytes}
-				{#if sizeBytes0 !== undefined && sizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(sizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const sizeBytes0 = pendingEntity.sizeBytes}
+			{#if sizeBytes0 !== undefined && sizeBytes0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={sizeBytes0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zeroGDataBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sizeBytes0 = resolvedEntity.sizeBytes}
+					{#if sizeBytes0 !== undefined && sizeBytes0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={sizeBytes0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -175,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									dataRoot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const dataRoot = pendingEntity.dataRoot}
-							{#if dataRoot !== undefined && dataRoot !== null}
-								{String((dataRoot) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const dataRoot = resolvedEntity.dataRoot}
@@ -202,24 +196,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sizeBytes = pendingEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
-						<div>
-							<dt>size bytes</dt>
-							<dd>
-								<NumberValue value={Number(sizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sizeBytes = resolvedEntity.sizeBytes}
@@ -227,7 +210,9 @@
 						<div>
 							<dt>size bytes</dt>
 							<dd>
-								<NumberValue value={Number(sizeBytes)} />
+								<NumberValue
+									value={sizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -237,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							erasureCodingScheme: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const erasureCodingScheme = pendingEntity.erasureCodingScheme}
-					{#if erasureCodingScheme !== undefined && erasureCodingScheme !== null}
-						<div>
-							<dt>erasure coding scheme</dt>
-							<dd>
-								{String((erasureCodingScheme) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const erasureCodingScheme = resolvedEntity.erasureCodingScheme}
@@ -272,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							aggregatedSignature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const aggregatedSignature = pendingEntity.aggregatedSignature}
-					{#if aggregatedSignature !== undefined && aggregatedSignature !== null}
-						<div>
-							<dt>aggregated signature</dt>
-							<dd>
-								<TruncatedValue value={String((aggregatedSignature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const aggregatedSignature = resolvedEntity.aggregatedSignature}
@@ -309,8 +272,6 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -331,8 +292,6 @@
 			<ResourceBoundary
 				resource={selection.$daQuorum}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDaQuorum)}
 					{#if zeroGDaQuorum != null && zeroGDaQuorum[EntityMetaKey.Selector] != null}
 						<div>
@@ -353,8 +312,6 @@
 			<ResourceBoundary
 				resource={selection.$storageLogEntry}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGStorageLogEntry)}
 					{#if zeroGStorageLogEntry != null && zeroGStorageLogEntry[EntityMetaKey.Selector] != null}
 						<div>

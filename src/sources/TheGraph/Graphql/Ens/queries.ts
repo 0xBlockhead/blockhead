@@ -2,6 +2,27 @@ import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
 import { EnsDomainFragment } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
+export const getEnsSubgraphReachability = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => {
+	await queryEns(
+		publicEnv,
+		graphql(`
+			query EnsSubgraphReachability {
+				domains(
+					first: 1
+				) {
+					id
+				}
+			}
+		`)
+	)
+
+	return true
+}
+
 export const getName = async ({
 	publicEnv,
 	name,

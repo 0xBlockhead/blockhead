@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,13 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerRewardTimestamp = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			rewardToken: true,
 		},
@@ -82,11 +75,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-			{#snippet Pending()}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+						href={
 						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
@@ -95,16 +87,16 @@
 							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+						href={
 						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
@@ -113,47 +105,48 @@
 							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer reward timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-			{#snippet Pending()}
-				{@const rewardToken0 = pendingEntity.rewardToken}
-				{#if rewardToken0 !== undefined && rewardToken0 !== null}
-					<span data-text="muted">
-						{String((rewardToken0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const rewardToken0 = resolvedEntity.rewardToken}
-				{#if rewardToken0 !== undefined && rewardToken0 !== null}
-					<span data-text="muted">
-						{String((rewardToken0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const rewardToken0 = pendingEntity.rewardToken}
+			{#if rewardToken0 !== undefined && rewardToken0 !== null}
+				<span data-text="muted">
+					{String((rewardToken0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const rewardToken0 = resolvedEntity.rewardToken}
+					{#if rewardToken0 !== undefined && rewardToken0 !== null}
+						<span data-text="muted">
+							{String((rewardToken0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -184,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rewardContextKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rewardContextKey = pendingEntity.rewardContextKey}
-							{#if rewardContextKey !== undefined && rewardContextKey !== null}
-								{String((rewardContextKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rewardContextKey = resolvedEntity.rewardContextKey}
@@ -211,8 +198,6 @@
 			<ResourceBoundary
 				resource={selection.$strategy}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null && eigenLayerStrategy[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,8 +218,6 @@
 			<ResourceBoundary
 				resource={selection.$operator}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
 						<div>
@@ -255,8 +238,6 @@
 			<ResourceBoundary
 				resource={selection.$avs}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,19 +263,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -312,19 +287,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -339,24 +308,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardToken: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardToken = pendingEntity.rewardToken}
-					{#if rewardToken !== undefined && rewardToken !== null}
-						<div>
-							<dt>reward token</dt>
-							<dd>
-								{String((rewardToken) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardToken = resolvedEntity.rewardToken}
@@ -376,24 +334,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardAmount = pendingEntity.rewardAmount}
-					{#if rewardAmount !== undefined && rewardAmount !== null}
-						<div>
-							<dt>reward amount</dt>
-							<dd>
-								<NumberValue value={Number(rewardAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardAmount = resolvedEntity.rewardAmount}
@@ -401,7 +348,9 @@
 						<div>
 							<dt>reward amount</dt>
 							<dd>
-								<NumberValue value={Number(rewardAmount)} />
+								<NumberValue
+									value={rewardAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -411,24 +360,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cumulativeClaimed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cumulativeClaimed = pendingEntity.cumulativeClaimed}
-					{#if cumulativeClaimed !== undefined && cumulativeClaimed !== null}
-						<div>
-							<dt>cumulative claimed</dt>
-							<dd>
-								<NumberValue value={Number(cumulativeClaimed)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cumulativeClaimed = resolvedEntity.cumulativeClaimed}
@@ -436,7 +374,9 @@
 						<div>
 							<dt>cumulative claimed</dt>
 							<dd>
-								<NumberValue value={Number(cumulativeClaimed)} />
+								<NumberValue
+									value={cumulativeClaimed}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -446,24 +386,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							merkleRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const merkleRoot = pendingEntity.merkleRoot}
-					{#if merkleRoot !== undefined && merkleRoot !== null}
-						<div>
-							<dt>merkle root</dt>
-							<dd>
-								{String((merkleRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const merkleRoot = resolvedEntity.merkleRoot}
@@ -481,24 +410,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proofRequested: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proofRequested = pendingEntity.proofRequested}
-					{#if proofRequested !== undefined && proofRequested !== null}
-						<div>
-							<dt>proof requested</dt>
-							<dd>
-								{proofRequested ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proofRequested = resolvedEntity.proofRequested}

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337AccountFactoryView from '$/views/Erc4337AccountFactoryView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337AccountFactory}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Erc4337AccountFactory}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(erc4337AccountFactories) => [...new Map(erc4337AccountFactories.values.map((erc4337AccountFactory) => [erc4337AccountFactory[EntityMetaKey.SelectorKey], erc4337AccountFactory])).values()]}
+	getKey={(erc4337AccountFactory) => erc4337AccountFactory[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ERC-4337 account factories yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(erc4337AccountFactories)}
-			{@const uniqueErc4337AccountFactories = [...new Map(erc4337AccountFactories.values.map((erc4337AccountFactory) => [erc4337AccountFactory[EntityMetaKey.SelectorKey], erc4337AccountFactory])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337AccountFactory}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337AccountFactories.totalCount}
-				getKey={(erc4337AccountFactory) => erc4337AccountFactory[EntityMetaKey.SelectorKey]}
-				items={uniqueErc4337AccountFactories}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ERC-4337 account factories yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: erc4337AccountFactory })}
-					{@const erc4337AccountFactoryFields = { ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }}
-					{@const selection = select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const erc4337AccountFactoryHrefFields = { ...erc4337AccountFactory, ...erc4337AccountFactory[EntityMetaKey.Selector] }}
-					<Erc4337AccountFactoryView
-						selection={selection}
-						prefetched={erc4337AccountFactoryFields}
-						href={
-							(erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-								address: String(erc4337AccountFactoryHrefFields.address ?? ''),
-								network: String(caip2StringFromValue(erc4337AccountFactoryHrefFields.$network.caip2) ?? ''),
-							}) : erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-								address: String(erc4337AccountFactoryHrefFields.address ?? ''),
-								network: String(erc4337AccountFactoryHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Erc4337AccountFactory}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: erc4337AccountFactory })}
+		{@const erc4337AccountFactoryFields = { ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }}
+		{@const selection = select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const erc4337AccountFactoryHrefFields = { ...erc4337AccountFactory, ...erc4337AccountFactory[EntityMetaKey.Selector] }}
+		<Erc4337AccountFactoryView
+			selection={selection}
+			prefetched={erc4337AccountFactoryFields}
+			href={
+				(erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+					address: String(erc4337AccountFactoryHrefFields.address ?? ''),
+					network: String(caip2StringFromValue(erc4337AccountFactoryHrefFields.$network.caip2) ?? ''),
+				}) : erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+					address: String(erc4337AccountFactoryHrefFields.address ?? ''),
+					network: String(erc4337AccountFactoryHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

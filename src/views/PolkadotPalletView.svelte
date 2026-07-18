@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotPallet = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			index: true,
 		},
@@ -76,52 +77,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={polkadotPallet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.palletName) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot pallet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.palletName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.palletName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotPallet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.palletName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={polkadotPallet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.palletName) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot pallet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.palletName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.palletName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotPallet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.palletName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotPallet}>
-			{#snippet Pending()}
-				{@const index0 = pendingEntity.index}
-				{#if index0 !== undefined && index0 !== null}
-					<span data-text="muted">
-						{String((index0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const index0 = resolvedEntity.index}
-				{#if index0 !== undefined && index0 !== null}
-					<span data-text="muted">
-						{String((index0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const index0 = pendingEntity.index}
+			{#if index0 !== undefined && index0 !== null}
+				<span data-text="muted">
+					{String((index0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotPallet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const index0 = resolvedEntity.index}
+					{#if index0 !== undefined && index0 !== null}
+						<span data-text="muted">
+							{String((index0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,19 +133,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									palletName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const palletName = pendingEntity.palletName}
-							{#if palletName !== undefined && palletName !== null}
-								{String((palletName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const palletName = resolvedEntity.palletName}
@@ -159,24 +154,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							index: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const index = pendingEntity.index}
-					{#if index !== undefined && index !== null}
-						<div>
-							<dt>Index</dt>
-							<dd>
-								{String((index) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const index = resolvedEntity.index}

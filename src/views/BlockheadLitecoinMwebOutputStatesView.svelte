@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLitecoinMwebOutputStateView from '$/views/BlockheadLitecoinMwebOutputStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					commitment: true,
-					walletId: true,
-					amountLitoshis: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLitecoinMwebOutputState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLitecoinMwebOutputState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				commitment: true,
+				walletId: true,
+				amountLitoshis: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLitecoinMwebOutputStates) => [...new Map(blockheadLitecoinMwebOutputStates.values.map((blockheadLitecoinMwebOutputState) => [blockheadLitecoinMwebOutputState[EntityMetaKey.SelectorKey], blockheadLitecoinMwebOutputState])).values()]}
+	getKey={(blockheadLitecoinMwebOutputState) => blockheadLitecoinMwebOutputState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead litecoin mweb output states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLitecoinMwebOutputStates)}
-			{@const uniqueBlockheadLitecoinMwebOutputStates = [...new Map(blockheadLitecoinMwebOutputStates.values.map((blockheadLitecoinMwebOutputState) => [blockheadLitecoinMwebOutputState[EntityMetaKey.SelectorKey], blockheadLitecoinMwebOutputState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLitecoinMwebOutputState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLitecoinMwebOutputStates.totalCount}
-				getKey={(blockheadLitecoinMwebOutputState) => blockheadLitecoinMwebOutputState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLitecoinMwebOutputStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead litecoin mweb output states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLitecoinMwebOutputState })}
-					{@const blockheadLitecoinMwebOutputStateFields = { ...blockheadLitecoinMwebOutputState[EntityMetaKey.Selector], ...blockheadLitecoinMwebOutputState }}
-					{@const selection = select(EntityType.BlockheadLitecoinMwebOutputState, blockheadLitecoinMwebOutputState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLitecoinMwebOutputStateView
-						selection={selection}
-						prefetched={blockheadLitecoinMwebOutputStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLitecoinMwebOutputState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLitecoinMwebOutputState })}
+		{@const blockheadLitecoinMwebOutputStateFields = { ...blockheadLitecoinMwebOutputState[EntityMetaKey.Selector], ...blockheadLitecoinMwebOutputState }}
+		{@const selection = select(EntityType.BlockheadLitecoinMwebOutputState, blockheadLitecoinMwebOutputState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLitecoinMwebOutputStateView
+			selection={selection}
+			prefetched={blockheadLitecoinMwebOutputStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

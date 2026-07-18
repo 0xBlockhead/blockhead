@@ -24,27 +24,29 @@ export const _GlobalYoutubeNetwork = entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedChannels: {
-		label: 'Channels',
+		label: 'Channels represented in the bounded popular chart',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Youtube_Rest,
+			Source.Piped_Rest,
 		],
 	},
 	$$observedVideos: {
-		label: 'Videos',
+		label: 'Bounded popular videos',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.YoutubeVideo,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Youtube_Rest,
+			Source.Piped_Rest,
 		],
 	},
 	$$observedPlaylists: {
-		label: 'Playlists',
+		label: 'Playlists from bounded channel discovery seeds',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.YoutubePlaylist,
 		cardinality: EntityFieldCardinality.Many,

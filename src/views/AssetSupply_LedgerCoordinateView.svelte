@@ -43,8 +43,15 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const assetSupplyLedgerCoordinate = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			totalSupply: true,
+			$assetInstance: {
+				fields: {
+					decimals: true,
+					symbol: true,
+				},
+			},
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || 'asset supply ledger coordinate')
@@ -70,58 +77,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
-			{#snippet Pending()}
-				{[String((pendingEntity.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || title || 'asset supply ledger coordinate'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
-			{#snippet Pending()}
-				{@const totalSupply0 = pendingEntity.totalSupply}
-				{#if totalSupply0 !== undefined && totalSupply0 !== null}
-					<NumberValue value={Number(totalSupply0)} />
-				{/if}
-			{/snippet}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const totalSupply0 = pendingEntity.totalSupply}
+					{#if totalSupply0 !== undefined && totalSupply0 !== null}
+						<NumberValue
+							value={totalSupply0}
+							decimalPlaces={pendingEntity.$assetInstance.decimals}
+						/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const totalSupply0 = resolvedEntity.totalSupply}
-				{#if totalSupply0 !== undefined && totalSupply0 !== null}
-					<NumberValue value={Number(totalSupply0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const totalSupply0 = resolvedEntity.totalSupply}
+					{#if totalSupply0 !== undefined && totalSupply0 !== null}
+						<NumberValue
+							value={totalSupply0}
+							decimalPlaces={resolvedEntity.$assetInstance.decimals}
+						/>
+
+						<span>{resolvedEntity.$assetInstance.symbol == null ? '' : ` ${String(resolvedEntity.$assetInstance.symbol)}`}</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,19 +171,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									supplyScopeKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const supplyScopeKey = pendingEntity.supplyScopeKey}
-							{#if supplyScopeKey !== undefined && supplyScopeKey !== null}
-								{String((supplyScopeKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const supplyScopeKey = resolvedEntity.supplyScopeKey}
@@ -181,8 +192,6 @@
 			<ResourceBoundary
 				resource={selection.$class}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(assetClass)}
 					{#if assetClass != null && assetClass[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,24 +212,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							classKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const classKey = pendingEntity.classKey}
-					{#if classKey !== undefined && classKey !== null}
-						<div>
-							<dt>class key</dt>
-							<dd>
-								{String((classKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const classKey = resolvedEntity.classKey}
@@ -243,19 +241,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerCoordinateKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
-							{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
-								{String((ledgerCoordinateKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
@@ -273,24 +265,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerCoordinateValue: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
-							{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
-								<NumberValue value={Number(ledgerCoordinateValue)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}
 							{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
-								<NumberValue value={Number(ledgerCoordinateValue)} />
+								<NumberValue
+									value={ledgerCoordinateValue}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -303,19 +291,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -332,24 +314,19 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalSupply: true,
+							$assetInstance: {
+								fields: {
+									decimals: true,
+									symbol: true,
+								},
+							},
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalSupply = pendingEntity.totalSupply}
-					{#if totalSupply !== undefined && totalSupply !== null}
-						<div>
-							<dt>total supply</dt>
-							<dd>
-								<NumberValue value={Number(totalSupply)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalSupply = resolvedEntity.totalSupply}
@@ -357,7 +334,12 @@
 						<div>
 							<dt>total supply</dt>
 							<dd>
-								<NumberValue value={Number(totalSupply)} />
+								<NumberValue
+									value={totalSupply}
+									decimalPlaces={({ value: totalSupply, ...resolvedEntity }).$assetInstance.decimals}
+								/>
+
+								<span>{({ value: totalSupply, ...resolvedEntity }).$assetInstance.symbol == null ? '' : ` ${String(({ value: totalSupply, ...resolvedEntity }).$assetInstance.symbol)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -367,24 +349,19 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxSupply: true,
+							$assetInstance: {
+								fields: {
+									decimals: true,
+									symbol: true,
+								},
+							},
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxSupply = pendingEntity.maxSupply}
-					{#if maxSupply !== undefined && maxSupply !== null}
-						<div>
-							<dt>max supply</dt>
-							<dd>
-								<NumberValue value={Number(maxSupply)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxSupply = resolvedEntity.maxSupply}
@@ -392,7 +369,12 @@
 						<div>
 							<dt>max supply</dt>
 							<dd>
-								<NumberValue value={Number(maxSupply)} />
+								<NumberValue
+									value={maxSupply}
+									decimalPlaces={({ value: maxSupply, ...resolvedEntity }).$assetInstance.decimals}
+								/>
+
+								<span>{({ value: maxSupply, ...resolvedEntity }).$assetInstance.symbol == null ? '' : ` ${String(({ value: maxSupply, ...resolvedEntity }).$assetInstance.symbol)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -402,24 +384,19 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mintedSupply: true,
+							$assetInstance: {
+								fields: {
+									decimals: true,
+									symbol: true,
+								},
+							},
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mintedSupply = pendingEntity.mintedSupply}
-					{#if mintedSupply !== undefined && mintedSupply !== null}
-						<div>
-							<dt>minted supply</dt>
-							<dd>
-								<NumberValue value={Number(mintedSupply)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mintedSupply = resolvedEntity.mintedSupply}
@@ -427,7 +404,12 @@
 						<div>
 							<dt>minted supply</dt>
 							<dd>
-								<NumberValue value={Number(mintedSupply)} />
+								<NumberValue
+									value={mintedSupply}
+									decimalPlaces={({ value: mintedSupply, ...resolvedEntity }).$assetInstance.decimals}
+								/>
+
+								<span>{({ value: mintedSupply, ...resolvedEntity }).$assetInstance.symbol == null ? '' : ` ${String(({ value: mintedSupply, ...resolvedEntity }).$assetInstance.symbol)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -437,24 +419,19 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							burnedSupply: true,
+							$assetInstance: {
+								fields: {
+									decimals: true,
+									symbol: true,
+								},
+							},
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const burnedSupply = pendingEntity.burnedSupply}
-					{#if burnedSupply !== undefined && burnedSupply !== null}
-						<div>
-							<dt>burned supply</dt>
-							<dd>
-								<NumberValue value={Number(burnedSupply)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const burnedSupply = resolvedEntity.burnedSupply}
@@ -462,7 +439,12 @@
 						<div>
 							<dt>burned supply</dt>
 							<dd>
-								<NumberValue value={Number(burnedSupply)} />
+								<NumberValue
+									value={burnedSupply}
+									decimalPlaces={({ value: burnedSupply, ...resolvedEntity }).$assetInstance.decimals}
+								/>
+
+								<span>{({ value: burnedSupply, ...resolvedEntity }).$assetInstance.symbol == null ? '' : ` ${String(({ value: burnedSupply, ...resolvedEntity }).$assetInstance.symbol)}`}</span>
 							</dd>
 						</div>
 					{/if}

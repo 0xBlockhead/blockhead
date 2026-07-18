@@ -1,5 +1,6 @@
-import type { EntitySelector } from '$/schema/$schema.ts'
+import { entitySelectorKey, type EntitySelector } from '$/schema/$schema.ts'
 import { ActionType } from '$/constants/actions.ts'
+import { networkByCaip2 } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
@@ -12,7 +13,7 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
-import { schema } from '$/schema/index.ts'
+import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
 
 export type NormalizedActor = {
@@ -74,7 +75,7 @@ export type NormalizedBlockheadWalletConnection = {
 		accountAddress: string
 	}
 	selected: boolean
-	connectedAt: number
+	connectedAt?: number
 	disconnectedAt?: number
 	sessionId?: string
 	sessionTopic?: string
@@ -105,7 +106,14 @@ export type NormalizedBlockheadPanel = {
 }
 
 export type NormalizedBlockheadFarcasterAccountConnection = {
+	connectionId: string
 	fid: number
+	signerAddress: string
+	authMethod: 'custody' | 'authAddress'
+	verifiedAt: number
+	expiresAt: number
+	associationFingerprint: string
+	selected: boolean
 }
 
 export type NormalizedBlockheadRoom = {
@@ -859,9 +867,7 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	blockheadWorkspaces: [probeBlockheadWorkspace],
 	blockheadPanelTrees: [probeBlockheadPanelTree],
 	blockheadPanels: [probeBlockheadPanel],
-	blockheadFarcasterAccountConnections: [
-		{ fid: 3 },
-	],
+	blockheadFarcasterAccountConnections: [],
 	blockheadAgentConversations: [probeBlockheadAgentConversation],
 	blockheadAgentConversationTurns: [probeBlockheadAgentConversationTurn],
 	bridgeTransactions: [probeBridgeTransaction],
@@ -895,7 +901,26 @@ export const findNormalizedBridgeTransactionRow = (
 ): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
 		row.accountAddress === entitySelector.$account.address
-		&& String(row.chainId) === entitySelector.$sourceTx.$network.caip2.reference
+		&& Object.values(networkByCaip2).some((network) => (
+			network.caip2.namespace === 'eip155'
+			&& network.caip2.reference === String(row.chainId)
+			&& [
+				entitySelectorKey(
+					schema,
+					entityDefinitionByType[EntityType.Network],
+					{ caip2: network.caip2 }
+				),
+				entitySelectorKey(
+					schema,
+					entityDefinitionByType[EntityType.Network],
+					{ slug: network.slug }
+				),
+			].includes(entitySelectorKey(
+				schema,
+				entityDefinitionByType[EntityType.Network],
+				entitySelector.$sourceTx.$network
+			))
+		))
 		&& row.txHash === entitySelector.$sourceTx.txHash
 		&& row.createdAt === entitySelector.createdAt
 	))

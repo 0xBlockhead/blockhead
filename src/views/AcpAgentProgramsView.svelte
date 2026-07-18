@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpAgentProgramView from '$/views/AcpAgentProgramView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					packageName: true,
-					registryAgentId: true,
-					repositoryUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentProgram}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpAgentProgram}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				packageName: true,
+				registryAgentId: true,
+				repositoryUrl: true,
+			},
+		})
+	}
+	getResourceItems={(acpAgentPrograms) => [...new Map(acpAgentPrograms.values.map((acpAgentProgram) => [acpAgentProgram[EntityMetaKey.SelectorKey], acpAgentProgram])).values()]}
+	getKey={(acpAgentProgram) => acpAgentProgram[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP agent programs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpAgentPrograms)}
-			{@const uniqueAcpAgentPrograms = [...new Map(acpAgentPrograms.values.map((acpAgentProgram) => [acpAgentProgram[EntityMetaKey.SelectorKey], acpAgentProgram])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentProgram}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpAgentPrograms.totalCount}
-				getKey={(acpAgentProgram) => acpAgentProgram[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpAgentPrograms}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP agent programs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpAgentProgram })}
-					{@const acpAgentProgramFields = { ...acpAgentProgram[EntityMetaKey.Selector], ...acpAgentProgram }}
-					{@const selection = select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpAgentProgramView
-						selection={selection}
-						prefetched={acpAgentProgramFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpAgentProgram}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpAgentProgram })}
+		{@const acpAgentProgramFields = { ...acpAgentProgram[EntityMetaKey.Selector], ...acpAgentProgram }}
+		{@const selection = select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpAgentProgramView
+			selection={selection}
+			prefetched={acpAgentProgramFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

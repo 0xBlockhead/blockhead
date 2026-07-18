@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGDaQuorum = $derived(selection({
-		sources: [
-			Source.ZeroGChainScan_Rest,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.quorumId) ?? '')].filter(Boolean).join(' ') || 'zero g da quorum')
 	const viewDomId = $derived('zero-gda-quorum-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -72,94 +68,98 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGDaQuorum}>
-			{#snippet Pending()}
-				{[String((pendingEntity.quorumId) ?? '')].filter(Boolean).join(' ') || title || 'zero g da quorum'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.quorumId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.quorumId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGDaQuorum}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.quorumId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGDaQuorum}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zeroGDaQuorum}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGDaQuorum}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$consensusNetwork}
-				>
-					{#snippet children(zeroGConsensusNetwork)}
-						{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-									prefetched={zeroGConsensusNetwork}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$consensusNetwork}
-				>
-					{#snippet children(zeroGConsensusNetwork)}
-						{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-									prefetched={zeroGConsensusNetwork}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$consensusNetwork}
+			>
+				{#snippet children(zeroGConsensusNetwork)}
+					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<ZeroGConsensusNetworkView
+								selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+								prefetched={zeroGConsensusNetwork}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={zeroGDaQuorum}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$consensusNetwork}
+					>
+						{#snippet children(zeroGConsensusNetwork)}
+							{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<ZeroGConsensusNetworkView
+										selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+										prefetched={zeroGConsensusNetwork}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -188,19 +188,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									quorumId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const quorumId = pendingEntity.quorumId}
-							{#if quorumId !== undefined && quorumId !== null}
-								{String((quorumId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const quorumId = resolvedEntity.quorumId}
@@ -215,8 +209,6 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							selectionMethod: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const selectionMethod = pendingEntity.selectionMethod}
-					{#if selectionMethod !== undefined && selectionMethod !== null}
-						<div>
-							<dt>selection method</dt>
-							<dd>
-								{String((selectionMethod) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const selectionMethod = resolvedEntity.selectionMethod}

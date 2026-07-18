@@ -20,7 +20,7 @@
 	const pageSelection = $derived(select(EntityType.FarcasterCastEmbed, {
 		$cast: {
 			fid: Number(params.fid),
-			hash: decodeURIComponent(params.hash),
+			hash: params.hash,
 		},
 		indexInCast: Number(params.indexInCast),
 	}, {

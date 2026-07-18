@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWorkspaceView from '$/views/BlockheadWorkspaceView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					updatedAt: true,
-					id: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWorkspace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWorkspace}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				updatedAt: true,
+				id: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWorkspaces) => [...new Map(blockheadWorkspaces.values.map((blockheadWorkspace) => [blockheadWorkspace[EntityMetaKey.SelectorKey], blockheadWorkspace])).values()]}
+	getKey={(blockheadWorkspace) => blockheadWorkspace[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Workspaces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWorkspaces)}
-			{@const uniqueBlockheadWorkspaces = [...new Map(blockheadWorkspaces.values.map((blockheadWorkspace) => [blockheadWorkspace[EntityMetaKey.SelectorKey], blockheadWorkspace])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWorkspace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWorkspaces.totalCount}
-				getKey={(blockheadWorkspace) => blockheadWorkspace[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWorkspaces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Workspaces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWorkspace })}
-					{@const blockheadWorkspaceFields = { ...blockheadWorkspace[EntityMetaKey.Selector], ...blockheadWorkspace }}
-					{@const selection = select(EntityType.BlockheadWorkspace, blockheadWorkspace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWorkspaceView
-						selection={selection}
-						prefetched={blockheadWorkspaceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWorkspace}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWorkspace })}
+		{@const blockheadWorkspaceFields = { ...blockheadWorkspace[EntityMetaKey.Selector], ...blockheadWorkspace }}
+		{@const selection = select(EntityType.BlockheadWorkspace, blockheadWorkspace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWorkspaceView
+			selection={selection}
+			prefetched={blockheadWorkspaceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

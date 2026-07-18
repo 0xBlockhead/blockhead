@@ -181,6 +181,20 @@ export type BoundaryMainSnapshot = {
 	contentMarkerCount: number
 }
 
+export type MainSemanticReadiness = {
+	requiredText?: readonly string[]
+	requiredDt?: readonly string[]
+	minimumDt?: number
+	minimumLinks?: number
+	minimumEntityRows?: number
+}
+
+export type MainSemanticReadinessSnapshot = {
+	ready: boolean
+	unmet: string[]
+	signature: string
+}
+
 export type RouteBoundaryReport = {
 	pathname: string
 	finalUrl: string
@@ -675,21 +689,78 @@ export const snapshotBoundaryMain = (page: Page) => (
 	})
 )
 
+export const snapshotMainSemanticReadiness = (
+	page: Page,
+	requirements: MainSemanticReadiness
+) => (
+	page.evaluate((requirements) => {
+		const main = document.querySelector('#main')
+		const mainText = main?.textContent ?? ''
+		const title = document.title
+		const detailTerms = [...document.querySelectorAll('#main dt')]
+			.map((node) => node.textContent.trim())
+			.filter(Boolean)
+		const linkCount = new Set(
+			[...document.querySelectorAll('#main a')]
+				.map((node) => node.getAttribute('href') ?? '')
+				.filter((href) => href !== '' && !href.startsWith('#'))
+		).size
+		const entityRowCount = document.querySelectorAll('#main .entity-view-summary').length
+		const unmet = []
+
+		for (const requiredText of requirements.requiredText ?? [])
+			if (!mainText.includes(requiredText) && !title.includes(requiredText))
+				unmet.push(`text=${JSON.stringify(requiredText)}`)
+
+		for (const requiredDt of requirements.requiredDt ?? [])
+			if (!detailTerms.includes(requiredDt))
+				unmet.push(`dt=${JSON.stringify(requiredDt)}`)
+
+		if (detailTerms.length < (requirements.minimumDt ?? 0))
+			unmet.push(`dt-count=${detailTerms.length}/${requirements.minimumDt}`)
+
+		if (linkCount < (requirements.minimumLinks ?? 0))
+			unmet.push(`link-count=${linkCount}/${requirements.minimumLinks}`)
+
+		if (entityRowCount < (requirements.minimumEntityRows ?? 0))
+			unmet.push(`entity-row-count=${entityRowCount}/${requirements.minimumEntityRows}`)
+
+		return {
+			ready: unmet.length === 0,
+			unmet,
+			signature: JSON.stringify({
+				mainText,
+				title,
+				detailTerms,
+				linkCount,
+				entityRowCount,
+			}),
+		} satisfies MainSemanticReadinessSnapshot
+	}, requirements)
+)
+
 export const waitForBoundarySettle = async (
 	page: Page,
 	{
 		timeoutMs = 180_000,
 		quietMs = 4_000,
 		probeTimeoutMs = 20_000,
+		semanticReadiness,
 	}: {
 		timeoutMs?: number
 		quietMs?: number
 		probeTimeoutMs?: number
+		semanticReadiness?: MainSemanticReadiness
 	} = {}
 ) => {
 	const deadline = Date.now() + timeoutMs
 	let lastSignature = ''
 	let quietSince = Date.now()
+	let semanticSnapshot: MainSemanticReadinessSnapshot = {
+		ready: true,
+		unmet: [],
+		signature: '',
+	}
 	const withProbeTimeout = async <
 		const _Value,
 	>(
@@ -723,15 +794,28 @@ export const waitForBoundarySettle = async (
 		}
 		const eventCount = await withProbeTimeout('getBoundaryProbeEventCount', getBoundaryProbeEventCount(page))
 			.catch(() => -1)
+		semanticSnapshot = semanticReadiness == null ?
+			semanticSnapshot
+		:
+			await withProbeTimeout(
+				'snapshotMainSemanticReadiness',
+				snapshotMainSemanticReadiness(page, semanticReadiness)
+			).catch(() => ({
+				ready: false,
+				unmet: ['semantic-probe-timeout'],
+				signature: 'semantic-probe-timeout',
+			}))
 		const signature = JSON.stringify({
 			loading: snapshot.loading.length,
 			failed: snapshot.failed.length,
 			events: eventCount,
+			semantics: semanticSnapshot.signature,
 		})
 
 		if (
 			signature === lastSignature
 			&& snapshot.loading.length === 0
+			&& semanticSnapshot.ready
 		) {
 			if (Date.now() - quietSince >= quietMs)
 				return snapshot
@@ -744,7 +828,7 @@ export const waitForBoundarySettle = async (
 		await page.waitForTimeout(250)
 	}
 
-	return withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
+	const snapshot = await withProbeTimeout('snapshotBoundaryMain', snapshotBoundaryMain(page))
 		.catch(() => ({
 			failed: [],
 			loading: [],
@@ -753,6 +837,14 @@ export const waitForBoundarySettle = async (
 			textLength: 0,
 			contentMarkerCount: 0,
 		}))
+	if (!semanticSnapshot.ready)
+		return {
+			...snapshot,
+			empty: true,
+			emptyReason: `semantic-readiness-timeout:${semanticSnapshot.unmet.join(',')}`,
+		}
+
+	return snapshot
 }
 
 const formatBoundaryOwner = ({
@@ -4797,10 +4889,14 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 export const assertMainSettled = async (
 	page: Page,
 	timeoutMs = 180_000,
-	diagnostics?: PageRuntimeDiagnostics
+	diagnostics?: PageRuntimeDiagnostics,
+	semanticReadiness?: MainSemanticReadiness
 ) => {
 	await expectMainVisible(page, timeoutMs, diagnostics)
-	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
+	const snapshot = await waitForBoundarySettle(page, {
+		timeoutMs,
+		semanticReadiness,
+	})
 	expect(
 		snapshot.failed.map((row) => `${formatBoundaryOwner(row)}: ${row.message}`)
 		).toEqual([])

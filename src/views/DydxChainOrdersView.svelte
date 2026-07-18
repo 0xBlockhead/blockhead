@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainOrderView from '$/views/DydxChainOrderView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					orderId: true,
-					side: true,
-					orderType: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainOrder}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainOrder}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				orderId: true,
+				side: true,
+				orderType: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainOrders) => [...new Map(dydxChainOrders.values.map((dydxChainOrder) => [dydxChainOrder[EntityMetaKey.SelectorKey], dydxChainOrder])).values()]}
+	getKey={(dydxChainOrder) => dydxChainOrder[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain orders yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainOrders)}
-			{@const uniqueDydxChainOrders = [...new Map(dydxChainOrders.values.map((dydxChainOrder) => [dydxChainOrder[EntityMetaKey.SelectorKey], dydxChainOrder])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainOrder}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainOrders.totalCount}
-				getKey={(dydxChainOrder) => dydxChainOrder[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainOrders}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain orders yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainOrder })}
-					{@const dydxChainOrderFields = { ...dydxChainOrder[EntityMetaKey.Selector], ...dydxChainOrder }}
-					{@const selection = select(EntityType.DydxChainOrder, dydxChainOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainOrderView
-						selection={selection}
-						prefetched={dydxChainOrderFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainOrder}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainOrder })}
+		{@const dydxChainOrderFields = { ...dydxChainOrder[EntityMetaKey.Selector], ...dydxChainOrder }}
+		{@const selection = select(EntityType.DydxChainOrder, dydxChainOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainOrderView
+			selection={selection}
+			prefetched={dydxChainOrderFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

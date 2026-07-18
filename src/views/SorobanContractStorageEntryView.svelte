@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const sorobanContractStorageEntry = $derived(selection({}))
+	const sorobanContractStorageEntry = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('soroban contract storage entry')
 	const viewDomId = $derived('soroban-contract-storage-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={sorobanContractStorageEntry}>
-			{#snippet Pending()}
-				{title || 'soroban contract storage entry'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={sorobanContractStorageEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									keyHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const keyHash = pendingEntity.keyHash}
-							{#if keyHash !== undefined && keyHash !== null}
-								<TruncatedValue value={String((keyHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keyHash = resolvedEntity.keyHash}

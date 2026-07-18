@@ -46,9 +46,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const coin = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			symbol: true,
 			name: true,
@@ -61,7 +59,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
@@ -91,10 +88,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={coin}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$logo}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -193,6 +186,8 @@
 									layout={EntityLayout.Value}
 									open={false}
 								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest snapshot available.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -208,19 +203,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
+									sources: selection.sources,
 									fields: {
 										coinId: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const coinId = pendingEntity.coinId}
-								{#if coinId !== undefined && coinId !== null}
-									{String((coinId) ?? '')}
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const coinId = resolvedEntity.coinId}
@@ -238,7 +227,7 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-relationshipModel'}
+				id={viewDomId + '-carousel-availability'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
@@ -247,48 +236,28 @@
 							label: 'Instances',
 						},
 						{
-							id: 'coin-wrapped',
-							label: 'Wrapped',
-						},
-						{
 							id: 'coin-bridge-capabilities',
 							label: 'Bridge capabilities',
 						},
 					]
 				}
 				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Connection model</HeadingComponent>
+						<HeadingComponent>Availability</HeadingComponent>
 					</header>
 				{/snippet}
 
 				{#snippet SectionCoinInstances({ id, label, open })}
 					<EvmCoinInstancesView
-						selection={
-							selection.$$coinInstances({
-								count: true,
-							})
-						}
+						selection={selection.$$coinInstances}
 						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionCoinWrapped({ id, label, open })}
-					<EvmCoinInstancesView
-						selection={
-							selection.$$coinInstances({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No instances available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -297,12 +266,13 @@
 
 				{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
 					<CoinBridgeCapabilitiesView
-						selection={
-							selection.$$bridgeCapabilities({
-								count: true,
-							})
-						}
+						selection={selection.$$bridgeCapabilities}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No bridge capabilities available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -331,11 +301,8 @@
 					]
 				}
 				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Markets</HeadingComponent>
 					</header>
@@ -343,40 +310,47 @@
 
 				{#snippet SectionCatalogUsdMarket({ id, label, open })}
 					{@const catalogUsdMarket = seededCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
-					{#if catalogUsdMarket}
-						<div data-row="wrap align-center gap-2">
-							<a href={resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-								marketVenue: catalogUsdMarket.marketVenueId,
-								baseKind: 'coin',
-								base: catalogUsdMarket.baseCoinId,
-								quoteKind: 'currency',
-								quote: catalogUsdMarket.quoteIso4217,
-								marketKind: catalogUsdMarket.marketKind,
-							})}>
-								{catalogUsdMarket.marketKind === MarketKind.Spot ?
-									`${catalogUsdMarket.marketVenueId}:${catalogUsdMarket.baseCoinId}-${catalogUsdMarket.quoteIso4217}`
-								:
-									`${catalogUsdMarket.marketVenueId}:${catalogUsdMarket.baseCoinId}-${catalogUsdMarket.quoteIso4217} (${marketKindByMarketKind[catalogUsdMarket.marketKind].label})`}
-							</a>
+					<article
+						id={`${id}-list`}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+					>
+						{#if catalogUsdMarket}
+							<div data-row="wrap align-center gap-2">
+								<a href={resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+									marketVenue: catalogUsdMarket.marketVenueId,
+									baseKind: 'coin',
+									base: catalogUsdMarket.baseCoinId,
+									quoteKind: 'currency',
+									quote: catalogUsdMarket.quoteIso4217,
+									marketKind: catalogUsdMarket.marketKind,
+								})}>
+									{catalogUsdMarket.marketKind === MarketKind.Spot ?
+										`${catalogUsdMarket.marketVenueId}:${catalogUsdMarket.baseCoinId}-${catalogUsdMarket.quoteIso4217}`
+									:
+										`${catalogUsdMarket.marketVenueId}:${catalogUsdMarket.baseCoinId}-${catalogUsdMarket.quoteIso4217} (${marketKindByMarketKind[catalogUsdMarket.marketKind].label})`}
+								</a>
 
-							<span data-text="muted">
-								— spot quote and OHLC on the market page.
-							</span>
+								<span data-text="muted">
+									— spot quote and OHLC on the market page.
+								</span>
 
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-									<p>
-										Each market row is a base / quote / venue triple. Open a market for spot quotes and OHLC candles.
-									</p>
-								{/snippet}
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Each market row is a base / quote / venue triple. Open a market for spot quotes and OHLC candles.
+										</p>
+									{/snippet}
 
-								<abbr
-									class="entity-heading-tip"
-									aria-label="Markets and pricing"
-								>ⓘ</abbr>
-							</Tooltip>
-						</div>
-					{/if}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Markets and pricing"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
+					</article>
 				{/snippet}
 
 				{#snippet SectionMarketsWithCoinAsBase({ id, label, open })}
@@ -388,11 +362,15 @@
 									Source.Coingecko_OpenApi,
 									Source.Coinpaprika_OpenApi,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No base markets available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -406,11 +384,15 @@
 								sources: [
 									Source.Constants_Internal,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No quote markets available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadRadicleNodeStateView from '$/views/BlockheadRadicleNodeStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					did: true,
-					connectionId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRadicleNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadRadicleNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				did: true,
+				connectionId: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadRadicleNodeStates) => [...new Map(blockheadRadicleNodeStates.values.map((blockheadRadicleNodeState) => [blockheadRadicleNodeState[EntityMetaKey.SelectorKey], blockheadRadicleNodeState])).values()]}
+	getKey={(blockheadRadicleNodeState) => blockheadRadicleNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead radicle node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadRadicleNodeStates)}
-			{@const uniqueBlockheadRadicleNodeStates = [...new Map(blockheadRadicleNodeStates.values.map((blockheadRadicleNodeState) => [blockheadRadicleNodeState[EntityMetaKey.SelectorKey], blockheadRadicleNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRadicleNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRadicleNodeStates.totalCount}
-				getKey={(blockheadRadicleNodeState) => blockheadRadicleNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadRadicleNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead radicle node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadRadicleNodeState })}
-					{@const blockheadRadicleNodeStateFields = { ...blockheadRadicleNodeState[EntityMetaKey.Selector], ...blockheadRadicleNodeState }}
-					{@const selection = select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadRadicleNodeStateView
-						selection={selection}
-						prefetched={blockheadRadicleNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadRadicleNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadRadicleNodeState })}
+		{@const blockheadRadicleNodeStateFields = { ...blockheadRadicleNodeState[EntityMetaKey.Selector], ...blockheadRadicleNodeState }}
+		{@const selection = select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadRadicleNodeStateView
+			selection={selection}
+			prefetched={blockheadRadicleNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

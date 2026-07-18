@@ -78,6 +78,9 @@ importers:
       multiformats:
         specifier: ^14.0.0
         version: 14.0.0
+      ox:
+        specifier: 0.9.17
+        version: 0.9.17(typescript@6.0.3)
       satteri:
         specifier: ^0.9.3
         version: 0.9.3

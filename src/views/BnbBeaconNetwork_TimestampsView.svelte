@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbBeaconNetwork_TimestampView from '$/views/BnbBeaconNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					latestArchivedHeight: true,
-					archiveCoverageStatus: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbBeaconNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				latestArchivedHeight: true,
+				archiveCoverageStatus: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(bnbBeaconNetworkTimestamps) => [...new Map(bnbBeaconNetworkTimestamps.values.map((bnbBeaconNetworkTimestamp) => [bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey], bnbBeaconNetworkTimestamp])).values()]}
+	getKey={(bnbBeaconNetworkTimestamp) => bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb beacon network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbBeaconNetworkTimestamps)}
-			{@const uniqueBnbBeaconNetworkTimestamps = [...new Map(bnbBeaconNetworkTimestamps.values.map((bnbBeaconNetworkTimestamp) => [bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey], bnbBeaconNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbBeaconNetworkTimestamps.totalCount}
-				getKey={(bnbBeaconNetworkTimestamp) => bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbBeaconNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb beacon network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbBeaconNetworkTimestamp })}
-					{@const bnbBeaconNetworkTimestampFields = { ...bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], ...bnbBeaconNetworkTimestamp }}
-					{@const selection = select(EntityType.BnbBeaconNetwork_Timestamp, bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbBeaconNetwork_TimestampView
-						selection={selection}
-						prefetched={bnbBeaconNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbBeaconNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbBeaconNetworkTimestamp })}
+		{@const bnbBeaconNetworkTimestampFields = { ...bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], ...bnbBeaconNetworkTimestamp }}
+		{@const selection = select(EntityType.BnbBeaconNetwork_Timestamp, bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbBeaconNetwork_TimestampView
+			selection={selection}
+			prefetched={bnbBeaconNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

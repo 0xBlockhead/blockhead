@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpPrompt = $derived(selection({
-		sources: [
-			Source.McpDeclared_Protocol,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 		},
@@ -71,37 +68,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mcpPrompt}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpPrompt}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={mcpPrompt}>
-			{#snippet Pending()}
-				<McpServerView
-					selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<McpServerView
-					selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<McpServerView
+						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={mcpPrompt}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<McpServerView
+						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -123,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -150,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							title: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const title = resolvedEntity.title}
@@ -185,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}

@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const urlPreviewTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			title: true,
 			siteName: true,
@@ -54,7 +55,6 @@
 
 
 	// Components
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -72,7 +72,7 @@
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$url !== undefined && pendingEntity.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
-			url: String(pendingEntity.$url.url ?? ''),
+			url: encodeURIComponent(String(pendingEntity.$url.url ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -82,10 +82,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={urlPreviewTimestamp}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$image}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -101,80 +97,80 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={urlPreviewTimestamp}>
-			{#snippet Pending()}
-				{@const title0 = pendingEntity.title}
-				{#if title0 !== undefined && title0 !== null}
-					{String((title0) ?? '')}
-				{/if}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const title0 = pendingEntity.title}
+					{#if title0 !== undefined && title0 !== null}
+						{String((title0) ?? '')}
+					{/if}
 
-				<UrlView
-					selection={select(EntityType.Url, selection.entitySelector.$url)}
-					href={
+					<UrlView
+						selection={select(EntityType.Url, selection.entitySelector.$url)}
+						href={
 						(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-							url: String(selection.entitySelector.$url.url ?? ''),
+							url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={urlPreviewTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const title0 = resolvedEntity.title}
+					{#if title0 !== undefined && title0 !== null}
+						{String((title0) ?? '')}
+					{/if}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const title0 = resolvedEntity.title}
-				{#if title0 !== undefined && title0 !== null}
-					{String((title0) ?? '')}
-				{/if}
-
-				<UrlView
-					selection={select(EntityType.Url, selection.entitySelector.$url)}
-					href={
+					<UrlView
+						selection={select(EntityType.Url, selection.entitySelector.$url)}
+						href={
 						(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-							url: String(selection.entitySelector.$url.url ?? ''),
+							url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={urlPreviewTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? ''), String((pendingEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || 'URL preview timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? ''), String((pendingEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={urlPreviewTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={urlPreviewTimestamp}>
-			{#snippet Pending()}
-				{@const previewStatus0 = pendingEntity.previewStatus}
-				{#if previewStatus0 !== undefined && previewStatus0 !== null}
-					<span data-text="muted">
-						{String((previewStatus0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const previewStatus0 = resolvedEntity.previewStatus}
-				{#if previewStatus0 !== undefined && previewStatus0 !== null}
-					<span data-text="muted">
-						{String((previewStatus0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const previewStatus0 = pendingEntity.previewStatus}
+			{#if previewStatus0 !== undefined && previewStatus0 !== null}
+				<span data-text="muted">
+					{String((previewStatus0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={urlPreviewTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const previewStatus0 = resolvedEntity.previewStatus}
+					{#if previewStatus0 !== undefined && previewStatus0 !== null}
+						<span data-text="muted">
+							{String((previewStatus0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -185,19 +181,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -215,19 +205,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -242,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previewStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previewStatus = pendingEntity.previewStatus}
-					{#if previewStatus !== undefined && previewStatus !== null}
-						<div>
-							<dt>Preview status</dt>
-							<dd>
-								{String((previewStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previewStatus = resolvedEntity.previewStatus}
@@ -277,24 +250,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							title: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>Title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const title = resolvedEntity.title}
@@ -314,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							siteName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const siteName = pendingEntity.siteName}
-					{#if siteName !== undefined && siteName !== null}
-						<div>
-							<dt>Site name</dt>
-							<dd>
-								{String((siteName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const siteName = resolvedEntity.siteName}
@@ -349,24 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}
@@ -384,31 +324,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							imageUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const imageUrl = pendingEntity.imageUrl}
-					{#if imageUrl !== undefined && imageUrl !== null}
-						<div>
-							<dt>Image URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(imageUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(imageUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const imageUrl = resolvedEntity.imageUrl}
@@ -433,8 +355,6 @@
 			<ResourceBoundary
 				resource={selection.$image}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -445,7 +365,7 @@
 									prefetched={media}
 									href={
 										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-											url: String(media[EntityMetaKey.Selector].url ?? ''),
+											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -464,7 +384,7 @@
 						selection={select(EntityType.Url, selection.entitySelector.$url, {})}
 						href={
 							(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-								url: String(selection.entitySelector.$url.url ?? ''),
+								url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

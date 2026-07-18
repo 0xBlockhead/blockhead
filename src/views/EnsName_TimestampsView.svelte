@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EnsName_TimestampView from '$/views/EnsName_TimestampView.svelte'
 </script>
@@ -62,86 +61,53 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$name: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsName_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EnsName_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$name: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(ensNameTimestamps) => [...new Map(ensNameTimestamps.values.map((ensNameTimestamp) => [ensNameTimestamp[EntityMetaKey.SelectorKey], ensNameTimestamp])).values()]}
+	getKey={(ensNameTimestamp) => ensNameTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ENS name observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ensNameTimestamps)}
-			{@const uniqueEnsNameTimestamps = [...new Map(ensNameTimestamps.values.map((ensNameTimestamp) => [ensNameTimestamp[EntityMetaKey.SelectorKey], ensNameTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsName_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensNameTimestamps.totalCount}
-				getKey={(ensNameTimestamp) => ensNameTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEnsNameTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ENS name observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ensNameTimestamp })}
-					{@const ensNameTimestampFields = { ...ensNameTimestamp[EntityMetaKey.Selector], ...ensNameTimestamp }}
-					{@const selection = select(EntityType.EnsName_Timestamp, ensNameTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ensNameTimestampHrefFields = { ...ensNameTimestamp, ...ensNameTimestamp[EntityMetaKey.Selector] }}
-					<EnsName_TimestampView
-						selection={selection}
-						prefetched={ensNameTimestampFields}
-						href={
-							(ensNameTimestampHrefFields.timestampMs !== undefined && ensNameTimestampHrefFields.source !== undefined && ensNameTimestampHrefFields.$name !== undefined && ensNameTimestampHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(ensNameTimestampHrefFields.timestampMs ?? ''),
-								source: String(ensNameTimestampHrefFields.source ?? ''),
-								ensName: String(ensNameTimestampHrefFields.$name.name ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EnsName_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ensNameTimestamp })}
+		{@const ensNameTimestampFields = { ...ensNameTimestamp[EntityMetaKey.Selector], ...ensNameTimestamp }}
+		{@const selection = select(EntityType.EnsName_Timestamp, ensNameTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ensNameTimestampHrefFields = { ...ensNameTimestamp, ...ensNameTimestamp[EntityMetaKey.Selector] }}
+		<EnsName_TimestampView
+			selection={selection}
+			prefetched={ensNameTimestampFields}
+			href={
+				(ensNameTimestampHrefFields.timestampMs !== undefined && ensNameTimestampHrefFields.source !== undefined && ensNameTimestampHrefFields.$name !== undefined && ensNameTimestampHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(ensNameTimestampHrefFields.timestampMs ?? ''),
+					source: String(ensNameTimestampHrefFields.source ?? ''),
+					ensName: encodeURIComponent(String(ensNameTimestampHrefFields.$name.name ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

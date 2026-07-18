@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XrplAccount_TimestampView from '$/views/XrplAccount_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XrplAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(xrplAccountTimestamps) => [...new Map(xrplAccountTimestamps.values.map((xrplAccountTimestamp) => [xrplAccountTimestamp[EntityMetaKey.SelectorKey], xrplAccountTimestamp])).values()]}
+	getKey={(xrplAccountTimestamp) => xrplAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No XRPL account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xrplAccountTimestamps)}
-			{@const uniqueXrplAccountTimestamps = [...new Map(xrplAccountTimestamps.values.map((xrplAccountTimestamp) => [xrplAccountTimestamp[EntityMetaKey.SelectorKey], xrplAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xrplAccountTimestamps.totalCount}
-				getKey={(xrplAccountTimestamp) => xrplAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueXrplAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No XRPL account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xrplAccountTimestamp })}
-					{@const xrplAccountTimestampFields = { ...xrplAccountTimestamp[EntityMetaKey.Selector], ...xrplAccountTimestamp }}
-					{@const selection = select(EntityType.XrplAccount_Timestamp, xrplAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<XrplAccount_TimestampView
-						selection={selection}
-						prefetched={xrplAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XrplAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xrplAccountTimestamp })}
+		{@const xrplAccountTimestampFields = { ...xrplAccountTimestamp[EntityMetaKey.Selector], ...xrplAccountTimestamp }}
+		{@const selection = select(EntityType.XrplAccount_Timestamp, xrplAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<XrplAccount_TimestampView
+			selection={selection}
+			prefetched={xrplAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

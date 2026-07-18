@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EasAttestation_TimestampView from '$/views/EasAttestation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					valid: true,
-					revoked: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EasAttestation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EasAttestation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				valid: true,
+				revoked: true,
+			},
+		})
+	}
+	getResourceItems={(easAttestationTimestamps) => [...new Map(easAttestationTimestamps.values.map((easAttestationTimestamp) => [easAttestationTimestamp[EntityMetaKey.SelectorKey], easAttestationTimestamp])).values()]}
+	getKey={(easAttestationTimestamp) => easAttestationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EAS attestation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(easAttestationTimestamps)}
-			{@const uniqueEasAttestationTimestamps = [...new Map(easAttestationTimestamps.values.map((easAttestationTimestamp) => [easAttestationTimestamp[EntityMetaKey.SelectorKey], easAttestationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EasAttestation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={easAttestationTimestamps.totalCount}
-				getKey={(easAttestationTimestamp) => easAttestationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEasAttestationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EAS attestation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: easAttestationTimestamp })}
-					{@const easAttestationTimestampFields = { ...easAttestationTimestamp[EntityMetaKey.Selector], ...easAttestationTimestamp }}
-					{@const selection = select(EntityType.EasAttestation_Timestamp, easAttestationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EasAttestation_TimestampView
-						selection={selection}
-						prefetched={easAttestationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EasAttestation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: easAttestationTimestamp })}
+		{@const easAttestationTimestampFields = { ...easAttestationTimestamp[EntityMetaKey.Selector], ...easAttestationTimestamp }}
+		{@const selection = select(EntityType.EasAttestation_Timestamp, easAttestationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EasAttestation_TimestampView
+			selection={selection}
+			prefetched={easAttestationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

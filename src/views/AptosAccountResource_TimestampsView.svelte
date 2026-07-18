@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosAccountResource_TimestampView from '$/views/AptosAccountResource_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					ledgerVersion: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosAccountResource_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosAccountResource_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				ledgerVersion: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(aptosAccountResourceTimestamps) => [...new Map(aptosAccountResourceTimestamps.values.map((aptosAccountResourceTimestamp) => [aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey], aptosAccountResourceTimestamp])).values()]}
+	getKey={(aptosAccountResourceTimestamp) => aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos account resource observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosAccountResourceTimestamps)}
-			{@const uniqueAptosAccountResourceTimestamps = [...new Map(aptosAccountResourceTimestamps.values.map((aptosAccountResourceTimestamp) => [aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey], aptosAccountResourceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosAccountResource_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosAccountResourceTimestamps.totalCount}
-				getKey={(aptosAccountResourceTimestamp) => aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosAccountResourceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos account resource observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosAccountResourceTimestamp })}
-					{@const aptosAccountResourceTimestampFields = { ...aptosAccountResourceTimestamp[EntityMetaKey.Selector], ...aptosAccountResourceTimestamp }}
-					{@const selection = select(EntityType.AptosAccountResource_Timestamp, aptosAccountResourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosAccountResource_TimestampView
-						selection={selection}
-						prefetched={aptosAccountResourceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosAccountResource_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosAccountResourceTimestamp })}
+		{@const aptosAccountResourceTimestampFields = { ...aptosAccountResourceTimestamp[EntityMetaKey.Selector], ...aptosAccountResourceTimestamp }}
+		{@const selection = select(EntityType.AptosAccountResource_Timestamp, aptosAccountResourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosAccountResource_TimestampView
+			selection={selection}
+			prefetched={aptosAccountResourceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

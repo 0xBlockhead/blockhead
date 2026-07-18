@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarLiquidityPool = $derived(selection({}))
+	const stellarLiquidityPool = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar liquidity pool')
 	const viewDomId = $derived('stellar-liquidity-pool-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarLiquidityPool}>
-			{#snippet Pending()}
-				{title || 'stellar liquidity pool'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarLiquidityPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									liquidityPoolId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const liquidityPoolId = pendingEntity.liquidityPoolId}
-							{#if liquidityPoolId !== undefined && liquidityPoolId !== null}
-								{String((liquidityPoolId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const liquidityPoolId = resolvedEntity.liquidityPoolId}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							poolType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const poolType = pendingEntity.poolType}
-					{#if poolType !== undefined && poolType !== null}
-						<div>
-							<dt>pool type</dt>
-							<dd>
-								{String((poolType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const poolType = resolvedEntity.poolType}
@@ -156,8 +141,6 @@
 			<ResourceBoundary
 				resource={selection.$assetA}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -178,8 +161,6 @@
 			<ResourceBoundary
 				resource={selection.$assetB}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -200,24 +181,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feeBps: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeBps = pendingEntity.feeBps}
-					{#if feeBps !== undefined && feeBps !== null}
-						<div>
-							<dt>fee bps</dt>
-							<dd>
-								{String((feeBps) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeBps = resolvedEntity.feeBps}

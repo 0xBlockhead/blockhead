@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 </script>
@@ -63,94 +62,61 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					feedKey: true,
-					price: true,
-					timestampMs: true,
-					$market: true,
-					$base: true,
-					$quote: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Market_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Market_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				feedKey: true,
+				price: true,
+				timestampMs: true,
+				$market: true,
+				$base: true,
+				$quote: true,
+			},
+		})
+	}
+	getResourceItems={(marketTimestamps) => [...new Map(marketTimestamps.values.map((marketTimestamp) => [marketTimestamp[EntityMetaKey.SelectorKey], marketTimestamp])).values()]}
+	getKey={(marketTimestamp) => marketTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Market observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(marketTimestamps)}
-			{@const uniqueMarketTimestamps = [...new Map(marketTimestamps.values.map((marketTimestamp) => [marketTimestamp[EntityMetaKey.SelectorKey], marketTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Market_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={marketTimestamps.totalCount}
-				getKey={(marketTimestamp) => marketTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMarketTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Market observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: marketTimestamp })}
-					{@const marketTimestampFields = { ...marketTimestamp[EntityMetaKey.Selector], ...marketTimestamp }}
-					{@const selection = select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const marketTimestampHrefFields = { ...marketTimestamp, ...marketTimestamp[EntityMetaKey.Selector] }}
-					<Market_TimestampView
-						selection={selection}
-						prefetched={marketTimestampFields}
-						href={
-							(marketTimestampHrefFields.timestampMs !== undefined && marketTimestampHrefFields.feedKey !== undefined && marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.marketKind !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.assetKey !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.assetKey !== undefined && marketTimestampHrefFields.$market.$marketVenue !== undefined && marketTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimestampHrefFields.$base !== undefined && marketTimestampHrefFields.$base.kind !== undefined && marketTimestampHrefFields.$quote !== undefined && marketTimestampHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
-								timestampMs: String(marketTimestampHrefFields.timestampMs ?? ''),
-								feedKey: String(marketTimestampHrefFields.feedKey ?? ''),
-								marketKind: String(marketTimestampHrefFields.$market.marketKind ?? ''),
-								base: String(marketTimestampHrefFields.$market.$base.assetKey ?? ''),
-								quote: String(marketTimestampHrefFields.$market.$quote.assetKey ?? ''),
-								marketVenue: String(marketTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
-								baseKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$base.kind)] ?? ''),
-								quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$quote.kind)] ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Market_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: marketTimestamp })}
+		{@const marketTimestampFields = { ...marketTimestamp[EntityMetaKey.Selector], ...marketTimestamp }}
+		{@const selection = select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const marketTimestampHrefFields = { ...marketTimestamp, ...marketTimestamp[EntityMetaKey.Selector] }}
+		<Market_TimestampView
+			selection={selection}
+			prefetched={marketTimestampFields}
+			href={
+				(marketTimestampHrefFields.timestampMs !== undefined && marketTimestampHrefFields.feedKey !== undefined && marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.marketKind !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.assetKey !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.assetKey !== undefined && marketTimestampHrefFields.$market.$marketVenue !== undefined && marketTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimestampHrefFields.$base !== undefined && marketTimestampHrefFields.$base.kind !== undefined && marketTimestampHrefFields.$quote !== undefined && marketTimestampHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+					timestampMs: String(marketTimestampHrefFields.timestampMs ?? ''),
+					feedKey: encodeURIComponent(String(marketTimestampHrefFields.feedKey ?? '')),
+					marketKind: String(marketTimestampHrefFields.$market.marketKind ?? ''),
+					base: String(marketTimestampHrefFields.$market.$base.assetKey ?? ''),
+					quote: String(marketTimestampHrefFields.$market.$quote.assetKey ?? ''),
+					marketVenue: String(marketTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
+					baseKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$base.kind)] ?? ''),
+					quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$quote.kind)] ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

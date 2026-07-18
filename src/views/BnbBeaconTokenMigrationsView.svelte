@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbBeaconTokenMigrationView from '$/views/BnbBeaconTokenMigrationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					migrationKind: true,
-					$token: true,
-					$targetNetwork: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconTokenMigration}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbBeaconTokenMigration}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				migrationKind: true,
+				$token: true,
+				$targetNetwork: true,
+			},
+		})
+	}
+	getResourceItems={(bnbBeaconTokenMigrations) => [...new Map(bnbBeaconTokenMigrations.values.map((bnbBeaconTokenMigration) => [bnbBeaconTokenMigration[EntityMetaKey.SelectorKey], bnbBeaconTokenMigration])).values()]}
+	getKey={(bnbBeaconTokenMigration) => bnbBeaconTokenMigration[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb beacon token migrations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbBeaconTokenMigrations)}
-			{@const uniqueBnbBeaconTokenMigrations = [...new Map(bnbBeaconTokenMigrations.values.map((bnbBeaconTokenMigration) => [bnbBeaconTokenMigration[EntityMetaKey.SelectorKey], bnbBeaconTokenMigration])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconTokenMigration}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbBeaconTokenMigrations.totalCount}
-				getKey={(bnbBeaconTokenMigration) => bnbBeaconTokenMigration[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbBeaconTokenMigrations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb beacon token migrations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbBeaconTokenMigration })}
-					{@const bnbBeaconTokenMigrationFields = { ...bnbBeaconTokenMigration[EntityMetaKey.Selector], ...bnbBeaconTokenMigration }}
-					{@const selection = select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbBeaconTokenMigrationView
-						selection={selection}
-						prefetched={bnbBeaconTokenMigrationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbBeaconTokenMigration}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbBeaconTokenMigration })}
+		{@const bnbBeaconTokenMigrationFields = { ...bnbBeaconTokenMigration[EntityMetaKey.Selector], ...bnbBeaconTokenMigration }}
+		{@const selection = select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbBeaconTokenMigrationView
+			selection={selection}
+			prefetched={bnbBeaconTokenMigrationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

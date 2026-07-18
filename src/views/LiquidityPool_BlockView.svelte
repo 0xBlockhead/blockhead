@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const liquidityPoolBlock = $derived(selection({
-		sources: [
-			Source.Dexscreener_OpenApi,
-		],
+		sources: selection.sources,
 		fields: {
 			tick: true,
 		},
@@ -78,78 +76,86 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={liquidityPoolBlock}>
-			{#snippet Pending()}
-				{@const blockNumber0 = pendingEntity.blockNumber}
-				{#if blockNumber0 !== undefined && blockNumber0 !== null}
-					<NumberValue value={Number(blockNumber0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const blockNumber0 = resolvedEntity.blockNumber}
-				{#if blockNumber0 !== undefined && blockNumber0 !== null}
-					<NumberValue value={Number(blockNumber0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const blockNumber0 = pendingEntity.blockNumber}
+					{#if blockNumber0 !== undefined && blockNumber0 !== null}
+						<NumberValue
+							value={blockNumber0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={liquidityPoolBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blockNumber0 = resolvedEntity.blockNumber}
+					{#if blockNumber0 !== undefined && blockNumber0 !== null}
+						<NumberValue
+							value={blockNumber0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={liquidityPoolBlock}>
-			{#snippet Pending()}
-				{@const tick0 = pendingEntity.tick}
-				{#if tick0 !== undefined && tick0 !== null}
-					<NumberValue value={Number(tick0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tick0 = resolvedEntity.tick}
-				{#if tick0 !== undefined && tick0 !== null}
-					<NumberValue value={Number(tick0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const tick0 = pendingEntity.tick}
+					{#if tick0 !== undefined && tick0 !== null}
+						<NumberValue
+							value={tick0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={liquidityPoolBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tick0 = resolvedEntity.tick}
+					{#if tick0 !== undefined && tick0 !== null}
+						<NumberValue
+							value={tick0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={liquidityPoolBlock}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-						href={
-							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-						href={
-							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<LiquidityPoolView
+					selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
+					href={
+						(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+							poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+							chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={liquidityPoolBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<LiquidityPoolView
+							selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
+							href={
+								(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+									poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+									chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -177,24 +183,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockNumber = pendingEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue value={Number(blockNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockNumber = resolvedEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -238,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sqrtPriceX96: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sqrtPriceX96 = pendingEntity.sqrtPriceX96}
-					{#if sqrtPriceX96 !== undefined && sqrtPriceX96 !== null}
-						<div>
-							<dt>Sqrt price X96</dt>
-							<dd>
-								<NumberValue value={Number(sqrtPriceX96)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sqrtPriceX96 = resolvedEntity.sqrtPriceX96}
@@ -263,7 +254,9 @@
 						<div>
 							<dt>Sqrt price X96</dt>
 							<dd>
-								<NumberValue value={Number(sqrtPriceX96)} />
+								<NumberValue
+									value={sqrtPriceX96}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -273,24 +266,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							liquidity: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const liquidity = pendingEntity.liquidity}
-					{#if liquidity !== undefined && liquidity !== null}
-						<div>
-							<dt>Liquidity</dt>
-							<dd>
-								<NumberValue value={Number(liquidity)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const liquidity = resolvedEntity.liquidity}
@@ -298,7 +280,9 @@
 						<div>
 							<dt>Liquidity</dt>
 							<dd>
-								<NumberValue value={Number(liquidity)} />
+								<NumberValue
+									value={liquidity}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -308,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tick: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tick = pendingEntity.tick}
-					{#if tick !== undefined && tick !== null}
-						<div>
-							<dt>Tick</dt>
-							<dd>
-								<NumberValue value={Number(tick)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tick = resolvedEntity.tick}
@@ -333,7 +306,9 @@
 						<div>
 							<dt>Tick</dt>
 							<dd>
-								<NumberValue value={Number(tick)} />
+								<NumberValue
+									value={tick}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -343,24 +318,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feeProtocol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeProtocol = pendingEntity.feeProtocol}
-					{#if feeProtocol !== undefined && feeProtocol !== null}
-						<div>
-							<dt>Fee protocol</dt>
-							<dd>
-								<NumberValue value={Number(feeProtocol)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeProtocol = resolvedEntity.feeProtocol}
@@ -368,7 +332,9 @@
 						<div>
 							<dt>Fee protocol</dt>
 							<dd>
-								<NumberValue value={Number(feeProtocol)} />
+								<NumberValue
+									value={feeProtocol}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -378,24 +344,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							unlocked: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unlocked = pendingEntity.unlocked}
-					{#if unlocked !== undefined && unlocked !== null}
-						<div>
-							<dt>Unlocked</dt>
-							<dd>
-								{unlocked ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unlocked = resolvedEntity.unlocked}
@@ -415,24 +370,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observationIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observationIndex = pendingEntity.observationIndex}
-					{#if observationIndex !== undefined && observationIndex !== null}
-						<div>
-							<dt>Observation index</dt>
-							<dd>
-								<NumberValue value={Number(observationIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observationIndex = resolvedEntity.observationIndex}
@@ -440,7 +384,9 @@
 						<div>
 							<dt>Observation index</dt>
 							<dd>
-								<NumberValue value={Number(observationIndex)} />
+								<NumberValue
+									value={observationIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -450,24 +396,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observationCardinality: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observationCardinality = pendingEntity.observationCardinality}
-					{#if observationCardinality !== undefined && observationCardinality !== null}
-						<div>
-							<dt>Observation cardinality</dt>
-							<dd>
-								<NumberValue value={Number(observationCardinality)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observationCardinality = resolvedEntity.observationCardinality}
@@ -475,7 +410,9 @@
 						<div>
 							<dt>Observation cardinality</dt>
 							<dd>
-								<NumberValue value={Number(observationCardinality)} />
+								<NumberValue
+									value={observationCardinality}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -485,24 +422,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observationCardinalityNext: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observationCardinalityNext = pendingEntity.observationCardinalityNext}
-					{#if observationCardinalityNext !== undefined && observationCardinalityNext !== null}
-						<div>
-							<dt>Observation cardinality next</dt>
-							<dd>
-								<NumberValue value={Number(observationCardinalityNext)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observationCardinalityNext = resolvedEntity.observationCardinalityNext}
@@ -510,7 +436,9 @@
 						<div>
 							<dt>Observation cardinality next</dt>
 							<dd>
-								<NumberValue value={Number(observationCardinalityNext)} />
+								<NumberValue
+									value={observationCardinalityNext}
+								/>
 							</dd>
 						</div>
 					{/if}

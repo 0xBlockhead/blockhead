@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LightningNodeView from '$/views/LightningNodeView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					publicKey: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNode}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LightningNode}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				publicKey: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(lightningNodes) => [...new Map(lightningNodes.values.map((lightningNode) => [lightningNode[EntityMetaKey.SelectorKey], lightningNode])).values()]}
+	getKey={(lightningNode) => lightningNode[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning nodes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lightningNodes)}
-			{@const uniqueLightningNodes = [...new Map(lightningNodes.values.map((lightningNode) => [lightningNode[EntityMetaKey.SelectorKey], lightningNode])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNode}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningNodes.totalCount}
-				getKey={(lightningNode) => lightningNode[EntityMetaKey.SelectorKey]}
-				items={uniqueLightningNodes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning nodes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lightningNode })}
-					{@const lightningNodeFields = { ...lightningNode[EntityMetaKey.Selector], ...lightningNode }}
-					{@const selection = select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const lightningNodeHrefFields = { ...lightningNode, ...lightningNode[EntityMetaKey.Selector] }}
-					<LightningNodeView
-						selection={selection}
-						prefetched={lightningNodeFields}
-						href={
-							(lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
-								network: String(caip2StringFromValue(lightningNodeHrefFields.$network.caip2) ?? ''),
-							}) : lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
-								network: String(lightningNodeHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LightningNode}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lightningNode })}
+		{@const lightningNodeFields = { ...lightningNode[EntityMetaKey.Selector], ...lightningNode }}
+		{@const selection = select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const lightningNodeHrefFields = { ...lightningNode, ...lightningNode[EntityMetaKey.Selector] }}
+		<LightningNodeView
+			selection={selection}
+			prefetched={lightningNodeFields}
+			href={
+				(lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+					pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
+					network: String(caip2StringFromValue(lightningNodeHrefFields.$network.caip2) ?? ''),
+				}) : lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+					pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
+					network: String(lightningNodeHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

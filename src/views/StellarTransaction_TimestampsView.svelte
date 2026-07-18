@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarTransaction_TimestampView from '$/views/StellarTransaction_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarTransaction_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarTransactionTimestamps) => [...new Map(stellarTransactionTimestamps.values.map((stellarTransactionTimestamp) => [stellarTransactionTimestamp[EntityMetaKey.SelectorKey], stellarTransactionTimestamp])).values()]}
+	getKey={(stellarTransactionTimestamp) => stellarTransactionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar transaction observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarTransactionTimestamps)}
-			{@const uniqueStellarTransactionTimestamps = [...new Map(stellarTransactionTimestamps.values.map((stellarTransactionTimestamp) => [stellarTransactionTimestamp[EntityMetaKey.SelectorKey], stellarTransactionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarTransactionTimestamps.totalCount}
-				getKey={(stellarTransactionTimestamp) => stellarTransactionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarTransactionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar transaction observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarTransactionTimestamp })}
-					{@const stellarTransactionTimestampFields = { ...stellarTransactionTimestamp[EntityMetaKey.Selector], ...stellarTransactionTimestamp }}
-					{@const selection = select(EntityType.StellarTransaction_Timestamp, stellarTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarTransaction_TimestampView
-						selection={selection}
-						prefetched={stellarTransactionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarTransaction_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarTransactionTimestamp })}
+		{@const stellarTransactionTimestampFields = { ...stellarTransactionTimestamp[EntityMetaKey.Selector], ...stellarTransactionTimestamp }}
+		{@const selection = select(EntityType.StellarTransaction_Timestamp, stellarTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarTransaction_TimestampView
+			selection={selection}
+			prefetched={stellarTransactionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

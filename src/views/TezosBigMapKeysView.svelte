@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBigMapKeyView from '$/views/TezosBigMapKeyView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMapKey}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBigMapKey}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBigMapKeys) => [...new Map(tezosBigMapKeys.values.map((tezosBigMapKey) => [tezosBigMapKey[EntityMetaKey.SelectorKey], tezosBigMapKey])).values()]}
+	getKey={(tezosBigMapKey) => tezosBigMapKey[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos big map keys yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBigMapKeys)}
-			{@const uniqueTezosBigMapKeys = [...new Map(tezosBigMapKeys.values.map((tezosBigMapKey) => [tezosBigMapKey[EntityMetaKey.SelectorKey], tezosBigMapKey])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMapKey}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBigMapKeys.totalCount}
-				getKey={(tezosBigMapKey) => tezosBigMapKey[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBigMapKeys}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos big map keys yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBigMapKey })}
-					{@const tezosBigMapKeyFields = { ...tezosBigMapKey[EntityMetaKey.Selector], ...tezosBigMapKey }}
-					{@const selection = select(EntityType.TezosBigMapKey, tezosBigMapKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBigMapKeyView
-						selection={selection}
-						prefetched={tezosBigMapKeyFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBigMapKey}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBigMapKey })}
+		{@const tezosBigMapKeyFields = { ...tezosBigMapKey[EntityMetaKey.Selector], ...tezosBigMapKey }}
+		{@const selection = select(EntityType.TezosBigMapKey, tezosBigMapKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBigMapKeyView
+			selection={selection}
+			prefetched={tezosBigMapKeyFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

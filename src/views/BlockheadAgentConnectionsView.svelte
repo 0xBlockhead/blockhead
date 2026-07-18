@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConnectionView from '$/views/BlockheadAgentConnectionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					connectionId: true,
-					connectionKind: true,
-					enabled: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentConnection}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				connectionId: true,
+				connectionKind: true,
+				enabled: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentConnections) => [...new Map(blockheadAgentConnections.values.map((blockheadAgentConnection) => [blockheadAgentConnection[EntityMetaKey.SelectorKey], blockheadAgentConnection])).values()]}
+	getKey={(blockheadAgentConnection) => blockheadAgentConnection[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead agent connections yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentConnections)}
-			{@const uniqueBlockheadAgentConnections = [...new Map(blockheadAgentConnections.values.map((blockheadAgentConnection) => [blockheadAgentConnection[EntityMetaKey.SelectorKey], blockheadAgentConnection])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentConnections.totalCount}
-				getKey={(blockheadAgentConnection) => blockheadAgentConnection[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentConnections}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead agent connections yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentConnection })}
-					{@const blockheadAgentConnectionFields = { ...blockheadAgentConnection[EntityMetaKey.Selector], ...blockheadAgentConnection }}
-					{@const selection = select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAgentConnectionView
-						selection={selection}
-						prefetched={blockheadAgentConnectionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentConnection}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentConnection })}
+		{@const blockheadAgentConnectionFields = { ...blockheadAgentConnection[EntityMetaKey.Selector], ...blockheadAgentConnection }}
+		{@const selection = select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAgentConnectionView
+			selection={selection}
+			prefetched={blockheadAgentConnectionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

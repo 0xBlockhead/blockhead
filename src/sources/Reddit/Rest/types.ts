@@ -29,8 +29,21 @@ export type RedditApiThing = {
 export type RedditApiListing = {
 	kind: 'Listing'
 	data: {
+		after?: string | null
 		children?: readonly RedditApiThing[]
 	}
+}
+
+export type RedditApiListingSort =
+	| 'hot'
+	| 'new'
+	| 'rising'
+	| 'top'
+
+export type RedditApiListingRequest = {
+	after?: string
+	limit: number
+	sort: RedditApiListingSort
 }
 
 export type RedditApiInfoResponse = {

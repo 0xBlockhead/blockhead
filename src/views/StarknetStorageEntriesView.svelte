@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetStorageEntryView from '$/views/StarknetStorageEntryView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					storageKey: true,
-					$contract: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetStorageEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				storageKey: true,
+				$contract: true,
+			},
+		})
+	}
+	getResourceItems={(starknetStorageEntries) => [...new Map(starknetStorageEntries.values.map((starknetStorageEntry) => [starknetStorageEntry[EntityMetaKey.SelectorKey], starknetStorageEntry])).values()]}
+	getKey={(starknetStorageEntry) => starknetStorageEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet storage entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetStorageEntries)}
-			{@const uniqueStarknetStorageEntries = [...new Map(starknetStorageEntries.values.map((starknetStorageEntry) => [starknetStorageEntry[EntityMetaKey.SelectorKey], starknetStorageEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetStorageEntries.totalCount}
-				getKey={(starknetStorageEntry) => starknetStorageEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetStorageEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet storage entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetStorageEntry })}
-					{@const starknetStorageEntryFields = { ...starknetStorageEntry[EntityMetaKey.Selector], ...starknetStorageEntry }}
-					{@const selection = select(EntityType.StarknetStorageEntry, starknetStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetStorageEntryView
-						selection={selection}
-						prefetched={starknetStorageEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetStorageEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetStorageEntry })}
+		{@const starknetStorageEntryFields = { ...starknetStorageEntry[EntityMetaKey.Selector], ...starknetStorageEntry }}
+		{@const selection = select(EntityType.StarknetStorageEntry, starknetStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetStorageEntryView
+			selection={selection}
+			prefetched={starknetStorageEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvailNetwork_TimestampView from '$/views/AvailNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					latestBlockNumber: true,
-					source: true,
-					health: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvailNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				latestBlockNumber: true,
+				source: true,
+				health: true,
+			},
+		})
+	}
+	getResourceItems={(availNetworkTimestamps) => [...new Map(availNetworkTimestamps.values.map((availNetworkTimestamp) => [availNetworkTimestamp[EntityMetaKey.SelectorKey], availNetworkTimestamp])).values()]}
+	getKey={(availNetworkTimestamp) => availNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avail network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(availNetworkTimestamps)}
-			{@const uniqueAvailNetworkTimestamps = [...new Map(availNetworkTimestamps.values.map((availNetworkTimestamp) => [availNetworkTimestamp[EntityMetaKey.SelectorKey], availNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={availNetworkTimestamps.totalCount}
-				getKey={(availNetworkTimestamp) => availNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAvailNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avail network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: availNetworkTimestamp })}
-					{@const availNetworkTimestampFields = { ...availNetworkTimestamp[EntityMetaKey.Selector], ...availNetworkTimestamp }}
-					{@const selection = select(EntityType.AvailNetwork_Timestamp, availNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvailNetwork_TimestampView
-						selection={selection}
-						prefetched={availNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvailNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: availNetworkTimestamp })}
+		{@const availNetworkTimestampFields = { ...availNetworkTimestamp[EntityMetaKey.Selector], ...availNetworkTimestamp }}
+		{@const selection = select(EntityType.AvailNetwork_Timestamp, availNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvailNetwork_TimestampView
+			selection={selection}
+			prefetched={availNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidNetwork_TimestampView from '$/views/HyperliquidNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidNetworkTimestamps) => [...new Map(hyperliquidNetworkTimestamps.values.map((hyperliquidNetworkTimestamp) => [hyperliquidNetworkTimestamp[EntityMetaKey.SelectorKey], hyperliquidNetworkTimestamp])).values()]}
+	getKey={(hyperliquidNetworkTimestamp) => hyperliquidNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidNetworkTimestamps)}
-			{@const uniqueHyperliquidNetworkTimestamps = [...new Map(hyperliquidNetworkTimestamps.values.map((hyperliquidNetworkTimestamp) => [hyperliquidNetworkTimestamp[EntityMetaKey.SelectorKey], hyperliquidNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidNetworkTimestamps.totalCount}
-				getKey={(hyperliquidNetworkTimestamp) => hyperliquidNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidNetworkTimestamp })}
-					{@const hyperliquidNetworkTimestampFields = { ...hyperliquidNetworkTimestamp[EntityMetaKey.Selector], ...hyperliquidNetworkTimestamp }}
-					{@const selection = select(EntityType.HyperliquidNetwork_Timestamp, hyperliquidNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidNetwork_TimestampView
-						selection={selection}
-						prefetched={hyperliquidNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidNetworkTimestamp })}
+		{@const hyperliquidNetworkTimestampFields = { ...hyperliquidNetworkTimestamp[EntityMetaKey.Selector], ...hyperliquidNetworkTimestamp }}
+		{@const selection = select(EntityType.HyperliquidNetwork_Timestamp, hyperliquidNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidNetwork_TimestampView
+			selection={selection}
+			prefetched={hyperliquidNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

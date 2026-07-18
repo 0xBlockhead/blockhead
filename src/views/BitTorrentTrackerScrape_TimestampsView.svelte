@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentTrackerScrape_TimestampView from '$/views/BitTorrentTrackerScrape_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentTrackerScrapeTimestamps) => [...new Map(bitTorrentTrackerScrapeTimestamps.values.map((bitTorrentTrackerScrapeTimestamp) => [bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey], bitTorrentTrackerScrapeTimestamp])).values()]}
+	getKey={(bitTorrentTrackerScrapeTimestamp) => bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent tracker scrape observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentTrackerScrapeTimestamps)}
-			{@const uniqueBitTorrentTrackerScrapeTimestamps = [...new Map(bitTorrentTrackerScrapeTimestamps.values.map((bitTorrentTrackerScrapeTimestamp) => [bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey], bitTorrentTrackerScrapeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentTrackerScrapeTimestamps.totalCount}
-				getKey={(bitTorrentTrackerScrapeTimestamp) => bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentTrackerScrapeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent tracker scrape observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentTrackerScrapeTimestamp })}
-					{@const bitTorrentTrackerScrapeTimestampFields = { ...bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], ...bitTorrentTrackerScrapeTimestamp }}
-					{@const selection = select(EntityType.BitTorrentTrackerScrape_Timestamp, bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentTrackerScrape_TimestampView
-						selection={selection}
-						prefetched={bitTorrentTrackerScrapeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentTrackerScrapeTimestamp })}
+		{@const bitTorrentTrackerScrapeTimestampFields = { ...bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], ...bitTorrentTrackerScrapeTimestamp }}
+		{@const selection = select(EntityType.BitTorrentTrackerScrape_Timestamp, bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentTrackerScrape_TimestampView
+			selection={selection}
+			prefetched={bitTorrentTrackerScrapeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

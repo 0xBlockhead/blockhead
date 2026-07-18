@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$bundler: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$bundler: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			userOperationsCount: true,
 		},

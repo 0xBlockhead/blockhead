@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum ActivityPubInstancePeerSelector {
-	InstanceOriginPeerDomainSource = 'InstanceOriginPeerDomainSource',
+	ObservationPeerDomain = 'ObservationPeerDomain',
 }
 export const ActivityPubInstancePeer = entity({
 	entityType: EntityType.ActivityPubInstancePeer,
@@ -16,10 +16,10 @@ export const ActivityPubInstancePeer = entity({
 	},
 	description: 'A domain that a declared ActivityPub instance reports as a known connected domain.',
 })({
-	instanceOrigin: {
-		label: 'Instance origin',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+	$observation: {
+		label: 'Observation',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.One,
 	},
 	peerDomain: {
@@ -28,19 +28,11 @@ export const ActivityPubInstancePeer = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	source: {
-		label: 'Source',
-		description: 'The source that observed this peer relation.',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
 })({
 	selectors: {
-		InstanceOriginPeerDomainSource: [
-			'instanceOrigin',
+		ObservationPeerDomain: [
+			'$observation',
 			'peerDomain',
-			'source',
 		],
 	},
 })

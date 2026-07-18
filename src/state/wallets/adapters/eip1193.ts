@@ -47,6 +47,24 @@ export const getChainId = async (provider: Eip1193Provider) => {
 	return chainId
 }
 
+export const personalSign = async (
+	provider: Eip1193Provider,
+	accountAddress: string,
+	message: string
+) => {
+	const signature = await provider.request({
+		method: 'personal_sign',
+		params: [
+			`0x${Array.from(new TextEncoder().encode(message), (byte) => byte.toString(16).padStart(2, '0')).join('')}`,
+			accountAddress,
+		],
+	})
+	if (typeof signature !== 'string' || !signature.startsWith('0x'))
+		throw new Error('Provider returned an invalid personal_sign signature')
+
+	return signature
+}
+
 export const onAccountsChanged = (
 	provider: Eip1193Provider,
 	listener: (accounts: `0x${string}`[]) => void

@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosStateChange = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			changeKind: true,
 		},
@@ -70,60 +71,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosStateChange}>
-			{#snippet Pending()}
-				{[String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || 'aptos state change'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosStateChange}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosStateChange}>
-			{#snippet Pending()}
-				{@const changeIndex0 = pendingEntity.changeIndex}
-				{#if changeIndex0 !== undefined && changeIndex0 !== null}
-					<NumberValue value={Number(changeIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const changeIndex0 = resolvedEntity.changeIndex}
-				{#if changeIndex0 !== undefined && changeIndex0 !== null}
-					<NumberValue value={Number(changeIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const changeIndex0 = pendingEntity.changeIndex}
+					{#if changeIndex0 !== undefined && changeIndex0 !== null}
+						<NumberValue
+							value={changeIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosStateChange}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const changeIndex0 = resolvedEntity.changeIndex}
+					{#if changeIndex0 !== undefined && changeIndex0 !== null}
+						<NumberValue
+							value={changeIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aptosStateChange}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<AptosTransactionView
-						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<AptosTransactionView
-						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<AptosTransactionView
+					selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={aptosStateChange}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<AptosTransactionView
+							selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -145,24 +150,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									changeIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const changeIndex = pendingEntity.changeIndex}
-							{#if changeIndex !== undefined && changeIndex !== null}
-								<NumberValue value={Number(changeIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const changeIndex = resolvedEntity.changeIndex}
 							{#if changeIndex !== undefined && changeIndex !== null}
-								<NumberValue value={Number(changeIndex)} />
+								<NumberValue
+									value={changeIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -175,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									changeKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const changeKind = pendingEntity.changeKind}
-							{#if changeKind !== undefined && changeKind !== null}
-								{String((changeKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const changeKind = resolvedEntity.changeKind}
@@ -204,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							address: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const address = pendingEntity.address}
-					{#if address !== undefined && address !== null}
-						<div>
-							<dt>Address</dt>
-							<dd>
-								<TruncatedValue value={String((address) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const address = resolvedEntity.address}
@@ -239,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stateKeyHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stateKeyHash = pendingEntity.stateKeyHash}
-					{#if stateKeyHash !== undefined && stateKeyHash !== null}
-						<div>
-							<dt>state key hash</dt>
-							<dd>
-								<TruncatedValue value={String((stateKeyHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stateKeyHash = resolvedEntity.stateKeyHash}
@@ -274,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resourceType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resourceType = pendingEntity.resourceType}
-					{#if resourceType !== undefined && resourceType !== null}
-						<div>
-							<dt>resource type</dt>
-							<dd>
-								{String((resourceType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resourceType = resolvedEntity.resourceType}
@@ -309,8 +271,6 @@
 			<ResourceBoundary
 				resource={selection.$resource}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aptosAccountResource)}
 					{#if aptosAccountResource != null && aptosAccountResource[EntityMetaKey.Selector] != null}
 						<div>
@@ -333,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moduleAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moduleAddress = pendingEntity.moduleAddress}
-					{#if moduleAddress !== undefined && moduleAddress !== null}
-						<div>
-							<dt>module address</dt>
-							<dd>
-								<TruncatedValue value={String((moduleAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moduleAddress = resolvedEntity.moduleAddress}
@@ -368,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moduleName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moduleName = pendingEntity.moduleName}
-					{#if moduleName !== undefined && moduleName !== null}
-						<div>
-							<dt>module name</dt>
-							<dd>
-								{String((moduleName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moduleName = resolvedEntity.moduleName}
@@ -403,8 +341,6 @@
 			<ResourceBoundary
 				resource={selection.$module}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(moveModule)}
 					{#if moveModule != null && moveModule[EntityMetaKey.Selector] != null}
 						<div>

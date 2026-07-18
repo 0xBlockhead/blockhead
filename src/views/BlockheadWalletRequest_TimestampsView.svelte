@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletRequest_TimestampView from '$/views/BlockheadWalletRequest_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletRequest_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletRequest_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletRequestTimestamps) => [...new Map(blockheadWalletRequestTimestamps.values.map((blockheadWalletRequestTimestamp) => [blockheadWalletRequestTimestamp[EntityMetaKey.SelectorKey], blockheadWalletRequestTimestamp])).values()]}
+	getKey={(blockheadWalletRequestTimestamp) => blockheadWalletRequestTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead wallet request observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletRequestTimestamps)}
-			{@const uniqueBlockheadWalletRequestTimestamps = [...new Map(blockheadWalletRequestTimestamps.values.map((blockheadWalletRequestTimestamp) => [blockheadWalletRequestTimestamp[EntityMetaKey.SelectorKey], blockheadWalletRequestTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletRequest_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletRequestTimestamps.totalCount}
-				getKey={(blockheadWalletRequestTimestamp) => blockheadWalletRequestTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletRequestTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead wallet request observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletRequestTimestamp })}
-					{@const blockheadWalletRequestTimestampFields = { ...blockheadWalletRequestTimestamp[EntityMetaKey.Selector], ...blockheadWalletRequestTimestamp }}
-					{@const selection = select(EntityType.BlockheadWalletRequest_Timestamp, blockheadWalletRequestTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWalletRequest_TimestampView
-						selection={selection}
-						prefetched={blockheadWalletRequestTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletRequest_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletRequestTimestamp })}
+		{@const blockheadWalletRequestTimestampFields = { ...blockheadWalletRequestTimestamp[EntityMetaKey.Selector], ...blockheadWalletRequestTimestamp }}
+		{@const selection = select(EntityType.BlockheadWalletRequest_Timestamp, blockheadWalletRequestTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWalletRequest_TimestampView
+			selection={selection}
+			prefetched={blockheadWalletRequestTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

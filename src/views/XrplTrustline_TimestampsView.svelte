@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XrplTrustline_TimestampView from '$/views/XrplTrustline_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplTrustline_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XrplTrustline_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(xrplTrustlineTimestamps) => [...new Map(xrplTrustlineTimestamps.values.map((xrplTrustlineTimestamp) => [xrplTrustlineTimestamp[EntityMetaKey.SelectorKey], xrplTrustlineTimestamp])).values()]}
+	getKey={(xrplTrustlineTimestamp) => xrplTrustlineTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No XRPL trustline observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xrplTrustlineTimestamps)}
-			{@const uniqueXrplTrustlineTimestamps = [...new Map(xrplTrustlineTimestamps.values.map((xrplTrustlineTimestamp) => [xrplTrustlineTimestamp[EntityMetaKey.SelectorKey], xrplTrustlineTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XrplTrustline_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xrplTrustlineTimestamps.totalCount}
-				getKey={(xrplTrustlineTimestamp) => xrplTrustlineTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueXrplTrustlineTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No XRPL trustline observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xrplTrustlineTimestamp })}
-					{@const xrplTrustlineTimestampFields = { ...xrplTrustlineTimestamp[EntityMetaKey.Selector], ...xrplTrustlineTimestamp }}
-					{@const selection = select(EntityType.XrplTrustline_Timestamp, xrplTrustlineTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<XrplTrustline_TimestampView
-						selection={selection}
-						prefetched={xrplTrustlineTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XrplTrustline_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xrplTrustlineTimestamp })}
+		{@const xrplTrustlineTimestampFields = { ...xrplTrustlineTimestamp[EntityMetaKey.Selector], ...xrplTrustlineTimestamp }}
+		{@const selection = select(EntityType.XrplTrustline_Timestamp, xrplTrustlineTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<XrplTrustline_TimestampView
+			selection={selection}
+			prefetched={xrplTrustlineTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

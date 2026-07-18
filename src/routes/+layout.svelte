@@ -12,62 +12,81 @@
 	import {
 		client,
 	} from '$/client/$client.svelte.ts'
+	import { initializeLocalMutationAuthorities } from '$/collections/localMutations.ts'
 	import {
 		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 	} from '$/constants/Persistence.ts'
-	import { resolvers } from '$/resolvers/index.ts'
+	import { loadResolvers } from '$/resolvers/index.ts'
 	import {
 		schema,
 		schemaMeta,
 	} from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
+	import { indexSourceProviders } from '$/sources/$sources.ts'
+	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
+	import { databaseCloseWhenReady } from './databaseLifecycle.ts'
 
-	const database = await openBrowserWASQLiteOPFSDatabase({
-		databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
-	})
-	let databaseClosed = false
-	const closeDatabase = () => {
-		if (databaseClosed)
-			return
+	const databasePromise = (async () => {
+		await import.meta.hot?.data.databaseClose
 
-		databaseClosed = true
-		void database.close?.()
-	}
-	window.addEventListener('pagehide', closeDatabase, { once: true })
-	import.meta.hot?.dispose(closeDatabase)
-
-	const persistence = createBrowserWASQLitePersistence({
-		database,
-		schemaMismatchPolicy: 'reset',
+		return openBrowserWASQLiteOPFSDatabase({
+			databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+		})
+	})()
+	const closeDatabase = databaseCloseWhenReady(databasePromise)
+	window.addEventListener('pagehide', () => void closeDatabase().catch(() => {}), { once: true })
+	import.meta.hot?.dispose((data) => {
+		data.databaseClose = closeDatabase()
 	})
 
-	export const appClient = client(
-		{
-			schema,
-			schemaIndex: schemaMeta,
-			sourceProviders,
-		}
-	)(
-		{
-			resolvers,
-			env,
-		}
-	)(
-		{
-			queryClient: new QueryClient({
-				defaultOptions: {
-					queries: {
-						gcTime: 0,
+	type AppClient = ReturnType<ReturnType<ReturnType<typeof client>>>
+	let appClient: AppClient | undefined
+	const bootstrap = Promise.all([
+		loadResolvers(indexSourceProviders(sourceProviders, env).enabledSources),
+		databasePromise,
+	]).then(([resolvers, database]) => {
+		const persistence = createBrowserWASQLitePersistence({
+			database,
+			schemaMismatchPolicy: 'reset',
+		})
+
+		appClient = client(
+			{
+				schema,
+				schemaIndex: schemaMeta,
+				sourceProviders,
+			}
+		)(
+			{
+				resolvers,
+				env,
+			}
+		)(
+			{
+				queryClient: new QueryClient({
+					defaultOptions: {
+						queries: {
+							gcTime: 0,
+						},
 					},
-				},
-			}),
-			persistence,
-			schemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
-		}
-	)
+				}),
+				persistence,
+				schemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
+			}
+		)
+		initializeLocalMutationAuthorities(appClient)
 
-	export const select = appClient.select
+		return appClient
+	})
+	export const getAppClient = () => {
+		if (appClient == null)
+			throw new Error('App client was read before bootstrap completed')
+
+		return appClient
+	}
+
+	export const select: AppClient['select'] = (...parameters) => getAppClient().select(...parameters)
 </script>
 
 
@@ -83,6 +102,7 @@
 
 
 	// Context
+	import { untrack } from 'svelte'
 	import {
 		mountWalletConnectionRuntime,
 	} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
@@ -94,12 +114,17 @@
 		children,
 	} = $props()
 
-	$effect(() => (
-		mountWalletConnectionRuntime(appClient)
-			.destroy
-	))
+	const applicationRuntime = applicationRuntimeWhenReady(
+		bootstrap,
+		(appClient) => untrack(() => mountWalletConnectionRuntime(appClient))
+	)
+
+	$effect(() => {
+		return applicationRuntime.destroy
+	})
 
 	// Components
+	import ApplicationBootstrap from '$/components/ApplicationBootstrap.svelte'
 	import Navigation from './Navigation.svelte'
 
 
@@ -144,7 +169,10 @@
 			data-column-item="flexible"
 			data-column
 		>
-			{@render children()}
+			<ApplicationBootstrap
+				ready={applicationRuntime.ready}
+				{children}
+			/>
 		</div>
 	</div>
 </div>

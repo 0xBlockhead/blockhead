@@ -512,16 +512,19 @@ export enum CoinId {
 
 export const coins: readonly {
 	id: CoinId
+	name?: string
 	symbol: string
 	color: string
 }[] = [
 	{
 		id: CoinId.BTC,
+		name: 'Bitcoin',
 		symbol: 'BTC',
 		color: '#888888',
 	},
 	{
 		id: CoinId.ETH,
+		name: 'Ethereum',
 		symbol: 'ETH',
 		color: '#888888',
 	},

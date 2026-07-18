@@ -34,8 +34,9 @@ export type WalletConnection = {
 	transportKind: WalletTransportKind
 	scopes: WalletScope[]
 	accounts: WalletAccount[]
+	activeAccount?: WalletAccount
 	selected: boolean
-	connectedAt: number
+	connectedAt?: number
 	disconnectedAt?: number
 	sessionId?: string
 	sessionTopic?: string
@@ -46,6 +47,11 @@ export type WalletAdapter = {
 	id: string
 	start(updateCandidates: (candidates: WalletCandidate[]) => void): () => void
 	connect(walletId: string): Promise<WalletConnection | undefined>
+	signMessage?(
+		walletId: string,
+		accountAddress: string,
+		message: string
+	): Promise<string>
 	disconnect(walletId: string): void
 	subscribeConnection(
 		walletId: string,

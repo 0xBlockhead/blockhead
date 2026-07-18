@@ -42,7 +42,6 @@
 				playlistId: decodeURIComponent(params.playlistId),
 			}).$$videos({
 				sources: [
-					Source.Constants_Internal,
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
 				],
@@ -50,5 +49,8 @@
 			})
 		}
 		id='videos'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

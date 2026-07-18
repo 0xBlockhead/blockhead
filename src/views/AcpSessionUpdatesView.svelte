@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpSessionUpdateView from '$/views/AcpSessionUpdateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					sequence: true,
-					updateKind: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpSessionUpdate}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpSessionUpdate}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				sequence: true,
+				updateKind: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(acpSessionUpdates) => [...new Map(acpSessionUpdates.values.map((acpSessionUpdate) => [acpSessionUpdate[EntityMetaKey.SelectorKey], acpSessionUpdate])).values()]}
+	getKey={(acpSessionUpdate) => acpSessionUpdate[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP session updates yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpSessionUpdates)}
-			{@const uniqueAcpSessionUpdates = [...new Map(acpSessionUpdates.values.map((acpSessionUpdate) => [acpSessionUpdate[EntityMetaKey.SelectorKey], acpSessionUpdate])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpSessionUpdate}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpSessionUpdates.totalCount}
-				getKey={(acpSessionUpdate) => acpSessionUpdate[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpSessionUpdates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP session updates yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpSessionUpdate })}
-					{@const acpSessionUpdateFields = { ...acpSessionUpdate[EntityMetaKey.Selector], ...acpSessionUpdate }}
-					{@const selection = select(EntityType.AcpSessionUpdate, acpSessionUpdate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpSessionUpdateView
-						selection={selection}
-						prefetched={acpSessionUpdateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpSessionUpdate}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpSessionUpdate })}
+		{@const acpSessionUpdateFields = { ...acpSessionUpdate[EntityMetaKey.Selector], ...acpSessionUpdate }}
+		{@const selection = select(EntityType.AcpSessionUpdate, acpSessionUpdate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpSessionUpdateView
+			selection={selection}
+			prefetched={acpSessionUpdateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

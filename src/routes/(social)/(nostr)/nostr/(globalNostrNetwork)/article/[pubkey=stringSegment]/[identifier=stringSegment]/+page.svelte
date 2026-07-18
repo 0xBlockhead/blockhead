@@ -25,6 +25,7 @@
 	}, {
 		sources: [
 			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 		fields: {
 			title: true,

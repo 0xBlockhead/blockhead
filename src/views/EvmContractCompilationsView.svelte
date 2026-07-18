@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractCompilationView from '$/views/EvmContractCompilationView.svelte'
 </script>
@@ -61,81 +60,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					fullyQualifiedName: true,
-					compiler: true,
-					compilerVersion: true,
-					language: true,
-					$contract: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContractCompilation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmContractCompilation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				fullyQualifiedName: true,
+				compiler: true,
+				compilerVersion: true,
+				language: true,
+				$contract: true,
+			},
+		})
+	}
+	getResourceItems={(evmContractCompilations) => [...new Map(evmContractCompilations.values.map((evmContractCompilation) => [evmContractCompilation[EntityMetaKey.SelectorKey], evmContractCompilation])).values()]}
+	getKey={(evmContractCompilation) => evmContractCompilation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM contract compilations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmContractCompilations)}
-			{@const uniqueEvmContractCompilations = [...new Map(evmContractCompilations.values.map((evmContractCompilation) => [evmContractCompilation[EntityMetaKey.SelectorKey], evmContractCompilation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContractCompilation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmContractCompilations.totalCount}
-				getKey={(evmContractCompilation) => evmContractCompilation[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmContractCompilations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM contract compilations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmContractCompilation })}
-					{@const evmContractCompilationFields = { ...evmContractCompilation[EntityMetaKey.Selector], ...evmContractCompilation }}
-					{@const selection = select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EvmContractCompilationView
-						selection={selection}
-						prefetched={evmContractCompilationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmContractCompilation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmContractCompilation })}
+		{@const evmContractCompilationFields = { ...evmContractCompilation[EntityMetaKey.Selector], ...evmContractCompilation }}
+		{@const selection = select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EvmContractCompilationView
+			selection={selection}
+			prefetched={evmContractCompilationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

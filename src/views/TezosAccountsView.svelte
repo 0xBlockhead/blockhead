@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosAccountView from '$/views/TezosAccountView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosAccounts) => [...new Map(tezosAccounts.values.map((tezosAccount) => [tezosAccount[EntityMetaKey.SelectorKey], tezosAccount])).values()]}
+	getKey={(tezosAccount) => tezosAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosAccounts)}
-			{@const uniqueTezosAccounts = [...new Map(tezosAccounts.values.map((tezosAccount) => [tezosAccount[EntityMetaKey.SelectorKey], tezosAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosAccounts.totalCount}
-				getKey={(tezosAccount) => tezosAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosAccount })}
-					{@const tezosAccountFields = { ...tezosAccount[EntityMetaKey.Selector], ...tezosAccount }}
-					{@const selection = select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosAccountView
-						selection={selection}
-						prefetched={tezosAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosAccount })}
+		{@const tezosAccountFields = { ...tezosAccount[EntityMetaKey.Selector], ...tezosAccount }}
+		{@const selection = select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosAccountView
+			selection={selection}
+			prefetched={tezosAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

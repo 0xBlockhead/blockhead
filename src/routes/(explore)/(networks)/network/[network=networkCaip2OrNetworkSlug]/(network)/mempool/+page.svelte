@@ -52,6 +52,9 @@
 					})
 				}
 				id='txpool-timestamps'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

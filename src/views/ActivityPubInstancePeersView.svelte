@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubInstancePeerView from '$/views/ActivityPubInstancePeerView.svelte'
 </script>
@@ -61,78 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					peerDomain: true,
-					instanceOrigin: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubInstancePeer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ActivityPubInstancePeer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				peerDomain: true,
+				$observation: true,
+			},
+		})
+	}
+	getResourceItems={(activityPubInstancePeers) => [...new Map(activityPubInstancePeers.values.map((activityPubInstancePeer) => [activityPubInstancePeer[EntityMetaKey.SelectorKey], activityPubInstancePeer])).values()]}
+	getKey={(activityPubInstancePeer) => activityPubInstancePeer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ActivityPub instance peers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(activityPubInstancePeers)}
-			{@const uniqueActivityPubInstancePeers = [...new Map(activityPubInstancePeers.values.map((activityPubInstancePeer) => [activityPubInstancePeer[EntityMetaKey.SelectorKey], activityPubInstancePeer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubInstancePeer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubInstancePeers.totalCount}
-				getKey={(activityPubInstancePeer) => activityPubInstancePeer[EntityMetaKey.SelectorKey]}
-				items={uniqueActivityPubInstancePeers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ActivityPub instance peers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: activityPubInstancePeer })}
-					{@const activityPubInstancePeerFields = { ...activityPubInstancePeer[EntityMetaKey.Selector], ...activityPubInstancePeer }}
-					{@const selection = select(EntityType.ActivityPubInstancePeer, activityPubInstancePeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ActivityPubInstancePeerView
-						selection={selection}
-						prefetched={activityPubInstancePeerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ActivityPubInstancePeer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: activityPubInstancePeer })}
+		{@const activityPubInstancePeerFields = { ...activityPubInstancePeer[EntityMetaKey.Selector], ...activityPubInstancePeer }}
+		{@const selection = select(EntityType.ActivityPubInstancePeer, activityPubInstancePeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ActivityPubInstancePeerView
+			selection={selection}
+			prefetched={activityPubInstancePeerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

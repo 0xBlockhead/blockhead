@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidNetwork = $derived(selection({}))
+	const hyperliquidNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid network')
 	const viewDomId = $derived('hyperliquid-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -74,51 +76,51 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={hyperliquidNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={hyperliquidNetwork}>
-			{#snippet Pending()}
-				{title || 'hyperliquid network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,11 +168,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -178,12 +177,12 @@
 
 				{#snippet SectionHyperliquidChainObservations({ id, label, open })}
 					<HyperliquidNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid network observations.'
 						open={open}
 						title={label}
@@ -193,12 +192,12 @@
 
 				{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
 					<HyperliquidBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid blocks.'
 						open={open}
 						title={label}
@@ -208,12 +207,12 @@
 
 				{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
 					<HyperliquidTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid transactions.'
 						open={open}
 						title={label}
@@ -236,11 +235,8 @@
 				}
 				data-card
 				class='network-view-collapsible-validators'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Validators</HeadingComponent>
 					</header>
@@ -248,12 +244,12 @@
 
 				{#snippet SectionHyperliquidValidatorList({ id, label, open })}
 					<HyperliquidValidatorsView
-						selection={
-							selection.$$validators({
-								count: true,
-							})
-						}
+						selection={selection.$$validators}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid validators.'
 						open={open}
 						title={label}
@@ -288,11 +284,8 @@
 				}
 				data-card
 				class='network-view-collapsible-markets'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Markets</HeadingComponent>
 					</header>
@@ -300,12 +293,12 @@
 
 				{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
 					<HyperliquidSpotAssetsView
-						selection={
-							selection.$$spotAssets({
-								count: true,
-							})
-						}
+						selection={selection.$$spotAssets}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid spot assets.'
 						open={open}
 						title={label}
@@ -315,12 +308,12 @@
 
 				{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={
-							selection.$$spotPairs({
-								count: true,
-							})
-						}
+						selection={selection.$$spotPairs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid spot pairs.'
 						open={open}
 						title={label}
@@ -330,12 +323,12 @@
 
 				{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
 					<HyperliquidPerpMarketsView
-						selection={
-							selection.$$perpMarkets({
-								count: true,
-							})
-						}
+						selection={selection.$$perpMarkets}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid perp markets.'
 						open={open}
 						title={label}
@@ -345,12 +338,12 @@
 
 				{#snippet SectionHyperliquidVaults({ id, label, open })}
 					<HyperliquidVaultsView
-						selection={
-							selection.$$vaults({
-								count: true,
-							})
-						}
+						selection={selection.$$vaults}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Hyperliquid vaults.'
 						open={open}
 						title={label}

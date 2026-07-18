@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004EndpointDomainVerificationTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			verified: true,
 		},
@@ -63,72 +64,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
-			{#snippet Pending()}
-				{@const endpointUrl0 = pendingEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(endpointUrl0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(endpointUrl0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const endpointUrl0 = resolvedEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(endpointUrl0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(endpointUrl0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const endpointUrl0 = pendingEntity.endpointUrl}
+					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(endpointUrl0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(endpointUrl0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const endpointUrl0 = resolvedEntity.endpointUrl}
+					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(endpointUrl0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(endpointUrl0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 endpoint domain verification timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,26 +140,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									endpointUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const endpointUrl = pendingEntity.endpointUrl}
-							{#if endpointUrl !== undefined && endpointUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const endpointUrl = resolvedEntity.endpointUrl}
@@ -183,19 +171,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -213,19 +195,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -242,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verified: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verified = pendingEntity.verified}
-					{#if verified !== undefined && verified !== null}
-						<div>
-							<dt>Verified</dt>
-							<dd>
-								{verified ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verified = resolvedEntity.verified}
@@ -277,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>Error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

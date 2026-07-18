@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					source: true,
-					id: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSource}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				source: true,
+				id: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSources) => [...new Map(blockheadSources.values.map((blockheadSource) => [blockheadSource[EntityMetaKey.SelectorKey], blockheadSource])).values()]}
+	getKey={(blockheadSource) => blockheadSource[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sources yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSources)}
-			{@const uniqueBlockheadSources = [...new Map(blockheadSources.values.map((blockheadSource) => [blockheadSource[EntityMetaKey.SelectorKey], blockheadSource])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSources.totalCount}
-				getKey={(blockheadSource) => blockheadSource[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSources}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sources yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSource })}
-					{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
-					{@const selection = select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadSourceHrefFields = { ...blockheadSource, ...blockheadSource[EntityMetaKey.Selector] }}
-					<BlockheadSourceView
-						selection={selection}
-						prefetched={blockheadSourceFields}
-						href={
-							(blockheadSourceHrefFields.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
-								sourceId: String(blockheadSourceHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSource}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSource })}
+		{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
+		{@const selection = select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadSourceHrefFields = { ...blockheadSource, ...blockheadSource[EntityMetaKey.Selector] }}
+		<BlockheadSourceView
+			selection={selection}
+			prefetched={blockheadSourceFields}
+			href={
+				(blockheadSourceHrefFields.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
+					sourceId: String(blockheadSourceHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

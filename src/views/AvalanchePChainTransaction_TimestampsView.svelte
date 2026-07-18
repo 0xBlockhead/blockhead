@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvalanchePChainTransaction_TimestampView from '$/views/AvalanchePChainTransaction_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					blockHeight: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvalanchePChainTransaction_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				blockHeight: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(avalanchePChainTransactionTimestamps) => [...new Map(avalanchePChainTransactionTimestamps.values.map((avalanchePChainTransactionTimestamp) => [avalanchePChainTransactionTimestamp[EntityMetaKey.SelectorKey], avalanchePChainTransactionTimestamp])).values()]}
+	getKey={(avalanchePChainTransactionTimestamp) => avalanchePChainTransactionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avalanche p chain transaction observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(avalanchePChainTransactionTimestamps)}
-			{@const uniqueAvalanchePChainTransactionTimestamps = [...new Map(avalanchePChainTransactionTimestamps.values.map((avalanchePChainTransactionTimestamp) => [avalanchePChainTransactionTimestamp[EntityMetaKey.SelectorKey], avalanchePChainTransactionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={avalanchePChainTransactionTimestamps.totalCount}
-				getKey={(avalanchePChainTransactionTimestamp) => avalanchePChainTransactionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAvalanchePChainTransactionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avalanche p chain transaction observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: avalanchePChainTransactionTimestamp })}
-					{@const avalanchePChainTransactionTimestampFields = { ...avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], ...avalanchePChainTransactionTimestamp }}
-					{@const selection = select(EntityType.AvalanchePChainTransaction_Timestamp, avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvalanchePChainTransaction_TimestampView
-						selection={selection}
-						prefetched={avalanchePChainTransactionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvalanchePChainTransaction_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: avalanchePChainTransactionTimestamp })}
+		{@const avalanchePChainTransactionTimestampFields = { ...avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], ...avalanchePChainTransactionTimestamp }}
+		{@const selection = select(EntityType.AvalanchePChainTransaction_Timestamp, avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvalanchePChainTransaction_TimestampView
+			selection={selection}
+			prefetched={avalanchePChainTransactionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

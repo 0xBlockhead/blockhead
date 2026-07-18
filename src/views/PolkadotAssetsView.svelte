@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotAssetView from '$/views/PolkadotAssetView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					assetId: true,
-					assetKind: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotAsset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				assetId: true,
+				assetKind: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotAssets) => [...new Map(polkadotAssets.values.map((polkadotAsset) => [polkadotAsset[EntityMetaKey.SelectorKey], polkadotAsset])).values()]}
+	getKey={(polkadotAsset) => polkadotAsset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot assets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotAssets)}
-			{@const uniquePolkadotAssets = [...new Map(polkadotAssets.values.map((polkadotAsset) => [polkadotAsset[EntityMetaKey.SelectorKey], polkadotAsset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAssets.totalCount}
-				getKey={(polkadotAsset) => polkadotAsset[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotAssets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot assets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotAsset })}
-					{@const polkadotAssetFields = { ...polkadotAsset[EntityMetaKey.Selector], ...polkadotAsset }}
-					{@const selection = select(EntityType.PolkadotAsset, polkadotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PolkadotAssetView
-						selection={selection}
-						prefetched={polkadotAssetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotAsset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotAsset })}
+		{@const polkadotAssetFields = { ...polkadotAsset[EntityMetaKey.Selector], ...polkadotAsset }}
+		{@const selection = select(EntityType.PolkadotAsset, polkadotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PolkadotAssetView
+			selection={selection}
+			prefetched={polkadotAssetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

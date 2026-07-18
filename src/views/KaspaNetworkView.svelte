@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,12 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaNetwork = $derived(selection({
-		sources: [
-			Source.KaspaExplorer_Rest,
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Rest,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa network')
 	const viewDomId = $derived('kaspa-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -80,51 +74,51 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={kaspaNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={kaspaNetwork}>
-			{#snippet Pending()}
-				{title || 'kaspa network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,11 +174,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -192,12 +183,12 @@
 
 				{#snippet SectionKaspaChainObservations({ id, label, open })}
 					<KaspaNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa network observations.'
 						open={open}
 						title={label}
@@ -207,12 +198,12 @@
 
 				{#snippet SectionKaspaVirtualChain({ id, label, open })}
 					<KaspaVirtualChain_TimestampsView
-						selection={
-							selection.$$virtualChainTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$virtualChainTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa virtual-chain observations.'
 						open={open}
 						title={label}
@@ -222,12 +213,12 @@
 
 				{#snippet SectionKaspaChainBlocks({ id, label, open })}
 					<KaspaBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa blocks.'
 						open={open}
 						title={label}
@@ -237,12 +228,12 @@
 
 				{#snippet SectionKaspaChainTransactions({ id, label, open })}
 					<KaspaTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa transactions.'
 						open={open}
 						title={label}
@@ -252,12 +243,12 @@
 
 				{#snippet SectionKaspaAcceptedTransactions({ id, label, open })}
 					<KaspaAcceptedTransactionsView
-						selection={
-							selection.$$acceptedTransactions({
-								count: true,
-							})
-						}
+						selection={selection.$$acceptedTransactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa accepted transactions.'
 						open={open}
 						title={label}
@@ -280,11 +271,8 @@
 				}
 				data-card
 				class='network-view-collapsible-addresses'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Addresses</HeadingComponent>
 					</header>
@@ -292,12 +280,12 @@
 
 				{#snippet SectionKaspaAddressList({ id, label, open })}
 					<KaspaAddressesView
-						selection={
-							selection.$$addresses({
-								count: true,
-							})
-						}
+						selection={selection.$$addresses}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa addresses.'
 						open={open}
 						title={label}

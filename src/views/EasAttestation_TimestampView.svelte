@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,13 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const easAttestationTimestamp = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-			Source.EasContracts_Evm,
-			Source.EasScan_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			valid: true,
 			revoked: true,
@@ -79,58 +72,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={easAttestationTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={easAttestationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={easAttestationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EAS attestation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={easAttestationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={easAttestationTimestamp}>
-			{#snippet Pending()}
-				{@const revoked0 = pendingEntity.revoked}
-				{#if revoked0 !== undefined && revoked0 !== null}
-					<span data-text="muted">
-						{revoked0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const revoked0 = resolvedEntity.revoked}
-				{#if revoked0 !== undefined && revoked0 !== null}
-					<span data-text="muted">
-						{revoked0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const revoked0 = pendingEntity.revoked}
+			{#if revoked0 !== undefined && revoked0 !== null}
+				<span data-text="muted">
+					{revoked0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={easAttestationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const revoked0 = resolvedEntity.revoked}
+					{#if revoked0 !== undefined && revoked0 !== null}
+						<span data-text="muted">
+							{revoked0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -182,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -209,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							valid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const valid = pendingEntity.valid}
-					{#if valid !== undefined && valid !== null}
-						<div>
-							<dt>Valid</dt>
-							<dd>
-								{valid ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const valid = resolvedEntity.valid}
@@ -244,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revoked: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revoked = pendingEntity.revoked}
-					{#if revoked !== undefined && revoked !== null}
-						<div>
-							<dt>Revoked</dt>
-							<dd>
-								{revoked ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revoked = resolvedEntity.revoked}
@@ -279,24 +238,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expired: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expired = pendingEntity.expired}
-					{#if expired !== undefined && expired !== null}
-						<div>
-							<dt>Expired</dt>
-							<dd>
-								{expired ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expired = resolvedEntity.expired}
@@ -314,24 +262,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revocationTime: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revocationTime = pendingEntity.revocationTime}
-					{#if revocationTime !== undefined && revocationTime !== null}
-						<div>
-							<dt>Revocation time</dt>
-							<dd>
-								<Timestamp timestamp={Number(revocationTime)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revocationTime = resolvedEntity.revocationTime}
@@ -351,24 +288,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue value={Number(blockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -376,7 +302,9 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -386,24 +314,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionHash = pendingEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
-						<div>
-							<dt>Transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionHash = resolvedEntity.transactionHash}
@@ -421,24 +338,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							logIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const logIndex = pendingEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
-						<div>
-							<dt>Log index</dt>
-							<dd>
-								<NumberValue value={Number(logIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const logIndex = resolvedEntity.logIndex}
@@ -446,7 +352,9 @@
 						<div>
 							<dt>Log index</dt>
 							<dd>
-								<NumberValue value={Number(logIndex)} />
+								<NumberValue
+									value={logIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -456,24 +364,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revokedTransactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revokedTransactionHash = pendingEntity.revokedTransactionHash}
-					{#if revokedTransactionHash !== undefined && revokedTransactionHash !== null}
-						<div>
-							<dt>Revoked transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((revokedTransactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revokedTransactionHash = resolvedEntity.revokedTransactionHash}
@@ -491,24 +388,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revokedLogIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revokedLogIndex = pendingEntity.revokedLogIndex}
-					{#if revokedLogIndex !== undefined && revokedLogIndex !== null}
-						<div>
-							<dt>Revoked log index</dt>
-							<dd>
-								<NumberValue value={Number(revokedLogIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revokedLogIndex = resolvedEntity.revokedLogIndex}
@@ -516,7 +402,9 @@
 						<div>
 							<dt>Revoked log index</dt>
 							<dd>
-								<NumberValue value={Number(revokedLogIndex)} />
+								<NumberValue
+									value={revokedLogIndex}
+								/>
 							</dd>
 						</div>
 					{/if}

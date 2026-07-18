@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moveFunction = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			visibility: true,
 		},
@@ -66,54 +67,54 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moveFunction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={moveFunction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moveFunction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={moveFunction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moveFunction}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<MoveModuleView
+					selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={moveFunction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<MoveModuleView
+							selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									functionName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const functionName = pendingEntity.functionName}
-							{#if functionName !== undefined && functionName !== null}
-								{String((functionName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const functionName = resolvedEntity.functionName}
@@ -162,24 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							visibility: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const visibility = pendingEntity.visibility}
-					{#if visibility !== undefined && visibility !== null}
-						<div>
-							<dt>visibility</dt>
-							<dd>
-								{String((visibility) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const visibility = resolvedEntity.visibility}
@@ -197,24 +181,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isEntry: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isEntry = pendingEntity.isEntry}
-					{#if isEntry !== undefined && isEntry !== null}
-						<div>
-							<dt>is entry</dt>
-							<dd>
-								{isEntry ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isEntry = resolvedEntity.isEntry}
@@ -232,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isView: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isView = pendingEntity.isView}
-					{#if isView !== undefined && isView !== null}
-						<div>
-							<dt>is view</dt>
-							<dd>
-								{isView ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isView = resolvedEntity.isView}
@@ -272,19 +234,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									parameters: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const parameters = pendingEntity.parameters}
-							{#if parameters !== undefined && parameters !== null}
-								{parameters.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const parameters = resolvedEntity.parameters}
@@ -302,19 +258,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									returnTypes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const returnTypes = pendingEntity.returnTypes}
-							{#if returnTypes !== undefined && returnTypes !== null}
-								{returnTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const returnTypes = resolvedEntity.returnTypes}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiTransaction_TimestampView from '$/views/SuiTransaction_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiTransaction_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiTransactionTimestamps) => [...new Map(suiTransactionTimestamps.values.map((suiTransactionTimestamp) => [suiTransactionTimestamp[EntityMetaKey.SelectorKey], suiTransactionTimestamp])).values()]}
+	getKey={(suiTransactionTimestamp) => suiTransactionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui transaction observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiTransactionTimestamps)}
-			{@const uniqueSuiTransactionTimestamps = [...new Map(suiTransactionTimestamps.values.map((suiTransactionTimestamp) => [suiTransactionTimestamp[EntityMetaKey.SelectorKey], suiTransactionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiTransactionTimestamps.totalCount}
-				getKey={(suiTransactionTimestamp) => suiTransactionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiTransactionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui transaction observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiTransactionTimestamp })}
-					{@const suiTransactionTimestampFields = { ...suiTransactionTimestamp[EntityMetaKey.Selector], ...suiTransactionTimestamp }}
-					{@const selection = select(EntityType.SuiTransaction_Timestamp, suiTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiTransaction_TimestampView
-						selection={selection}
-						prefetched={suiTransactionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiTransaction_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiTransactionTimestamp })}
+		{@const suiTransactionTimestampFields = { ...suiTransactionTimestamp[EntityMetaKey.Selector], ...suiTransactionTimestamp }}
+		{@const selection = select(EntityType.SuiTransaction_Timestamp, suiTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiTransaction_TimestampView
+			selection={selection}
+			prefetched={suiTransactionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

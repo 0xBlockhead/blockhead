@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
+import { match as matchEvmTopicHash } from '$/params/evmTopicHash.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
@@ -18,6 +19,9 @@ describe('EVM route params', () => {
 		expect(matchEvmTxHash('0x5e4763cd6b6f129869fff1d60bfadf1d37e1677cb8f1d8997299680da09d5b01')).toBe(true)
 		expect(matchEvmTxHash('not-a-hash')).toBe(false)
 		expect(matchEvmTxHash('0x1')).toBe(false)
+		expect(matchEvmTopicHash('0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef')).toBe(true)
+		expect(matchEvmTopicHash('0xa9059cbb')).toBe(false)
+		expect(matchEvmTopicHash('0xDDF252AD1BE2C89B69C2B068FC378DAA952BA7F163C4A11628F55A4DF523B3EF')).toBe(false)
 
 		expect(matchNonNegativeInteger('0')).toBe(true)
 		expect(matchNonNegativeInteger('100')).toBe(true)
@@ -32,8 +36,11 @@ describe('EVM route params', () => {
 
 	it('validates route params through schema field artifacts', () => {
 		expect(matchNetworkCaip2('eip155:1')).toBe(true)
-		expect(matchNetworkCaip2('eip155:999999')).toBe(false)
+		expect(matchNetworkCaip2('eip155:999999')).toBe(true)
 		expect(matchNetworkCaip2('bip122:000000000019d6689c085ae165831e93')).toBe(true)
+		expect(matchNetworkCaip2('eip155')).toBe(false)
+		expect(matchNetworkCaip2(':1')).toBe(false)
+		expect(matchNetworkCaip2('eip155:')).toBe(false)
 
 		expect(matchEip155ChainId('1')).toBe(true)
 		expect(matchEip155ChainId('1e2')).toBe(false)

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLightningPaymentView from '$/views/BlockheadLightningPaymentView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					paymentHash: true,
-					valueMsat: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningPayment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLightningPayment}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				paymentHash: true,
+				valueMsat: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLightningPayments) => [...new Map(blockheadLightningPayments.values.map((blockheadLightningPayment) => [blockheadLightningPayment[EntityMetaKey.SelectorKey], blockheadLightningPayment])).values()]}
+	getKey={(blockheadLightningPayment) => blockheadLightningPayment[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning payments yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLightningPayments)}
-			{@const uniqueBlockheadLightningPayments = [...new Map(blockheadLightningPayments.values.map((blockheadLightningPayment) => [blockheadLightningPayment[EntityMetaKey.SelectorKey], blockheadLightningPayment])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningPayment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLightningPayments.totalCount}
-				getKey={(blockheadLightningPayment) => blockheadLightningPayment[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLightningPayments}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning payments yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLightningPayment })}
-					{@const blockheadLightningPaymentFields = { ...blockheadLightningPayment[EntityMetaKey.Selector], ...blockheadLightningPayment }}
-					{@const selection = select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadLightningPaymentHrefFields = { ...blockheadLightningPayment, ...blockheadLightningPayment[EntityMetaKey.Selector] }}
-					<BlockheadLightningPaymentView
-						selection={selection}
-						prefetched={blockheadLightningPaymentFields}
-						href={
-							(blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-								paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
-								network: String(caip2StringFromValue(blockheadLightningPaymentHrefFields.$network.caip2) ?? ''),
-							}) : blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-								paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
-								network: String(blockheadLightningPaymentHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLightningPayment}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLightningPayment })}
+		{@const blockheadLightningPaymentFields = { ...blockheadLightningPayment[EntityMetaKey.Selector], ...blockheadLightningPayment }}
+		{@const selection = select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadLightningPaymentHrefFields = { ...blockheadLightningPayment, ...blockheadLightningPayment[EntityMetaKey.Selector] }}
+		<BlockheadLightningPaymentView
+			selection={selection}
+			prefetched={blockheadLightningPaymentFields}
+			href={
+				(blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+					paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
+					network: String(caip2StringFromValue(blockheadLightningPaymentHrefFields.$network.caip2) ?? ''),
+				}) : blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+					paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
+					network: String(blockheadLightningPaymentHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

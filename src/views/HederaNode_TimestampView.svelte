@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNodeTimestamp = $derived(selection({}))
+	const hederaNodeTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera node timestamp')
 	const viewDomId = $derived('hedera-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaNodeTimestamp}>
-			{#snippet Pending()}
-				{title || 'hedera node timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaNodeTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -152,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeAccountId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeAccountId = pendingEntity.nodeAccountId}
-					{#if nodeAccountId !== undefined && nodeAccountId !== null}
-						<div>
-							<dt>node account ID</dt>
-							<dd>
-								<TruncatedValue value={String((nodeAccountId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeAccountId = resolvedEntity.nodeAccountId}
@@ -187,8 +166,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -209,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}
@@ -244,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fileId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fileId = pendingEntity.fileId}
-					{#if fileId !== undefined && fileId !== null}
-						<div>
-							<dt>file ID</dt>
-							<dd>
-								{String((fileId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fileId = resolvedEntity.fileId}
@@ -279,24 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							memo: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const memo = pendingEntity.memo}
-					{#if memo !== undefined && memo !== null}
-						<div>
-							<dt>memo</dt>
-							<dd>
-								{String((memo) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const memo = resolvedEntity.memo}
@@ -314,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							publicKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const publicKey = pendingEntity.publicKey}
-					{#if publicKey !== undefined && publicKey !== null}
-						<div>
-							<dt>public key</dt>
-							<dd>
-								{String((publicKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const publicKey = resolvedEntity.publicKey}
@@ -349,24 +282,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeCertHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeCertHash = pendingEntity.nodeCertHash}
-					{#if nodeCertHash !== undefined && nodeCertHash !== null}
-						<div>
-							<dt>node cert hash</dt>
-							<dd>
-								<TruncatedValue value={String((nodeCertHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeCertHash = resolvedEntity.nodeCertHash}
@@ -384,24 +306,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeTinybar = pendingEntity.stakeTinybar}
-					{#if stakeTinybar !== undefined && stakeTinybar !== null}
-						<div>
-							<dt>stake tinybar</dt>
-							<dd>
-								{String((stakeTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeTinybar = resolvedEntity.stakeTinybar}
@@ -419,24 +330,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeRewardedTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeRewardedTinybar = pendingEntity.stakeRewardedTinybar}
-					{#if stakeRewardedTinybar !== undefined && stakeRewardedTinybar !== null}
-						<div>
-							<dt>stake rewarded tinybar</dt>
-							<dd>
-								{String((stakeRewardedTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeRewardedTinybar = resolvedEntity.stakeRewardedTinybar}
@@ -454,24 +354,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeNotRewardedTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeNotRewardedTinybar = pendingEntity.stakeNotRewardedTinybar}
-					{#if stakeNotRewardedTinybar !== undefined && stakeNotRewardedTinybar !== null}
-						<div>
-							<dt>stake not rewarded tinybar</dt>
-							<dd>
-								{String((stakeNotRewardedTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeNotRewardedTinybar = resolvedEntity.stakeNotRewardedTinybar}
@@ -489,24 +378,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minStakeTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minStakeTinybar = pendingEntity.minStakeTinybar}
-					{#if minStakeTinybar !== undefined && minStakeTinybar !== null}
-						<div>
-							<dt>min stake tinybar</dt>
-							<dd>
-								{String((minStakeTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minStakeTinybar = resolvedEntity.minStakeTinybar}
@@ -524,24 +402,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxStakeTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxStakeTinybar = pendingEntity.maxStakeTinybar}
-					{#if maxStakeTinybar !== undefined && maxStakeTinybar !== null}
-						<div>
-							<dt>max stake tinybar</dt>
-							<dd>
-								{String((maxStakeTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxStakeTinybar = resolvedEntity.maxStakeTinybar}
@@ -559,24 +426,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deleted = pendingEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
-						<div>
-							<dt>deleted</dt>
-							<dd>
-								{deleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deleted = resolvedEntity.deleted}

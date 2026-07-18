@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PythPriceFeedView from '$/views/PythPriceFeedView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					symbol: true,
-					channel: true,
-					priceFeedId: true,
-					$market: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PythPriceFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PythPriceFeed}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				symbol: true,
+				channel: true,
+				priceFeedId: true,
+				$market: true,
+			},
+		})
+	}
+	getResourceItems={(pythPriceFeeds) => [...new Map(pythPriceFeeds.values.map((pythPriceFeed) => [pythPriceFeed[EntityMetaKey.SelectorKey], pythPriceFeed])).values()]}
+	getKey={(pythPriceFeed) => pythPriceFeed[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Pyth price feeds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(pythPriceFeeds)}
-			{@const uniquePythPriceFeeds = [...new Map(pythPriceFeeds.values.map((pythPriceFeed) => [pythPriceFeed[EntityMetaKey.SelectorKey], pythPriceFeed])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PythPriceFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={pythPriceFeeds.totalCount}
-				getKey={(pythPriceFeed) => pythPriceFeed[EntityMetaKey.SelectorKey]}
-				items={uniquePythPriceFeeds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Pyth price feeds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: pythPriceFeed })}
-					{@const pythPriceFeedFields = { ...pythPriceFeed[EntityMetaKey.Selector], ...pythPriceFeed }}
-					{@const selection = select(EntityType.PythPriceFeed, pythPriceFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PythPriceFeedView
-						selection={selection}
-						prefetched={pythPriceFeedFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PythPriceFeed}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: pythPriceFeed })}
+		{@const pythPriceFeedFields = { ...pythPriceFeed[EntityMetaKey.Selector], ...pythPriceFeed }}
+		{@const selection = select(EntityType.PythPriceFeed, pythPriceFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PythPriceFeedView
+			selection={selection}
+			prefetched={pythPriceFeedFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

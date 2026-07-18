@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PayjoinEndpointView from '$/views/PayjoinEndpointView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					endpointUrl: true,
-					protocolVersion: true,
-					$directory: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PayjoinEndpoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PayjoinEndpoint}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				endpointUrl: true,
+				protocolVersion: true,
+				$directory: true,
+			},
+		})
+	}
+	getResourceItems={(payjoinEndpoints) => [...new Map(payjoinEndpoints.values.map((payjoinEndpoint) => [payjoinEndpoint[EntityMetaKey.SelectorKey], payjoinEndpoint])).values()]}
+	getKey={(payjoinEndpoint) => payjoinEndpoint[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Payjoin endpoints yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(payjoinEndpoints)}
-			{@const uniquePayjoinEndpoints = [...new Map(payjoinEndpoints.values.map((payjoinEndpoint) => [payjoinEndpoint[EntityMetaKey.SelectorKey], payjoinEndpoint])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PayjoinEndpoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={payjoinEndpoints.totalCount}
-				getKey={(payjoinEndpoint) => payjoinEndpoint[EntityMetaKey.SelectorKey]}
-				items={uniquePayjoinEndpoints}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Payjoin endpoints yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: payjoinEndpoint })}
-					{@const payjoinEndpointFields = { ...payjoinEndpoint[EntityMetaKey.Selector], ...payjoinEndpoint }}
-					{@const selection = select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PayjoinEndpointView
-						selection={selection}
-						prefetched={payjoinEndpointFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PayjoinEndpoint}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: payjoinEndpoint })}
+		{@const payjoinEndpointFields = { ...payjoinEndpoint[EntityMetaKey.Selector], ...payjoinEndpoint }}
+		{@const selection = select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PayjoinEndpointView
+			selection={selection}
+			prefetched={payjoinEndpointFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

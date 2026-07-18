@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum SolanaTransactionSelector {
@@ -68,12 +69,18 @@ export const SolanaTransaction = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SolanaTransaction_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	$$instructions: {
 		label: 'Instructions',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SolanaInstruction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 })({
 	selectors: {

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarNetwork_TimestampView from '$/views/StellarNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarNetworkTimestamps) => [...new Map(stellarNetworkTimestamps.values.map((stellarNetworkTimestamp) => [stellarNetworkTimestamp[EntityMetaKey.SelectorKey], stellarNetworkTimestamp])).values()]}
+	getKey={(stellarNetworkTimestamp) => stellarNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarNetworkTimestamps)}
-			{@const uniqueStellarNetworkTimestamps = [...new Map(stellarNetworkTimestamps.values.map((stellarNetworkTimestamp) => [stellarNetworkTimestamp[EntityMetaKey.SelectorKey], stellarNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarNetworkTimestamps.totalCount}
-				getKey={(stellarNetworkTimestamp) => stellarNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarNetworkTimestamp })}
-					{@const stellarNetworkTimestampFields = { ...stellarNetworkTimestamp[EntityMetaKey.Selector], ...stellarNetworkTimestamp }}
-					{@const selection = select(EntityType.StellarNetwork_Timestamp, stellarNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarNetwork_TimestampView
-						selection={selection}
-						prefetched={stellarNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarNetworkTimestamp })}
+		{@const stellarNetworkTimestampFields = { ...stellarNetworkTimestamp[EntityMetaKey.Selector], ...stellarNetworkTimestamp }}
+		{@const selection = select(EntityType.StellarNetwork_Timestamp, stellarNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarNetwork_TimestampView
+			selection={selection}
+			prefetched={stellarNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

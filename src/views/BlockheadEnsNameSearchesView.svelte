@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadEnsNameSearchView from '$/views/BlockheadEnsNameSearchView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					query: true,
-					resultLimit: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadEnsNameSearch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadEnsNameSearch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				query: true,
+				resultLimit: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadEnsNameSearches) => [...new Map(blockheadEnsNameSearches.values.map((blockheadEnsNameSearch) => [blockheadEnsNameSearch[EntityMetaKey.SelectorKey], blockheadEnsNameSearch])).values()]}
+	getKey={(blockheadEnsNameSearch) => blockheadEnsNameSearch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead ENS name searches yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadEnsNameSearches)}
-			{@const uniqueBlockheadEnsNameSearches = [...new Map(blockheadEnsNameSearches.values.map((blockheadEnsNameSearch) => [blockheadEnsNameSearch[EntityMetaKey.SelectorKey], blockheadEnsNameSearch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadEnsNameSearch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadEnsNameSearches.totalCount}
-				getKey={(blockheadEnsNameSearch) => blockheadEnsNameSearch[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadEnsNameSearches}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead ENS name searches yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadEnsNameSearch })}
-					{@const blockheadEnsNameSearchFields = { ...blockheadEnsNameSearch[EntityMetaKey.Selector], ...blockheadEnsNameSearch }}
-					{@const selection = select(EntityType.BlockheadEnsNameSearch, blockheadEnsNameSearch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadEnsNameSearchView
-						selection={selection}
-						prefetched={blockheadEnsNameSearchFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadEnsNameSearch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadEnsNameSearch })}
+		{@const blockheadEnsNameSearchFields = { ...blockheadEnsNameSearch[EntityMetaKey.Selector], ...blockheadEnsNameSearch }}
+		{@const selection = select(EntityType.BlockheadEnsNameSearch, blockheadEnsNameSearch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadEnsNameSearchView
+			selection={selection}
+			prefetched={blockheadEnsNameSearchFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

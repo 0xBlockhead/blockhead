@@ -29,7 +29,6 @@ export const createDiscoveryOnlyAdapter = ({
 		scopes: [],
 		accounts: [],
 		selected: false,
-		connectedAt: Date.now(),
 		error: 'This wallet protocol is discovered but connection is not implemented yet.',
 	}),
 	disconnect: () => {},

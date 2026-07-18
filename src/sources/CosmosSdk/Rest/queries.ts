@@ -1,5 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import type {
+	CosmosSdkAccountsResponse,
 	CosmosSdkAccountResponse,
 	CosmosSdkBalancesResponse,
 	CosmosSdkBlockResponse,
@@ -19,6 +20,10 @@ import type {
 const cosmosSdkOrigins = [
 	{
 		origin: 'https://cosmos-rest.publicnode.com',
+		corsEnabled: true,
+	},
+	{
+		origin: 'https://rest.cosmos.directory',
 		corsEnabled: true,
 	},
 ] as const
@@ -129,6 +134,24 @@ export const getAccount = ({
 		{ origins: cosmosSdkOrigins }
 	)
 )
+
+export const getAccounts = ({
+	restBaseUrl,
+	limit = 24,
+}: {
+	restBaseUrl: string
+	limit?: number
+}) => {
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+	})
+
+	return getJson<CosmosSdkAccountsResponse>(
+		`${base(restBaseUrl)}/cosmos/auth/v1beta1/accounts?${parameters}`,
+		{ origins: cosmosSdkOrigins }
+	)
+}
 
 export const getProposal = ({
 	restBaseUrl,

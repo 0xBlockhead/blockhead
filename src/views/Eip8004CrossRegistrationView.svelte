@@ -10,7 +10,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004CrossRegistration = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 cross registration')
 	const viewDomId = $derived('eip8004cross-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -70,52 +67,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004CrossRegistration}>
-			{#snippet Pending()}
-				{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004CrossRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004CrossRegistration}>
-			{#snippet Pending()}
-				{[String((pendingEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004CrossRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip8004CrossRegistration}>
-			{#snippet Pending()}
-				{@const targetSelectorHashAlgorithm0 = pendingEntity.targetSelectorHashAlgorithm}
-				{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const targetSelectorHashAlgorithm0 = resolvedEntity.targetSelectorHashAlgorithm}
-				{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const targetSelectorHashAlgorithm0 = pendingEntity.targetSelectorHashAlgorithm}
+			{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004CrossRegistration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const targetSelectorHashAlgorithm0 = resolvedEntity.targetSelectorHashAlgorithm}
+					{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									targetKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const targetKind = pendingEntity.targetKind}
-							{#if targetKind !== undefined && targetKind !== null}
-								{String((targetKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const targetKind = resolvedEntity.targetKind}
@@ -167,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									targetSelectorHashAlgorithm: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const targetSelectorHashAlgorithm = pendingEntity.targetSelectorHashAlgorithm}
-							{#if targetSelectorHashAlgorithm !== undefined && targetSelectorHashAlgorithm !== null}
-								<TruncatedValue value={String((targetSelectorHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const targetSelectorHashAlgorithm = resolvedEntity.targetSelectorHashAlgorithm}
@@ -197,19 +182,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									targetSelectorHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const targetSelectorHash = pendingEntity.targetSelectorHash}
-							{#if targetSelectorHash !== undefined && targetSelectorHash !== null}
-								<TruncatedValue value={String((targetSelectorHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const targetSelectorHash = resolvedEntity.targetSelectorHash}
@@ -226,31 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							evidenceUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const evidenceUri = pendingEntity.evidenceUri}
-					{#if evidenceUri !== undefined && evidenceUri !== null}
-						<div>
-							<dt>Evidence URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(evidenceUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(evidenceUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const evidenceUri = resolvedEntity.evidenceUri}

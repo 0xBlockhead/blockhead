@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
@@ -142,37 +146,49 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const {
-					getProposalMarkdownText,
-				} = await import('$/sources/EthereumEips/Github/queries.ts')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Ethereum,
+							category: OwnedProposalCategory.Eip,
+						},
+						{
+							realm: OwnedSpecificationRealm.Ethereum,
+							category: OwnedProposalCategory.Erc,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+						const {
+							getProposalMarkdownText,
+						} = await import('$/sources/EthereumEips/Github/queries.ts')
 
-				if (
-					realm !== SpecificationRealm.Ethereum
-					|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
-				) {
-					throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
-				}
-				const text = await getProposalMarkdownText({
-					ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
-					number: number,
-					binding: ethereumEipsGithubBindingForLedger(category === ProposalCategory.Erc ? 'erc' : 'eip'),
-				})
-				if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
-				const body = await ethereumProposalMarkdownBody(
-					text,
-					category === ProposalCategory.Erc ? 'erc' : 'eip'
-				)
-				const fm = parseFrontmatter(text)
-				return {
-					documentCategory: fm.category?.trim() || undefined,
-					documentTitle: fm.title?.trim() || undefined,
-					documentStatus: fm.status?.trim() || undefined,
-					documentBody: body.length > 0 ? body : undefined,
-				}
-			}
-			}
+						if (
+							realm !== SpecificationRealm.Ethereum
+							|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
+						) {
+							throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
+						}
+						const text = await getProposalMarkdownText({
+							ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
+							number: number,
+							binding: ethereumEipsGithubBindingForLedger(category === ProposalCategory.Erc ? 'erc' : 'eip'),
+						})
+						if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
+						const body = await ethereumProposalMarkdownBody(
+							text,
+							category === ProposalCategory.Erc ? 'erc' : 'eip'
+						)
+						const fm = parseFrontmatter(text)
+						return {
+							documentCategory: fm.category?.trim() || undefined,
+							documentTitle: fm.title?.trim() || undefined,
+							documentStatus: fm.status?.trim() || undefined,
+							documentBody: body.length > 0 ? body : undefined,
+						}
+					}
+				},
+			},
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
@@ -183,16 +199,18 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_selector, context) => {
-				const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
-				return ethereumEipErcProposalRowsFromGithubSpecs({
-					getContents: ({ ledger }) => getContents({
-						ledger,
-						binding: ethereumEipsGithubBindingForLedger(ledger),
-					}),
-					context,
-				})
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async (_selector, context) => {
+					const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
+					return ethereumEipErcProposalRowsFromGithubSpecs({
+						getContents: ({ ledger }) => getContents({
+							ledger,
+							binding: ethereumEipsGithubBindingForLedger(ledger),
+						}),
+						context,
+					})
+				},
+				}
 			}
 		})({
 			$$proposals: {
@@ -204,23 +222,25 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }, context) => {
-					const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (
-						realm !== SpecificationRealm.Ethereum
-						|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
-					) {
-						throw new Error('EthereumEips_Github: proposal kind resolver only supports Ethereum EIPs/ERCs')
-					}
-					return ethereumEipErcProposalRowsFromGithubSpecs({
-						category,
-						getContents: ({ ledger }) => getContents({
-							ledger,
-							binding: ethereumEipsGithubBindingForLedger(ledger),
-						}),
-						context,
-					})
+				[SpecificationProposalKindSelector.RealmCategory]: {
+					resolve: async ({ category, realm }, context) => {
+						const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
+						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+						if (
+							realm !== SpecificationRealm.Ethereum
+							|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)
+						) {
+							throw new Error('EthereumEips_Github: proposal kind resolver only supports Ethereum EIPs/ERCs')
+						}
+						return ethereumEipErcProposalRowsFromGithubSpecs({
+							category,
+							getContents: ({ ledger }) => getContents({
+								ledger,
+								binding: ethereumEipsGithubBindingForLedger(ledger),
+							}),
+							context,
+						})
+					},
 				}
 			}
 		})({

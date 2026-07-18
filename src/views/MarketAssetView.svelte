@@ -44,7 +44,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketAsset = $derived(selection({}))
+	const marketAsset = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset')
 	const viewDomId = $derived('market-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -73,39 +75,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={marketAsset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.assetKey) ?? '')].filter(Boolean).join(' ') || title || 'Market asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.assetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.assetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={marketAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.assetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={marketAsset}>
-			{#snippet Pending()}
-				{@const kind0 = pendingEntity.kind}
-				{#if kind0 !== undefined && kind0 !== null}
-					<span data-text="muted">
-						{String((kind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const kind0 = resolvedEntity.kind}
-				{#if kind0 !== undefined && kind0 !== null}
-					<span data-text="muted">
-						{String((kind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const kind0 = pendingEntity.kind}
+			{#if kind0 !== undefined && kind0 !== null}
+				<span data-text="muted">
+					{String((kind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={marketAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const kind0 = resolvedEntity.kind}
+					{#if kind0 !== undefined && kind0 !== null}
+						<span data-text="muted">
+							{String((kind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -116,19 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									kind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const kind = pendingEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const kind = resolvedEntity.kind}
@@ -146,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetKey = pendingEntity.assetKey}
-							{#if assetKey !== undefined && assetKey !== null}
-								{String((assetKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetKey = resolvedEntity.assetKey}

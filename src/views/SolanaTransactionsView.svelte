@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaTransactionView from '$/views/SolanaTransactionView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					signature: true,
-					status: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SolanaTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				signature: true,
+				status: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(solanaTransactions) => [...new Map(solanaTransactions.values.map((solanaTransaction) => [solanaTransaction[EntityMetaKey.SelectorKey], solanaTransaction])).values()]}
+	getKey={(solanaTransaction) => solanaTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Solana transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(solanaTransactions)}
-			{@const uniqueSolanaTransactions = [...new Map(solanaTransactions.values.map((solanaTransaction) => [solanaTransaction[EntityMetaKey.SelectorKey], solanaTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTransactions.totalCount}
-				getKey={(solanaTransaction) => solanaTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueSolanaTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Solana transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: solanaTransaction })}
-					{@const solanaTransactionFields = { ...solanaTransaction[EntityMetaKey.Selector], ...solanaTransaction }}
-					{@const selection = select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const solanaTransactionHrefFields = { ...solanaTransaction, ...solanaTransaction[EntityMetaKey.Selector] }}
-					<SolanaTransactionView
-						selection={selection}
-						prefetched={solanaTransactionFields}
-						href={
-							(solanaTransactionHrefFields.signature !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(solanaTransactionHrefFields.signature ?? ''),
-								network: String(caip2StringFromValue(solanaTransactionHrefFields.$network.caip2) ?? ''),
-							}) : solanaTransactionHrefFields.signature !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(solanaTransactionHrefFields.signature ?? ''),
-								network: String(solanaTransactionHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SolanaTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: solanaTransaction })}
+		{@const solanaTransactionFields = { ...solanaTransaction[EntityMetaKey.Selector], ...solanaTransaction }}
+		{@const selection = select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const solanaTransactionHrefFields = { ...solanaTransaction, ...solanaTransaction[EntityMetaKey.Selector] }}
+		<SolanaTransactionView
+			selection={selection}
+			prefetched={solanaTransactionFields}
+			href={
+				(solanaTransactionHrefFields.signature !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+					transactionId: String(solanaTransactionHrefFields.signature ?? ''),
+					network: String(caip2StringFromValue(solanaTransactionHrefFields.$network.caip2) ?? ''),
+				}) : solanaTransactionHrefFields.signature !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+					transactionId: String(solanaTransactionHrefFields.signature ?? ''),
+					network: String(solanaTransactionHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

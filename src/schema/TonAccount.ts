@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum TonAccountSelector {
@@ -40,35 +41,14 @@ export const TonAccount = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$transactions: {
-		label: 'transactions',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.TonTransaction,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$messages: {
-		label: 'messages',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.TonMessage,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$jettonBalanceTimestamps: {
-		label: 'jetton balance timestamps',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.TonJettonBalance_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$nftItems: {
-		label: 'NFT items',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.TonNftItem,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$timestamps: {
 		label: 'timestamps',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TonAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.TonApi_Rest,
+		],
 	},
 })({
 	selectors: {

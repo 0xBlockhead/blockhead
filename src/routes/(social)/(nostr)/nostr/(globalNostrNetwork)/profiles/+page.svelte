@@ -37,5 +37,8 @@
 			})
 		}
 		id='observed-profiles'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

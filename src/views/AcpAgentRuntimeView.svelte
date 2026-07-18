@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const acpAgentRuntime = $derived(selection({
-		sources: [
-			Source.AcpLocal_JsonRpc,
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			transportKind: true,
 		},
@@ -77,78 +73,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={acpAgentRuntime}>
-			{#snippet Pending()}
-				{[String((pendingEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent runtime'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpAgentRuntime}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpAgentRuntime}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$programVersion}
-				>
-					{#snippet children(acpAgentProgramVersion)}
-						{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramVersionView
-								selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgramVersion}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$programVersion}
-				>
-					{#snippet children(acpAgentProgramVersion)}
-						{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramVersionView
-								selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgramVersion}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$programVersion}
+					>
+						{#snippet children(acpAgentProgramVersion)}
+							{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
+								<AcpAgentProgramVersionView
+									selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
+									prefetched={acpAgentProgramVersion}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={acpAgentRuntime}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$programVersion}
+					>
+						{#snippet children(acpAgentProgramVersion)}
+							{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
+								<AcpAgentProgramVersionView
+									selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
+									prefetched={acpAgentProgramVersion}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={acpAgentRuntime}>
-			{#snippet Pending()}
-				{@const transportKind0 = pendingEntity.transportKind}
-				{#if transportKind0 !== undefined && transportKind0 !== null}
-					<span data-text="muted">
-						{String((transportKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transportKind0 = resolvedEntity.transportKind}
-				{#if transportKind0 !== undefined && transportKind0 !== null}
-					<span data-text="muted">
-						{String((transportKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const transportKind0 = pendingEntity.transportKind}
+			{#if transportKind0 !== undefined && transportKind0 !== null}
+				<span data-text="muted">
+					{String((transportKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={acpAgentRuntime}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transportKind0 = resolvedEntity.transportKind}
+					{#if transportKind0 !== undefined && transportKind0 !== null}
+						<span data-text="muted">
+							{String((transportKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -159,19 +159,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									runtimeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const runtimeId = pendingEntity.runtimeId}
-							{#if runtimeId !== undefined && runtimeId !== null}
-								{String((runtimeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const runtimeId = resolvedEntity.runtimeId}
@@ -186,8 +180,6 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -213,8 +205,6 @@
 			<ResourceBoundary
 				resource={selection.$programVersion}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(acpAgentProgramVersion)}
 					{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
 						<div>
@@ -235,8 +225,6 @@
 			<ResourceBoundary
 				resource={selection.$programInstall}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadAgentProgramInstall)}
 					{#if blockheadAgentProgramInstall != null && blockheadAgentProgramInstall[EntityMetaKey.Selector] != null}
 						<div>
@@ -257,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transportKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transportKind = pendingEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
-						<div>
-							<dt>transport kind</dt>
-							<dd>
-								{String((transportKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transportKind = resolvedEntity.transportKind}
@@ -294,24 +271,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							processId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const processId = pendingEntity.processId}
-					{#if processId !== undefined && processId !== null}
-						<div>
-							<dt>process ID</dt>
-							<dd>
-								{String((processId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const processId = resolvedEntity.processId}
@@ -329,24 +295,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							initializedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const initializedAt = pendingEntity.initializedAt}
-					{#if initializedAt !== undefined && initializedAt !== null}
-						<div>
-							<dt>initialized AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(initializedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const initializedAt = resolvedEntity.initializedAt}

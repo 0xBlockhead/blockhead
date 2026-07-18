@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiBenchmark = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 			taskType: true,
@@ -71,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiBenchmark}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiBenchmark}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiBenchmark}>
-			{#snippet Pending()}
-				{[String((pendingEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiBenchmark}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiBenchmark}>
-			{#snippet Pending()}
-				{@const metricName0 = pendingEntity.metricName}
-				{#if metricName0 !== undefined && metricName0 !== null}
-					<span data-text="muted">
-						{String((metricName0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const metricName0 = resolvedEntity.metricName}
-				{#if metricName0 !== undefined && metricName0 !== null}
-					<span data-text="muted">
-						{String((metricName0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const metricName0 = pendingEntity.metricName}
+			{#if metricName0 !== undefined && metricName0 !== null}
+				<span data-text="muted">
+					{String((metricName0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiBenchmark}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const metricName0 = resolvedEntity.metricName}
+					{#if metricName0 !== undefined && metricName0 !== null}
+						<span data-text="muted">
+							{String((metricName0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,24 +125,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							benchmarkId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const benchmarkId = pendingEntity.benchmarkId}
-					{#if benchmarkId !== undefined && benchmarkId !== null}
-						<div>
-							<dt>benchmark ID</dt>
-							<dd>
-								{String((benchmarkId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const benchmarkId = resolvedEntity.benchmarkId}
@@ -159,31 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							benchmarkUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const benchmarkUri = pendingEntity.benchmarkUri}
-					{#if benchmarkUri !== undefined && benchmarkUri !== null}
-						<div>
-							<dt>benchmark URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(benchmarkUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(benchmarkUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const benchmarkUri = resolvedEntity.benchmarkUri}
@@ -208,24 +180,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}
@@ -243,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceBenchmarkId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceBenchmarkId = pendingEntity.sourceBenchmarkId}
-					{#if sourceBenchmarkId !== undefined && sourceBenchmarkId !== null}
-						<div>
-							<dt>source benchmark ID</dt>
-							<dd>
-								{String((sourceBenchmarkId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceBenchmarkId = resolvedEntity.sourceBenchmarkId}
@@ -278,24 +228,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -315,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							taskType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const taskType = pendingEntity.taskType}
-					{#if taskType !== undefined && taskType !== null}
-						<div>
-							<dt>task type</dt>
-							<dd>
-								{String((taskType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const taskType = resolvedEntity.taskType}
@@ -350,24 +278,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metricName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metricName = pendingEntity.metricName}
-					{#if metricName !== undefined && metricName !== null}
-						<div>
-							<dt>metric name</dt>
-							<dd>
-								{String((metricName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metricName = resolvedEntity.metricName}
@@ -385,24 +302,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metricType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metricType = pendingEntity.metricType}
-					{#if metricType !== undefined && metricType !== null}
-						<div>
-							<dt>metric type</dt>
-							<dd>
-								{String((metricType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metricType = resolvedEntity.metricType}
@@ -420,24 +326,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							license: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const license = pendingEntity.license}
-					{#if license !== undefined && license !== null}
-						<div>
-							<dt>license</dt>
-							<dd>
-								{String((license) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const license = resolvedEntity.license}
@@ -455,8 +350,6 @@
 			<ResourceBoundary
 				resource={selection.$dataset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiDataset)}
 					{#if aiDataset != null && aiDataset[EntityMetaKey.Selector] != null}
 						<div>

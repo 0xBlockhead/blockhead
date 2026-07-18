@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadMoneroTransferStateView from '$/views/BlockheadMoneroTransferStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txHash: true,
-					direction: true,
-					amountAtomicUnits: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroTransferState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadMoneroTransferState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txHash: true,
+				direction: true,
+				amountAtomicUnits: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadMoneroTransferStates) => [...new Map(blockheadMoneroTransferStates.values.map((blockheadMoneroTransferState) => [blockheadMoneroTransferState[EntityMetaKey.SelectorKey], blockheadMoneroTransferState])).values()]}
+	getKey={(blockheadMoneroTransferState) => blockheadMoneroTransferState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead monero transfer states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadMoneroTransferStates)}
-			{@const uniqueBlockheadMoneroTransferStates = [...new Map(blockheadMoneroTransferStates.values.map((blockheadMoneroTransferState) => [blockheadMoneroTransferState[EntityMetaKey.SelectorKey], blockheadMoneroTransferState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroTransferState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadMoneroTransferStates.totalCount}
-				getKey={(blockheadMoneroTransferState) => blockheadMoneroTransferState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadMoneroTransferStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead monero transfer states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadMoneroTransferState })}
-					{@const blockheadMoneroTransferStateFields = { ...blockheadMoneroTransferState[EntityMetaKey.Selector], ...blockheadMoneroTransferState }}
-					{@const selection = select(EntityType.BlockheadMoneroTransferState, blockheadMoneroTransferState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadMoneroTransferStateView
-						selection={selection}
-						prefetched={blockheadMoneroTransferStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadMoneroTransferState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadMoneroTransferState })}
+		{@const blockheadMoneroTransferStateFields = { ...blockheadMoneroTransferState[EntityMetaKey.Selector], ...blockheadMoneroTransferState }}
+		{@const selection = select(EntityType.BlockheadMoneroTransferState, blockheadMoneroTransferState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadMoneroTransferStateView
+			selection={selection}
+			prefetched={blockheadMoneroTransferStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

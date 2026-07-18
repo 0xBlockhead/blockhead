@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AgentIdentityClaimView from '$/views/AgentIdentityClaimView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					identityKind: true,
-					subjectKind: true,
-					objectKind: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AgentIdentityClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AgentIdentityClaim}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				identityKind: true,
+				subjectKind: true,
+				objectKind: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(agentIdentityClaims) => [...new Map(agentIdentityClaims.values.map((agentIdentityClaim) => [agentIdentityClaim[EntityMetaKey.SelectorKey], agentIdentityClaim])).values()]}
+	getKey={(agentIdentityClaim) => agentIdentityClaim[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Agent identity claims yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(agentIdentityClaims)}
-			{@const uniqueAgentIdentityClaims = [...new Map(agentIdentityClaims.values.map((agentIdentityClaim) => [agentIdentityClaim[EntityMetaKey.SelectorKey], agentIdentityClaim])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AgentIdentityClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={agentIdentityClaims.totalCount}
-				getKey={(agentIdentityClaim) => agentIdentityClaim[EntityMetaKey.SelectorKey]}
-				items={uniqueAgentIdentityClaims}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Agent identity claims yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: agentIdentityClaim })}
-					{@const agentIdentityClaimFields = { ...agentIdentityClaim[EntityMetaKey.Selector], ...agentIdentityClaim }}
-					{@const selection = select(EntityType.AgentIdentityClaim, agentIdentityClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AgentIdentityClaimView
-						selection={selection}
-						prefetched={agentIdentityClaimFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AgentIdentityClaim}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: agentIdentityClaim })}
+		{@const agentIdentityClaimFields = { ...agentIdentityClaim[EntityMetaKey.Selector], ...agentIdentityClaim }}
+		{@const selection = select(EntityType.AgentIdentityClaim, agentIdentityClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AgentIdentityClaimView
+			selection={selection}
+			prefetched={agentIdentityClaimFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

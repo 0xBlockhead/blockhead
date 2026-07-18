@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidValidator_TimestampView from '$/views/HyperliquidValidator_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidValidator_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidValidator_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidValidatorTimestamps) => [...new Map(hyperliquidValidatorTimestamps.values.map((hyperliquidValidatorTimestamp) => [hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey], hyperliquidValidatorTimestamp])).values()]}
+	getKey={(hyperliquidValidatorTimestamp) => hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid validator observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidValidatorTimestamps)}
-			{@const uniqueHyperliquidValidatorTimestamps = [...new Map(hyperliquidValidatorTimestamps.values.map((hyperliquidValidatorTimestamp) => [hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey], hyperliquidValidatorTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidValidator_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidValidatorTimestamps.totalCount}
-				getKey={(hyperliquidValidatorTimestamp) => hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidValidatorTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid validator observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidValidatorTimestamp })}
-					{@const hyperliquidValidatorTimestampFields = { ...hyperliquidValidatorTimestamp[EntityMetaKey.Selector], ...hyperliquidValidatorTimestamp }}
-					{@const selection = select(EntityType.HyperliquidValidator_Timestamp, hyperliquidValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidValidator_TimestampView
-						selection={selection}
-						prefetched={hyperliquidValidatorTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidValidator_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidValidatorTimestamp })}
+		{@const hyperliquidValidatorTimestampFields = { ...hyperliquidValidatorTimestamp[EntityMetaKey.Selector], ...hyperliquidValidatorTimestamp }}
+		{@const selection = select(EntityType.HyperliquidValidator_Timestamp, hyperliquidValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidValidator_TimestampView
+			selection={selection}
+			prefetched={hyperliquidValidatorTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

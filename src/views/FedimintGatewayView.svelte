@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const fedimintGateway = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			apiUrl: true,
 		},
@@ -64,29 +65,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={fedimintGateway}>
-			{#snippet Pending()}
-				{[String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={fedimintGateway}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={fedimintGateway}>
-			{#snippet Pending()}
-				{[String((pendingEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={fedimintGateway}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									gatewayId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const gatewayId = pendingEntity.gatewayId}
-							{#if gatewayId !== undefined && gatewayId !== null}
-								{String((gatewayId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const gatewayId = resolvedEntity.gatewayId}
@@ -124,31 +119,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							apiUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const apiUrl = pendingEntity.apiUrl}
-					{#if apiUrl !== undefined && apiUrl !== null}
-						<div>
-							<dt>API URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(apiUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(apiUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const apiUrl = resolvedEntity.apiUrl}
@@ -173,24 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodePubkey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodePubkey = pendingEntity.nodePubkey}
-					{#if nodePubkey !== undefined && nodePubkey !== null}
-						<div>
-							<dt>node public key</dt>
-							<dd>
-								{String((nodePubkey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodePubkey = resolvedEntity.nodePubkey}

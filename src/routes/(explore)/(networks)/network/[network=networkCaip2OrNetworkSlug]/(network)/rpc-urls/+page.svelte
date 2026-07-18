@@ -48,6 +48,9 @@
 					})
 				}
 				id='rpc-urls'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

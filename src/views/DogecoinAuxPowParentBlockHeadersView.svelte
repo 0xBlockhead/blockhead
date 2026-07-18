@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DogecoinAuxPowParentBlockHeaderView from '$/views/DogecoinAuxPowParentBlockHeaderView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$auxPow: true,
-					merkleRoot: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DogecoinAuxPowParentBlockHeader}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DogecoinAuxPowParentBlockHeader}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$auxPow: true,
+				merkleRoot: true,
+			},
+		})
+	}
+	getResourceItems={(dogecoinAuxPowParentBlockHeaders) => [...new Map(dogecoinAuxPowParentBlockHeaders.values.map((dogecoinAuxPowParentBlockHeader) => [dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey], dogecoinAuxPowParentBlockHeader])).values()]}
+	getKey={(dogecoinAuxPowParentBlockHeader) => dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dogecoin aux pow parent block headers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dogecoinAuxPowParentBlockHeaders)}
-			{@const uniqueDogecoinAuxPowParentBlockHeaders = [...new Map(dogecoinAuxPowParentBlockHeaders.values.map((dogecoinAuxPowParentBlockHeader) => [dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey], dogecoinAuxPowParentBlockHeader])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DogecoinAuxPowParentBlockHeader}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dogecoinAuxPowParentBlockHeaders.totalCount}
-				getKey={(dogecoinAuxPowParentBlockHeader) => dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey]}
-				items={uniqueDogecoinAuxPowParentBlockHeaders}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dogecoin aux pow parent block headers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dogecoinAuxPowParentBlockHeader })}
-					{@const dogecoinAuxPowParentBlockHeaderFields = { ...dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], ...dogecoinAuxPowParentBlockHeader }}
-					{@const selection = select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DogecoinAuxPowParentBlockHeaderView
-						selection={selection}
-						prefetched={dogecoinAuxPowParentBlockHeaderFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DogecoinAuxPowParentBlockHeader}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dogecoinAuxPowParentBlockHeader })}
+		{@const dogecoinAuxPowParentBlockHeaderFields = { ...dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], ...dogecoinAuxPowParentBlockHeader }}
+		{@const selection = select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DogecoinAuxPowParentBlockHeaderView
+			selection={selection}
+			prefetched={dogecoinAuxPowParentBlockHeaderFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

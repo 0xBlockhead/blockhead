@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensNetworkView from '$/views/LensNetworkView.svelte'
 </script>
@@ -62,79 +61,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LensNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(lensNetworks) => [...new Map(lensNetworks.values.map((lensNetwork) => [lensNetwork[EntityMetaKey.SelectorKey], lensNetwork])).values()]}
+	getKey={(lensNetwork) => lensNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lens yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lensNetworks)}
-			{@const uniqueLensNetworks = [...new Map(lensNetworks.values.map((lensNetwork) => [lensNetwork[EntityMetaKey.SelectorKey], lensNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensNetworks.totalCount}
-				getKey={(lensNetwork) => lensNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueLensNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lens yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lensNetwork })}
-					{@const lensNetworkFields = { ...lensNetwork[EntityMetaKey.Selector], ...lensNetwork }}
-					{@const selection = select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const lensNetworkHrefFields = { ...lensNetwork, ...lensNetwork[EntityMetaKey.Selector] }}
-					<LensNetworkView
-						selection={selection}
-						prefetched={lensNetworkFields}
-						href={(lensNetwork[EntityMetaKey.Selector].scope === 'LensNetwork' ? resolve('/lens') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LensNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lensNetwork })}
+		{@const lensNetworkFields = { ...lensNetwork[EntityMetaKey.Selector], ...lensNetwork }}
+		{@const selection = select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const lensNetworkHrefFields = { ...lensNetwork, ...lensNetwork[EntityMetaKey.Selector] }}
+		<LensNetworkView
+			selection={selection}
+			prefetched={lensNetworkFields}
+			href={(lensNetwork[EntityMetaKey.Selector].scope === 'LensNetwork' ? resolve('/lens') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -39,9 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const xNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -55,6 +53,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import XUsersView from '$/views/XUsersView.svelte'
@@ -73,29 +73,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'X'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={xNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'X'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -112,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocolName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocolName = pendingEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocolName = resolvedEntity.protocolName}
@@ -141,24 +135,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryName = pendingEntity.registryName}
-					{#if registryName !== undefined && registryName !== null}
-						<div>
-							<dt>Registry name</dt>
-							<dd>
-								{String((registryName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryName = resolvedEntity.registryName}
@@ -178,24 +161,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							relationshipModel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const relationshipModel = pendingEntity.relationshipModel}
-					{#if relationshipModel !== undefined && relationshipModel !== null}
-						<div>
-							<dt>Connection model</dt>
-							<dd>
-								{String((relationshipModel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const relationshipModel = resolvedEntity.relationshipModel}
@@ -218,26 +190,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									homeUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const homeUrl = pendingEntity.homeUrl}
-							{#if homeUrl !== undefined && homeUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(homeUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(homeUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const homeUrl = resolvedEntity.homeUrl}
@@ -261,31 +220,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							docsUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const docsUrl = pendingEntity.docsUrl}
-					{#if docsUrl !== undefined && docsUrl !== null}
-						<div>
-							<dt>Docs URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(docsUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(docsUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const docsUrl = resolvedEntity.docsUrl}
@@ -311,35 +252,75 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<XUsersView
-				selection={
-						selection.$$xUsers({
-							sources: [
-								Source.X_FxEmbed_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Users'
-				href={resolve('/x/users')}
-				emptyText='No X users here yet.'
-				id='XUsersView-x-users'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-x-network-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'x-network-users',
+							label: 'Users',
+						},
+						{
+							id: 'x-network-posts',
+							label: 'Posts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<XPostsView
-				selection={
-						selection.$$xPosts({
-							sources: [
-								Source.X_FxEmbed_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Posts'
-				href={resolve('/x/posts')}
-				emptyText='No X posts here yet.'
-				id='XPostsView-x-posts'
-			/>
+				{#snippet SectionXNetworkUsers({ id, label, open })}
+					<XUsersView
+						selection={
+							selection.$$xUsers({
+								sources: [
+									Source.X_FxEmbed_Rest,
+								],
+							})
+						}
+						href={resolve('/x/users')}
+						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No X users here yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionXNetworkPosts({ id, label, open })}
+					<XPostsView
+						selection={
+							selection.$$xPosts({
+								sources: [
+									Source.X_FxEmbed_Rest,
+								],
+							})
+						}
+						href={resolve('/x/posts')}
+						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No X posts here yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

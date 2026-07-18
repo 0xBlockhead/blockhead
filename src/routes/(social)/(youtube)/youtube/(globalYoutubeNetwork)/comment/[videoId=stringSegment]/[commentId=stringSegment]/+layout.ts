@@ -15,8 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		YoutubeCommentSchema,
 		{
-			videoId: params.videoId,
-			commentId: params.commentId,
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
 		}
 	)
 	if (youtubeCommentVideoIdCommentIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubeComment selector')

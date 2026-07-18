@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,11 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLightningHtlc = $derived(selection({
-		sources: [
-			Source.LightningLnd_Grpc,
-			Source.LightningLnd_Rest,
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			direction: true,
 		},
@@ -77,29 +72,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLightningHtlc}>
-			{#snippet Pending()}
-				{[(String((pendingEntity.htlcIndex) ?? '') ? 'HTLC ' + String((pendingEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || 'blockhead Lightning htlc'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.htlcIndex) ?? '') ? 'HTLC ' + String((resolvedEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[(String((pendingEntity.htlcIndex) ?? '') ? 'HTLC ' + String((pendingEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLightningHtlc}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[(String((resolvedEntity.htlcIndex) ?? '') ? 'HTLC ' + String((resolvedEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLightningHtlc}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$channel}
-				>
-					{#snippet children(lightningChannel)}
-						<LightningChannelView
-							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
-							prefetched={lightningChannel}
-							href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$channel}
+					>
+						{#snippet children(lightningChannel)}
+							{#if lightningChannel != null && lightningChannel[EntityMetaKey.Selector] != null}
+							<LightningChannelView
+								selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
+								prefetched={lightningChannel}
+								href={
 								(lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 									network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
@@ -108,23 +103,27 @@
 									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$channel}
-				>
-					{#snippet children(lightningChannel)}
-						<LightningChannelView
-							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
-							prefetched={lightningChannel}
-							href={
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadLightningHtlc}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$channel}
+					>
+						{#snippet children(lightningChannel)}
+							{#if lightningChannel != null && lightningChannel[EntityMetaKey.Selector] != null}
+							<LightningChannelView
+								selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
+								prefetched={lightningChannel}
+								href={
 								(lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 									network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
@@ -133,36 +132,40 @@
 									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadLightningHtlc}>
-			{#snippet Pending()}
-				{@const direction0 = pendingEntity.direction}
-				{#if direction0 !== undefined && direction0 !== null}
-					<span data-text="muted">
-						{String((direction0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const direction0 = resolvedEntity.direction}
-				{#if direction0 !== undefined && direction0 !== null}
-					<span data-text="muted">
-						{String((direction0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const direction0 = pendingEntity.direction}
+			{#if direction0 !== undefined && direction0 !== null}
+				<span data-text="muted">
+					{String((direction0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLightningHtlc}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const direction0 = resolvedEntity.direction}
+					{#if direction0 !== undefined && direction0 !== null}
+						<span data-text="muted">
+							{String((direction0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -213,24 +216,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									htlcIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const htlcIndex = pendingEntity.htlcIndex}
-							{#if htlcIndex !== undefined && htlcIndex !== null}
-								<NumberValue value={Number(htlcIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const htlcIndex = resolvedEntity.htlcIndex}
 							{#if htlcIndex !== undefined && htlcIndex !== null}
-								<NumberValue value={Number(htlcIndex)} />
+								<NumberValue
+									value={htlcIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -240,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							direction: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const direction = pendingEntity.direction}
-					{#if direction !== undefined && direction !== null}
-						<div>
-							<dt>direction</dt>
-							<dd>
-								{String((direction) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const direction = resolvedEntity.direction}
@@ -275,24 +263,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amountMsat: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountMsat = pendingEntity.amountMsat}
-					{#if amountMsat !== undefined && amountMsat !== null}
-						<div>
-							<dt>amount msat</dt>
-							<dd>
-								<NumberValue value={Number(amountMsat)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountMsat = resolvedEntity.amountMsat}
@@ -300,7 +277,9 @@
 						<div>
 							<dt>amount msat</dt>
 							<dd>
-								<NumberValue value={Number(amountMsat)} />
+								<NumberValue
+									value={amountMsat}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -312,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expiryHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expiryHeight = pendingEntity.expiryHeight}
-					{#if expiryHeight !== undefined && expiryHeight !== null}
-						<div>
-							<dt>expiry height</dt>
-							<dd>
-								<NumberValue value={Number(expiryHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expiryHeight = resolvedEntity.expiryHeight}
@@ -337,7 +305,9 @@
 						<div>
 							<dt>expiry height</dt>
 							<dd>
-								<NumberValue value={Number(expiryHeight)} />
+								<NumberValue
+									value={expiryHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -347,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hashLock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hashLock = pendingEntity.hashLock}
-					{#if hashLock !== undefined && hashLock !== null}
-						<div>
-							<dt>hash lock</dt>
-							<dd>
-								<TruncatedValue value={String((hashLock) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hashLock = resolvedEntity.hashLock}
@@ -382,24 +341,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							state: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const state = pendingEntity.state}
-					{#if state !== undefined && state !== null}
-						<div>
-							<dt>state</dt>
-							<dd>
-								{String((state) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const state = resolvedEntity.state}

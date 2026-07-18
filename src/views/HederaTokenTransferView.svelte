@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTokenTransfer = $derived(selection({}))
+	const hederaTokenTransfer = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera token transfer')
 	const viewDomId = $derived('hedera-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaTokenTransfer}>
-			{#snippet Pending()}
-				{title || 'hedera token transfer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaTokenTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,19 +99,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenId = pendingEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenId = resolvedEntity.tokenId}
@@ -127,19 +123,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountId = pendingEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountId = resolvedEntity.accountId}
@@ -157,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transferIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transferIndex = pendingEntity.transferIndex}
-							{#if transferIndex !== undefined && transferIndex !== null}
-								{String((transferIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transferIndex = resolvedEntity.transferIndex}
@@ -184,24 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amount = pendingEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>amount</dt>
-							<dd>
-								{String((amount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amount = resolvedEntity.amount}
@@ -219,24 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							serialNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const serialNumber = pendingEntity.serialNumber}
-					{#if serialNumber !== undefined && serialNumber !== null}
-						<div>
-							<dt>serial number</dt>
-							<dd>
-								{String((serialNumber) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const serialNumber = resolvedEntity.serialNumber}
@@ -254,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isApproval: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isApproval = pendingEntity.isApproval}
-					{#if isApproval !== undefined && isApproval !== null}
-						<div>
-							<dt>is approval</dt>
-							<dd>
-								{isApproval ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isApproval = resolvedEntity.isApproval}
@@ -289,8 +240,6 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -311,8 +260,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -333,8 +280,6 @@
 			<ResourceBoundary
 				resource={selection.$nft}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaNft)}
 					{#if hederaNft != null && hederaNft[EntityMetaKey.Selector] != null}
 						<div>

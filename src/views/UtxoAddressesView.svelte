@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.UtxoAddress}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(utxoAddresses) => [...new Map(utxoAddresses.values.map((utxoAddress) => [utxoAddress[EntityMetaKey.SelectorKey], utxoAddress])).values()]}
+	getKey={(utxoAddress) => utxoAddress[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No UTXO addresses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(utxoAddresses)}
-			{@const uniqueUtxoAddresses = [...new Map(utxoAddresses.values.map((utxoAddress) => [utxoAddress[EntityMetaKey.SelectorKey], utxoAddress])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoAddresses.totalCount}
-				getKey={(utxoAddress) => utxoAddress[EntityMetaKey.SelectorKey]}
-				items={uniqueUtxoAddresses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No UTXO addresses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: utxoAddress })}
-					{@const utxoAddressFields = { ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }}
-					{@const selection = select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const utxoAddressHrefFields = { ...utxoAddress, ...utxoAddress[EntityMetaKey.Selector] }}
-					<UtxoAddressView
-						selection={selection}
-						prefetched={utxoAddressFields}
-						href={
-							(utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								address: String(utxoAddressHrefFields.address ?? ''),
-								network: String(caip2StringFromValue(utxoAddressHrefFields.$network.caip2) ?? ''),
-							}) : utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								address: String(utxoAddressHrefFields.address ?? ''),
-								network: String(utxoAddressHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.UtxoAddress}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: utxoAddress })}
+		{@const utxoAddressFields = { ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }}
+		{@const selection = select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const utxoAddressHrefFields = { ...utxoAddress, ...utxoAddress[EntityMetaKey.Selector] }}
+		<UtxoAddressView
+			selection={selection}
+			prefetched={utxoAddressFields}
+			href={
+				(utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+					address: String(utxoAddressHrefFields.address ?? ''),
+					network: String(caip2StringFromValue(utxoAddressHrefFields.$network.caip2) ?? ''),
+				}) : utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+					address: String(utxoAddressHrefFields.address ?? ''),
+					network: String(utxoAddressHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

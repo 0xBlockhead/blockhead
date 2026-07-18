@@ -6,6 +6,13 @@
 export type NeynarUser = {
 	object?: 'user' | 'user_dehydrated'
 	fid: number
+	custody_address?: string
+	auth_addresses?: {
+		address: string
+		app: {
+			fid: number
+		}
+	}[]
 	follower_count?: number
 	following_count?: number
 	username?: string

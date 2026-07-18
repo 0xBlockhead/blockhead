@@ -44,5 +44,8 @@
 			})
 		}
 		id='zcash-shielded-actions'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

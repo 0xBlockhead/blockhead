@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EigenLayerAvsView from '$/views/EigenLayerAvsView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					avsAddress: true,
-					name: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerAvs}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EigenLayerAvs}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				avsAddress: true,
+				name: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(eigenLayerAVSs) => [...new Map(eigenLayerAVSs.values.map((eigenLayerAvs) => [eigenLayerAvs[EntityMetaKey.SelectorKey], eigenLayerAvs])).values()]}
+	getKey={(eigenLayerAvs) => eigenLayerAvs[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EigenLayer AVSs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eigenLayerAVSs)}
-			{@const uniqueEigenLayerAVSs = [...new Map(eigenLayerAVSs.values.map((eigenLayerAvs) => [eigenLayerAvs[EntityMetaKey.SelectorKey], eigenLayerAvs])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerAvs}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eigenLayerAVSs.totalCount}
-				getKey={(eigenLayerAvs) => eigenLayerAvs[EntityMetaKey.SelectorKey]}
-				items={uniqueEigenLayerAVSs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EigenLayer AVSs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eigenLayerAvs })}
-					{@const eigenLayerAvsFields = { ...eigenLayerAvs[EntityMetaKey.Selector], ...eigenLayerAvs }}
-					{@const selection = select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EigenLayerAvsView
-						selection={selection}
-						prefetched={eigenLayerAvsFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EigenLayerAvs}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eigenLayerAvs })}
+		{@const eigenLayerAvsFields = { ...eigenLayerAvs[EntityMetaKey.Selector], ...eigenLayerAvs }}
+		{@const selection = select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EigenLayerAvsView
+			selection={selection}
+			prefetched={eigenLayerAvsFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

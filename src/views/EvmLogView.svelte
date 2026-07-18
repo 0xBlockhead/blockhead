@@ -12,7 +12,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,9 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmLog = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			data: true,
 		},
@@ -91,17 +88,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmLog}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$emitter}
-				>
-					{#snippet children(evmContract)}
-						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
-							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-								prefetched={evmContract}
-								href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$emitter}
+					>
+						{#snippet children(evmContract)}
+							{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									href={
 									(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 										address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
@@ -110,30 +106,32 @@
 										network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const indexInTransaction1 = pendingEntity.indexInTransaction}
-				{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
-					<span>#</span>
-					{String((indexInTransaction1) ?? '')}
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$emitter}
-				>
-					{#snippet children(evmContract)}
-						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
-							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-								prefetched={evmContract}
-								href={
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+					{@const indexInTransaction1 = pendingEntity.indexInTransaction}
+					{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
+						<span>#</span>
+						{String((indexInTransaction1) ?? '')}
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmLog}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$emitter}
+					>
+						{#snippet children(evmContract)}
+							{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									href={
 									(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 										address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
@@ -142,19 +140,22 @@
 										network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const indexInTransaction1 = resolvedEntity.indexInTransaction}
-				{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
-					<span>#</span>
-					{String((indexInTransaction1) ?? '')}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+					{@const indexInTransaction1 = resolvedEntity.indexInTransaction}
+					{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
+						<span>#</span>
+						{String((indexInTransaction1) ?? '')}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -180,20 +181,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<span>#</span>
-								{String((indexInTransaction) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
@@ -230,8 +224,6 @@
 				<ResourceBoundary
 					resource={selection.$block}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 							<div>
@@ -262,8 +254,6 @@
 			<ResourceBoundary
 				resource={selection.$emitter}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -295,24 +285,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							data: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const data = pendingEntity.data}
-					{#if data !== undefined && data !== null}
-						<div>
-							<dt>Data</dt>
-							<dd>
-								<TruncatedValue value={String((data) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const data = resolvedEntity.data}
@@ -331,24 +310,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								removed: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const removed = pendingEntity.removed}
-						{#if removed !== undefined && removed !== null}
-							<div>
-								<dt>Removed</dt>
-								<dd>
-									{removed ? 'Yes' : 'No'}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const removed = resolvedEntity.removed}

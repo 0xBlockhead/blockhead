@@ -1,6 +1,10 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	SolanaRpcAccountInfo,
@@ -14,7 +18,7 @@ import type {
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
-const solanaMainnetHttpUrl = 'https://api.mainnet.solana.com' as const
+const solanaMainnetHttpUrl = 'https://solana-rpc.publicnode.com' as const
 
 export const solanaOrigins = [
 	{
@@ -27,14 +31,26 @@ export const solanaMainnetRpcEndpoints = [
 	{
 		url: solanaMainnetHttpUrl,
 		transportType: TransportType.Http,
-		providerName: 'Solana Labs',
+		providerName: 'PublicNode',
 	},
 	{
-		url: 'wss://api.mainnet.solana.com',
+		url: 'wss://solana-rpc.publicnode.com',
 		transportType: TransportType.WebSocket,
-		providerName: 'Solana Labs',
+		providerName: 'PublicNode',
 	},
 ] as const
+
+const solanaMainnetHttpBinding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((binding) => (
+	binding.source === Source.Solana_JsonRpc
+	&& binding.endpoints.some((endpoint) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl
+		&& endpoint.locator === solanaMainnetHttpUrl
+	))
+))
+if (solanaMainnetHttpBinding == null)
+	throw new Error('Solana_JsonRpc: mainnet HTTP source binding is missing')
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -56,9 +72,10 @@ const solanaJsonRpc = async <_Result>({
 	method: string
 	params: JsonValue[]
 }) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: solanaOrigins,
-		init: {
+	const response = await sourceFetch(
+		solanaMainnetHttpBinding,
+		rpcUrl,
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
@@ -69,8 +86,8 @@ const solanaJsonRpc = async <_Result>({
 				method,
 				params,
 			}),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`Solana ${method}`, response)
 	const json = await response.json<JsonRpcResponse<_Result>>()
 	if (json.error != null) throw new Error(`Solana ${method}: ${json.error.message}`)

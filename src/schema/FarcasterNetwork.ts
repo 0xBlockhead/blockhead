@@ -69,12 +69,20 @@ export const FarcasterNetwork = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FarcasterUser,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Snapchain_Rest,
+			Source.Neynar_Rest,
+		],
 	},
 	$$channels: {
 		label: 'Channels',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FarcasterChannel,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
 	},
 })({
 	selectors: {

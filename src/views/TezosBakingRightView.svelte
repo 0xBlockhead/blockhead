@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosBakingRight = $derived(selection({}))
+	const tezosBakingRight = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos baking right')
 	const viewDomId = $derived('tezos-baking-right-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosBakingRight}>
-			{#snippet Pending()}
-				{title || 'tezos baking right'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosBakingRight}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cycle: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cycle = pendingEntity.cycle}
-							{#if cycle !== undefined && cycle !== null}
-								{String((cycle) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cycle = resolvedEntity.cycle}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									level: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const level = pendingEntity.level}
-							{#if level !== undefined && level !== null}
-								{String((level) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const level = resolvedEntity.level}
@@ -155,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rightKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rightKind = pendingEntity.rightKind}
-							{#if rightKind !== undefined && rightKind !== null}
-								{String((rightKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rightKind = resolvedEntity.rightKind}
@@ -185,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									bakerAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const bakerAddress = pendingEntity.bakerAddress}
-							{#if bakerAddress !== undefined && bakerAddress !== null}
-								<TruncatedValue value={String((bakerAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const bakerAddress = resolvedEntity.bakerAddress}
@@ -215,19 +193,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -242,8 +214,6 @@
 			<ResourceBoundary
 				resource={selection.$baker}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosBaker)}
 					{#if tezosBaker != null && tezosBaker[EntityMetaKey.Selector] != null}
 						<div>
@@ -264,24 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							round: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const round = pendingEntity.round}
-					{#if round !== undefined && round !== null}
-						<div>
-							<dt>round</dt>
-							<dd>
-								{String((round) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const round = resolvedEntity.round}
@@ -299,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slots: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slots = pendingEntity.slots}
-					{#if slots !== undefined && slots !== null}
-						<div>
-							<dt>slots</dt>
-							<dd>
-								{String((slots) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slots = resolvedEntity.slots}
@@ -334,24 +282,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							priority: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const priority = pendingEntity.priority}
-					{#if priority !== undefined && priority !== null}
-						<div>
-							<dt>priority</dt>
-							<dd>
-								{String((priority) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const priority = resolvedEntity.priority}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLightningInvoice_TimestampView from '$/views/BlockheadLightningInvoice_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					state: true,
-					amountPaidMsat: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningInvoice_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLightningInvoice_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				state: true,
+				amountPaidMsat: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLightningInvoiceTimestamps) => [...new Map(blockheadLightningInvoiceTimestamps.values.map((blockheadLightningInvoiceTimestamp) => [blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey], blockheadLightningInvoiceTimestamp])).values()]}
+	getKey={(blockheadLightningInvoiceTimestamp) => blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning invoice observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLightningInvoiceTimestamps)}
-			{@const uniqueBlockheadLightningInvoiceTimestamps = [...new Map(blockheadLightningInvoiceTimestamps.values.map((blockheadLightningInvoiceTimestamp) => [blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey], blockheadLightningInvoiceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningInvoice_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLightningInvoiceTimestamps.totalCount}
-				getKey={(blockheadLightningInvoiceTimestamp) => blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLightningInvoiceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning invoice observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLightningInvoiceTimestamp })}
-					{@const blockheadLightningInvoiceTimestampFields = { ...blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], ...blockheadLightningInvoiceTimestamp }}
-					{@const selection = select(EntityType.BlockheadLightningInvoice_Timestamp, blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLightningInvoice_TimestampView
-						selection={selection}
-						prefetched={blockheadLightningInvoiceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLightningInvoice_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLightningInvoiceTimestamp })}
+		{@const blockheadLightningInvoiceTimestampFields = { ...blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], ...blockheadLightningInvoiceTimestamp }}
+		{@const selection = select(EntityType.BlockheadLightningInvoice_Timestamp, blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLightningInvoice_TimestampView
+			selection={selection}
+			prefetched={blockheadLightningInvoiceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

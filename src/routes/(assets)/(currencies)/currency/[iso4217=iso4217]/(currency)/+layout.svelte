@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,9 @@
 			{@const DetailView = CurrencyView}
 
 			<DetailView
-				selection={select(EntityType.Currency, data.selector)}
+				selection={select(EntityType.Currency, data.selector, { sources: [
+		Source.Constants_Internal,
+	] })}
 				href={
 					resolve('/currency/[iso4217=iso4217]', {
 						iso4217: params.iso4217,

@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeChannel = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 		},
@@ -57,7 +55,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -75,7 +72,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
-			channelId: String(pendingEntity.channelId ?? ''),
+			channelId: encodeURIComponent(String(pendingEntity.channelId ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -85,10 +82,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={youtubeChannel}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -104,16 +97,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={youtubeChannel}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={youtubeChannel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,24 +115,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								description: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const description = pendingEntity.description}
-						{#if description !== undefined && description !== null}
-							<div>
-								<dt>Description</dt>
-								<dd>
-									<span data-text="long-text">{String((description) ?? '')}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const description = resolvedEntity.description}
@@ -161,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									channelId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const channelId = pendingEntity.channelId}
-							{#if channelId !== undefined && channelId !== null}
-								<TruncatedValue value={String((channelId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const channelId = resolvedEntity.channelId}
@@ -189,24 +165,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								customUrl: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const customUrl = pendingEntity.customUrl}
-						{#if customUrl !== undefined && customUrl !== null}
-							<div>
-								<dt>Handle alias</dt>
-								<dd>
-									<TruncatedValue value={String((customUrl) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const customUrl = resolvedEntity.customUrl}
@@ -226,24 +191,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								publishedAtMs: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const publishedAtMs = pendingEntity.publishedAtMs}
-						{#if publishedAtMs !== undefined && publishedAtMs !== null}
-							<div>
-								<dt>Published</dt>
-								<dd>
-									<Timestamp timestamp={Number(publishedAtMs)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const publishedAtMs = resolvedEntity.publishedAtMs}
@@ -280,11 +234,8 @@
 				}
 				data-card
 				class='network-view-collapsible-content'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Videos and playlists</HeadingComponent>
 					</header>
@@ -298,11 +249,18 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								count: true,
 							})
 						}
-						href={resolve('/youtube/videos')}
+						href={
+							(selection.entitySelector.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]/videos', {
+								channelId: encodeURIComponent(String(selection.entitySelector.channelId ?? '')),
+							}) : undefined)
+						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No YouTube videos.'
 						open={open}
 						title={label}
@@ -318,11 +276,18 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								count: true,
 							})
 						}
-						href={resolve('/youtube/playlists')}
+						href={
+							(selection.entitySelector.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]/playlists', {
+								channelId: encodeURIComponent(String(selection.entitySelector.channelId ?? '')),
+							}) : undefined)
+						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No YouTube playlists.'
 						open={open}
 						title={label}
@@ -345,11 +310,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -363,10 +325,13 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No YouTube channel observations.'
 						open={open}
 						title={label}

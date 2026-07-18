@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NftCollectionView from '$/views/NftCollectionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NftCollection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NftCollection}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(nftCollections) => [...new Map(nftCollections.values.map((nftCollection) => [nftCollection[EntityMetaKey.SelectorKey], nftCollection])).values()]}
+	getKey={(nftCollection) => nftCollection[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No NFT collections yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nftCollections)}
-			{@const uniqueNftCollections = [...new Map(nftCollections.values.map((nftCollection) => [nftCollection[EntityMetaKey.SelectorKey], nftCollection])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NftCollection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nftCollections.totalCount}
-				getKey={(nftCollection) => nftCollection[EntityMetaKey.SelectorKey]}
-				items={uniqueNftCollections}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No NFT collections yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nftCollection })}
-					{@const nftCollectionFields = { ...nftCollection[EntityMetaKey.Selector], ...nftCollection }}
-					{@const selection = select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NftCollectionView
-						selection={selection}
-						prefetched={nftCollectionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NftCollection}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nftCollection })}
+		{@const nftCollectionFields = { ...nftCollection[EntityMetaKey.Selector], ...nftCollection }}
+		{@const selection = select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NftCollectionView
+			selection={selection}
+			prefetched={nftCollectionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

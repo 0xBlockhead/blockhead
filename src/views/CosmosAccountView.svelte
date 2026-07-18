@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cosmosAccount = $derived(selection({}))
+	const cosmosAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Cosmos account')
 	const viewDomId = $derived('cosmos-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -51,7 +54,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CosmosAccount_TimestampsView from '$/views/CosmosAccount_TimestampsView.svelte'
-	import CosmosTransactionsView from '$/views/CosmosTransactionsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -75,80 +77,80 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cosmosAccount}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cosmosAccount}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosAccount}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={cosmosAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -159,19 +161,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -208,23 +204,15 @@
 			<CosmosAccount_TimestampsView
 				selection={
 						selection.$$timestamps({
+							sources: [
+								Source.CosmosSdk_Rest,
+							],
 							count: true,
 						})
 					}
 				title='Account snapshots'
 				emptyText='No Cosmos account observations.'
 				id='CosmosAccount_TimestampsView-timestamps'
-			/>
-
-			<CosmosTransactionsView
-				selection={
-						selection.$$transactions({
-							count: true,
-						})
-					}
-				title='Transactions'
-				emptyText='No Cosmos transactions.'
-				id='CosmosTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

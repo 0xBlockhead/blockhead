@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletCapabilityGrantView from '$/views/BlockheadWalletCapabilityGrantView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					grantId: true,
-					authorizationKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletCapabilityGrant}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletCapabilityGrant}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				grantId: true,
+				authorizationKind: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletCapabilityGrants) => [...new Map(blockheadWalletCapabilityGrants.values.map((blockheadWalletCapabilityGrant) => [blockheadWalletCapabilityGrant[EntityMetaKey.SelectorKey], blockheadWalletCapabilityGrant])).values()]}
+	getKey={(blockheadWalletCapabilityGrant) => blockheadWalletCapabilityGrant[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead wallet capability grants yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletCapabilityGrants)}
-			{@const uniqueBlockheadWalletCapabilityGrants = [...new Map(blockheadWalletCapabilityGrants.values.map((blockheadWalletCapabilityGrant) => [blockheadWalletCapabilityGrant[EntityMetaKey.SelectorKey], blockheadWalletCapabilityGrant])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletCapabilityGrant}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletCapabilityGrants.totalCount}
-				getKey={(blockheadWalletCapabilityGrant) => blockheadWalletCapabilityGrant[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletCapabilityGrants}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead wallet capability grants yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletCapabilityGrant })}
-					{@const blockheadWalletCapabilityGrantFields = { ...blockheadWalletCapabilityGrant[EntityMetaKey.Selector], ...blockheadWalletCapabilityGrant }}
-					{@const selection = select(EntityType.BlockheadWalletCapabilityGrant, blockheadWalletCapabilityGrant[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWalletCapabilityGrantView
-						selection={selection}
-						prefetched={blockheadWalletCapabilityGrantFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletCapabilityGrant}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletCapabilityGrant })}
+		{@const blockheadWalletCapabilityGrantFields = { ...blockheadWalletCapabilityGrant[EntityMetaKey.Selector], ...blockheadWalletCapabilityGrant }}
+		{@const selection = select(EntityType.BlockheadWalletCapabilityGrant, blockheadWalletCapabilityGrant[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWalletCapabilityGrantView
+			selection={selection}
+			prefetched={blockheadWalletCapabilityGrantFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

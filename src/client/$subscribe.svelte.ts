@@ -24,6 +24,7 @@ import {
 	entityFieldDefinitions,
 	entityFieldFacetPath,
 	entitySelectorKey,
+	validateEntitySelector,
 } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
@@ -40,11 +41,15 @@ import type {
 	DeclarativeOrderBy,
 	EntityFieldCollectionItem,
 	EntityFieldCountCollectionItem,
+	PersistedCollectionContinuation,
 	SubscribeFieldResult,
 	SubscribeFieldSingleResult,
 	SubscribeResult,
 	SubscribeSelection,
 } from '$/client/$client.svelte.ts'
+import { localMutationAuthorityKey } from '$/client/$client.svelte.ts'
+import { resolverPartsKey } from '$/resolvers/$resolvers.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export type EntityResourceData<
@@ -82,6 +87,7 @@ export type EntityFieldResourceData<
 			fieldName: _FieldName
 			values: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
 			entities: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
+			continuation?: PersistedCollectionContinuation
 			totalCount?: number
 		}
 	:
@@ -455,7 +461,8 @@ const fieldDataFromRows = <
 	definition: EntityFieldDefinition,
 	rows: readonly EntityFieldCollectionItem<_Schema>[],
 	countRows: readonly EntityFieldCountCollectionItem<_Schema>[],
-	countSourcePriority: readonly string[]
+	countSourcePriority: readonly string[],
+	continuation?: PersistedCollectionContinuation
 ) => {
 	const values = (
 		entityFieldCardinalityIsMultiple(definition.cardinality) ?
@@ -497,6 +504,9 @@ const fieldDataFromRows = <
 			fieldName: definition.name,
 			values,
 			entities: values,
+			...(continuation !== undefined && {
+				continuation,
+			}),
 			...(countRow != null && {
 				totalCount: countRow[EntityMetaKey.Value],
 			}),
@@ -530,7 +540,19 @@ const fieldResourceQueries = <
 	const querySources = enabledSelectionSources(context, selection.sources)
 	const facetPathKey = stringify(entityFieldFacetPath(definition))
 	const fieldAddressKey = entityFieldAddressKey(entityType, entityFieldFacetPath(definition), fieldName)
-	const valueResolverParts = context.resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[fieldAddressKey] ?? []
+	const selectorName = validateEntitySelector(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		entitySelector
+	).name
+	const valueResolverParts = context.resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName[
+		resolverPartsKey(
+			entityType,
+			selectorName,
+			entityFieldFacetPath(definition),
+			fieldName
+		)
+	] ?? []
 	const countSourcePriority = enabledSelectionSources(
 		context,
 		selection.sources ?? definition.defaultSources
@@ -562,7 +584,7 @@ const fieldResourceQueries = <
 				))
 				.where(({ row }) => eq(row.facetPathKey, facetPathKey))
 			if (selection.where != null)
-				built = built.where(() => selection.where)
+				built = built.where(selection.where)
 
 			if (selection.orderBy != null)
 				for (const [
@@ -622,13 +644,27 @@ const fieldResourceQueries = <
 						))
 						.where(({ row }) => eq(row.facetPathKey, facetPathKey))
 						.where(({ row }) => eq(row.filterKey, stringify({})))
-					if (selection.where != null)
-						built = built.where(() => selection.where)
-
 					return built
 				},
 			})
 	)
+	const localFieldAuthorityKey = localMutationAuthorityKey({
+		source: Source.Local_Internal,
+		entityType,
+		selectorKey: parentSelectorKey,
+		fieldName,
+		fieldAddressKey,
+		facetPathKey,
+	})
+	const localCountAuthorityKey = localMutationAuthorityKey({
+		source: Source.Local_Internal,
+		entityType,
+		selectorKey: parentSelectorKey,
+		fieldName,
+		fieldAddressKey,
+		facetPathKey,
+		filterKey: stringify({}),
+	})
 	return {
 		rows: liveQuerySnapshot(rowsCollection),
 		rowsFailure: () => collectionLoadFailure(
@@ -657,10 +693,37 @@ const fieldResourceQueries = <
 			querySources
 		),
 		countCollection,
+		localFieldAuthorityResolved: () => (
+			(querySources == null || querySources.includes(Source.Local_Internal))
+			&& fieldCollection.utils.hasLocalMutationAuthority(
+				parentSelectorKey,
+				localFieldAuthorityKey
+			)
+		),
+		localCountAuthorityResolved: () => (
+			countCollection !== undefined
+			&& (querySources == null || querySources.includes(Source.Local_Internal))
+			&& (
+				(
+					selection.where == null
+					&& countCollection.utils.hasLocalMutationAuthority(
+						parentSelectorKey,
+						localCountAuthorityKey
+					)
+				)
+				|| fieldCollection.utils.hasLocalMutationAuthority(
+					parentSelectorKey,
+					localFieldAuthorityKey
+				)
+			)
+		),
 		sourceDisabled: selectedSourcesDisabled(context, selection.sources),
 		sourceUnsupported: !valueResolverParts.some((resolverPart) => (
-			querySources == null
-			|| querySources.includes(String(resolverPart.source))
+			(
+				querySources == null
+				|| querySources.includes(String(resolverPart.source))
+			)
+			&& resolverPart.resolver.appliesTo(selectorName, entitySelector)
 		)),
 		sources: querySources,
 		countSourcePriority,
@@ -783,6 +846,8 @@ export function subscribeEntityField<
 							queries.sourceDisabled || queries.sourceUnsupported
 						)
 					)
+					|| queries.localFieldAuthorityResolved()
+					|| queries.localCountAuthorityResolved()
 				),
 			},
 			...(queries.counts === undefined ? [] : [
@@ -791,6 +856,7 @@ export function subscribeEntityField<
 					isComplete: (
 						queries.countsFailure() !== undefined
 						|| queries.counts.isReady
+						|| queries.localCountAuthorityResolved()
 					),
 				},
 			]),
@@ -801,7 +867,26 @@ export function subscribeEntityField<
 			definition,
 			queries.rows.data,
 			queries.counts?.data ?? [],
-			queries.countSourcePriority
+			queries.countSourcePriority,
+			queries.sourceCollection.utils.continuationForRows(
+				parentSelectorKey,
+				Object.fromEntries(Object.keys(Object.groupBy(
+					queries.rows.data,
+					(row) => row[EntityMetaKey.Source]
+				)).map((source) => [
+					source,
+					queries.rows.data
+						.filter((row) => row[EntityMetaKey.Source] === source)
+						.map((row) => stringify([
+							row[EntityMetaKey.Source],
+							row[EntityMetaKey.ParentSelectorKey],
+							row.facetPathKey,
+							row.valueKey,
+							row.valueIndex,
+						])),
+				])),
+				queries.sources
+			).find((continuation) => !continuation.metadata.terminal)
 		)
 	), (update) => {
 		const unsubscribeLive = subscribeToLiveQueryCollections(
@@ -810,9 +895,17 @@ export function subscribeEntityField<
 			context.collectionLoadFailures.subscribe
 		)
 		const unsubscribeSourceLoading = queries.sourceCollection.on('loadingSubset:change', update)
+		const unsubscribeContinuationChanges = queries.sourceCollection.utils.subscribeContinuationChanges(update)
+		const unsubscribeLocalMutationAuthorityChanges =
+			queries.sourceCollection.utils.subscribeLocalMutationAuthorityChanges(update)
+		const unsubscribeLocalCountMutationAuthorityChanges =
+			queries.countCollection?.utils.subscribeLocalMutationAuthorityChanges(update)
 		return () => {
 			unsubscribeLive()
 			unsubscribeSourceLoading()
+			unsubscribeContinuationChanges()
+			unsubscribeLocalMutationAuthorityChanges()
+			unsubscribeLocalCountMutationAuthorityChanges?.()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries))
 }
@@ -855,6 +948,11 @@ export function subscribeEntity<
 		context.entityDefinitionByType[entityType],
 		entitySelector
 	)
+	const localEntityAuthorityKey = localMutationAuthorityKey({
+		source: Source.Local_Internal,
+		entityType,
+		selectorKey,
+	})
 	const entityRowsCollection = createLiveQueryCollection({
 		startSync: true,
 		query: (query) => (
@@ -1088,10 +1186,13 @@ export function subscribeEntity<
 				)
 				&& fieldSelection !== undefined
 				&& fieldSelection !== true
-			) {
-				const selectedReference = (reference: object) => {
-					const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
-					const nestedResourceKey = stringify([
+				) {
+					const selectedReference = (reference: object) => {
+						const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+						if (referencedEntitySelector === undefined)
+							return reference
+
+						const nestedResourceKey = stringify([
 						definition.entityType,
 						referencedEntitySelector,
 						fieldSelection,
@@ -1166,6 +1267,13 @@ export function subscribeEntity<
 						|| fields.length === 0
 						|| entityRows.data.length > 0
 						|| sourceDisabled
+						|| (
+							(querySources == null || querySources.includes(Source.Local_Internal))
+							&& context.entityCollections[entityType].utils.hasLocalMutationAuthority(
+								selectorKey,
+								localEntityAuthorityKey
+							)
+						)
 						|| context.entityCollections[entityType].utils.dataUpdatedAt > 0
 					),
 				},
@@ -1185,6 +1293,8 @@ export function subscribeEntity<
 									queries.rows.isReady,
 									queries.sourceDisabled || queries.sourceUnsupported
 								)
+								|| queries.localFieldAuthorityResolved()
+								|| queries.localCountAuthorityResolved()
 							),
 						}]
 					:
@@ -1200,6 +1310,8 @@ export function subscribeEntity<
 										queries.rows.isReady,
 										queries.sourceDisabled || queries.sourceUnsupported
 									)
+									|| queries.localFieldAuthorityResolved()
+									|| queries.localCountAuthorityResolved()
 								),
 							},
 							{
@@ -1207,6 +1319,7 @@ export function subscribeEntity<
 								isComplete: (
 									queries.countsFailure() !== undefined
 									|| queries.counts.isReady
+									|| queries.localCountAuthorityResolved()
 								),
 							},
 						]
@@ -1234,9 +1347,23 @@ export function subscribeEntity<
 				...fieldValues,
 			}
 		)
-	}, (update) => subscribeToLiveQueryCollections(
-		observedQueries,
-		update,
-		context.collectionLoadFailures.subscribe
-	), () => waitForLiveQueryCollections(observedQueries))
+	}, (update) => {
+		const unsubscribeLive = subscribeToLiveQueryCollections(
+			observedQueries,
+			update,
+			context.collectionLoadFailures.subscribe
+		)
+		const unsubscribeLocalMutationAuthorities = [
+			context.entityCollections[entityType],
+			...fields.flatMap(({ queries }) => [
+				queries.sourceCollection,
+				...(queries.countCollection === undefined ? [] : [queries.countCollection]),
+			]),
+		].map((collection) => collection.utils.subscribeLocalMutationAuthorityChanges(update))
+		return () => {
+			unsubscribeLive()
+			for (const unsubscribe of unsubscribeLocalMutationAuthorities)
+				unsubscribe()
+		}
+	}, () => waitForLiveQueryCollections(observedQueries))
 }

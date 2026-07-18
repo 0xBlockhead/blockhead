@@ -12,7 +12,6 @@
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,13 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerAvs = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 		},
@@ -86,68 +79,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerAvs}>
-			{#snippet Pending()}
-				{[String((pendingEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer avs'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eigenLayerAvs}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerAvs}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer avs'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eigenLayerAvs}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.avsAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerAvs}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={eigenLayerAvs}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -158,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									avsAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const avsAddress = pendingEntity.avsAddress}
-							{#if avsAddress !== undefined && avsAddress !== null}
-								<TruncatedValue value={String((avsAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const avsAddress = resolvedEntity.avsAddress}
@@ -185,24 +172,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -220,31 +196,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							website: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const website = pendingEntity.website}
-					{#if website !== undefined && website !== null}
-						<div>
-							<dt>website</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(website)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(website)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const website = resolvedEntity.website}
@@ -269,31 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metadataUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metadataUri = pendingEntity.metadataUri}
-					{#if metadataUri !== undefined && metadataUri !== null}
-						<div>
-							<dt>metadata URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(metadataUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(metadataUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metadataUri = resolvedEntity.metadataUri}
@@ -338,8 +278,6 @@
 			<ResourceBoundary
 				resource={selection.$avsAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -387,11 +325,8 @@
 				}
 				data-card
 				class='network-view-collapsible-operators'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Operators and allocations</HeadingComponent>
 					</header>
@@ -399,12 +334,12 @@
 
 				{#snippet SectionEigenlayerAvsOperatorList({ id, label, open })}
 					<EigenLayerOperatorsView
-						selection={
-							selection.$$operators({
-								count: true,
-							})
-						}
+						selection={selection.$$operators}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer operators.'
 						open={open}
 						title={label}
@@ -414,12 +349,12 @@
 
 				{#snippet SectionEigenlayerAvsAllocations({ id, label, open })}
 					<EigenLayerAllocation_TimestampsView
-						selection={
-							selection.$$allocations({
-								count: true,
-							})
-						}
+						selection={selection.$$allocations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer allocation observations.'
 						open={open}
 						title={label}
@@ -446,11 +381,8 @@
 				}
 				data-card
 				class='network-view-collapsible-security'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations and slashing</HeadingComponent>
 					</header>
@@ -458,12 +390,12 @@
 
 				{#snippet SectionEigenlayerAvsObservations({ id, label, open })}
 					<EigenLayerAvs_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer AVS observations.'
 						open={open}
 						title={label}
@@ -473,12 +405,12 @@
 
 				{#snippet SectionEigenlayerAvsSlashing({ id, label, open })}
 					<EigenLayerSlashingEventsView
-						selection={
-							selection.$$slashingEvents({
-								count: true,
-							})
-						}
+						selection={selection.$$slashingEvents}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer slashing events.'
 						open={open}
 						title={label}

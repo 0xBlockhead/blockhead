@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					consensusNetworkId: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGConsensusNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGConsensusNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				consensusNetworkId: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGConsensusNetworks) => [...new Map(zeroGConsensusNetworks.values.map((zeroGConsensusNetwork) => [zeroGConsensusNetwork[EntityMetaKey.SelectorKey], zeroGConsensusNetwork])).values()]}
+	getKey={(zeroGConsensusNetwork) => zeroGConsensusNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g consensus networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGConsensusNetworks)}
-			{@const uniqueZeroGConsensusNetworks = [...new Map(zeroGConsensusNetworks.values.map((zeroGConsensusNetwork) => [zeroGConsensusNetwork[EntityMetaKey.SelectorKey], zeroGConsensusNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGConsensusNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGConsensusNetworks.totalCount}
-				getKey={(zeroGConsensusNetwork) => zeroGConsensusNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGConsensusNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g consensus networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGConsensusNetwork })}
-					{@const zeroGConsensusNetworkFields = { ...zeroGConsensusNetwork[EntityMetaKey.Selector], ...zeroGConsensusNetwork }}
-					{@const selection = select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGConsensusNetworkView
-						selection={selection}
-						prefetched={zeroGConsensusNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGConsensusNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGConsensusNetwork })}
+		{@const zeroGConsensusNetworkFields = { ...zeroGConsensusNetwork[EntityMetaKey.Selector], ...zeroGConsensusNetwork }}
+		{@const selection = select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGConsensusNetworkView
+			selection={selection}
+			prefetched={zeroGConsensusNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

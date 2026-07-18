@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandApplicationTimestamp = $derived(selection({}))
+	const algorandApplicationTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand application timestamp')
 	const viewDomId = $derived('algorand-application-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandApplicationTimestamp}>
-			{#snippet Pending()}
-				{title || 'algorand application timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandApplicationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									round: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const round = pendingEntity.round}
-							{#if round !== undefined && round !== null}
-								{String((round) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const round = resolvedEntity.round}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -154,24 +144,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							approvalProgramHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const approvalProgramHash = pendingEntity.approvalProgramHash}
-					{#if approvalProgramHash !== undefined && approvalProgramHash !== null}
-						<div>
-							<dt>approval program hash</dt>
-							<dd>
-								<TruncatedValue value={String((approvalProgramHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const approvalProgramHash = resolvedEntity.approvalProgramHash}
@@ -189,24 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clearProgramHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clearProgramHash = pendingEntity.clearProgramHash}
-					{#if clearProgramHash !== undefined && clearProgramHash !== null}
-						<div>
-							<dt>clear program hash</dt>
-							<dd>
-								<TruncatedValue value={String((clearProgramHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clearProgramHash = resolvedEntity.clearProgramHash}
@@ -224,24 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							boxCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const boxCount = pendingEntity.boxCount}
-					{#if boxCount !== undefined && boxCount !== null}
-						<div>
-							<dt>box count</dt>
-							<dd>
-								{String((boxCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const boxCount = resolvedEntity.boxCount}
@@ -259,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deleted = pendingEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
-						<div>
-							<dt>deleted</dt>
-							<dd>
-								{deleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deleted = resolvedEntity.deleted}

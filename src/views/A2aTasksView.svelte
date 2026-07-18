@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aTaskView from '$/views/A2aTaskView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					taskId: true,
-					contextId: true,
-					providerTaskId: true,
-					updatedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aTask}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aTask}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				taskId: true,
+				contextId: true,
+				providerTaskId: true,
+				updatedAt: true,
+			},
+		})
+	}
+	getResourceItems={(a2aTasks) => [...new Map(a2aTasks.values.map((a2aTask) => [a2aTask[EntityMetaKey.SelectorKey], a2aTask])).values()]}
+	getKey={(a2aTask) => a2aTask[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A tasks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aTasks)}
-			{@const uniqueA2aTasks = [...new Map(a2aTasks.values.map((a2aTask) => [a2aTask[EntityMetaKey.SelectorKey], a2aTask])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aTask}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aTasks.totalCount}
-				getKey={(a2aTask) => a2aTask[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aTasks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A tasks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aTask })}
-					{@const a2aTaskFields = { ...a2aTask[EntityMetaKey.Selector], ...a2aTask }}
-					{@const selection = select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aTaskView
-						selection={selection}
-						prefetched={a2aTaskFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aTask}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aTask })}
+		{@const a2aTaskFields = { ...a2aTask[EntityMetaKey.Selector], ...a2aTask }}
+		{@const selection = select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aTaskView
+			selection={selection}
+			prefetched={a2aTaskFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

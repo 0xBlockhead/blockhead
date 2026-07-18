@@ -23,13 +23,13 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: params.chainId,
+					reference: Number(params.chainId),
 				},
 			},
-			id: decodeURIComponent(params.poolId),
+			id: params.poolId,
 		},
 		timestampMs: Number(params.timestampMs),
-		feedKey: params.feedKey,
+		feedKey: decodeURIComponent(params.feedKey),
 	}, {
 		sources: [
 			Source.Dexscreener_OpenApi,

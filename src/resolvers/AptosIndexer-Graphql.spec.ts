@@ -210,7 +210,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			version: '42',
 		})
 
-		await expect(aptosAccountTransactionsResolver.resolve[AptosAccountSelector.NetworkAddress](
+		await expect(aptosAccountTransactionsResolver.resolve[AptosAccountSelector.NetworkAddress].resolve(
 			aptosAccount,
 			resolverContext
 		)).resolves.toEqual([{
@@ -224,7 +224,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			25,
 			5
 		)
-		await expect(aptosTransactionResolver.resolve[AptosTransactionSelector.NetworkVersion](
+		await expect(aptosTransactionResolver.resolve[AptosTransactionSelector.NetworkVersion].resolve(
 			{
 				$network: aptosNetwork,
 				version: 42n,
@@ -247,7 +247,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			balance,
 			secondaryBalance,
 		])
-		const balanceSelectors = await aptosAccountBalancesResolver.resolve[AptosAccountSelector.NetworkAddress](
+		const balanceSelectors = await aptosAccountBalancesResolver.resolve[AptosAccountSelector.NetworkAddress].resolve(
 			aptosAccount,
 			resolverContext
 		)
@@ -278,7 +278,7 @@ describe('Aptos Indexer resolver materialization', () => {
 		vi.spyOn(queries, 'getCurrentFungibleAssetBalance').mockImplementation(async (storageId) => (
 			storageId === secondaryBalance.storage_id ? secondaryBalance : balance
 		))
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource](
+		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
 			balanceSelectors[0][EntityMetaKey.Selector]
 		)).resolves.toEqual({
 			assetType: balance.asset_type,
@@ -288,13 +288,13 @@ describe('Aptos Indexer resolver materialization', () => {
 			coinType: balance.asset_type_v1,
 			timestampMs: 1_784_016_000_000,
 		})
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource](
+		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
 			balanceSelectors[1][EntityMetaKey.Selector]
 		)).resolves.toMatchObject({
 			isPrimary: false,
 			amount: 7n,
 		})
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource](
+		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
 			{
 				...balanceSelectors[0][EntityMetaKey.Selector],
 				ledgerVersion: 41n,
@@ -307,14 +307,14 @@ describe('Aptos Indexer resolver materialization', () => {
 			current: currentTableItem,
 			versioned: ledgerVersion === 42n ? versionedTableItem : undefined,
 		}))
-		await expect(aptosTableItemResolver.resolve[AptosTableItemSelector.NetworkTableHandleKeyHash](
+		await expect(aptosTableItemResolver.resolve[AptosTableItemSelector.NetworkTableHandleKeyHash].resolve(
 			tableItem
 		)).resolves.toEqual({
 			key: currentTableItem.decoded_key,
 		})
 		expect(aptosTableItemResolver.projections).not.toHaveProperty('$$timestamps')
 
-		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource](
+		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource].resolve(
 			{
 				$tableItem: tableItem,
 				ledgerVersion: 42n,
@@ -323,7 +323,7 @@ describe('Aptos Indexer resolver materialization', () => {
 		)).resolves.toEqual({
 			value: versionedTableItem.decoded_value,
 		})
-		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource](
+		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource].resolve(
 			{
 				$tableItem: tableItem,
 				ledgerVersion: 41n,

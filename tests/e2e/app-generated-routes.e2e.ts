@@ -31,12 +31,59 @@ type AppGeneratedRouteCheck = {
 	path: string
 	expectEntityRows?: boolean
 	expectNotFound?: boolean
-	expectedSectionLabels?: readonly string[]
 	skipSettle?: boolean
 }
 
 const attach = { timeout: 120_000 }
 const fullMatrix = process.env.E2E_FULL_MATRIX === '1'
+const networkPathPattern = (
+	process.env.E2E_NETWORK_PATH_PATTERN ?
+		new RegExp(process.env.E2E_NETWORK_PATH_PATTERN)
+		:
+		undefined
+)
+const networkPathnames = process.env.E2E_NETWORK_PATHS?.split(',').filter(Boolean)
+const inapplicableCarouselFacetIdsByPathname = new Map([
+	[
+		'/network/bitcoin',
+		[
+			'cardano',
+			'cosmos',
+			'evm',
+			'polkadot',
+		],
+	],
+	[
+		'/network/cardano',
+		[
+			'cosmos',
+			'evm',
+			'polkadot',
+			'solana',
+		],
+	],
+	[
+		'/network/eip155:1',
+		[
+			'cardano',
+			'cosmos',
+			'polkadot',
+			'solana',
+			'utxo',
+		],
+	],
+	[
+		'/network/bittensor',
+		[
+			'cardano',
+			'cosmos',
+			'evm',
+			'polkadot',
+			'solana',
+			'utxo',
+		],
+	],
+] as const)
 
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw'
 const MARKET_VENUE_ID = 'Binance'
@@ -56,31 +103,16 @@ const appGeneratedRoutes: AppGeneratedRouteCheck[] = [
 		path: '/venue/Binance/market/coin/ETH/currency/USD/Spot',
 		expectEntityRows: false,
 	},
-	{ label: 'networks list', path: '/networks', expectEntityRows: false },
+	{ label: 'networks list', path: '/networks', expectEntityRows: true },
 	{
 		label: 'Ethereum network detail',
 		path: '/network/eip155:1',
 		expectEntityRows: false,
-		expectedSectionLabels: [
-			'Transactions',
-			'Finality',
-			'Blobs',
-			'Precompiles',
-			'Native assets',
-			'Block explorers',
-			'Settled rollups',
-		],
 	},
 	{
 		label: 'Bitcoin network detail',
 		path: '/network/bitcoin',
 		expectEntityRows: false,
-		expectedSectionLabels: [
-			'Blocks',
-			'Transactions',
-			'Mempool',
-			'Native assets',
-		],
 	},
 	{ label: 'reddit hub', path: '/reddit', expectEntityRows: false, skipSettle: true },
 	{ label: 'reddit subreddits list', path: '/reddit/subreddits', expectEntityRows: true },
@@ -147,7 +179,6 @@ const visitRawDumpRoute = async (
 	options?: {
 		expectEntityRows?: boolean
 		expectNotFound?: boolean
-		expectedSectionLabels?: readonly string[]
 		skipSettle?: boolean
 		label?: string
 	}
@@ -178,9 +209,7 @@ const visitRawDumpRoute = async (
 	}
 
 	if (options?.expectEntityRows)
-		await step(expect(page.locator('#main .entity-view-summary').first()).toBeAttached(attach))
-	for (const sectionLabel of options?.expectedSectionLabels ?? [])
-		await step(expect(page.locator(`[data-scroll-marker-label="${sectionLabel}"]`).first()).toBeAttached(attach))
+		await step(expect(page.locator('#main li[data-list-item] [data-card] .entity-view-summary').first()).toBeAttached(attach))
 
 	await step(assertNoGeneratedRouteArtifacts(page, pathname))
 
@@ -206,6 +235,138 @@ const visitRawDumpRoute = async (
 	})
 }
 
+const networkDetailPathnamesFromCatalog = async (page: import('@playwright/test').Page) => {
+	if (networkPathnames != null)
+		return networkPathnames
+
+	await page.goto('/networks', {
+		waitUntil: 'load',
+		timeout: 120_000,
+	})
+	await expect(page.locator('#main')).toBeVisible(attach)
+	await assertMainSettled(page, 120_000)
+
+	const pathnames = [...new Set((await page.locator('#main a[href]').evaluateAll((anchors) => (
+		anchors
+			.map((anchor) => new URL(anchor.getAttribute('href') ?? '', location.href).pathname)
+			.filter((pathname) => /^\/network\/[^/]+$/.test(pathname))
+	))).map(decodeURIComponent))].sort()
+	if (pathnames.length === 0)
+		throw new Error('/networks rendered no canonical Network detail links')
+
+	return (
+		networkPathPattern == null ?
+			pathnames
+			:
+			pathnames.filter((pathname) => networkPathPattern.test(pathname))
+	)
+}
+
+const exerciseNetworkCarouselSections = async (
+	page: import('@playwright/test').Page,
+	pathname: string
+) => {
+	await page.goto(pathname, {
+		waitUntil: 'load',
+		timeout: 120_000,
+	})
+	await expect(page.locator('#main')).toBeVisible(attach)
+
+	const carousels = page.locator('#main details[id*="-carousel-"]')
+	await expect(
+		carousels.first(),
+		`${pathname} must render its applicable Network facet carousels`
+	).toBeAttached(attach)
+	const carouselIds = await carousels.evaluateAll((elements) => elements.map((element) => element.id))
+	expect(new Set(carouselIds).size, `${pathname} must have unique carousel ids`).toBe(carouselIds.length)
+	for (const facetId of inapplicableCarouselFacetIdsByPathname.get(pathname) ?? [])
+		expect(
+			carouselIds.filter((carouselId) => carouselId.includes(`-carousel-${facetId}-`)),
+			`${pathname} must not render markers or panes owned by its inapplicable ${facetId} facet`
+		).toEqual([])
+
+	const violations = await carousels.evaluateAll((elements) => elements.flatMap((carousel) => {
+		const violation = (condition: boolean, message: string) => condition ? [] : [message]
+		const hosts = carousel.querySelectorAll(':scope > [data-collapsible-tabs-pane-host]')
+		const markers = Array.from(carousel.querySelectorAll(':scope > summary [href^="#"][data-scroll-marker-label]'))
+		const sections = hosts.length === 1 ? Array.from(hosts[0].children) : []
+		const markerTargets = markers.map((marker) => decodeURIComponent(marker.getAttribute('href')?.slice(1) ?? ''))
+		const sectionIds = sections.map((section) => section.id)
+
+		return [
+			...violation(hosts.length === 1, `${carousel.id}: expected one pane host, found ${hosts.length}`),
+			...violation(markers.length > 0, `${carousel.id}: no section markers`),
+			...violation(new Set(markerTargets).size === markerTargets.length, `${carousel.id}: duplicate marker targets`),
+			...violation(markerTargets.length === sections.length, `${carousel.id}: ${markerTargets.length} markers for ${sections.length} sections`),
+			...violation(
+				markerTargets.every((target) => sectionIds.includes(target))
+				&& sectionIds.every((sectionId) => markerTargets.includes(sectionId)),
+				`${carousel.id}: markers and sections are not bijective`
+			),
+			...sections.flatMap((section) => {
+				const articles = Array.from(section.querySelectorAll(':scope > article, :scope > * > article'))
+				const directChildrenAreCards = Array.from(section.children).every((child) => (
+					child.tagName === 'ARTICLE'
+					|| child.querySelector(':scope > article') != null
+					|| child.matches('[data-resource-state], [data-section-state]')
+					|| child.textContent?.includes('Loading') === true
+				))
+
+				return [
+					...violation(
+						section.tagName === 'SECTION'
+						&& section.id !== ''
+						&& section.hasAttribute('data-scroll-marker-label')
+						&& section.hasAttribute('data-column')
+						&& section.getAttribute('data-column-item') === 'flexible',
+						`${carousel.id}/${section.id || '(missing id)'}: invalid section structure`
+					),
+					...violation(
+						(section.children.length > 0 && directChildrenAreCards),
+						`${carousel.id}/${section.id}: every section child must expose an article card`
+					),
+					...articles.flatMap((article) => violation(
+						article.id !== ''
+						&& article.hasAttribute('data-card')
+						&& article.hasAttribute('data-scroll-container')
+						&& article.getAttribute('data-column-item') === 'flexible',
+						`${carousel.id}/${section.id}/${article.id || '(missing id)'}: invalid article structure`
+					)),
+					...articles.flatMap((article) => {
+						const state = article.querySelector<HTMLElement>(
+							'[data-resource-state], [data-section-state]'
+						)
+						const hasExplicitState = (
+							state?.dataset.resourceState === 'pending'
+							|| state?.dataset.resourceState === 'failed'
+							|| state?.dataset.sectionState === 'resolved-empty'
+							|| state?.dataset.sectionState === 'resolved-nonempty'
+							|| state?.dataset.sectionState === 'projection-blocked'
+							|| state?.dataset.sectionState === 'projection-unsupported'
+						)
+						const hasDomainContent = (
+							(article.textContent?.trim().length ?? 0) > 0
+							|| article.querySelector('a[href], dl, form, img, ol, table, ul, video') != null
+						)
+
+						return violation(
+							hasExplicitState || hasDomainContent,
+							`${carousel.id}/${section.id}/${article.id}: blank article without content or explicit state`
+						)
+					}),
+					...Array.from(section.querySelectorAll('.tooltip-trigger [data-text="annotation"]')).flatMap((annotation) => violation(
+						annotation.closest('header') != null,
+						`${carousel.id}/${section.id}: annotation tooltip is outside a header`
+					)),
+				]
+			}),
+		]
+	}))
+	expect(violations, `${pathname} carousel structure`).toEqual([])
+
+	return carouselIds.length
+}
+
 test.describe('APP-generated routes spot check', () => {
 	test.describe.configure({ mode: 'serial' })
 
@@ -222,6 +383,27 @@ test.describe('APP-generated routes spot check', () => {
 			await visitRawDumpRoute(page, testInfo, route.path, route)
 		})
 	}
+})
+
+test.describe('NetworkView carousel completeness', () => {
+	test.describe.configure({ mode: 'serial' })
+
+	test('selected Network routes exercise every applicable carousel section', async ({ page }, testInfo) => {
+		test.skip(fullMatrix, 'E2E_FULL_MATRIX uses discovered +page crawl')
+		testInfo.setTimeout(3_600_000)
+		await installRouteProbeDatabase(
+			page,
+			`blockhead-network-view-carousels-${testInfo.workerIndex}-${Date.now()}.sqlite`
+		)
+		await installChainlistRpcsJsonStub(page)
+
+		const pathnames = await networkDetailPathnamesFromCatalog(page)
+		let carouselCount = 0
+		for (const pathname of pathnames)
+			carouselCount += await exerciseNetworkCarouselSections(page, pathname)
+
+		expect(carouselCount, 'the canonical Network catalog must exercise compiled NetworkView carousels').toBeGreaterThan(0)
+	})
 })
 
 test.describe('raw dump DOM crawl (every discovered +page)', () => {

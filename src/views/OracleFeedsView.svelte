@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OracleFeedView from '$/views/OracleFeedView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					feedKind: true,
-					$market: true,
-					address: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.OracleFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.OracleFeed}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				feedKind: true,
+				$market: true,
+				address: true,
+			},
+		})
+	}
+	getResourceItems={(oracleFeeds) => [...new Map(oracleFeeds.values.map((oracleFeed) => [oracleFeed[EntityMetaKey.SelectorKey], oracleFeed])).values()]}
+	getKey={(oracleFeed) => oracleFeed[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Oracle feeds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(oracleFeeds)}
-			{@const uniqueOracleFeeds = [...new Map(oracleFeeds.values.map((oracleFeed) => [oracleFeed[EntityMetaKey.SelectorKey], oracleFeed])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.OracleFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={oracleFeeds.totalCount}
-				getKey={(oracleFeed) => oracleFeed[EntityMetaKey.SelectorKey]}
-				items={uniqueOracleFeeds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Oracle feeds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: oracleFeed })}
-					{@const oracleFeedFields = { ...oracleFeed[EntityMetaKey.Selector], ...oracleFeed }}
-					{@const selection = select(EntityType.OracleFeed, oracleFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<OracleFeedView
-						selection={selection}
-						prefetched={oracleFeedFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.OracleFeed}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: oracleFeed })}
+		{@const oracleFeedFields = { ...oracleFeed[EntityMetaKey.Selector], ...oracleFeed }}
+		{@const selection = select(EntityType.OracleFeed, oracleFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<OracleFeedView
+			selection={selection}
+			prefetched={oracleFeedFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

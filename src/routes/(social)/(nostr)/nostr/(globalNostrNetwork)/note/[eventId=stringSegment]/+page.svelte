@@ -21,6 +21,8 @@
 	const pageSelection = $derived(select(EntityType.NostrNote, data.selector, {
 		sources: [
 			Source.Constants_Internal,
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 		fields: {
 			content: true,
@@ -28,8 +30,8 @@
 			kind: true,
 			pubkey: true,
 			$author: true,
-			replyToEventId: true,
-			rootEventId: true,
+			$replyToNote: true,
+			$rootNote: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.content) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note')))

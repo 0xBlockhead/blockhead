@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SorobanContract_TimestampView from '$/views/SorobanContract_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SorobanContract_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(sorobanContractTimestamps) => [...new Map(sorobanContractTimestamps.values.map((sorobanContractTimestamp) => [sorobanContractTimestamp[EntityMetaKey.SelectorKey], sorobanContractTimestamp])).values()]}
+	getKey={(sorobanContractTimestamp) => sorobanContractTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Soroban contract observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(sorobanContractTimestamps)}
-			{@const uniqueSorobanContractTimestamps = [...new Map(sorobanContractTimestamps.values.map((sorobanContractTimestamp) => [sorobanContractTimestamp[EntityMetaKey.SelectorKey], sorobanContractTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={sorobanContractTimestamps.totalCount}
-				getKey={(sorobanContractTimestamp) => sorobanContractTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSorobanContractTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Soroban contract observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: sorobanContractTimestamp })}
-					{@const sorobanContractTimestampFields = { ...sorobanContractTimestamp[EntityMetaKey.Selector], ...sorobanContractTimestamp }}
-					{@const selection = select(EntityType.SorobanContract_Timestamp, sorobanContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SorobanContract_TimestampView
-						selection={selection}
-						prefetched={sorobanContractTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SorobanContract_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: sorobanContractTimestamp })}
+		{@const sorobanContractTimestampFields = { ...sorobanContractTimestamp[EntityMetaKey.Selector], ...sorobanContractTimestamp }}
+		{@const selection = select(EntityType.SorobanContract_Timestamp, sorobanContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SorobanContract_TimestampView
+			selection={selection}
+			prefetched={sorobanContractTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

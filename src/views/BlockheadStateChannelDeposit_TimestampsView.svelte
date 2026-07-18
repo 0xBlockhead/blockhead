@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadStateChannelDeposit_TimestampView from '$/views/BlockheadStateChannelDeposit_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					source: true,
-					availableBalance: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				source: true,
+				availableBalance: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadStateChannelDepositTimestamps) => [...new Map(blockheadStateChannelDepositTimestamps.values.map((blockheadStateChannelDepositTimestamp) => [blockheadStateChannelDepositTimestamp[EntityMetaKey.SelectorKey], blockheadStateChannelDepositTimestamp])).values()]}
+	getKey={(blockheadStateChannelDepositTimestamp) => blockheadStateChannelDepositTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead state channel deposit observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadStateChannelDepositTimestamps)}
-			{@const uniqueBlockheadStateChannelDepositTimestamps = [...new Map(blockheadStateChannelDepositTimestamps.values.map((blockheadStateChannelDepositTimestamp) => [blockheadStateChannelDepositTimestamp[EntityMetaKey.SelectorKey], blockheadStateChannelDepositTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadStateChannelDepositTimestamps.totalCount}
-				getKey={(blockheadStateChannelDepositTimestamp) => blockheadStateChannelDepositTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadStateChannelDepositTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead state channel deposit observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadStateChannelDepositTimestamp })}
-					{@const blockheadStateChannelDepositTimestampFields = { ...blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], ...blockheadStateChannelDepositTimestamp }}
-					{@const selection = select(EntityType.BlockheadStateChannelDeposit_Timestamp, blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadStateChannelDeposit_TimestampView
-						selection={selection}
-						prefetched={blockheadStateChannelDepositTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadStateChannelDepositTimestamp })}
+		{@const blockheadStateChannelDepositTimestampFields = { ...blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], ...blockheadStateChannelDepositTimestamp }}
+		{@const selection = select(EntityType.BlockheadStateChannelDeposit_Timestamp, blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadStateChannelDeposit_TimestampView
+			selection={selection}
+			prefetched={blockheadStateChannelDepositTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

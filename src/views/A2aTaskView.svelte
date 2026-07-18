@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const a2aTask = $derived(selection({
-		sources: [
-			Source.A2aService_Http,
-		],
+		sources: selection.sources,
 		fields: {
 			contextId: true,
 			updatedAt: true,
@@ -79,52 +76,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={a2aTask}>
-			{#snippet Pending()}
-				{[String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aTask}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={a2aTask}>
-			{#snippet Pending()}
-				{[String((pendingEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.taskId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aTask}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.taskId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={a2aTask}>
-			{#snippet Pending()}
-				{@const updatedAt0 = pendingEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const updatedAt0 = resolvedEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const updatedAt0 = pendingEntity.updatedAt}
+			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(updatedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={a2aTask}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const updatedAt0 = resolvedEntity.updatedAt}
+					{#if updatedAt0 !== undefined && updatedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(updatedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,19 +132,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									taskId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const taskId = pendingEntity.taskId}
-							{#if taskId !== undefined && taskId !== null}
-								{String((taskId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const taskId = resolvedEntity.taskId}
@@ -162,8 +153,6 @@
 			<ResourceBoundary
 				resource={selection.$service}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
 						<div>
@@ -184,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerTaskId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerTaskId = pendingEntity.providerTaskId}
-					{#if providerTaskId !== undefined && providerTaskId !== null}
-						<div>
-							<dt>provider task ID</dt>
-							<dd>
-								{String((providerTaskId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerTaskId = resolvedEntity.providerTaskId}
@@ -219,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contextId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contextId = pendingEntity.contextId}
-					{#if contextId !== undefined && contextId !== null}
-						<div>
-							<dt>context ID</dt>
-							<dd>
-								{String((contextId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contextId = resolvedEntity.contextId}
@@ -256,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -291,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAt = pendingEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAt = resolvedEntity.updatedAt}
@@ -326,24 +271,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cancelledAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cancelledAt = pendingEntity.cancelledAt}
-					{#if cancelledAt !== undefined && cancelledAt !== null}
-						<div>
-							<dt>cancelled AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(cancelledAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cancelledAt = resolvedEntity.cancelledAt}
@@ -361,24 +295,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listed = pendingEntity.listed}
-					{#if listed !== undefined && listed !== null}
-						<div>
-							<dt>listed</dt>
-							<dd>
-								{listed ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listed = resolvedEntity.listed}
@@ -418,11 +341,8 @@
 				}
 				data-card
 				class='network-view-collapsible-conversation'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Conversation</HeadingComponent>
 					</header>
@@ -430,12 +350,12 @@
 
 				{#snippet SectionA2aTaskEvents({ id, label, open })}
 					<A2aTaskEventsView
-						selection={
-							selection.$$events({
-								count: true,
-							})
-						}
+						selection={selection.$$events}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A task events.'
 						open={open}
 						title={label}
@@ -445,12 +365,12 @@
 
 				{#snippet SectionA2aTaskMessages({ id, label, open })}
 					<A2aMessagesView
-						selection={
-							selection.$$messages({
-								count: true,
-							})
-						}
+						selection={selection.$$messages}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A messages.'
 						open={open}
 						title={label}
@@ -460,12 +380,12 @@
 
 				{#snippet SectionA2aTaskArtifacts({ id, label, open })}
 					<A2aArtifactsView
-						selection={
-							selection.$$artifacts({
-								count: true,
-							})
-						}
+						selection={selection.$$artifacts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A artifacts.'
 						open={open}
 						title={label}
@@ -492,11 +412,8 @@
 				}
 				data-card
 				class='network-view-collapsible-delivery'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Delivery and observations</HeadingComponent>
 					</header>
@@ -504,12 +421,12 @@
 
 				{#snippet SectionA2aTaskPush({ id, label, open })}
 					<A2aPushNotificationConfigsView
-						selection={
-							selection.$$pushNotificationConfigs({
-								count: true,
-							})
-						}
+						selection={selection.$$pushNotificationConfigs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A push notification configs.'
 						open={open}
 						title={label}
@@ -519,12 +436,12 @@
 
 				{#snippet SectionA2aTaskObservations({ id, label, open })}
 					<A2aTask_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A task observations.'
 						open={open}
 						title={label}

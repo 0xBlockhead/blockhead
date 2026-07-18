@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSharedAddressView from '$/views/BlockheadSharedAddressView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$account: true,
-					sharedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSharedAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSharedAddress}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$account: true,
+				sharedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSharedAddresses) => [...new Map(blockheadSharedAddresses.values.map((blockheadSharedAddress) => [blockheadSharedAddress[EntityMetaKey.SelectorKey], blockheadSharedAddress])).values()]}
+	getKey={(blockheadSharedAddress) => blockheadSharedAddress[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead shared addresses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSharedAddresses)}
-			{@const uniqueBlockheadSharedAddresses = [...new Map(blockheadSharedAddresses.values.map((blockheadSharedAddress) => [blockheadSharedAddress[EntityMetaKey.SelectorKey], blockheadSharedAddress])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSharedAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSharedAddresses.totalCount}
-				getKey={(blockheadSharedAddress) => blockheadSharedAddress[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSharedAddresses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead shared addresses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSharedAddress })}
-					{@const blockheadSharedAddressFields = { ...blockheadSharedAddress[EntityMetaKey.Selector], ...blockheadSharedAddress }}
-					{@const selection = select(EntityType.BlockheadSharedAddress, blockheadSharedAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSharedAddressView
-						selection={selection}
-						prefetched={blockheadSharedAddressFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSharedAddress}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSharedAddress })}
+		{@const blockheadSharedAddressFields = { ...blockheadSharedAddress[EntityMetaKey.Selector], ...blockheadSharedAddress }}
+		{@const selection = select(EntityType.BlockheadSharedAddress, blockheadSharedAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSharedAddressView
+			selection={selection}
+			prefetched={blockheadSharedAddressFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

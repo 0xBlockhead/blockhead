@@ -41,7 +41,7 @@
 		selection={
 			select(EntityType.ActivityPubActor, {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localAccountId: decodeURIComponent(params.localAccountId),
+				localAccountId: params.localAccountId,
 			}).$$notes({
 				sources: [
 					Source.Mastodon_Rest,
@@ -50,5 +50,8 @@
 			})
 		}
 		id='notes'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CosmosGovernanceProposalSelector {
@@ -50,6 +51,9 @@ export const CosmosGovernanceProposal = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CosmosGovernanceProposal_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CosmosSdk_Rest,
+		],
 	},
 })({
 	selectors: {

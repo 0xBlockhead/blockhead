@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonAccount_TimestampView from '$/views/TonAccount_TimestampView.svelte'
 </script>
@@ -61,70 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				balanceNano: true,
+				status: true,
+			},
+		})
+	}
+	getResourceItems={(tonAccountTimestamps) => [...new Map(tonAccountTimestamps.values.map((tonAccountTimestamp) => [tonAccountTimestamp[EntityMetaKey.SelectorKey], tonAccountTimestamp])).values()]}
+	getKey={(tonAccountTimestamp) => tonAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonAccountTimestamps)}
-			{@const uniqueTonAccountTimestamps = [...new Map(tonAccountTimestamps.values.map((tonAccountTimestamp) => [tonAccountTimestamp[EntityMetaKey.SelectorKey], tonAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonAccountTimestamps.totalCount}
-				getKey={(tonAccountTimestamp) => tonAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonAccountTimestamp })}
-					{@const tonAccountTimestampFields = { ...tonAccountTimestamp[EntityMetaKey.Selector], ...tonAccountTimestamp }}
-					{@const selection = select(EntityType.TonAccount_Timestamp, tonAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonAccount_TimestampView
-						selection={selection}
-						prefetched={tonAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonAccountTimestamp })}
+		{@const tonAccountTimestampFields = { ...tonAccountTimestamp[EntityMetaKey.Selector], ...tonAccountTimestamp }}
+		{@const selection = select(EntityType.TonAccount_Timestamp, tonAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonAccount_TimestampView
+			selection={selection}
+			prefetched={tonAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

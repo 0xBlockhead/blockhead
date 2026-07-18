@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosEventView from '$/views/AptosEventView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					eventType: true,
-					transactionVersion: true,
-					eventIndex: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosEvent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				eventType: true,
+				transactionVersion: true,
+				eventIndex: true,
+			},
+		})
+	}
+	getResourceItems={(aptosEvents) => [...new Map(aptosEvents.values.map((aptosEvent) => [aptosEvent[EntityMetaKey.SelectorKey], aptosEvent])).values()]}
+	getKey={(aptosEvent) => aptosEvent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos events yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosEvents)}
-			{@const uniqueAptosEvents = [...new Map(aptosEvents.values.map((aptosEvent) => [aptosEvent[EntityMetaKey.SelectorKey], aptosEvent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosEvents.totalCount}
-				getKey={(aptosEvent) => aptosEvent[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosEvents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos events yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosEvent })}
-					{@const aptosEventFields = { ...aptosEvent[EntityMetaKey.Selector], ...aptosEvent }}
-					{@const selection = select(EntityType.AptosEvent, aptosEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosEventView
-						selection={selection}
-						prefetched={aptosEventFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosEvent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosEvent })}
+		{@const aptosEventFields = { ...aptosEvent[EntityMetaKey.Selector], ...aptosEvent }}
+		{@const selection = select(EntityType.AptosEvent, aptosEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosEventView
+			selection={selection}
+			prefetched={aptosEventFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

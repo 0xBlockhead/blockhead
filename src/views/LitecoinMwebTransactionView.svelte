@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const litecoinMwebTransaction = $derived(selection({
-		sources: [
-			Source.LitecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			kernelOffset: true,
 		},
@@ -76,66 +73,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={litecoinMwebTransaction}>
-			{#snippet Pending()}
-				<LitecoinMwebBlockView
-					selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<LitecoinMwebBlockView
-					selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<LitecoinMwebBlockView
+						selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={litecoinMwebTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<LitecoinMwebBlockView
+						selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={litecoinMwebTransaction}>
-			{#snippet Pending()}
-				{@const transactionIndex0 = pendingEntity.transactionIndex}
-				{#if transactionIndex0 !== undefined && transactionIndex0 !== null}
-					<NumberValue value={Number(transactionIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transactionIndex0 = resolvedEntity.transactionIndex}
-				{#if transactionIndex0 !== undefined && transactionIndex0 !== null}
-					<NumberValue value={Number(transactionIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const transactionIndex0 = pendingEntity.transactionIndex}
+					{#if transactionIndex0 !== undefined && transactionIndex0 !== null}
+						<NumberValue
+							value={transactionIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionIndex0 = resolvedEntity.transactionIndex}
+					{#if transactionIndex0 !== undefined && transactionIndex0 !== null}
+						<NumberValue
+							value={transactionIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={litecoinMwebTransaction}>
-			{#snippet Pending()}
-				{@const kernelOffset0 = pendingEntity.kernelOffset}
-				{#if kernelOffset0 !== undefined && kernelOffset0 !== null}
-					<span data-text="muted">
-						{String((kernelOffset0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const kernelOffset0 = resolvedEntity.kernelOffset}
-				{#if kernelOffset0 !== undefined && kernelOffset0 !== null}
-					<span data-text="muted">
-						{String((kernelOffset0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const kernelOffset0 = pendingEntity.kernelOffset}
+			{#if kernelOffset0 !== undefined && kernelOffset0 !== null}
+				<span data-text="muted">
+					{String((kernelOffset0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const kernelOffset0 = resolvedEntity.kernelOffset}
+					{#if kernelOffset0 !== undefined && kernelOffset0 !== null}
+						<span data-text="muted">
+							{String((kernelOffset0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -157,24 +158,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionIndex = pendingEntity.transactionIndex}
-							{#if transactionIndex !== undefined && transactionIndex !== null}
-								<NumberValue value={Number(transactionIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionIndex = resolvedEntity.transactionIndex}
 							{#if transactionIndex !== undefined && transactionIndex !== null}
-								<NumberValue value={Number(transactionIndex)} />
+								<NumberValue
+									value={transactionIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -184,24 +181,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							kernelOffset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const kernelOffset = pendingEntity.kernelOffset}
-					{#if kernelOffset !== undefined && kernelOffset !== null}
-						<div>
-							<dt>kernel offset</dt>
-							<dd>
-								{String((kernelOffset) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const kernelOffset = resolvedEntity.kernelOffset}
@@ -237,11 +223,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-a'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -249,12 +232,12 @@
 
 				{#snippet SectionLitecoinMwebTransactionOutputs({ id, label, open })}
 					<LitecoinMwebOutputsView
-						selection={
-							selection.$$outputs({
-								count: true,
-							})
-						}
+						selection={selection.$$outputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No outputs.'
 						open={open}
 						title={label}
@@ -264,12 +247,12 @@
 
 				{#snippet SectionLitecoinMwebTransactionPegIns({ id, label, open })}
 					<LitecoinMwebPegInsView
-						selection={
-							selection.$$pegIns({
-								count: true,
-							})
-						}
+						selection={selection.$$pegIns}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No peg ins.'
 						open={open}
 						title={label}
@@ -292,11 +275,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-b'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity continued</HeadingComponent>
 					</header>
@@ -304,12 +284,12 @@
 
 				{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label, open })}
 					<LitecoinMwebPegOutsView
-						selection={
-							selection.$$pegOuts({
-								count: true,
-							})
-						}
+						selection={selection.$$pegOuts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No peg outs.'
 						open={open}
 						title={label}

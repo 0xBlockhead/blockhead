@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 </script>
@@ -63,87 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					content: true,
-					eventId: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrNote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrNote}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Constants_Internal,
+			],
+			fields: {
+				content: true,
+				eventId: true,
+				createdAt: true,
+				sensitive: true,
+				contentWarning: true,
+			},
+		})
+	}
+	getResourceItems={(nostrNotes) => [...new Map(nostrNotes.values.map((nostrNote) => [nostrNote[EntityMetaKey.SelectorKey], nostrNote])).values()]}
+	getKey={(nostrNote) => nostrNote[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr notes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrNotes)}
-			{@const uniqueNostrNotes = [...new Map(nostrNotes.values.map((nostrNote) => [nostrNote[EntityMetaKey.SelectorKey], nostrNote])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrNote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrNotes.totalCount}
-				getKey={(nostrNote) => nostrNote[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrNotes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr notes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrNote })}
-					{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
-					{@const selection = select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const nostrNoteHrefFields = { ...nostrNote, ...nostrNote[EntityMetaKey.Selector] }}
-					<NostrNoteView
-						selection={selection}
-						prefetched={nostrNoteFields}
-						href={
-							(nostrNoteHrefFields.eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
-								eventId: String(nostrNoteHrefFields.eventId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrNote}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrNote })}
+		{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
+		{@const selection = select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const nostrNoteHrefFields = { ...nostrNote, ...nostrNote[EntityMetaKey.Selector] }}
+		<NostrNoteView
+			selection={selection}
+			prefetched={nostrNoteFields}
+			href={
+				(nostrNoteHrefFields.eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+					eventId: String(nostrNoteHrefFields.eventId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

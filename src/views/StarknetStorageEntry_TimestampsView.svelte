@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetStorageEntry_TimestampView from '$/views/StarknetStorageEntry_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$entry: true,
-					blockNumber: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetStorageEntry_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetStorageEntry_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$entry: true,
+				blockNumber: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(starknetStorageEntryTimestamps) => [...new Map(starknetStorageEntryTimestamps.values.map((starknetStorageEntryTimestamp) => [starknetStorageEntryTimestamp[EntityMetaKey.SelectorKey], starknetStorageEntryTimestamp])).values()]}
+	getKey={(starknetStorageEntryTimestamp) => starknetStorageEntryTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet storage entry observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetStorageEntryTimestamps)}
-			{@const uniqueStarknetStorageEntryTimestamps = [...new Map(starknetStorageEntryTimestamps.values.map((starknetStorageEntryTimestamp) => [starknetStorageEntryTimestamp[EntityMetaKey.SelectorKey], starknetStorageEntryTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetStorageEntry_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetStorageEntryTimestamps.totalCount}
-				getKey={(starknetStorageEntryTimestamp) => starknetStorageEntryTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetStorageEntryTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet storage entry observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetStorageEntryTimestamp })}
-					{@const starknetStorageEntryTimestampFields = { ...starknetStorageEntryTimestamp[EntityMetaKey.Selector], ...starknetStorageEntryTimestamp }}
-					{@const selection = select(EntityType.StarknetStorageEntry_Timestamp, starknetStorageEntryTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetStorageEntry_TimestampView
-						selection={selection}
-						prefetched={starknetStorageEntryTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetStorageEntry_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetStorageEntryTimestamp })}
+		{@const starknetStorageEntryTimestampFields = { ...starknetStorageEntryTimestamp[EntityMetaKey.Selector], ...starknetStorageEntryTimestamp }}
+		{@const selection = select(EntityType.StarknetStorageEntry_Timestamp, starknetStorageEntryTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetStorageEntry_TimestampView
+			selection={selection}
+			prefetched={starknetStorageEntryTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

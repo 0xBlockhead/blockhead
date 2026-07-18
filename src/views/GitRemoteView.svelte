@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitRemote = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			url: true,
 			transportKind: true,
@@ -69,84 +70,84 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitRemote}>
-			{#snippet Pending()}
-				{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git remote'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitRemote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitRemote}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={gitRemote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitRemote}>
-			{#snippet Pending()}
-				{@const transportKind0 = pendingEntity.transportKind}
-				{#if transportKind0 !== undefined && transportKind0 !== null}
-					<span data-text="muted">
-						{String((transportKind0) ?? '')}
-					</span>
-				{/if}
-				{@const hostKind1 = pendingEntity.hostKind}
-				{#if hostKind1 !== undefined && hostKind1 !== null}
-					<span data-text="muted">
-						{String((hostKind1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transportKind0 = resolvedEntity.transportKind}
-				{#if transportKind0 !== undefined && transportKind0 !== null}
-					<span data-text="muted">
-						{String((transportKind0) ?? '')}
-					</span>
-				{/if}
-				{@const hostKind1 = resolvedEntity.hostKind}
-				{#if hostKind1 !== undefined && hostKind1 !== null}
-					<span data-text="muted">
-						{String((hostKind1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const transportKind0 = pendingEntity.transportKind}
+			{#if transportKind0 !== undefined && transportKind0 !== null}
+				<span data-text="muted">
+					{String((transportKind0) ?? '')}
+				</span>
+			{/if}
+			{@const hostKind1 = pendingEntity.hostKind}
+			{#if hostKind1 !== undefined && hostKind1 !== null}
+				<span data-text="muted">
+					{String((hostKind1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={gitRemote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transportKind0 = resolvedEntity.transportKind}
+					{#if transportKind0 !== undefined && transportKind0 !== null}
+						<span data-text="muted">
+							{String((transportKind0) ?? '')}
+						</span>
+					{/if}
+					{@const hostKind1 = resolvedEntity.hostKind}
+					{#if hostKind1 !== undefined && hostKind1 !== null}
+						<span data-text="muted">
+							{String((hostKind1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -168,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									remoteName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const remoteName = pendingEntity.remoteName}
-							{#if remoteName !== undefined && remoteName !== null}
-								{String((remoteName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const remoteName = resolvedEntity.remoteName}
@@ -198,26 +193,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									url: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const url = pendingEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const url = resolvedEntity.url}
@@ -242,19 +224,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transportKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transportKind = pendingEntity.transportKind}
-							{#if transportKind !== undefined && transportKind !== null}
-								{String((transportKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transportKind = resolvedEntity.transportKind}
@@ -269,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hostKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hostKind = pendingEntity.hostKind}
-					{#if hostKind !== undefined && hostKind !== null}
-						<div>
-							<dt>host kind</dt>
-							<dd>
-								{String((hostKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hostKind = resolvedEntity.hostKind}
@@ -304,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}

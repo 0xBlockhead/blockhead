@@ -52,6 +52,9 @@
 					})
 				}
 				id='erc20-token-transfers'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

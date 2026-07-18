@@ -19,13 +19,13 @@
 
 	const pageSelection = $derived(select(EntityType.EvmNetworkActorCoinBalance, {
 		$actor: {
-			interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
+			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.owner),
 		},
 		$contract: {
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: params.chainId,
+					reference: Number(params.chainId),
 				},
 			},
 			address: params.coin,

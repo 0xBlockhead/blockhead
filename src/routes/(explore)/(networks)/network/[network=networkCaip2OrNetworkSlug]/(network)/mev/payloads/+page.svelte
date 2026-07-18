@@ -52,6 +52,9 @@
 					})
 				}
 				id='mev-proposer-payload-delivered'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

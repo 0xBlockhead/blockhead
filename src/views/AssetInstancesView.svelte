@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
@@ -63,92 +62,59 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					symbol: true,
-					name: true,
-					kind: true,
-					assetKey: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetInstance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AssetInstance}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				symbol: true,
+				name: true,
+				kind: true,
+				assetKey: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(assetInstances) => [...new Map(assetInstances.values.map((assetInstance) => [assetInstance[EntityMetaKey.SelectorKey], assetInstance])).values()]}
+	getKey={(assetInstance) => assetInstance[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Asset instances yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(assetInstances)}
-			{@const uniqueAssetInstances = [...new Map(assetInstances.values.map((assetInstance) => [assetInstance[EntityMetaKey.SelectorKey], assetInstance])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetInstance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetInstances.totalCount}
-				getKey={(assetInstance) => assetInstance[EntityMetaKey.SelectorKey]}
-				items={uniqueAssetInstances}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Asset instances yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: assetInstance })}
-					{@const assetInstanceFields = { ...assetInstance[EntityMetaKey.Selector], ...assetInstance }}
-					{@const selection = select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const assetInstanceHrefFields = { ...assetInstance, ...assetInstance[EntityMetaKey.Selector] }}
-					<AssetInstanceView
-						selection={selection}
-						prefetched={assetInstanceFields}
-						href={
-							(assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(assetInstanceHrefFields.kind ?? ''),
-								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
-								network: String(caip2StringFromValue(assetInstanceHrefFields.$network.caip2) ?? ''),
-							}) : assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(assetInstanceHrefFields.kind ?? ''),
-								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
-								network: String(assetInstanceHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AssetInstance}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: assetInstance })}
+		{@const assetInstanceFields = { ...assetInstance[EntityMetaKey.Selector], ...assetInstance }}
+		{@const selection = select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const assetInstanceHrefFields = { ...assetInstance, ...assetInstance[EntityMetaKey.Selector] }}
+		<AssetInstanceView
+			selection={selection}
+			prefetched={assetInstanceFields}
+			href={
+				(assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+					kind: String(assetInstanceHrefFields.kind ?? ''),
+					assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
+					network: String(caip2StringFromValue(assetInstanceHrefFields.$network.caip2) ?? ''),
+				}) : assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+					kind: String(assetInstanceHrefFields.kind ?? ''),
+					assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
+					network: String(assetInstanceHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

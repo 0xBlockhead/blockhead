@@ -8,7 +8,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -51,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 </script>
@@ -63,86 +61,50 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					displayName: true,
-					pubkey: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrProfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrProfile}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				displayName: true,
+				pubkey: true,
+			},
+		})
+	}
+	getResourceItems={(nostrProfiles) => [...new Map(nostrProfiles.values.map((nostrProfile) => [nostrProfile[EntityMetaKey.SelectorKey], nostrProfile])).values()]}
+	getKey={(nostrProfile) => nostrProfile[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr profiles yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrProfiles)}
-			{@const uniqueNostrProfiles = [...new Map(nostrProfiles.values.map((nostrProfile) => [nostrProfile[EntityMetaKey.SelectorKey], nostrProfile])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrProfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrProfiles.totalCount}
-				getKey={(nostrProfile) => nostrProfile[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrProfiles}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr profiles yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrProfile })}
-					{@const nostrProfileFields = { ...nostrProfile[EntityMetaKey.Selector], ...nostrProfile }}
-					{@const selection = select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const nostrProfileHrefFields = { ...nostrProfile, ...nostrProfile[EntityMetaKey.Selector] }}
-					<NostrProfileView
-						selection={selection}
-						prefetched={nostrProfileFields}
-						href={
-							(nostrProfileHrefFields.pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
-								pubkey: String(nostrProfileHrefFields.pubkey ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrProfile}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrProfile })}
+		{@const nostrProfileFields = { ...nostrProfile[EntityMetaKey.Selector], ...nostrProfile }}
+		{@const selection = select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const nostrProfileHrefFields = { ...nostrProfile, ...nostrProfile[EntityMetaKey.Selector] }}
+		<NostrProfileView
+			selection={selection}
+			prefetched={nostrProfileFields}
+			href={
+				(nostrProfileHrefFields.pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+					pubkey: String(nostrProfileHrefFields.pubkey ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

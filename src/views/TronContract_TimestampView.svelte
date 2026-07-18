@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronContractTimestamp = $derived(selection({}))
+	const tronContractTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tron contract timestamp')
 	const viewDomId = $derived('tron-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tronContractTimestamp}>
-			{#snippet Pending()}
-				{title || 'tron contract timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tronContractTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,27 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							compiler: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const compiler = pendingEntity.compiler}
-					{#if compiler !== undefined && compiler !== null}
-						<div>
-							<dt>Compiler</dt>
-							<dd>
-								{String((compiler) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const compiler = resolvedEntity.compiler}
@@ -189,27 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							verifyStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifyStatus = pendingEntity.verifyStatus}
-					{#if verifyStatus !== undefined && verifyStatus !== null}
-						<div>
-							<dt>Verify status</dt>
-							<dd>
-								{String((verifyStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifyStatus = resolvedEntity.verifyStatus}
@@ -227,27 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							isProxy: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isProxy = pendingEntity.isProxy}
-					{#if isProxy !== undefined && isProxy !== null}
-						<div>
-							<dt>Proxy</dt>
-							<dd>
-								{isProxy ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isProxy = resolvedEntity.isProxy}
@@ -271,8 +219,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tronContract)}
 					{#if tronContract != null && tronContract[EntityMetaKey.Selector] != null}
 						<div>

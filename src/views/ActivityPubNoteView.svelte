@@ -9,7 +9,8 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { stringify } from 'devalue'
+	import { htmlToPlainText } from '$/lib/html.ts'
 
 
 	// Context
@@ -42,30 +43,34 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	let revealedContentWarningSelectorKey = $state<string>()
+	const contentWarningSelectorKey = $derived(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector]))
 	const activityPubNote = $derived(selection({
-		sources: [
-			Source.Mastodon_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			content: true,
 			createdAt: true,
 			statusUrl: true,
+			sensitive: true,
+			spoilerText: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note')
+	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.spoilerText ?? '').trim() !== '' ? [String(pendingEntity.spoilerText ?? '').trim() || 'Sensitive content', [String((pendingEntity.activityStreamsUri) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [pendingEntity.content == null ? '' : String((htmlToPlainText((pendingEntity.content))) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'))
 	const viewDomId = $derived('activity-pub-note-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
-	import MediaListView from '$/views/MediaListView.svelte'
 	import ActivityPubNote_TimestampsView from '$/views/ActivityPubNote_TimestampsView.svelte'
+	import MediaListView from '$/views/MediaListView.svelte'
 </script>
 
 
@@ -76,7 +81,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-			instanceOrigin: String(pendingEntity.instanceOrigin ?? ''),
+			instanceOrigin: encodeURIComponent(String(pendingEntity.instanceOrigin ?? '')),
 			localStatusId: String(pendingEntity.localStatusId ?? ''),
 		}) : undefined)
 	}
@@ -85,29 +90,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={activityPubNote}>
-			{#snippet Pending()}
-				{[String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.content) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{(pendingEntity.sensitive === true || String(pendingEntity.spoilerText ?? '').trim() !== '' ? [String(pendingEntity.spoilerText ?? '').trim() || 'Sensitive content', [String((pendingEntity.activityStreamsUri) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [pendingEntity.content == null ? '' : String((htmlToPlainText((pendingEntity.content))) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
+		{:else}
+			<ResourceBoundary resource={activityPubNote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{(resolvedEntity.sensitive === true || String(resolvedEntity.spoilerText ?? '').trim() !== '' ? [String(resolvedEntity.spoilerText ?? '').trim() || 'Sensitive content', [String((resolvedEntity.activityStreamsUri) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [resolvedEntity.content == null ? '' : String((htmlToPlainText((resolvedEntity.content))) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={activityPubNote}>
-			{#snippet Pending()}
-				{[String((pendingEntity.createdAt) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{(pendingEntity.sensitive === true || String(pendingEntity.spoilerText ?? '').trim() !== '' ? [String(pendingEntity.spoilerText ?? '').trim() || 'Sensitive content', [String((pendingEntity.activityStreamsUri) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.createdAt) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || [pendingEntity.content == null ? '' : String((htmlToPlainText((pendingEntity.content))) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || titleFallback)}
+		{:else}
+			<ResourceBoundary resource={activityPubNote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{(resolvedEntity.sensitive === true || String(resolvedEntity.spoilerText ?? '').trim() !== '' ? [String(resolvedEntity.spoilerText ?? '').trim() || 'Sensitive content', [String((resolvedEntity.activityStreamsUri) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((resolvedEntity.createdAt) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || [resolvedEntity.content == null ? '' : String((htmlToPlainText((resolvedEntity.content))) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || titleFallback)}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet ContentWarningContent(content)}
+		{#if content !== undefined && content !== null && content !== ''}
+			<Markdown content={String(content)} mode="syndication" />
+		{/if}
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-activitypub-note-thread-sensitive-media'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'activitypub-note-media-sensitive-media',
+						label: 'Media',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-thread'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Thread and media</HeadingComponent>
+				</header>
 			{/snippet}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.createdAt) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.content) ?? ''), String((resolvedEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{#snippet SectionActivitypubNoteMediaSensitiveMedia({ id, label, open })}
+				<MediaListView
+					selection={selection.$$media}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					emptyText='No ActivityPub note media.'
+					open={open}
+					title={label}
+					id={`${id}-list`}
+				/>
 			{/snippet}
-		</ResourceBoundary>
+
+		</CollapsibleTabs>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -115,8 +163,6 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(activityPubActor)}
 					{#if activityPubActor != null && activityPubActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -127,7 +173,7 @@
 									prefetched={activityPubActor}
 									href={
 										(activityPubActor[EntityMetaKey.Selector].instanceOrigin !== undefined && activityPubActor[EntityMetaKey.Selector].localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-											instanceOrigin: String(activityPubActor[EntityMetaKey.Selector].instanceOrigin ?? ''),
+											instanceOrigin: encodeURIComponent(String(activityPubActor[EntityMetaKey.Selector].instanceOrigin ?? '')),
 											localAccountId: String(activityPubActor[EntityMetaKey.Selector].localAccountId ?? ''),
 										}) : undefined)
 									}
@@ -145,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -182,31 +217,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							statusUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const statusUrl = pendingEntity.statusUrl}
-					{#if statusUrl !== undefined && statusUrl !== null}
-						<div>
-							<dt>Status URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(statusUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(statusUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const statusUrl = resolvedEntity.statusUrl}
@@ -236,26 +253,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									activityStreamsUri: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const activityStreamsUri = pendingEntity.activityStreamsUri}
-							{#if activityStreamsUri !== undefined && activityStreamsUri !== null}
-								<svelte:element
-									this={'a'}
-									href={String(activityStreamsUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(activityStreamsUri)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const activityStreamsUri = resolvedEntity.activityStreamsUri}
@@ -278,8 +282,11 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						content: true,
+						sensitive: true,
+						spoilerText: true,
 					},
 				})
 			}
@@ -287,8 +294,25 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				{@const content = resolvedEntity.content}
-				{#if content !== undefined && content !== null && content !== ''}
-					<p data-text="long-text">{String((content) ?? '')}</p>
+				{@const contentWarningText = String(resolvedEntity.spoilerText ?? '').trim()}
+				{@const hasContentWarning = resolvedEntity.sensitive === true || String(resolvedEntity.spoilerText ?? '').trim() !== ''}
+				{#if hasContentWarning}
+					<Collapsible
+						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}
+						ontoggle={(event) => {
+							revealedContentWarningSelectorKey = event.currentTarget.open ? contentWarningSelectorKey : undefined
+						}}
+					>
+						{#snippet Summary()}
+							<header data-row="align-center gap-3 wrap">
+								<strong>{contentWarningText || 'Sensitive content'}</strong>
+								<span data-text="annotation">Show content</span>
+							</header>
+						{/snippet}
+						{@render ContentWarningContent(content)}
+					</Collapsible>
+				{:else}
+					{@render ContentWarningContent(content)}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -305,19 +329,12 @@
 							id: 'activitypub-note-thread-notes',
 							label: 'Thread',
 						},
-						{
-							id: 'activitypub-note-media',
-							label: 'Media',
-						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-thread'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Thread and media</HeadingComponent>
 					</header>
@@ -325,29 +342,19 @@
 
 				{#snippet SectionActivitypubNoteThreadNotes({ id, label, open })}
 					<ActivityPubNotesView
-						selection={
-							selection.$$thread({
-								count: true,
-							})
+						selection={selection.$$thread}
+						href={
+							(selection.entitySelector.instanceOrigin !== undefined && selection.entitySelector.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/thread', {
+								instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin ?? '')),
+								localStatusId: selection.entitySelector.localStatusId,
+							}) : undefined)
 						}
-						href={resolve('/activitypub/notes')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ActivityPub thread notes.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionActivitypubNoteMedia({ id, label, open })}
-					<MediaListView
-						selection={
-							selection.$$media({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No ActivityPub note media.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -369,11 +376,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -381,12 +385,12 @@
 
 				{#snippet SectionActivitypubNoteTimestamps({ id, label, open })}
 					<ActivityPubNote_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ActivityPub note observations yet.'
 						open={open}
 						title={label}

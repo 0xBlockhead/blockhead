@@ -110,11 +110,13 @@
 
 	<footer
 		data-sticky
-		data-row="align-center"
+		data-column="gap-2"
 	>
-		<ProfileSwitcher />
+		<div data-row="align-center">
+			<ProfileSwitcher />
 
-		<NetworkEnvironmentInput />
+			<NetworkEnvironmentInput />
+		</div>
 	</footer>
 </nav>
 

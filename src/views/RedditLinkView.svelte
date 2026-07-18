@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const redditLink = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			createdAt: true,
@@ -60,6 +58,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
+	import RedditLink_TimestampsView from '$/views/RedditLink_TimestampsView.svelte'
 	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
 </script>
 
@@ -71,7 +70,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
-			fullname: String(pendingEntity.fullname ?? ''),
+			fullname: encodeURIComponent(String(pendingEntity.fullname ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -79,39 +78,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={redditLink}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={redditLink}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={redditLink}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAt0 = pendingEntity.createdAt}
+			{#if createdAt0 !== undefined && createdAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={redditLink}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fullname: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fullname = pendingEntity.fullname}
-							{#if fullname !== undefined && fullname !== null}
-								<TruncatedValue value={String((fullname) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fullname = resolvedEntity.fullname}
@@ -149,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							title: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>Title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const title = resolvedEntity.title}
@@ -185,24 +167,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								selftext: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const selftext = pendingEntity.selftext}
-						{#if selftext !== undefined && selftext !== null}
-							<div>
-								<dt>Body</dt>
-								<dd>
-									<span data-text="long-text">{String((selftext) ?? '')}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const selftext = resolvedEntity.selftext}
@@ -222,24 +193,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								author: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const author = pendingEntity.author}
-						{#if author !== undefined && author !== null}
-							<div>
-								<dt>Author</dt>
-								<dd>
-									{String((author) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const author = resolvedEntity.author}
@@ -259,24 +219,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								createdAt: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const createdAt = pendingEntity.createdAt}
-						{#if createdAt !== undefined && createdAt !== null}
-							<div>
-								<dt>Created</dt>
-								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const createdAt = resolvedEntity.createdAt}
@@ -296,8 +245,6 @@
 				<ResourceBoundary
 					resource={selection.$subreddit}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(redditSubreddit)}
 						{#if redditSubreddit != null && redditSubreddit[EntityMetaKey.Selector] != null}
 							<div>
@@ -308,7 +255,7 @@
 										prefetched={redditSubreddit}
 										href={
 											(redditSubreddit[EntityMetaKey.Selector].name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
-												name: String(redditSubreddit[EntityMetaKey.Selector].name ?? ''),
+												name: encodeURIComponent(String(redditSubreddit[EntityMetaKey.Selector].name ?? '')),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -325,31 +272,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								url: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const url = pendingEntity.url}
-						{#if url !== undefined && url !== null}
-							<div>
-								<dt>URL</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(url)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(url)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const url = resolvedEntity.url}
@@ -376,31 +305,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								permalink: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const permalink = pendingEntity.permalink}
-						{#if permalink !== undefined && permalink !== null}
-							<div>
-								<dt>Reddit permalink</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(permalink)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(permalink)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const permalink = resolvedEntity.permalink}
@@ -438,7 +349,30 @@
 						})
 					}
 				title='Comments'
+				href={
+						(selection.entitySelector.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]/comments', {
+							fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
+						}) : undefined)
+					}
 				id='RedditCommentsView-comments'
+			/>
+
+			<RedditLink_TimestampsView
+				selection={
+						selection.$$timestamps({
+							sources: [
+								Source.Reddit_PublicJson,
+							],
+							count: true,
+						})
+					}
+				title='Observations'
+				href={
+						(selection.entitySelector.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]/observations', {
+							fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
+						}) : undefined)
+					}
+				id='RedditLink_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

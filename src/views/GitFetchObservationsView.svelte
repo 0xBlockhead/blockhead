@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitFetchObservationView from '$/views/GitFetchObservationView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					remoteName: true,
-					status: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitFetchObservation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitFetchObservation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				remoteName: true,
+				status: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(gitFetchObservations) => [...new Map(gitFetchObservations.values.map((gitFetchObservation) => [gitFetchObservation[EntityMetaKey.SelectorKey], gitFetchObservation])).values()]}
+	getKey={(gitFetchObservation) => gitFetchObservation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git fetch observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitFetchObservations)}
-			{@const uniqueGitFetchObservations = [...new Map(gitFetchObservations.values.map((gitFetchObservation) => [gitFetchObservation[EntityMetaKey.SelectorKey], gitFetchObservation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitFetchObservation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitFetchObservations.totalCount}
-				getKey={(gitFetchObservation) => gitFetchObservation[EntityMetaKey.SelectorKey]}
-				items={uniqueGitFetchObservations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git fetch observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitFetchObservation })}
-					{@const gitFetchObservationFields = { ...gitFetchObservation[EntityMetaKey.Selector], ...gitFetchObservation }}
-					{@const selection = select(EntityType.GitFetchObservation, gitFetchObservation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitFetchObservationView
-						selection={selection}
-						prefetched={gitFetchObservationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitFetchObservation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitFetchObservation })}
+		{@const gitFetchObservationFields = { ...gitFetchObservation[EntityMetaKey.Selector], ...gitFetchObservation }}
+		{@const selection = select(EntityType.GitFetchObservation, gitFetchObservation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitFetchObservationView
+			selection={selection}
+			prefetched={gitFetchObservationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetNetwork_TimestampView from '$/views/StarknetNetwork_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-					timestampMs: true,
-					latestBlockNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+				timestampMs: true,
+				latestBlockNumber: true,
+			},
+		})
+	}
+	getResourceItems={(starknetNetworkTimestamps) => [...new Map(starknetNetworkTimestamps.values.map((starknetNetworkTimestamp) => [starknetNetworkTimestamp[EntityMetaKey.SelectorKey], starknetNetworkTimestamp])).values()]}
+	getKey={(starknetNetworkTimestamp) => starknetNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetNetworkTimestamps)}
-			{@const uniqueStarknetNetworkTimestamps = [...new Map(starknetNetworkTimestamps.values.map((starknetNetworkTimestamp) => [starknetNetworkTimestamp[EntityMetaKey.SelectorKey], starknetNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetNetworkTimestamps.totalCount}
-				getKey={(starknetNetworkTimestamp) => starknetNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetNetworkTimestamp })}
-					{@const starknetNetworkTimestampFields = { ...starknetNetworkTimestamp[EntityMetaKey.Selector], ...starknetNetworkTimestamp }}
-					{@const selection = select(EntityType.StarknetNetwork_Timestamp, starknetNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetNetwork_TimestampView
-						selection={selection}
-						prefetched={starknetNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetNetworkTimestamp })}
+		{@const starknetNetworkTimestampFields = { ...starknetNetworkTimestamp[EntityMetaKey.Selector], ...starknetNetworkTimestamp }}
+		{@const selection = select(EntityType.StarknetNetwork_Timestamp, starknetNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetNetwork_TimestampView
+			selection={selection}
+			prefetched={starknetNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const acpSession = $derived(selection({
-		sources: [
-			Source.AcpLocal_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			workspaceUri: true,
 		},
@@ -74,92 +71,96 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={acpSession}>
-			{#snippet Pending()}
-				{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'ACP session'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpSession}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$runtime}
-				>
-					{#snippet children(acpAgentRuntime)}
-						{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
-							<AcpAgentRuntimeView
-								selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-								prefetched={acpAgentRuntime}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$runtime}
-				>
-					{#snippet children(acpAgentRuntime)}
-						{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
-							<AcpAgentRuntimeView
-								selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-								prefetched={acpAgentRuntime}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$runtime}
+					>
+						{#snippet children(acpAgentRuntime)}
+							{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
+								<AcpAgentRuntimeView
+									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+									prefetched={acpAgentRuntime}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={acpSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$runtime}
+					>
+						{#snippet children(acpAgentRuntime)}
+							{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
+								<AcpAgentRuntimeView
+									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+									prefetched={acpAgentRuntime}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={acpSession}>
-			{#snippet Pending()}
-				{@const workspaceUri0 = pendingEntity.workspaceUri}
-				{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(workspaceUri0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(workspaceUri0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const workspaceUri0 = resolvedEntity.workspaceUri}
-				{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(workspaceUri0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(workspaceUri0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const workspaceUri0 = pendingEntity.workspaceUri}
+			{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
+				<span data-text="muted">
+					<svelte:element
+						this={'a'}
+						href={String(workspaceUri0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(workspaceUri0)} />
+					</svelte:element>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={acpSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const workspaceUri0 = resolvedEntity.workspaceUri}
+					{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
+						<span data-text="muted">
+							<svelte:element
+								this={'a'}
+								href={String(workspaceUri0)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(workspaceUri0)} />
+							</svelte:element>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -170,19 +171,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sessionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sessionId = pendingEntity.sessionId}
-							{#if sessionId !== undefined && sessionId !== null}
-								{String((sessionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sessionId = resolvedEntity.sessionId}
@@ -197,8 +192,6 @@
 			<ResourceBoundary
 				resource={selection.$runtime}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(acpAgentRuntime)}
 					{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
 						<div>
@@ -219,31 +212,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							workspaceUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const workspaceUri = pendingEntity.workspaceUri}
-					{#if workspaceUri !== undefined && workspaceUri !== null}
-						<div>
-							<dt>workspace URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(workspaceUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(workspaceUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const workspaceUri = resolvedEntity.workspaceUri}
@@ -268,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mode = pendingEntity.mode}
-					{#if mode !== undefined && mode !== null}
-						<div>
-							<dt>mode</dt>
-							<dd>
-								{String((mode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mode = resolvedEntity.mode}
@@ -303,24 +267,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listed = pendingEntity.listed}
-					{#if listed !== undefined && listed !== null}
-						<div>
-							<dt>listed</dt>
-							<dd>
-								{listed ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listed = resolvedEntity.listed}
@@ -338,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -373,24 +315,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							loadedFromSessionId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const loadedFromSessionId = pendingEntity.loadedFromSessionId}
-					{#if loadedFromSessionId !== undefined && loadedFromSessionId !== null}
-						<div>
-							<dt>loaded from session ID</dt>
-							<dd>
-								{String((loadedFromSessionId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const loadedFromSessionId = resolvedEntity.loadedFromSessionId}
@@ -410,24 +341,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -445,24 +365,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							closedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const closedAt = pendingEntity.closedAt}
-					{#if closedAt !== undefined && closedAt !== null}
-						<div>
-							<dt>closed AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(closedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const closedAt = resolvedEntity.closedAt}
@@ -480,24 +389,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deletedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deletedAt = pendingEntity.deletedAt}
-					{#if deletedAt !== undefined && deletedAt !== null}
-						<div>
-							<dt>deleted AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(deletedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deletedAt = resolvedEntity.deletedAt}

@@ -32,10 +32,6 @@
 			{ id: 'farcaster', label: 'Farcaster' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header

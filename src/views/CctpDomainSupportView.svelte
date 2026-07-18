@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,12 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cctpDomainSupport = $derived(selection({
-		sources: [
-			Source.CircleCctpContracts_Evm,
-			Source.CircleCctpContracts_Solana,
-			Source.CircleCctpContracts_Stellar,
-			Source.CircleCctp_IrisApi,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 		},
@@ -78,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cctpDomainSupport}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'CCTP domain support'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpDomainSupport}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cctpDomainSupport}>
-			{#snippet Pending()}
-				{[String((pendingEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'CCTP domain support'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpDomainSupport}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cctpDomainSupport}>
-			{#snippet Pending()}
-				{@const cctpVersion0 = pendingEntity.cctpVersion}
-				{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
-					<span data-text="muted">
-						{String((cctpVersion0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const cctpVersion0 = resolvedEntity.cctpVersion}
-				{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
-					<span data-text="muted">
-						{String((cctpVersion0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const cctpVersion0 = pendingEntity.cctpVersion}
+			{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
+				<span data-text="muted">
+					{String((cctpVersion0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cctpDomainSupport}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const cctpVersion0 = resolvedEntity.cctpVersion}
+					{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
+						<span data-text="muted">
+							{String((cctpVersion0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cctpVersion: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cctpVersion = pendingEntity.cctpVersion}
-							{#if cctpVersion !== undefined && cctpVersion !== null}
-								{String((cctpVersion) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cctpVersion = resolvedEntity.cctpVersion}
@@ -164,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									domainId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const domainId = pendingEntity.domainId}
-							{#if domainId !== undefined && domainId !== null}
-								{String((domainId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const domainId = resolvedEntity.domainId}
@@ -194,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -221,8 +197,6 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -252,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							standardTransferSource: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const standardTransferSource = pendingEntity.standardTransferSource}
-					{#if standardTransferSource !== undefined && standardTransferSource !== null}
-						<div>
-							<dt>Standard transfer source</dt>
-							<dd>
-								{standardTransferSource ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const standardTransferSource = resolvedEntity.standardTransferSource}
@@ -287,24 +250,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fastTransferSource: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fastTransferSource = pendingEntity.fastTransferSource}
-					{#if fastTransferSource !== undefined && fastTransferSource !== null}
-						<div>
-							<dt>Fast transfer source</dt>
-							<dd>
-								{fastTransferSource ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fastTransferSource = resolvedEntity.fastTransferSource}
@@ -322,24 +274,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							forwardingDestination: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const forwardingDestination = pendingEntity.forwardingDestination}
-					{#if forwardingDestination !== undefined && forwardingDestination !== null}
-						<div>
-							<dt>Forwarding destination</dt>
-							<dd>
-								{forwardingDestination ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const forwardingDestination = resolvedEntity.forwardingDestination}
@@ -360,19 +301,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									supportedTokens: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const supportedTokens = pendingEntity.supportedTokens}
-							{#if supportedTokens !== undefined && supportedTokens !== null}
-								{supportedTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const supportedTokens = resolvedEntity.supportedTokens}
@@ -389,24 +324,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenMessengerAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenMessengerAddress = pendingEntity.tokenMessengerAddress}
-					{#if tokenMessengerAddress !== undefined && tokenMessengerAddress !== null}
-						<div>
-							<dt>Token messenger address</dt>
-							<dd>
-								<TruncatedValue value={String((tokenMessengerAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenMessengerAddress = resolvedEntity.tokenMessengerAddress}
@@ -424,24 +348,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageTransmitterAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageTransmitterAddress = pendingEntity.messageTransmitterAddress}
-					{#if messageTransmitterAddress !== undefined && messageTransmitterAddress !== null}
-						<div>
-							<dt>Message transmitter address</dt>
-							<dd>
-								<TruncatedValue value={String((messageTransmitterAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageTransmitterAddress = resolvedEntity.messageTransmitterAddress}
@@ -459,24 +372,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenMinterAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenMinterAddress = pendingEntity.tokenMinterAddress}
-					{#if tokenMinterAddress !== undefined && tokenMinterAddress !== null}
-						<div>
-							<dt>Token minter address</dt>
-							<dd>
-								<TruncatedValue value={String((tokenMinterAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenMinterAddress = resolvedEntity.tokenMinterAddress}

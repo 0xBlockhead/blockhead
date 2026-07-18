@@ -17,7 +17,10 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.UtxoOutput, data.selector, {
+	const pageSelection = $derived(select(EntityType.UtxoOutput, {
+		$transaction: data.selector,
+		indexInTransaction: Number(params.outputIndex),
+	}, {
 		fields: {
 			$address: true,
 			isSpent: true,

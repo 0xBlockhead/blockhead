@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitCommitView from '$/views/GitCommitView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					message: true,
-					objectFormat: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitCommit}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitCommit}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				message: true,
+				objectFormat: true,
+			},
+		})
+	}
+	getResourceItems={(gitCommits) => [...new Map(gitCommits.values.map((gitCommit) => [gitCommit[EntityMetaKey.SelectorKey], gitCommit])).values()]}
+	getKey={(gitCommit) => gitCommit[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git commits yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitCommits)}
-			{@const uniqueGitCommits = [...new Map(gitCommits.values.map((gitCommit) => [gitCommit[EntityMetaKey.SelectorKey], gitCommit])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitCommit}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitCommits.totalCount}
-				getKey={(gitCommit) => gitCommit[EntityMetaKey.SelectorKey]}
-				items={uniqueGitCommits}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git commits yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitCommit })}
-					{@const gitCommitFields = { ...gitCommit[EntityMetaKey.Selector], ...gitCommit }}
-					{@const selection = select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitCommitView
-						selection={selection}
-						prefetched={gitCommitFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitCommit}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitCommit })}
+		{@const gitCommitFields = { ...gitCommit[EntityMetaKey.Selector], ...gitCommit }}
+		{@const selection = select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitCommitView
+			selection={selection}
+			prefetched={gitCommitFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

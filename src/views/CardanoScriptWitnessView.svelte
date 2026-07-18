@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoScriptWitness = $derived(selection({}))
+	const cardanoScriptWitness = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano script witness')
 	const viewDomId = $derived('cardano-script-witness-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoScriptWitness}>
-			{#snippet Pending()}
-				{title || 'Cardano script witness'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoScriptWitness}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									witnessIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const witnessIndex = pendingEntity.witnessIndex}
-							{#if witnessIndex !== undefined && witnessIndex !== null}
-								{String((witnessIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const witnessIndex = resolvedEntity.witnessIndex}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scriptKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scriptKind = pendingEntity.scriptKind}
-							{#if scriptKind !== undefined && scriptKind !== null}
-								{String((scriptKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scriptKind = resolvedEntity.scriptKind}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							language: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const language = pendingEntity.language}
-					{#if language !== undefined && language !== null}
-						<div>
-							<dt>language</dt>
-							<dd>
-								{String((language) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const language = resolvedEntity.language}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptHash = pendingEntity.scriptHash}
-					{#if scriptHash !== undefined && scriptHash !== null}
-						<div>
-							<dt>script hash</dt>
-							<dd>
-								<TruncatedValue value={String((scriptHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptHash = resolvedEntity.scriptHash}

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadStateChannelDeposit = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('blockhead state channel deposit')
 	const viewDomId = $derived('blockhead-state-channel-deposit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -73,118 +70,126 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadStateChannelDeposit}>
-			{#snippet Pending()}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$account.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadStateChannelDeposit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$account.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadStateChannelDeposit}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
-							href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								href={
 								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
 								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
-							href={
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadStateChannelDeposit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								href={
 								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
 								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadStateChannelDeposit}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
-						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
-						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<BlockheadStateChannelView
+					selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
+					href={
+						(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
+							channelId: String(selection.entitySelector.$channel.id ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={blockheadStateChannelDeposit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<BlockheadStateChannelView
+							selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
+							href={
+								(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
+									channelId: String(selection.entitySelector.$channel.id ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

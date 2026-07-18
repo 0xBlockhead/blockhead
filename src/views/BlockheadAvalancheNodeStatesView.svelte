@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAvalancheNodeStateView from '$/views/BlockheadAvalancheNodeStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					$network: true,
-					nodeIp: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAvalancheNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAvalancheNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				$network: true,
+				nodeIp: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAvalancheNodeStates) => [...new Map(blockheadAvalancheNodeStates.values.map((blockheadAvalancheNodeState) => [blockheadAvalancheNodeState[EntityMetaKey.SelectorKey], blockheadAvalancheNodeState])).values()]}
+	getKey={(blockheadAvalancheNodeState) => blockheadAvalancheNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead avalanche node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAvalancheNodeStates)}
-			{@const uniqueBlockheadAvalancheNodeStates = [...new Map(blockheadAvalancheNodeStates.values.map((blockheadAvalancheNodeState) => [blockheadAvalancheNodeState[EntityMetaKey.SelectorKey], blockheadAvalancheNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAvalancheNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAvalancheNodeStates.totalCount}
-				getKey={(blockheadAvalancheNodeState) => blockheadAvalancheNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAvalancheNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead avalanche node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAvalancheNodeState })}
-					{@const blockheadAvalancheNodeStateFields = { ...blockheadAvalancheNodeState[EntityMetaKey.Selector], ...blockheadAvalancheNodeState }}
-					{@const selection = select(EntityType.BlockheadAvalancheNodeState, blockheadAvalancheNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAvalancheNodeStateView
-						selection={selection}
-						prefetched={blockheadAvalancheNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAvalancheNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAvalancheNodeState })}
+		{@const blockheadAvalancheNodeStateFields = { ...blockheadAvalancheNodeState[EntityMetaKey.Selector], ...blockheadAvalancheNodeState }}
+		{@const selection = select(EntityType.BlockheadAvalancheNodeState, blockheadAvalancheNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAvalancheNodeStateView
+			selection={selection}
+			prefetched={blockheadAvalancheNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

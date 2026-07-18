@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PayoutView from '$/views/PayoutView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Payout}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Payout}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(payouts) => [...new Map(payouts.values.map((payout) => [payout[EntityMetaKey.SelectorKey], payout])).values()]}
+	getKey={(payout) => payout[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Payouts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(payouts)}
-			{@const uniquePayouts = [...new Map(payouts.values.map((payout) => [payout[EntityMetaKey.SelectorKey], payout])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Payout}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={payouts.totalCount}
-				getKey={(payout) => payout[EntityMetaKey.SelectorKey]}
-				items={uniquePayouts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Payouts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: payout })}
-					{@const payoutFields = { ...payout[EntityMetaKey.Selector], ...payout }}
-					{@const selection = select(EntityType.Payout, payout[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PayoutView
-						selection={selection}
-						prefetched={payoutFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Payout}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: payout })}
+		{@const payoutFields = { ...payout[EntityMetaKey.Selector], ...payout }}
+		{@const selection = select(EntityType.Payout, payout[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PayoutView
+			selection={selection}
+			prefetched={payoutFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

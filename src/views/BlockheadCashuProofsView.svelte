@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCashuProofView from '$/views/BlockheadCashuProofView.svelte'
 </script>
@@ -61,78 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					secretHash: true,
-					amount: true,
-					unit: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCashuProof}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				secretHash: true,
+				amount: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCashuProofs) => [...new Map(blockheadCashuProofs.values.map((blockheadCashuProof) => [blockheadCashuProof[EntityMetaKey.SelectorKey], blockheadCashuProof])).values()]}
+	getKey={(blockheadCashuProof) => blockheadCashuProof[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Cashu proofs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCashuProofs)}
-			{@const uniqueBlockheadCashuProofs = [...new Map(blockheadCashuProofs.values.map((blockheadCashuProof) => [blockheadCashuProof[EntityMetaKey.SelectorKey], blockheadCashuProof])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCashuProofs.totalCount}
-				getKey={(blockheadCashuProof) => blockheadCashuProof[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCashuProofs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Cashu proofs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCashuProof })}
-					{@const blockheadCashuProofFields = { ...blockheadCashuProof[EntityMetaKey.Selector], ...blockheadCashuProof }}
-					{@const selection = select(EntityType.BlockheadCashuProof, blockheadCashuProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCashuProofView
-						selection={selection}
-						prefetched={blockheadCashuProofFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCashuProof}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCashuProof })}
+		{@const blockheadCashuProofFields = { ...blockheadCashuProof[EntityMetaKey.Selector], ...blockheadCashuProof }}
+		{@const selection = select(EntityType.BlockheadCashuProof, blockheadCashuProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCashuProofView
+			selection={selection}
+			prefetched={blockheadCashuProofFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarTradeView from '$/views/StellarTradeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarTrade}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarTrades) => [...new Map(stellarTrades.values.map((stellarTrade) => [stellarTrade[EntityMetaKey.SelectorKey], stellarTrade])).values()]}
+	getKey={(stellarTrade) => stellarTrade[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar trades yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarTrades)}
-			{@const uniqueStellarTrades = [...new Map(stellarTrades.values.map((stellarTrade) => [stellarTrade[EntityMetaKey.SelectorKey], stellarTrade])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarTrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarTrades.totalCount}
-				getKey={(stellarTrade) => stellarTrade[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarTrades}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar trades yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarTrade })}
-					{@const stellarTradeFields = { ...stellarTrade[EntityMetaKey.Selector], ...stellarTrade }}
-					{@const selection = select(EntityType.StellarTrade, stellarTrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarTradeView
-						selection={selection}
-						prefetched={stellarTradeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarTrade}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarTrade })}
+		{@const stellarTradeFields = { ...stellarTrade[EntityMetaKey.Selector], ...stellarTrade }}
+		{@const selection = select(EntityType.StellarTrade, stellarTrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarTradeView
+			selection={selection}
+			prefetched={stellarTradeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

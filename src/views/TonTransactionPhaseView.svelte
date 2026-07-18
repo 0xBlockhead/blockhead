@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonTransactionPhase = $derived(selection({}))
+	const tonTransactionPhase = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON transaction phase')
 	const viewDomId = $derived('ton-transaction-phase-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonTransactionPhase}>
-			{#snippet Pending()}
-				{title || 'TON transaction phase'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonTransactionPhase}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									phaseKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const phaseKind = pendingEntity.phaseKind}
-							{#if phaseKind !== undefined && phaseKind !== null}
-								{String((phaseKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const phaseKind = resolvedEntity.phaseKind}
@@ -120,24 +116,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							success: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const success = pendingEntity.success}
-					{#if success !== undefined && success !== null}
-						<div>
-							<dt>success</dt>
-							<dd>
-								{success ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const success = resolvedEntity.success}
@@ -155,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							exitCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const exitCode = pendingEntity.exitCode}
-					{#if exitCode !== undefined && exitCode !== null}
-						<div>
-							<dt>exit code</dt>
-							<dd>
-								{String((exitCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const exitCode = resolvedEntity.exitCode}
@@ -190,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>gas used</dt>
-							<dd>
-								{String((gasUsed) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -225,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasFeesNano: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasFeesNano = pendingEntity.gasFeesNano}
-					{#if gasFeesNano !== undefined && gasFeesNano !== null}
-						<div>
-							<dt>gas fees nano</dt>
-							<dd>
-								{String((gasFeesNano) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasFeesNano = resolvedEntity.gasFeesNano}
@@ -260,24 +212,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							storageFeesNano: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const storageFeesNano = pendingEntity.storageFeesNano}
-					{#if storageFeesNano !== undefined && storageFeesNano !== null}
-						<div>
-							<dt>storage fees nano</dt>
-							<dd>
-								{String((storageFeesNano) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const storageFeesNano = resolvedEntity.storageFeesNano}
@@ -295,24 +236,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							actionResultCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const actionResultCode = pendingEntity.actionResultCode}
-					{#if actionResultCode !== undefined && actionResultCode !== null}
-						<div>
-							<dt>action result code</dt>
-							<dd>
-								{String((actionResultCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const actionResultCode = resolvedEntity.actionResultCode}
@@ -330,24 +260,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							skippedReason: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const skippedReason = pendingEntity.skippedReason}
-					{#if skippedReason !== undefined && skippedReason !== null}
-						<div>
-							<dt>skipped reason</dt>
-							<dd>
-								{String((skippedReason) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const skippedReason = resolvedEntity.skippedReason}

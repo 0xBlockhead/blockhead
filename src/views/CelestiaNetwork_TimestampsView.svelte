@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CelestiaNetwork_TimestampView from '$/views/CelestiaNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					latestHeight: true,
-					health: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CelestiaNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				latestHeight: true,
+				health: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(celestiaNetworkTimestamps) => [...new Map(celestiaNetworkTimestamps.values.map((celestiaNetworkTimestamp) => [celestiaNetworkTimestamp[EntityMetaKey.SelectorKey], celestiaNetworkTimestamp])).values()]}
+	getKey={(celestiaNetworkTimestamp) => celestiaNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Celestia network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(celestiaNetworkTimestamps)}
-			{@const uniqueCelestiaNetworkTimestamps = [...new Map(celestiaNetworkTimestamps.values.map((celestiaNetworkTimestamp) => [celestiaNetworkTimestamp[EntityMetaKey.SelectorKey], celestiaNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={celestiaNetworkTimestamps.totalCount}
-				getKey={(celestiaNetworkTimestamp) => celestiaNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCelestiaNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Celestia network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: celestiaNetworkTimestamp })}
-					{@const celestiaNetworkTimestampFields = { ...celestiaNetworkTimestamp[EntityMetaKey.Selector], ...celestiaNetworkTimestamp }}
-					{@const selection = select(EntityType.CelestiaNetwork_Timestamp, celestiaNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CelestiaNetwork_TimestampView
-						selection={selection}
-						prefetched={celestiaNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CelestiaNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: celestiaNetworkTimestamp })}
+		{@const celestiaNetworkTimestampFields = { ...celestiaNetworkTimestamp[EntityMetaKey.Selector], ...celestiaNetworkTimestamp }}
+		{@const selection = select(EntityType.CelestiaNetwork_Timestamp, celestiaNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CelestiaNetwork_TimestampView
+			selection={selection}
+			prefetched={celestiaNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

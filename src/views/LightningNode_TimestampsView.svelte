@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LightningNode_TimestampView from '$/views/LightningNode_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					alias: true,
-					timestampMs: true,
-					capacitySats: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LightningNode_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				alias: true,
+				timestampMs: true,
+				capacitySats: true,
+			},
+		})
+	}
+	getResourceItems={(lightningNodeTimestamps) => [...new Map(lightningNodeTimestamps.values.map((lightningNodeTimestamp) => [lightningNodeTimestamp[EntityMetaKey.SelectorKey], lightningNodeTimestamp])).values()]}
+	getKey={(lightningNodeTimestamp) => lightningNodeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning node observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lightningNodeTimestamps)}
-			{@const uniqueLightningNodeTimestamps = [...new Map(lightningNodeTimestamps.values.map((lightningNodeTimestamp) => [lightningNodeTimestamp[EntityMetaKey.SelectorKey], lightningNodeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningNodeTimestamps.totalCount}
-				getKey={(lightningNodeTimestamp) => lightningNodeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueLightningNodeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning node observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lightningNodeTimestamp })}
-					{@const lightningNodeTimestampFields = { ...lightningNodeTimestamp[EntityMetaKey.Selector], ...lightningNodeTimestamp }}
-					{@const selection = select(EntityType.LightningNode_Timestamp, lightningNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LightningNode_TimestampView
-						selection={selection}
-						prefetched={lightningNodeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LightningNode_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lightningNodeTimestamp })}
+		{@const lightningNodeTimestampFields = { ...lightningNodeTimestamp[EntityMetaKey.Selector], ...lightningNodeTimestamp }}
+		{@const selection = select(EntityType.LightningNode_Timestamp, lightningNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LightningNode_TimestampView
+			selection={selection}
+			prefetched={lightningNodeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

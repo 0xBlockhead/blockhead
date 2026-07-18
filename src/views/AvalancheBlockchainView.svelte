@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const avalancheBlockchain = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			chainName: true,
 			chainAlias: true,
@@ -72,29 +73,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={avalancheBlockchain}>
-			{#snippet Pending()}
-				{[String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.blockchainId) ?? '')].filter(Boolean).join(' ') || 'avalanche blockchain'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={avalancheBlockchain}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={avalancheBlockchain}>
-			{#snippet Pending()}
-				{[String((pendingEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.blockchainId) ?? '')].filter(Boolean).join(' ') || 'avalanche blockchain'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={avalancheBlockchain}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockchainId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockchainId = pendingEntity.blockchainId}
-							{#if blockchainId !== undefined && blockchainId !== null}
-								<TruncatedValue value={String((blockchainId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockchainId = resolvedEntity.blockchainId}
@@ -155,19 +150,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									vmId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const vmId = pendingEntity.vmId}
-							{#if vmId !== undefined && vmId !== null}
-								{String((vmId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const vmId = resolvedEntity.vmId}
@@ -182,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chainName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chainName = pendingEntity.chainName}
-					{#if chainName !== undefined && chainName !== null}
-						<div>
-							<dt>chain name</dt>
-							<dd>
-								{String((chainName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chainName = resolvedEntity.chainName}
@@ -217,24 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chainAlias: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chainAlias = pendingEntity.chainAlias}
-					{#if chainAlias !== undefined && chainAlias !== null}
-						<div>
-							<dt>chain alias</dt>
-							<dd>
-								{String((chainAlias) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chainAlias = resolvedEntity.chainAlias}
@@ -252,8 +219,6 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -283,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							genesisDataHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const genesisDataHash = pendingEntity.genesisDataHash}
-					{#if genesisDataHash !== undefined && genesisDataHash !== null}
-						<div>
-							<dt>genesis data hash</dt>
-							<dd>
-								<TruncatedValue value={String((genesisDataHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const genesisDataHash = resolvedEntity.genesisDataHash}
@@ -318,24 +272,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAtTxId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAtTxId = pendingEntity.createdAtTxId}
-					{#if createdAtTxId !== undefined && createdAtTxId !== null}
-						<div>
-							<dt>created AT transaction ID</dt>
-							<dd>
-								<TruncatedValue value={String((createdAtTxId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAtTxId = resolvedEntity.createdAtTxId}

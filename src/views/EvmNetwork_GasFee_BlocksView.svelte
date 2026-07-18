@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					blockNumber: true,
-					baseFeePerGas: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_GasFee_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetwork_GasFee_Block}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				blockNumber: true,
+				baseFeePerGas: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkGasFeeBlocks) => [...new Map(evmNetworkGasFeeBlocks.values.map((evmNetworkGasFeeBlock) => [evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey], evmNetworkGasFeeBlock])).values()]}
+	getKey={(evmNetworkGasFeeBlock) => evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network gas fee blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkGasFeeBlocks)}
-			{@const uniqueEvmNetworkGasFeeBlocks = [...new Map(evmNetworkGasFeeBlocks.values.map((evmNetworkGasFeeBlock) => [evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey], evmNetworkGasFeeBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_GasFee_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkGasFeeBlocks.totalCount}
-				getKey={(evmNetworkGasFeeBlock) => evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkGasFeeBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network gas fee blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkGasFeeBlock })}
-					{@const evmNetworkGasFeeBlockFields = { ...evmNetworkGasFeeBlock[EntityMetaKey.Selector], ...evmNetworkGasFeeBlock }}
-					{@const selection = select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmNetworkGasFeeBlockHrefFields = { ...evmNetworkGasFeeBlock, ...evmNetworkGasFeeBlock[EntityMetaKey.Selector] }}
-					<EvmNetwork_GasFee_BlockView
-						selection={selection}
-						prefetched={evmNetworkGasFeeBlockFields}
-						href={
-							(evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-								blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
-								network: String(caip2StringFromValue(evmNetworkGasFeeBlockHrefFields.$network.caip2) ?? ''),
-							}) : evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-								blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
-								network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetwork_GasFee_Block}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkGasFeeBlock })}
+		{@const evmNetworkGasFeeBlockFields = { ...evmNetworkGasFeeBlock[EntityMetaKey.Selector], ...evmNetworkGasFeeBlock }}
+		{@const selection = select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmNetworkGasFeeBlockHrefFields = { ...evmNetworkGasFeeBlock, ...evmNetworkGasFeeBlock[EntityMetaKey.Selector] }}
+		<EvmNetwork_GasFee_BlockView
+			selection={selection}
+			prefetched={evmNetworkGasFeeBlockFields}
+			href={
+				(evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+					blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
+					network: String(caip2StringFromValue(evmNetworkGasFeeBlockHrefFields.$network.caip2) ?? ''),
+				}) : evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+					blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
+					network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

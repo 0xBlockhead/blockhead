@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbValidatorView from '$/views/BnbValidatorView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					moniker: true,
-					consensusAddress: true,
-					operatorAddress: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				moniker: true,
+				consensusAddress: true,
+				operatorAddress: true,
+			},
+		})
+	}
+	getResourceItems={(bnbValidators) => [...new Map(bnbValidators.values.map((bnbValidator) => [bnbValidator[EntityMetaKey.SelectorKey], bnbValidator])).values()]}
+	getKey={(bnbValidator) => bnbValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbValidators)}
-			{@const uniqueBnbValidators = [...new Map(bnbValidators.values.map((bnbValidator) => [bnbValidator[EntityMetaKey.SelectorKey], bnbValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbValidators.totalCount}
-				getKey={(bnbValidator) => bnbValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbValidator })}
-					{@const bnbValidatorFields = { ...bnbValidator[EntityMetaKey.Selector], ...bnbValidator }}
-					{@const selection = select(EntityType.BnbValidator, bnbValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbValidatorView
-						selection={selection}
-						prefetched={bnbValidatorFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbValidator })}
+		{@const bnbValidatorFields = { ...bnbValidator[EntityMetaKey.Selector], ...bnbValidator }}
+		{@const selection = select(EntityType.BnbValidator, bnbValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbValidatorView
+			selection={selection}
+			prefetched={bnbValidatorFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

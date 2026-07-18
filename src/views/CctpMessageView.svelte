@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,12 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cctpMessage = $derived(selection({
-		sources: [
-			Source.CircleCctpContracts_Evm,
-			Source.CircleCctpContracts_Solana,
-			Source.CircleCctpContracts_Stellar,
-			Source.CircleCctp_IrisApi,
-		],
+		sources: selection.sources,
 		fields: {
 			messageHash: true,
 		},
@@ -77,52 +71,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cctpMessage}>
-			{#snippet Pending()}
-				{[String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpMessage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cctpMessage}>
-			{#snippet Pending()}
-				{[String((pendingEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpMessage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cctpMessage}>
-			{#snippet Pending()}
-				{@const messageHash0 = pendingEntity.messageHash}
-				{#if messageHash0 !== undefined && messageHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((messageHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const messageHash0 = resolvedEntity.messageHash}
-				{#if messageHash0 !== undefined && messageHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((messageHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const messageHash0 = pendingEntity.messageHash}
+			{#if messageHash0 !== undefined && messageHash0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((messageHash0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cctpMessage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const messageHash0 = resolvedEntity.messageHash}
+					{#if messageHash0 !== undefined && messageHash0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((messageHash0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,19 +127,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sourceDomain: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sourceDomain = pendingEntity.sourceDomain}
-							{#if sourceDomain !== undefined && sourceDomain !== null}
-								{String((sourceDomain) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sourceDomain = resolvedEntity.sourceDomain}
@@ -163,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nonce: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nonce = pendingEntity.nonce}
-							{#if nonce !== undefined && nonce !== null}
-								{String((nonce) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nonce = resolvedEntity.nonce}
@@ -190,24 +172,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cctpVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cctpVersion = pendingEntity.cctpVersion}
-					{#if cctpVersion !== undefined && cctpVersion !== null}
-						<div>
-							<dt>CCTP version</dt>
-							<dd>
-								{String((cctpVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cctpVersion = resolvedEntity.cctpVersion}
@@ -225,24 +196,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageHash = pendingEntity.messageHash}
-					{#if messageHash !== undefined && messageHash !== null}
-						<div>
-							<dt>Message hash</dt>
-							<dd>
-								<TruncatedValue value={String((messageHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageHash = resolvedEntity.messageHash}
@@ -260,24 +220,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageBytes = pendingEntity.messageBytes}
-					{#if messageBytes !== undefined && messageBytes !== null}
-						<div>
-							<dt>Message bytes</dt>
-							<dd>
-								{String((messageBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageBytes = resolvedEntity.messageBytes}
@@ -297,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceTransactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceTransactionHash = pendingEntity.sourceTransactionHash}
-					{#if sourceTransactionHash !== undefined && sourceTransactionHash !== null}
-						<div>
-							<dt>Source transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((sourceTransactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceTransactionHash = resolvedEntity.sourceTransactionHash}
@@ -332,24 +270,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceLogIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceLogIndex = pendingEntity.sourceLogIndex}
-					{#if sourceLogIndex !== undefined && sourceLogIndex !== null}
-						<div>
-							<dt>Source log index</dt>
-							<dd>
-								{String((sourceLogIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceLogIndex = resolvedEntity.sourceLogIndex}
@@ -367,8 +294,6 @@
 			<ResourceBoundary
 				resource={selection.$sourceDomain}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
 						<div>
@@ -389,8 +314,6 @@
 			<ResourceBoundary
 				resource={selection.$destinationDomain}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
 						<div>
@@ -411,24 +334,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							destinationDomain: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const destinationDomain = pendingEntity.destinationDomain}
-					{#if destinationDomain !== undefined && destinationDomain !== null}
-						<div>
-							<dt>Destination domain</dt>
-							<dd>
-								{String((destinationDomain) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const destinationDomain = resolvedEntity.destinationDomain}
@@ -448,24 +360,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sender: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sender = pendingEntity.sender}
-					{#if sender !== undefined && sender !== null}
-						<div>
-							<dt>Sender</dt>
-							<dd>
-								{String((sender) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sender = resolvedEntity.sender}
@@ -483,24 +384,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							recipient: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const recipient = pendingEntity.recipient}
-					{#if recipient !== undefined && recipient !== null}
-						<div>
-							<dt>Recipient</dt>
-							<dd>
-								{String((recipient) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const recipient = resolvedEntity.recipient}
@@ -518,24 +408,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							destinationCaller: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const destinationCaller = pendingEntity.destinationCaller}
-					{#if destinationCaller !== undefined && destinationCaller !== null}
-						<div>
-							<dt>Destination caller</dt>
-							<dd>
-								{String((destinationCaller) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const destinationCaller = resolvedEntity.destinationCaller}
@@ -553,24 +432,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							burnToken: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const burnToken = pendingEntity.burnToken}
-					{#if burnToken !== undefined && burnToken !== null}
-						<div>
-							<dt>Burn token</dt>
-							<dd>
-								{String((burnToken) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const burnToken = resolvedEntity.burnToken}
@@ -588,24 +456,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mintRecipient: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mintRecipient = pendingEntity.mintRecipient}
-					{#if mintRecipient !== undefined && mintRecipient !== null}
-						<div>
-							<dt>Mint recipient</dt>
-							<dd>
-								{String((mintRecipient) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mintRecipient = resolvedEntity.mintRecipient}
@@ -625,24 +482,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amount = pendingEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>Amount</dt>
-							<dd>
-								<NumberValue value={Number(amount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amount = resolvedEntity.amount}
@@ -650,7 +496,9 @@
 						<div>
 							<dt>Amount</dt>
 							<dd>
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -660,24 +508,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageSender: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageSender = pendingEntity.messageSender}
-					{#if messageSender !== undefined && messageSender !== null}
-						<div>
-							<dt>Message sender</dt>
-							<dd>
-								{String((messageSender) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageSender = resolvedEntity.messageSender}
@@ -695,24 +532,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxFee: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxFee = pendingEntity.maxFee}
-					{#if maxFee !== undefined && maxFee !== null}
-						<div>
-							<dt>Max fee</dt>
-							<dd>
-								<NumberValue value={Number(maxFee)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxFee = resolvedEntity.maxFee}
@@ -720,7 +546,9 @@
 						<div>
 							<dt>Max fee</dt>
 							<dd>
-								<NumberValue value={Number(maxFee)} />
+								<NumberValue
+									value={maxFee}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -730,24 +558,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feeExecuted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeExecuted = pendingEntity.feeExecuted}
-					{#if feeExecuted !== undefined && feeExecuted !== null}
-						<div>
-							<dt>Fee executed</dt>
-							<dd>
-								<NumberValue value={Number(feeExecuted)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeExecuted = resolvedEntity.feeExecuted}
@@ -755,7 +572,9 @@
 						<div>
 							<dt>Fee executed</dt>
 							<dd>
-								<NumberValue value={Number(feeExecuted)} />
+								<NumberValue
+									value={feeExecuted}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -765,24 +584,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expirationBlock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expirationBlock = pendingEntity.expirationBlock}
-					{#if expirationBlock !== undefined && expirationBlock !== null}
-						<div>
-							<dt>Expiration block</dt>
-							<dd>
-								<NumberValue value={Number(expirationBlock)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expirationBlock = resolvedEntity.expirationBlock}
@@ -790,7 +598,9 @@
 						<div>
 							<dt>Expiration block</dt>
 							<dd>
-								<NumberValue value={Number(expirationBlock)} />
+								<NumberValue
+									value={expirationBlock}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -802,24 +612,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hookData: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hookData = pendingEntity.hookData}
-					{#if hookData !== undefined && hookData !== null}
-						<div>
-							<dt>Hook data</dt>
-							<dd>
-								{String((hookData) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hookData = resolvedEntity.hookData}
@@ -837,24 +636,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minFinalityThreshold: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minFinalityThreshold = pendingEntity.minFinalityThreshold}
-					{#if minFinalityThreshold !== undefined && minFinalityThreshold !== null}
-						<div>
-							<dt>Minimum finality threshold</dt>
-							<dd>
-								{String((minFinalityThreshold) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minFinalityThreshold = resolvedEntity.minFinalityThreshold}
@@ -872,24 +660,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							finalityThresholdExecuted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const finalityThresholdExecuted = pendingEntity.finalityThresholdExecuted}
-					{#if finalityThresholdExecuted !== undefined && finalityThresholdExecuted !== null}
-						<div>
-							<dt>Finality threshold executed</dt>
-							<dd>
-								{String((finalityThresholdExecuted) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const finalityThresholdExecuted = resolvedEntity.finalityThresholdExecuted}

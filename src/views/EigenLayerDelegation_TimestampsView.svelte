@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EigenLayerDelegation_TimestampView from '$/views/EigenLayerDelegation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$staker: true,
-					$operator: true,
-					$strategy: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerDelegation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EigenLayerDelegation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$staker: true,
+				$operator: true,
+				$strategy: true,
+			},
+		})
+	}
+	getResourceItems={(eigenLayerDelegationTimestamps) => [...new Map(eigenLayerDelegationTimestamps.values.map((eigenLayerDelegationTimestamp) => [eigenLayerDelegationTimestamp[EntityMetaKey.SelectorKey], eigenLayerDelegationTimestamp])).values()]}
+	getKey={(eigenLayerDelegationTimestamp) => eigenLayerDelegationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Eigen layer delegation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eigenLayerDelegationTimestamps)}
-			{@const uniqueEigenLayerDelegationTimestamps = [...new Map(eigenLayerDelegationTimestamps.values.map((eigenLayerDelegationTimestamp) => [eigenLayerDelegationTimestamp[EntityMetaKey.SelectorKey], eigenLayerDelegationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerDelegation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eigenLayerDelegationTimestamps.totalCount}
-				getKey={(eigenLayerDelegationTimestamp) => eigenLayerDelegationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEigenLayerDelegationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Eigen layer delegation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eigenLayerDelegationTimestamp })}
-					{@const eigenLayerDelegationTimestampFields = { ...eigenLayerDelegationTimestamp[EntityMetaKey.Selector], ...eigenLayerDelegationTimestamp }}
-					{@const selection = select(EntityType.EigenLayerDelegation_Timestamp, eigenLayerDelegationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EigenLayerDelegation_TimestampView
-						selection={selection}
-						prefetched={eigenLayerDelegationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EigenLayerDelegation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eigenLayerDelegationTimestamp })}
+		{@const eigenLayerDelegationTimestampFields = { ...eigenLayerDelegationTimestamp[EntityMetaKey.Selector], ...eigenLayerDelegationTimestamp }}
+		{@const selection = select(EntityType.EigenLayerDelegation_Timestamp, eigenLayerDelegationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EigenLayerDelegation_TimestampView
+			selection={selection}
+			prefetched={eigenLayerDelegationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadIntentQuote_TimestampView from '$/views/BlockheadIntentQuote_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					quoteId: true,
-					timestampMs: true,
-					source: true,
-					solverId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadIntentQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadIntentQuote_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				quoteId: true,
+				timestampMs: true,
+				source: true,
+				solverId: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadIntentQuoteTimestamps) => [...new Map(blockheadIntentQuoteTimestamps.values.map((blockheadIntentQuoteTimestamp) => [blockheadIntentQuoteTimestamp[EntityMetaKey.SelectorKey], blockheadIntentQuoteTimestamp])).values()]}
+	getKey={(blockheadIntentQuoteTimestamp) => blockheadIntentQuoteTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead intent quote observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadIntentQuoteTimestamps)}
-			{@const uniqueBlockheadIntentQuoteTimestamps = [...new Map(blockheadIntentQuoteTimestamps.values.map((blockheadIntentQuoteTimestamp) => [blockheadIntentQuoteTimestamp[EntityMetaKey.SelectorKey], blockheadIntentQuoteTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadIntentQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadIntentQuoteTimestamps.totalCount}
-				getKey={(blockheadIntentQuoteTimestamp) => blockheadIntentQuoteTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadIntentQuoteTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead intent quote observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadIntentQuoteTimestamp })}
-					{@const blockheadIntentQuoteTimestampFields = { ...blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], ...blockheadIntentQuoteTimestamp }}
-					{@const selection = select(EntityType.BlockheadIntentQuote_Timestamp, blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadIntentQuote_TimestampView
-						selection={selection}
-						prefetched={blockheadIntentQuoteTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadIntentQuote_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadIntentQuoteTimestamp })}
+		{@const blockheadIntentQuoteTimestampFields = { ...blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], ...blockheadIntentQuoteTimestamp }}
+		{@const selection = select(EntityType.BlockheadIntentQuote_Timestamp, blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadIntentQuote_TimestampView
+			selection={selection}
+			prefetched={blockheadIntentQuoteTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

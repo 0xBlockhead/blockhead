@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoScriptWitnessView from '$/views/CardanoScriptWitnessView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoScriptWitness}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoScriptWitness}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoScriptWitnesses) => [...new Map(cardanoScriptWitnesses.values.map((cardanoScriptWitness) => [cardanoScriptWitness[EntityMetaKey.SelectorKey], cardanoScriptWitness])).values()]}
+	getKey={(cardanoScriptWitness) => cardanoScriptWitness[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano script witnesses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoScriptWitnesses)}
-			{@const uniqueCardanoScriptWitnesses = [...new Map(cardanoScriptWitnesses.values.map((cardanoScriptWitness) => [cardanoScriptWitness[EntityMetaKey.SelectorKey], cardanoScriptWitness])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoScriptWitness}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoScriptWitnesses.totalCount}
-				getKey={(cardanoScriptWitness) => cardanoScriptWitness[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoScriptWitnesses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano script witnesses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoScriptWitness })}
-					{@const cardanoScriptWitnessFields = { ...cardanoScriptWitness[EntityMetaKey.Selector], ...cardanoScriptWitness }}
-					{@const selection = select(EntityType.CardanoScriptWitness, cardanoScriptWitness[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoScriptWitnessView
-						selection={selection}
-						prefetched={cardanoScriptWitnessFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoScriptWitness}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoScriptWitness })}
+		{@const cardanoScriptWitnessFields = { ...cardanoScriptWitness[EntityMetaKey.Selector], ...cardanoScriptWitness }}
+		{@const selection = select(EntityType.CardanoScriptWitness, cardanoScriptWitness[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoScriptWitnessView
+			selection={selection}
+			prefetched={cardanoScriptWitnessFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

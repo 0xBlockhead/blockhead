@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandAccount_TimestampView from '$/views/AlgorandAccount_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandAccountTimestamps) => [...new Map(algorandAccountTimestamps.values.map((algorandAccountTimestamp) => [algorandAccountTimestamp[EntityMetaKey.SelectorKey], algorandAccountTimestamp])).values()]}
+	getKey={(algorandAccountTimestamp) => algorandAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandAccountTimestamps)}
-			{@const uniqueAlgorandAccountTimestamps = [...new Map(algorandAccountTimestamps.values.map((algorandAccountTimestamp) => [algorandAccountTimestamp[EntityMetaKey.SelectorKey], algorandAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandAccountTimestamps.totalCount}
-				getKey={(algorandAccountTimestamp) => algorandAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandAccountTimestamp })}
-					{@const algorandAccountTimestampFields = { ...algorandAccountTimestamp[EntityMetaKey.Selector], ...algorandAccountTimestamp }}
-					{@const selection = select(EntityType.AlgorandAccount_Timestamp, algorandAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandAccount_TimestampView
-						selection={selection}
-						prefetched={algorandAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandAccountTimestamp })}
+		{@const algorandAccountTimestampFields = { ...algorandAccountTimestamp[EntityMetaKey.Selector], ...algorandAccountTimestamp }}
+		{@const selection = select(EntityType.AlgorandAccount_Timestamp, algorandAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandAccount_TimestampView
+			selection={selection}
+			prefetched={algorandAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

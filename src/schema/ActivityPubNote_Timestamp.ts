@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum ActivityPubNote_TimestampSelector {
-	ActivityPubNoteTimestampMs = 'ActivityPubNoteTimestampMs',
+	ActivityPubNoteTimestampMsSource = 'ActivityPubNoteTimestampMsSource',
 }
 export const ActivityPubNote_Timestamp = entity({
 	entityType: EntityType.ActivityPubNote_Timestamp,
@@ -25,6 +25,13 @@ export const ActivityPubNote_Timestamp = entity({
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
 		primitiveType: (type('number.integer >= 0')),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	favouriteCount: {
@@ -47,9 +54,10 @@ export const ActivityPubNote_Timestamp = entity({
 	},
 })({
 	selectors: {
-		ActivityPubNoteTimestampMs: [
+		ActivityPubNoteTimestampMsSource: [
 			'$note',
 			'timestampMs',
+			'source',
 		],
 	},
 })

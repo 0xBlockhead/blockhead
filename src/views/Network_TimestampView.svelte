@@ -44,7 +44,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const networkTimestamp = $derived(selection({}))
+	const networkTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp')
 	const viewDomId = $derived('network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -79,35 +81,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={networkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={networkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={networkTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={networkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -142,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -172,19 +168,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -202,19 +192,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerModels: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerModels = pendingEntity.ledgerModels}
-							{#if ledgerModels !== undefined && ledgerModels !== null}
-								{ledgerModels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerModels = resolvedEntity.ledgerModels}
@@ -232,19 +216,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									executionModels: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const executionModels = pendingEntity.executionModels}
-							{#if executionModels !== undefined && executionModels !== null}
-								{executionModels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const executionModels = resolvedEntity.executionModels}
@@ -263,21 +241,16 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.latestBlockHeight({
-								fields: {
-									latestBlockHeight: true,
-								},
-							})
-						}
+						resource={projection.latestBlockHeight}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(latestBlockHeight)}
 							{#if latestBlockHeight !== undefined && latestBlockHeight !== null}
 								<div>
 									<dt>Latest block height</dt>
 									<dd>
-										<NumberValue value={Number(latestBlockHeight)} />
+										<NumberValue
+											value={latestBlockHeight}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -285,15 +258,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.latestBlockHash({
-								fields: {
-									latestBlockHash: true,
-								},
-							})
-						}
+						resource={projection.latestBlockHash}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(latestBlockHash)}
 							{#if latestBlockHash !== undefined && latestBlockHash !== null}
 								<div>
@@ -307,15 +273,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.latestBlockTimeMs({
-								fields: {
-									latestBlockTimeMs: true,
-								},
-							})
-						}
+						resource={projection.latestBlockTimeMs}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(latestBlockTimeMs)}
 							{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
 								<div>
@@ -329,21 +288,16 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.latestBlockTransactionCount({
-								fields: {
-									latestBlockTransactionCount: true,
-								},
-							})
-						}
+						resource={projection.latestBlockTransactionCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(latestBlockTransactionCount)}
 							{#if latestBlockTransactionCount !== undefined && latestBlockTransactionCount !== null}
 								<div>
 									<dt>Latest block transactions</dt>
 									<dd>
-										<NumberValue value={Number(latestBlockTransactionCount)} />
+										<NumberValue
+											value={latestBlockTransactionCount}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -359,15 +313,8 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.chainId({
-								fields: {
-									chainId: true,
-								},
-							})
-						}
+						resource={projection.chainId}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(chainId)}
 							{#if chainId !== undefined && chainId !== null}
 								<div>
@@ -381,15 +328,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.nodeNetwork({
-								fields: {
-									nodeNetwork: true,
-								},
-							})
-						}
+						resource={projection.nodeNetwork}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(nodeNetwork)}
 							{#if nodeNetwork !== undefined && nodeNetwork !== null}
 								<div>
@@ -403,15 +343,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.applicationName({
-								fields: {
-									applicationName: true,
-								},
-							})
-						}
+						resource={projection.applicationName}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(applicationName)}
 							{#if applicationName !== undefined && applicationName !== null}
 								<div>
@@ -425,15 +358,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.applicationVersion({
-								fields: {
-									applicationVersion: true,
-								},
-							})
-						}
+						resource={projection.applicationVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(applicationVersion)}
 							{#if applicationVersion !== undefined && applicationVersion !== null}
 								<div>
@@ -447,15 +373,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.cosmosSdkVersion({
-								fields: {
-									cosmosSdkVersion: true,
-								},
-							})
-						}
+						resource={projection.cosmosSdkVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(cosmosSdkVersion)}
 							{#if cosmosSdkVersion !== undefined && cosmosSdkVersion !== null}
 								<div>
@@ -469,15 +388,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.isSyncing({
-								fields: {
-									isSyncing: true,
-								},
-							})
-						}
+						resource={projection.isSyncing}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(isSyncing)}
 							{#if isSyncing !== undefined && isSyncing !== null}
 								<div>
@@ -491,15 +403,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.bondedValidatorCount({
-								fields: {
-									bondedValidatorCount: true,
-								},
-							})
-						}
+						resource={projection.bondedValidatorCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(bondedValidatorCount)}
 							{#if bondedValidatorCount !== undefined && bondedValidatorCount !== null}
 								<div>
@@ -513,15 +418,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.bondedTokens({
-								fields: {
-									bondedTokens: true,
-								},
-							})
-						}
+						resource={projection.bondedTokens}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(bondedTokens)}
 							{#if bondedTokens !== undefined && bondedTokens !== null}
 								<div>
@@ -535,15 +433,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.notBondedTokens({
-								fields: {
-									notBondedTokens: true,
-								},
-							})
-						}
+						resource={projection.notBondedTokens}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(notBondedTokens)}
 							{#if notBondedTokens !== undefined && notBondedTokens !== null}
 								<div>
@@ -565,21 +456,16 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.finalizedBlockNumber({
-								fields: {
-									finalizedBlockNumber: true,
-								},
-							})
-						}
+						resource={projection.finalizedBlockNumber}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(finalizedBlockNumber)}
 							{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
 								<div>
 									<dt>Finalized block number</dt>
 									<dd>
-										<NumberValue value={Number(finalizedBlockNumber)} />
+										<NumberValue
+											value={finalizedBlockNumber}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -587,15 +473,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.finalizedBlockHash({
-								fields: {
-									finalizedBlockHash: true,
-								},
-							})
-						}
+						resource={projection.finalizedBlockHash}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(finalizedBlockHash)}
 							{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
 								<div>
@@ -609,21 +488,16 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.finalizedExtrinsicCount({
-								fields: {
-									finalizedExtrinsicCount: true,
-								},
-							})
-						}
+						resource={projection.finalizedExtrinsicCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(finalizedExtrinsicCount)}
 							{#if finalizedExtrinsicCount !== undefined && finalizedExtrinsicCount !== null}
 								<div>
 									<dt>Finalized extrinsics</dt>
 									<dd>
-										<NumberValue value={Number(finalizedExtrinsicCount)} />
+										<NumberValue
+											value={finalizedExtrinsicCount}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -631,15 +505,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.runtimeSpecName({
-								fields: {
-									runtimeSpecName: true,
-								},
-							})
-						}
+						resource={projection.runtimeSpecName}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(runtimeSpecName)}
 							{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
 								<div>
@@ -653,15 +520,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.runtimeSpecVersion({
-								fields: {
-									runtimeSpecVersion: true,
-								},
-							})
-						}
+						resource={projection.runtimeSpecVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(runtimeSpecVersion)}
 							{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
 								<div>
@@ -675,15 +535,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.transactionVersion({
-								fields: {
-									transactionVersion: true,
-								},
-							})
-						}
+						resource={projection.transactionVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(transactionVersion)}
 							{#if transactionVersion !== undefined && transactionVersion !== null}
 								<div>
@@ -697,15 +550,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.stateVersion({
-								fields: {
-									stateVersion: true,
-								},
-							})
-						}
+						resource={projection.stateVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(stateVersion)}
 							{#if stateVersion !== undefined && stateVersion !== null}
 								<div>
@@ -719,15 +565,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.peerCount({
-								fields: {
-									peerCount: true,
-								},
-							})
-						}
+						resource={projection.peerCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(peerCount)}
 							{#if peerCount !== undefined && peerCount !== null}
 								<div>
@@ -741,15 +580,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.isSyncing({
-								fields: {
-									isSyncing: true,
-								},
-							})
-						}
+						resource={projection.isSyncing}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(isSyncing)}
 							{#if isSyncing !== undefined && isSyncing !== null}
 								<div>
@@ -763,15 +595,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.shouldHavePeers({
-								fields: {
-									shouldHavePeers: true,
-								},
-							})
-						}
+						resource={projection.shouldHavePeers}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(shouldHavePeers)}
 							{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
 								<div>
@@ -793,15 +618,8 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.health({
-								fields: {
-									health: true,
-								},
-							})
-						}
+						resource={projection.health}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(health)}
 							{#if health !== undefined && health !== null}
 								<div>
@@ -815,21 +633,16 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.absoluteSlot({
-								fields: {
-									absoluteSlot: true,
-								},
-							})
-						}
+						resource={projection.absoluteSlot}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(absoluteSlot)}
 							{#if absoluteSlot !== undefined && absoluteSlot !== null}
 								<div>
 									<dt>Absolute slot</dt>
 									<dd>
-										<NumberValue value={Number(absoluteSlot)} />
+										<NumberValue
+											value={absoluteSlot}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -837,21 +650,16 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.blockHeight({
-								fields: {
-									blockHeight: true,
-								},
-							})
-						}
+						resource={projection.blockHeight}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(blockHeight)}
 							{#if blockHeight !== undefined && blockHeight !== null}
 								<div>
 									<dt>Block height</dt>
 									<dd>
-										<NumberValue value={Number(blockHeight)} />
+										<NumberValue
+											value={blockHeight}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -859,15 +667,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.epoch({
-								fields: {
-									epoch: true,
-								},
-							})
-						}
+						resource={projection.epoch}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(epoch)}
 							{#if epoch !== undefined && epoch !== null}
 								<div>
@@ -881,15 +682,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.slotIndex({
-								fields: {
-									slotIndex: true,
-								},
-							})
-						}
+						resource={projection.slotIndex}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(slotIndex)}
 							{#if slotIndex !== undefined && slotIndex !== null}
 								<div>
@@ -903,15 +697,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.slotsInEpoch({
-								fields: {
-									slotsInEpoch: true,
-								},
-							})
-						}
+						resource={projection.slotsInEpoch}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(slotsInEpoch)}
 							{#if slotsInEpoch !== undefined && slotsInEpoch !== null}
 								<div>
@@ -925,21 +712,16 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.transactionCount({
-								fields: {
-									transactionCount: true,
-								},
-							})
-						}
+						resource={projection.transactionCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(transactionCount)}
 							{#if transactionCount !== undefined && transactionCount !== null}
 								<div>
 									<dt>Transaction count</dt>
 									<dd>
-										<NumberValue value={Number(transactionCount)} />
+										<NumberValue
+											value={transactionCount}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -947,15 +729,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.currentValidatorCount({
-								fields: {
-									currentValidatorCount: true,
-								},
-							})
-						}
+						resource={projection.currentValidatorCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(currentValidatorCount)}
 							{#if currentValidatorCount !== undefined && currentValidatorCount !== null}
 								<div>
@@ -969,15 +744,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.delinquentValidatorCount({
-								fields: {
-									delinquentValidatorCount: true,
-								},
-							})
-						}
+						resource={projection.delinquentValidatorCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(delinquentValidatorCount)}
 							{#if delinquentValidatorCount !== undefined && delinquentValidatorCount !== null}
 								<div>
@@ -991,15 +759,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.totalActivatedStakeLamports({
-								fields: {
-									totalActivatedStakeLamports: true,
-								},
-							})
-						}
+						resource={projection.totalActivatedStakeLamports}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(totalActivatedStakeLamports)}
 							{#if totalActivatedStakeLamports !== undefined && totalActivatedStakeLamports !== null}
 								<div>
@@ -1013,15 +774,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.solanaCoreVersion({
-								fields: {
-									solanaCoreVersion: true,
-								},
-							})
-						}
+						resource={projection.solanaCoreVersion}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(solanaCoreVersion)}
 							{#if solanaCoreVersion !== undefined && solanaCoreVersion !== null}
 								<div>
@@ -1035,15 +789,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.featureSet({
-								fields: {
-									featureSet: true,
-								},
-							})
-						}
+						resource={projection.featureSet}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(featureSet)}
 							{#if featureSet !== undefined && featureSet !== null}
 								<div>
@@ -1065,21 +812,16 @@
 			>
 				{#snippet Applicable(projection)}
 					<ResourceBoundary
-						resource={
-							projection.bestBlockHeight({
-								fields: {
-									bestBlockHeight: true,
-								},
-							})
-						}
+						resource={projection.bestBlockHeight}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(bestBlockHeight)}
 							{#if bestBlockHeight !== undefined && bestBlockHeight !== null}
 								<div>
 									<dt>Best block height</dt>
 									<dd>
-										<NumberValue value={Number(bestBlockHeight)} />
+										<NumberValue
+											value={bestBlockHeight}
+										/>
 									</dd>
 								</div>
 							{/if}
@@ -1087,15 +829,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.bestBlockHash({
-								fields: {
-									bestBlockHash: true,
-								},
-							})
-						}
+						resource={projection.bestBlockHash}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(bestBlockHash)}
 							{#if bestBlockHash !== undefined && bestBlockHash !== null}
 								<div>
@@ -1109,15 +844,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.bestBlockTimeMs({
-								fields: {
-									bestBlockTimeMs: true,
-								},
-							})
-						}
+						resource={projection.bestBlockTimeMs}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(bestBlockTimeMs)}
 							{#if bestBlockTimeMs !== undefined && bestBlockTimeMs !== null}
 								<div>
@@ -1131,15 +859,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.blockCount({
-								fields: {
-									blockCount: true,
-								},
-							})
-						}
+						resource={projection.blockCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(blockCount)}
 							{#if blockCount !== undefined && blockCount !== null}
 								<div>
@@ -1153,15 +874,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.transactionCount({
-								fields: {
-									transactionCount: true,
-								},
-							})
-						}
+						resource={projection.transactionCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(transactionCount)}
 							{#if transactionCount !== undefined && transactionCount !== null}
 								<div>
@@ -1175,15 +889,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.blocks24h({
-								fields: {
-									blocks24h: true,
-								},
-							})
-						}
+						resource={projection.blocks24h}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(blocks24h)}
 							{#if blocks24h !== undefined && blocks24h !== null}
 								<div>
@@ -1197,15 +904,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.transactions24h({
-								fields: {
-									transactions24h: true,
-								},
-							})
-						}
+						resource={projection.transactions24h}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(transactions24h)}
 							{#if transactions24h !== undefined && transactions24h !== null}
 								<div>
@@ -1219,15 +919,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.mempoolTransactionCount({
-								fields: {
-									mempoolTransactionCount: true,
-								},
-							})
-						}
+						resource={projection.mempoolTransactionCount}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(mempoolTransactionCount)}
 							{#if mempoolTransactionCount !== undefined && mempoolTransactionCount !== null}
 								<div>
@@ -1241,15 +934,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.mempoolSizeBytes({
-								fields: {
-									mempoolSizeBytes: true,
-								},
-							})
-						}
+						resource={projection.mempoolSizeBytes}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(mempoolSizeBytes)}
 							{#if mempoolSizeBytes !== undefined && mempoolSizeBytes !== null}
 								<div>
@@ -1263,15 +949,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.mempoolTps({
-								fields: {
-									mempoolTps: true,
-								},
-							})
-						}
+						resource={projection.mempoolTps}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(mempoolTps)}
 							{#if mempoolTps !== undefined && mempoolTps !== null}
 								<div>
@@ -1285,15 +964,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.averageTransactionFee24hSats({
-								fields: {
-									averageTransactionFee24hSats: true,
-								},
-							})
-						}
+						resource={projection.averageTransactionFee24hSats}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(averageTransactionFee24hSats)}
 							{#if averageTransactionFee24hSats !== undefined && averageTransactionFee24hSats !== null}
 								<div>
@@ -1307,15 +979,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.medianTransactionFee24hSats({
-								fields: {
-									medianTransactionFee24hSats: true,
-								},
-							})
-						}
+						resource={projection.medianTransactionFee24hSats}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(medianTransactionFee24hSats)}
 							{#if medianTransactionFee24hSats !== undefined && medianTransactionFee24hSats !== null}
 								<div>
@@ -1329,15 +994,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.suggestedTransactionFeePerByteSats({
-								fields: {
-									suggestedTransactionFeePerByteSats: true,
-								},
-							})
-						}
+						resource={projection.suggestedTransactionFeePerByteSats}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(suggestedTransactionFeePerByteSats)}
 							{#if suggestedTransactionFeePerByteSats !== undefined && suggestedTransactionFeePerByteSats !== null}
 								<div>
@@ -1351,15 +1009,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.blockchainSizeBytes({
-								fields: {
-									blockchainSizeBytes: true,
-								},
-							})
-						}
+						resource={projection.blockchainSizeBytes}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(blockchainSizeBytes)}
 							{#if blockchainSizeBytes !== undefined && blockchainSizeBytes !== null}
 								<div>

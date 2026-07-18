@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadTransferRequestView from '$/views/BlockheadTransferRequestView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					id: true,
-					status: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadTransferRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadTransferRequest}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				id: true,
+				status: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadTransferRequests) => [...new Map(blockheadTransferRequests.values.map((blockheadTransferRequest) => [blockheadTransferRequest[EntityMetaKey.SelectorKey], blockheadTransferRequest])).values()]}
+	getKey={(blockheadTransferRequest) => blockheadTransferRequest[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead transfer requests yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadTransferRequests)}
-			{@const uniqueBlockheadTransferRequests = [...new Map(blockheadTransferRequests.values.map((blockheadTransferRequest) => [blockheadTransferRequest[EntityMetaKey.SelectorKey], blockheadTransferRequest])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadTransferRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadTransferRequests.totalCount}
-				getKey={(blockheadTransferRequest) => blockheadTransferRequest[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadTransferRequests}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead transfer requests yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadTransferRequest })}
-					{@const blockheadTransferRequestFields = { ...blockheadTransferRequest[EntityMetaKey.Selector], ...blockheadTransferRequest }}
-					{@const selection = select(EntityType.BlockheadTransferRequest, blockheadTransferRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadTransferRequestView
-						selection={selection}
-						prefetched={blockheadTransferRequestFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadTransferRequest}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadTransferRequest })}
+		{@const blockheadTransferRequestFields = { ...blockheadTransferRequest[EntityMetaKey.Selector], ...blockheadTransferRequest }}
+		{@const selection = select(EntityType.BlockheadTransferRequest, blockheadTransferRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadTransferRequestView
+			selection={selection}
+			prefetched={blockheadTransferRequestFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

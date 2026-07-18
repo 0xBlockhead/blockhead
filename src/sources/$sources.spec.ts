@@ -39,7 +39,11 @@ import {
 	voltaireJsonRpcTransportsWithOriginsByChainId,
 	voltaireJsonRpcTransportWithOriginsByChainId,
 } from '$/sources/Voltaire/JsonRpc/queries.ts'
-import { SourceArtifactKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceArtifactKind,
+	SourceDelivery,
+	SourceEndpointKind,
+} from '$/sources/SourceBinding.ts'
 import {
 	zeroGMainnetRpcEndpoints,
 	zeroGOrigins as zeroGChainOrigins,
@@ -324,7 +328,7 @@ describe('source provider registry', () => {
 			if (!/\b(?:corsFetch|getJson|getText)\b/.test(source))
 				continue
 
-			for (const provider of source.matchAll(/\borigins:\s*([A-Za-z0-9_]+)\.origins\b/g))
+			for (const provider of source.matchAll(/\borigins:\s*([A-Z][A-Za-z0-9_]*)\.origins\b/g))
 				expect(providersWithOrigins, `${filePath}: ${provider[1]}.origins`).toContain(provider[1])
 
 			for (const origins of source.matchAll(/\borigins:\s*([A-Za-z0-9_]+Origins)\b/g))
@@ -479,8 +483,37 @@ describe('source provider registry', () => {
 			if (httpCandidate != null)
 				expect(voltaireJsonRpcTransportWithOriginsByChainId[chainId]).toEqual({
 					...httpCandidate,
+					binding: voltaireJsonRpcTransportsWithOriginsByChainId[chainId][0].binding,
 					origins: voltaireJsonRpcTransportsWithOriginsByChainId[chainId][0].origins,
 				})
+		}
+	})
+
+	it('keeps every Voltaire executable transport joined to its delivery binding', () => {
+		for (const transport of Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flat()) {
+			expect(transport.binding.target.key).toBe(String(transport.chainId))
+			expect(transport.binding.endpoints.some((endpoint) => (
+				endpoint.locator === transport.rpcUrl
+				&& endpoint.endpointKind === (
+					transport.transportType === TransportType.Http ?
+						SourceEndpointKind.HttpUrl
+					:
+						SourceEndpointKind.WebSocketUrl
+				)
+			))).toBe(true)
+			if (transport.transportType === TransportType.WebSocket)
+				expect(transport.binding.delivery).toBe(SourceDelivery.RemoteLive)
+			else {
+				const endpoint = transport.binding.endpoints.find((candidate) => (
+					candidate.endpointKind === SourceEndpointKind.HttpUrl
+					&& candidate.locator === transport.rpcUrl
+				))
+				expect(endpoint).toBeDefined()
+				if (endpoint?.corsEnabled !== true) {
+					expect(transport.binding.delivery).toBe(SourceDelivery.HttpProxy)
+					expect(transport.binding.proxyId).toBeTruthy()
+				}
+			}
 		}
 	})
 

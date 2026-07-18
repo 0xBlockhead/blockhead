@@ -32,10 +32,6 @@
 			{ id: 'agents', label: 'ERC-8004 Registrations' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -53,9 +49,12 @@
 					sources: [Source.Eip8004Scan_Rest],
 					limit: 100,
 				})}
-				id='agents'
-				open={true}
-				title='ERC-8004 Registrations'
+								id='agents'
+								open={true}
+								title='ERC-8004 Registrations'
+								data-column-item='flexible'
+								data-card
+								data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

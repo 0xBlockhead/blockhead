@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAiModelCatalog_TimestampView from '$/views/_GlobalAiModelCatalog_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAiModelCatalog_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAiModelCatalog_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(globalAiModelCatalogTimestamps) => [...new Map(globalAiModelCatalogTimestamps.values.map((globalAiModelCatalogTimestamp) => [globalAiModelCatalogTimestamp[EntityMetaKey.SelectorKey], globalAiModelCatalogTimestamp])).values()]}
+	getKey={(globalAiModelCatalogTimestamp) => globalAiModelCatalogTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global AI model catalog observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAiModelCatalogTimestamps)}
-			{@const uniqueGlobalAiModelCatalogTimestamps = [...new Map(globalAiModelCatalogTimestamps.values.map((globalAiModelCatalogTimestamp) => [globalAiModelCatalogTimestamp[EntityMetaKey.SelectorKey], globalAiModelCatalogTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAiModelCatalog_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAiModelCatalogTimestamps.totalCount}
-				getKey={(globalAiModelCatalogTimestamp) => globalAiModelCatalogTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAiModelCatalogTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global AI model catalog observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAiModelCatalogTimestamp })}
-					{@const globalAiModelCatalogTimestampFields = { ...globalAiModelCatalogTimestamp[EntityMetaKey.Selector], ...globalAiModelCatalogTimestamp }}
-					{@const selection = select(EntityType._GlobalAiModelCatalog_Timestamp, globalAiModelCatalogTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalAiModelCatalog_TimestampView
-						selection={selection}
-						prefetched={globalAiModelCatalogTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAiModelCatalog_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAiModelCatalogTimestamp })}
+		{@const globalAiModelCatalogTimestampFields = { ...globalAiModelCatalogTimestamp[EntityMetaKey.Selector], ...globalAiModelCatalogTimestamp }}
+		{@const selection = select(EntityType._GlobalAiModelCatalog_Timestamp, globalAiModelCatalogTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalAiModelCatalog_TimestampView
+			selection={selection}
+			prefetched={globalAiModelCatalogTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

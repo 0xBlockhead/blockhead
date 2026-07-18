@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosTransaction_TimestampView from '$/views/AptosTransaction_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					ledgerVersion: true,
-					success: true,
-					vmStatus: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosTransaction_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				ledgerVersion: true,
+				success: true,
+				vmStatus: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(aptosTransactionTimestamps) => [...new Map(aptosTransactionTimestamps.values.map((aptosTransactionTimestamp) => [aptosTransactionTimestamp[EntityMetaKey.SelectorKey], aptosTransactionTimestamp])).values()]}
+	getKey={(aptosTransactionTimestamp) => aptosTransactionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos transaction observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosTransactionTimestamps)}
-			{@const uniqueAptosTransactionTimestamps = [...new Map(aptosTransactionTimestamps.values.map((aptosTransactionTimestamp) => [aptosTransactionTimestamp[EntityMetaKey.SelectorKey], aptosTransactionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosTransactionTimestamps.totalCount}
-				getKey={(aptosTransactionTimestamp) => aptosTransactionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosTransactionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos transaction observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosTransactionTimestamp })}
-					{@const aptosTransactionTimestampFields = { ...aptosTransactionTimestamp[EntityMetaKey.Selector], ...aptosTransactionTimestamp }}
-					{@const selection = select(EntityType.AptosTransaction_Timestamp, aptosTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosTransaction_TimestampView
-						selection={selection}
-						prefetched={aptosTransactionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosTransaction_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosTransactionTimestamp })}
+		{@const aptosTransactionTimestampFields = { ...aptosTransactionTimestamp[EntityMetaKey.Selector], ...aptosTransactionTimestamp }}
+		{@const selection = select(EntityType.AptosTransaction_Timestamp, aptosTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosTransaction_TimestampView
+			selection={selection}
+			prefetched={aptosTransactionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

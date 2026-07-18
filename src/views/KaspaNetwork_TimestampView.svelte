@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,12 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaNetworkTimestamp = $derived(selection({
-		sources: [
-			Source.KaspaExplorer_Rest,
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Rest,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa network timestamp')
 	const viewDomId = $derived('kaspa-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -73,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaNetworkTimestamp}>
-			{#snippet Pending()}
-				{title || 'kaspa network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -134,19 +122,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -161,24 +143,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							virtualDaaScore: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const virtualDaaScore = pendingEntity.virtualDaaScore}
-					{#if virtualDaaScore !== undefined && virtualDaaScore !== null}
-						<div>
-							<dt>virtual daa score</dt>
-							<dd>
-								<NumberValue value={Number(virtualDaaScore)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const virtualDaaScore = resolvedEntity.virtualDaaScore}
@@ -186,7 +157,9 @@
 						<div>
 							<dt>virtual daa score</dt>
 							<dd>
-								<NumberValue value={Number(virtualDaaScore)} />
+								<NumberValue
+									value={virtualDaaScore}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -196,24 +169,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							virtualBlueScore: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const virtualBlueScore = pendingEntity.virtualBlueScore}
-					{#if virtualBlueScore !== undefined && virtualBlueScore !== null}
-						<div>
-							<dt>virtual blue score</dt>
-							<dd>
-								<NumberValue value={Number(virtualBlueScore)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const virtualBlueScore = resolvedEntity.virtualBlueScore}
@@ -221,7 +183,9 @@
 						<div>
 							<dt>virtual blue score</dt>
 							<dd>
-								<NumberValue value={Number(virtualBlueScore)} />
+								<NumberValue
+									value={virtualBlueScore}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -231,24 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							virtualSelectedParentHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const virtualSelectedParentHash = pendingEntity.virtualSelectedParentHash}
-					{#if virtualSelectedParentHash !== undefined && virtualSelectedParentHash !== null}
-						<div>
-							<dt>virtual selected parent hash</dt>
-							<dd>
-								<TruncatedValue value={String((virtualSelectedParentHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const virtualSelectedParentHash = resolvedEntity.virtualSelectedParentHash}
@@ -268,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pruningPointHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pruningPointHash = pendingEntity.pruningPointHash}
-					{#if pruningPointHash !== undefined && pruningPointHash !== null}
-						<div>
-							<dt>pruning point hash</dt>
-							<dd>
-								<TruncatedValue value={String((pruningPointHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pruningPointHash = resolvedEntity.pruningPointHash}
@@ -303,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sinkCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sinkCount = pendingEntity.sinkCount}
-					{#if sinkCount !== undefined && sinkCount !== null}
-						<div>
-							<dt>sink count</dt>
-							<dd>
-								<NumberValue value={Number(sinkCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sinkCount = resolvedEntity.sinkCount}
@@ -328,7 +259,9 @@
 						<div>
 							<dt>sink count</dt>
 							<dd>
-								<NumberValue value={Number(sinkCount)} />
+								<NumberValue
+									value={sinkCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -338,24 +271,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockCount = pendingEntity.blockCount}
-					{#if blockCount !== undefined && blockCount !== null}
-						<div>
-							<dt>block count</dt>
-							<dd>
-								<NumberValue value={Number(blockCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockCount = resolvedEntity.blockCount}
@@ -363,7 +285,9 @@
 						<div>
 							<dt>block count</dt>
 							<dd>
-								<NumberValue value={Number(blockCount)} />
+								<NumberValue
+									value={blockCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -373,24 +297,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>transaction count</dt>
-							<dd>
-								<NumberValue value={Number(transactionCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}
@@ -398,7 +311,9 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								<NumberValue value={Number(transactionCount)} />
+								<NumberValue
+									value={transactionCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -408,24 +323,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							difficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const difficulty = pendingEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
-						<div>
-							<dt>difficulty</dt>
-							<dd>
-								<NumberValue value={Number(difficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const difficulty = resolvedEntity.difficulty}
@@ -433,7 +337,9 @@
 						<div>
 							<dt>difficulty</dt>
 							<dd>
-								<NumberValue value={Number(difficulty)} />
+								<NumberValue
+									value={difficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -445,24 +351,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hasUtxoIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hasUtxoIndex = pendingEntity.hasUtxoIndex}
-					{#if hasUtxoIndex !== undefined && hasUtxoIndex !== null}
-						<div>
-							<dt>has UTXO index</dt>
-							<dd>
-								{hasUtxoIndex ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hasUtxoIndex = resolvedEntity.hasUtxoIndex}
@@ -480,24 +375,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							serverVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const serverVersion = pendingEntity.serverVersion}
-					{#if serverVersion !== undefined && serverVersion !== null}
-						<div>
-							<dt>server version</dt>
-							<dd>
-								{String((serverVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const serverVersion = resolvedEntity.serverVersion}

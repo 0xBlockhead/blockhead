@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandBoxView from '$/views/AlgorandBoxView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandBox}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandBox}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandBoxes) => [...new Map(algorandBoxes.values.map((algorandBox) => [algorandBox[EntityMetaKey.SelectorKey], algorandBox])).values()]}
+	getKey={(algorandBox) => algorandBox[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand boxes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandBoxes)}
-			{@const uniqueAlgorandBoxes = [...new Map(algorandBoxes.values.map((algorandBox) => [algorandBox[EntityMetaKey.SelectorKey], algorandBox])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandBox}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandBoxes.totalCount}
-				getKey={(algorandBox) => algorandBox[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandBoxes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand boxes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandBox })}
-					{@const algorandBoxFields = { ...algorandBox[EntityMetaKey.Selector], ...algorandBox }}
-					{@const selection = select(EntityType.AlgorandBox, algorandBox[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandBoxView
-						selection={selection}
-						prefetched={algorandBoxFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandBox}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandBox })}
+		{@const algorandBoxFields = { ...algorandBox[EntityMetaKey.Selector], ...algorandBox }}
+		{@const selection = select(EntityType.AlgorandBox, algorandBox[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandBoxView
+			selection={selection}
+			prefetched={algorandBoxFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

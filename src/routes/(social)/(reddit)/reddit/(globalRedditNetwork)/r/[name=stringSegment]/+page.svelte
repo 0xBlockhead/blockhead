@@ -21,6 +21,7 @@
 	const pageSelection = $derived(select(EntityType.RedditSubreddit, data.selector, {
 		sources: [
 			Source.Constants_Internal,
+			Source.Reddit_PublicJson,
 		],
 		fields: {
 			$icon: true,

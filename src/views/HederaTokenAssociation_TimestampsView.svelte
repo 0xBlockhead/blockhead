@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaTokenAssociation_TimestampView from '$/views/HederaTokenAssociation_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenAssociation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaTokenAssociation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaTokenAssociationTimestamps) => [...new Map(hederaTokenAssociationTimestamps.values.map((hederaTokenAssociationTimestamp) => [hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey], hederaTokenAssociationTimestamp])).values()]}
+	getKey={(hederaTokenAssociationTimestamp) => hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera token association observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaTokenAssociationTimestamps)}
-			{@const uniqueHederaTokenAssociationTimestamps = [...new Map(hederaTokenAssociationTimestamps.values.map((hederaTokenAssociationTimestamp) => [hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey], hederaTokenAssociationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenAssociation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaTokenAssociationTimestamps.totalCount}
-				getKey={(hederaTokenAssociationTimestamp) => hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaTokenAssociationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera token association observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaTokenAssociationTimestamp })}
-					{@const hederaTokenAssociationTimestampFields = { ...hederaTokenAssociationTimestamp[EntityMetaKey.Selector], ...hederaTokenAssociationTimestamp }}
-					{@const selection = select(EntityType.HederaTokenAssociation_Timestamp, hederaTokenAssociationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaTokenAssociation_TimestampView
-						selection={selection}
-						prefetched={hederaTokenAssociationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaTokenAssociation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaTokenAssociationTimestamp })}
+		{@const hederaTokenAssociationTimestampFields = { ...hederaTokenAssociationTimestamp[EntityMetaKey.Selector], ...hederaTokenAssociationTimestamp }}
+		{@const selection = select(EntityType.HederaTokenAssociation_Timestamp, hederaTokenAssociationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaTokenAssociation_TimestampView
+			selection={selection}
+			prefetched={hederaTokenAssociationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

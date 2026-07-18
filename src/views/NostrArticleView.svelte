@@ -9,6 +9,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -43,22 +44,25 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	let revealedContentWarningSelectorKey = $state<string>()
+	const contentWarningSelectorKey = $derived(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector]))
 	const nostrArticle = $derived(selection({
-		sources: [
-			Source.NostrBand_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			summary: true,
 			imageUrl: true,
 			publishedAt: true,
+			sensitive: true,
+			contentWarning: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
+	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((pendingEntity.kind) ?? ''), String((pendingEntity.pubkey) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article'))
 	const viewDomId = $derived('nostr-article-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -83,78 +87,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{(pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((pendingEntity.kind) ?? ''), String((pendingEntity.pubkey) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
+		{:else}
+			<ResourceBoundary resource={nostrArticle}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{(resolvedEntity.sensitive === true || String(resolvedEntity.contentWarning ?? '').trim() !== '' ? [String(resolvedEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((resolvedEntity.kind) ?? ''), String((resolvedEntity.pubkey) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((resolvedEntity.title) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet Pending()}
-				{@const identifier0 = pendingEntity.identifier}
-				{#if identifier0 !== undefined && identifier0 !== null}
-					<TruncatedValue value={String((identifier0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const identifier0 = resolvedEntity.identifier}
-				{#if identifier0 !== undefined && identifier0 !== null}
-					<TruncatedValue value={String((identifier0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{(pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((pendingEntity.kind) ?? ''), String((pendingEntity.pubkey) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || titleFallback)}
+		{:else}
+			<ResourceBoundary resource={nostrArticle}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{(resolvedEntity.sensitive === true || String(resolvedEntity.contentWarning ?? '').trim() !== '' ? [String(resolvedEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((resolvedEntity.kind) ?? ''), String((resolvedEntity.pubkey) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ') || titleFallback)}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet Pending()}
-				{@const publishedAt0 = pendingEntity.publishedAt}
-				{#if publishedAt0 !== undefined && publishedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAt0)} />
-					</span>
-				{/if}
-				{@const kind1 = pendingEntity.kind}
-				{#if kind1 !== undefined && kind1 !== null}
-					<span data-text="muted">
-						<span>kind </span>
-						{String((kind1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const publishedAt0 = resolvedEntity.publishedAt}
-				{#if publishedAt0 !== undefined && publishedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAt0)} />
-					</span>
-				{/if}
-				{@const kind1 = resolvedEntity.kind}
-				{#if kind1 !== undefined && kind1 !== null}
-					<span data-text="muted">
-						<span>kind </span>
-						{String((kind1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const publishedAt0 = pendingEntity.publishedAt}
+			{#if publishedAt0 !== undefined && publishedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(publishedAt0)} />
+				</span>
+			{/if}
+			{@const kind1 = pendingEntity.kind}
+			{#if kind1 !== undefined && kind1 !== null}
+				<span data-text="muted">
+					<span>kind </span>
+					{String((kind1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nostrArticle}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const publishedAt0 = resolvedEntity.publishedAt}
+					{#if publishedAt0 !== undefined && publishedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(publishedAt0)} />
+						</span>
+					{/if}
+					{@const kind1 = resolvedEntity.kind}
+					{#if kind1 !== undefined && kind1 !== null}
+						<span data-text="muted">
+							<span>kind </span>
+							{String((kind1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.
 		</p>
+	{/snippet}
+
+	{#snippet ContentWarningContent(content)}
+		{#if content !== undefined && content !== null && content !== ''}
+			<Markdown content={String(content)} />
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -165,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									identifier: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const identifier = pendingEntity.identifier}
-							{#if identifier !== undefined && identifier !== null}
-								{String((identifier) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const identifier = resolvedEntity.identifier}
@@ -195,19 +193,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pubkey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pubkey = pendingEntity.pubkey}
-							{#if pubkey !== undefined && pubkey !== null}
-								<TruncatedValue value={String((pubkey) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pubkey = resolvedEntity.pubkey}
@@ -225,20 +217,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									kind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const kind = pendingEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								<span>kind </span>
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const kind = resolvedEntity.kind}
@@ -254,27 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							publishedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const publishedAt = pendingEntity.publishedAt}
-					{#if publishedAt !== undefined && publishedAt !== null}
-						<div>
-							<dt>Published</dt>
-							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const publishedAt = resolvedEntity.publishedAt}
@@ -294,24 +265,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							summary: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const summary = pendingEntity.summary}
-					{#if summary !== undefined && summary !== null}
-						<div>
-							<dt>Summary</dt>
-							<dd>
-								{String((summary) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const summary = resolvedEntity.summary}
@@ -329,27 +289,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							imageUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const imageUrl = pendingEntity.imageUrl}
-					{#if imageUrl !== undefined && imageUrl !== null}
-						<div>
-							<dt>Image URL</dt>
-							<dd>
-								<TruncatedValue value={String((imageUrl) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const imageUrl = resolvedEntity.imageUrl}
@@ -373,8 +319,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nostrProfile)}
 					{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 						<div>
@@ -398,33 +342,42 @@
 			</ResourceBoundary>
 		</dl>
 
-		<section
-			id={viewDomId + '-article-body'}
-			data-scroll-marker-label='Article body'
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources,
+					fields: {
+						content: true,
+						sensitive: true,
+						contentWarning: true,
+					},
+				})
+			}
 		>
-			<h3>Article body</h3>
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.NostrBand_Rest,
-						],
-						fields: {
-							content: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const content = resolvedEntity.content}
-					{#if content !== undefined && content !== null && content !== ''}
-						<Markdown content={String(content)} />
-					{:else}
-						<p data-text="muted">No article body yet.</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</section>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const content = resolvedEntity.content}
+				{@const contentWarningText = String(resolvedEntity.contentWarning ?? '').trim()}
+				{@const hasContentWarning = resolvedEntity.sensitive === true || String(resolvedEntity.contentWarning ?? '').trim() !== ''}
+				{#if hasContentWarning}
+					<Collapsible
+						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}
+						ontoggle={(event) => {
+							revealedContentWarningSelectorKey = event.currentTarget.open ? contentWarningSelectorKey : undefined
+						}}
+					>
+						{#snippet Summary()}
+							<header data-row="align-center gap-3 wrap">
+								<strong>{contentWarningText || 'Sensitive content'}</strong>
+								<span data-text="annotation">Show content</span>
+							</header>
+						{/snippet}
+						{@render ContentWarningContent(content)}
+					</Collapsible>
+				{:else}
+					{@render ContentWarningContent(content)}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

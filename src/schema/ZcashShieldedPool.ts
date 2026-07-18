@@ -3,9 +3,11 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum ZcashShieldedPoolKind {
+	Sprout = 'sprout',
 	Sapling = 'sapling',
 	Orchard = 'orchard',
 }
@@ -35,13 +37,19 @@ export const ZcashShieldedPool = entity({
 		label: 'Activation network upgrade',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	noteProtocol: {
 		label: 'Note protocol',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {

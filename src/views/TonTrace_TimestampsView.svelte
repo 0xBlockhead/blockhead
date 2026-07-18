@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonTrace_TimestampView from '$/views/TonTrace_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTrace_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonTrace_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonTraceTimestamps) => [...new Map(tonTraceTimestamps.values.map((tonTraceTimestamp) => [tonTraceTimestamp[EntityMetaKey.SelectorKey], tonTraceTimestamp])).values()]}
+	getKey={(tonTraceTimestamp) => tonTraceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON trace observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonTraceTimestamps)}
-			{@const uniqueTonTraceTimestamps = [...new Map(tonTraceTimestamps.values.map((tonTraceTimestamp) => [tonTraceTimestamp[EntityMetaKey.SelectorKey], tonTraceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTrace_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonTraceTimestamps.totalCount}
-				getKey={(tonTraceTimestamp) => tonTraceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonTraceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON trace observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonTraceTimestamp })}
-					{@const tonTraceTimestampFields = { ...tonTraceTimestamp[EntityMetaKey.Selector], ...tonTraceTimestamp }}
-					{@const selection = select(EntityType.TonTrace_Timestamp, tonTraceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonTrace_TimestampView
-						selection={selection}
-						prefetched={tonTraceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonTrace_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonTraceTimestamp })}
+		{@const tonTraceTimestampFields = { ...tonTraceTimestamp[EntityMetaKey.Selector], ...tonTraceTimestamp }}
+		{@const selection = select(EntityType.TonTrace_Timestamp, tonTraceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonTrace_TimestampView
+			selection={selection}
+			prefetched={tonTraceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

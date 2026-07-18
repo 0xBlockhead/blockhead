@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const activityPubNoteTimestamp = $derived(selection({
-		sources: [
-			Source.Mastodon_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('ActivityPub note observation')
 	const viewDomId = $derived('activity-pub-note-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -65,9 +62,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			instanceOrigin: String(pendingEntity.$note.instanceOrigin ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			instanceOrigin: encodeURIComponent(String(pendingEntity.$note.instanceOrigin ?? '')),
 			localStatusId: String(pendingEntity.$note.localStatusId ?? ''),
 		}) : undefined)
 	}
@@ -76,55 +74,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={activityPubNoteTimestamp}>
-			{#snippet Pending()}
-				<ActivityPubNoteView
-					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ActivityPubNoteView
+						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+						href={
 						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
 							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ActivityPubNoteView
-					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={activityPubNoteTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ActivityPubNoteView
+						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+						href={
 						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
 							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={activityPubNoteTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={activityPubNoteTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,7 +134,7 @@
 						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note, {})}
 						href={
 							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
 								localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 							}) : undefined)
 						}
@@ -154,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -180,27 +172,42 @@
 		</dl>
 
 		<dl data-column-item="center">
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							favouriteCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const favouriteCount = pendingEntity.favouriteCount}
-					{#if favouriteCount !== undefined && favouriteCount !== null}
-						<div>
-							<dt>Favourites</dt>
-							<dd>
-								<NumberValue value={Number(favouriteCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const favouriteCount = resolvedEntity.favouriteCount}
@@ -208,7 +215,9 @@
 						<div>
 							<dt>Favourites</dt>
 							<dd>
-								<NumberValue value={Number(favouriteCount)} />
+								<NumberValue
+									value={favouriteCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -220,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reblogCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reblogCount = pendingEntity.reblogCount}
-					{#if reblogCount !== undefined && reblogCount !== null}
-						<div>
-							<dt>Reblogs</dt>
-							<dd>
-								<NumberValue value={Number(reblogCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reblogCount = resolvedEntity.reblogCount}
@@ -245,7 +243,9 @@
 						<div>
 							<dt>Reblogs</dt>
 							<dd>
-								<NumberValue value={Number(reblogCount)} />
+								<NumberValue
+									value={reblogCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -257,24 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyCount = pendingEntity.replyCount}
-					{#if replyCount !== undefined && replyCount !== null}
-						<div>
-							<dt>Replies</dt>
-							<dd>
-								<NumberValue value={Number(replyCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyCount = resolvedEntity.replyCount}
@@ -282,7 +271,9 @@
 						<div>
 							<dt>Replies</dt>
 							<dd>
-								<NumberValue value={Number(replyCount)} />
+								<NumberValue
+									value={replyCount}
+								/>
 							</dd>
 						</div>
 					{/if}

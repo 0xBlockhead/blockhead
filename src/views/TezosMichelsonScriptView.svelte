@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosMichelsonScript = $derived(selection({}))
+	const tezosMichelsonScript = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos michelson script')
 	const viewDomId = $derived('tezos-michelson-script-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosMichelsonScript}>
-			{#snippet Pending()}
-				{title || 'tezos michelson script'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosMichelsonScript}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scriptHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scriptHash = pendingEntity.scriptHash}
-							{#if scriptHash !== undefined && scriptHash !== null}
-								<TruncatedValue value={String((scriptHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scriptHash = resolvedEntity.scriptHash}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							codeHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const codeHash = pendingEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
-						<div>
-							<dt>code hash</dt>
-							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const codeHash = resolvedEntity.codeHash}
@@ -156,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							michelson: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const michelson = pendingEntity.michelson}
-					{#if michelson !== undefined && michelson !== null}
-						<div>
-							<dt>michelson</dt>
-							<dd>
-								{String((michelson) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const michelson = resolvedEntity.michelson}
@@ -191,31 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tzip16MetadataUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tzip16MetadataUri = pendingEntity.tzip16MetadataUri}
-					{#if tzip16MetadataUri !== undefined && tzip16MetadataUri !== null}
-						<div>
-							<dt>tzip16 metadata URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(tzip16MetadataUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(tzip16MetadataUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tzip16MetadataUri = resolvedEntity.tzip16MetadataUri}

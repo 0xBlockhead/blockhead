@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGDataChunk = $derived(selection({}))
+	const zeroGDataChunk = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('zero g data chunk')
 	const viewDomId = $derived('zero-gdata-chunk-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGDataChunk}>
-			{#snippet Pending()}
-				{title || 'zero g data chunk'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGDataChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chunkIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chunkIndex = pendingEntity.chunkIndex}
-							{#if chunkIndex !== undefined && chunkIndex !== null}
-								{String((chunkIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chunkIndex = resolvedEntity.chunkIndex}
@@ -120,24 +116,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chunkRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chunkRoot = pendingEntity.chunkRoot}
-					{#if chunkRoot !== undefined && chunkRoot !== null}
-						<div>
-							<dt>chunk root</dt>
-							<dd>
-								{String((chunkRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chunkRoot = resolvedEntity.chunkRoot}
@@ -155,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sizeBytes = pendingEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
-						<div>
-							<dt>size bytes</dt>
-							<dd>
-								{String((sizeBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sizeBytes = resolvedEntity.sizeBytes}

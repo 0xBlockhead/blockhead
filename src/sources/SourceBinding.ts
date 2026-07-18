@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
+import type { Caip2NetworkKey, NetworkSlug } from '$/constants/Network.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import type { Source } from '$/sources/Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourceProvider } from '$/sources/SourceProvider.ts'
 import type { Type } from 'arktype'
 
@@ -14,6 +15,7 @@ export enum SourceTargetKind {
 	GitRepository = 'GitRepository',
 	Global = 'Global',
 	LocalDevice = 'LocalDevice',
+	NetworkSlug = 'NetworkSlug',
 	SqlDataset = 'SqlDataset',
 	TorrentSwarm = 'TorrentSwarm',
 }
@@ -185,10 +187,19 @@ export enum SourceArtifactKind {
 	Proto = 'Proto',
 }
 
-export type SourceTarget = {
-	kind: SourceTargetKind
-	key: string
-}
+export type SourceTarget =
+	| {
+		kind: SourceTargetKind.Caip2Network
+		key: Caip2NetworkKey
+	}
+	| {
+		kind: SourceTargetKind.NetworkSlug
+		key: NetworkSlug
+	}
+	| {
+		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug>
+		key: string
+	}
 
 export type SourceEndpoint = {
 	endpointKind: SourceEndpointKind

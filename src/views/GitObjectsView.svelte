@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitObjectView from '$/views/GitObjectView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					objectKind: true,
-					objectFormat: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitObject}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				objectKind: true,
+				objectFormat: true,
+			},
+		})
+	}
+	getResourceItems={(gitObjects) => [...new Map(gitObjects.values.map((gitObject) => [gitObject[EntityMetaKey.SelectorKey], gitObject])).values()]}
+	getKey={(gitObject) => gitObject[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git objects yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitObjects)}
-			{@const uniqueGitObjects = [...new Map(gitObjects.values.map((gitObject) => [gitObject[EntityMetaKey.SelectorKey], gitObject])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitObjects.totalCount}
-				getKey={(gitObject) => gitObject[EntityMetaKey.SelectorKey]}
-				items={uniqueGitObjects}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git objects yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitObject })}
-					{@const gitObjectFields = { ...gitObject[EntityMetaKey.Selector], ...gitObject }}
-					{@const selection = select(EntityType.GitObject, gitObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitObjectView
-						selection={selection}
-						prefetched={gitObjectFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitObject}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitObject })}
+		{@const gitObjectFields = { ...gitObject[EntityMetaKey.Selector], ...gitObject }}
+		{@const selection = select(EntityType.GitObject, gitObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitObjectView
+			selection={selection}
+			prefetched={gitObjectFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

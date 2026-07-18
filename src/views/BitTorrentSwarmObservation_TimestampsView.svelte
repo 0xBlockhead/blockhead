@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentSwarmObservation_TimestampView from '$/views/BitTorrentSwarmObservation_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					peerCount: true,
-					seedCount: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentSwarmObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentSwarmObservation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				peerCount: true,
+				seedCount: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentSwarmObservationTimestamps) => [...new Map(bitTorrentSwarmObservationTimestamps.values.map((bitTorrentSwarmObservationTimestamp) => [bitTorrentSwarmObservationTimestamp[EntityMetaKey.SelectorKey], bitTorrentSwarmObservationTimestamp])).values()]}
+	getKey={(bitTorrentSwarmObservationTimestamp) => bitTorrentSwarmObservationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent swarm observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentSwarmObservationTimestamps)}
-			{@const uniqueBitTorrentSwarmObservationTimestamps = [...new Map(bitTorrentSwarmObservationTimestamps.values.map((bitTorrentSwarmObservationTimestamp) => [bitTorrentSwarmObservationTimestamp[EntityMetaKey.SelectorKey], bitTorrentSwarmObservationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentSwarmObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentSwarmObservationTimestamps.totalCount}
-				getKey={(bitTorrentSwarmObservationTimestamp) => bitTorrentSwarmObservationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentSwarmObservationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent swarm observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentSwarmObservationTimestamp })}
-					{@const bitTorrentSwarmObservationTimestampFields = { ...bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], ...bitTorrentSwarmObservationTimestamp }}
-					{@const selection = select(EntityType.BitTorrentSwarmObservation_Timestamp, bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentSwarmObservation_TimestampView
-						selection={selection}
-						prefetched={bitTorrentSwarmObservationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentSwarmObservation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentSwarmObservationTimestamp })}
+		{@const bitTorrentSwarmObservationTimestampFields = { ...bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], ...bitTorrentSwarmObservationTimestamp }}
+		{@const selection = select(EntityType.BitTorrentSwarmObservation_Timestamp, bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentSwarmObservation_TimestampView
+			selection={selection}
+			prefetched={bitTorrentSwarmObservationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

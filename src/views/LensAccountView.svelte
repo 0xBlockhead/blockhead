@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensAccount = $derived(selection({
-		sources: [
-			Source.Lens_Graphql,
-		],
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			bio: true,
@@ -60,13 +58,11 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
-	import LensAccountManagersView from '$/views/LensAccountManagersView.svelte'
 	import LensAccount_TimestampsView from '$/views/LensAccount_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -89,10 +85,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={lensAccount}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -108,52 +100,52 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={lensAccount}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lensAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lensAccount}>
-			{#snippet Pending()}
-				{[String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lensAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={lensAccount}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAt0 = pendingEntity.createdAt}
+			{#if createdAt0 !== undefined && createdAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={lensAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -164,19 +156,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -193,24 +179,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							localName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const localName = pendingEntity.localName}
-					{#if localName !== undefined && localName !== null}
-						<div>
-							<dt>Local name</dt>
-							<dd>
-								{String((localName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const localName = resolvedEntity.localName}
@@ -230,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							legacyProfileId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const legacyProfileId = pendingEntity.legacyProfileId}
-					{#if legacyProfileId !== undefined && legacyProfileId !== null}
-						<div>
-							<dt>Legacy profile ID</dt>
-							<dd>
-								{String((legacyProfileId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const legacyProfileId = resolvedEntity.legacyProfileId}
@@ -267,24 +231,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							owner: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const owner = pendingEntity.owner}
-					{#if owner !== undefined && owner !== null}
-						<div>
-							<dt>Owner</dt>
-							<dd>
-								<TruncatedValue value={String((owner) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const owner = resolvedEntity.owner}
@@ -304,24 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -341,24 +283,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							score: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const score = pendingEntity.score}
-					{#if score !== undefined && score !== null}
-						<div>
-							<dt>Score</dt>
-							<dd>
-								<NumberValue value={Number(score)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const score = resolvedEntity.score}
@@ -366,7 +297,9 @@
 						<div>
 							<dt>Score</dt>
 							<dd>
-								<NumberValue value={Number(score)} />
+								<NumberValue
+									value={score}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -378,31 +311,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							iconUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const iconUrl = pendingEntity.iconUrl}
-					{#if iconUrl !== undefined && iconUrl !== null}
-						<div>
-							<dt>Icon URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(iconUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(iconUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const iconUrl = resolvedEntity.iconUrl}
@@ -428,6 +343,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						bio: true,
 					},
@@ -455,19 +371,12 @@
 							id: 'lens-account-posts',
 							label: 'Posts',
 						},
-						{
-							id: 'lens-account-managers',
-							label: 'Managers',
-						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -480,27 +389,19 @@
 								sources: [
 									Source.Lens_Graphql,
 								],
-								count: true,
 							})
 						}
-						href={resolve('/lens/observations/posts')}
+						href={
+							(selection.entitySelector.address !== undefined ? resolve('/lens/account/[address=evmAddress]/posts', {
+								address: selection.entitySelector.address,
+							}) : undefined)
+						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Lens posts for this account.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionLensAccountManagers({ id, label, open })}
-					<LensAccountManagersView
-						selection={
-							selection.$$managers({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No Lens account managers.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -522,11 +423,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -534,12 +432,12 @@
 
 				{#snippet SectionLensAccountTimestamps({ id, label, open })}
 					<LensAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Lens account observations yet.'
 						open={open}
 						title={label}

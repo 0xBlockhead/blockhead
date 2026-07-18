@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const regulatedAssetProfileTimestamp = $derived(selection({}))
+	const regulatedAssetProfileTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('regulated asset profile timestamp')
 	const viewDomId = $derived('regulated-asset-profile-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={regulatedAssetProfileTimestamp}>
-			{#snippet Pending()}
-				{title || 'regulated asset profile timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={regulatedAssetProfileTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,19 +100,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -128,19 +124,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -157,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
-					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
-						<div>
-							<dt>ledger coordinate kind</dt>
-							<dd>
-								{String((ledgerCoordinateKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
@@ -192,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateValue: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
-					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
-						<div>
-							<dt>ledger coordinate value</dt>
-							<dd>
-								{String((ledgerCoordinateValue) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}
@@ -227,24 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							paused: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const paused = pendingEntity.paused}
-					{#if paused !== undefined && paused !== null}
-						<div>
-							<dt>paused</dt>
-							<dd>
-								{paused ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const paused = resolvedEntity.paused}
@@ -262,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryVersion = pendingEntity.registryVersion}
-					{#if registryVersion !== undefined && registryVersion !== null}
-						<div>
-							<dt>registry version</dt>
-							<dd>
-								{String((registryVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryVersion = resolvedEntity.registryVersion}
@@ -299,8 +245,6 @@
 			<ResourceBoundary
 				resource={selection.$identityRegistry}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -330,8 +274,6 @@
 			<ResourceBoundary
 				resource={selection.$compliance}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -361,8 +303,6 @@
 			<ResourceBoundary
 				resource={selection.$trustedIssuersRegistry}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -392,8 +332,6 @@
 			<ResourceBoundary
 				resource={selection.$claimTopicsRegistry}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>

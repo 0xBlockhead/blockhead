@@ -32,49 +32,51 @@ export default {
 		defineResolver(Source.SqdPortal_RawHttp, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: async ({ $network, blockNumber }) => {
-					const binding = sourceProviderDefinitions
-						.flatMap((provider) => provider.bindings)
-						.find((candidate) => (
-							candidate.source === Source.SqdPortal_RawHttp
-							&& candidate.target.key === $network.caip2.reference
-						))
-					if ($network.caip2.namespace !== 'eip155' || binding == null)
-						throw new Error(`SqdPortal_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
+				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+					resolve: async ({ $network, blockNumber }) => {
+						const binding = sourceProviderDefinitions
+							.flatMap((provider) => provider.bindings)
+							.find((candidate) => (
+								candidate.source === Source.SqdPortal_RawHttp
+								&& candidate.target.key === $network.caip2.reference
+							))
+						if ($network.caip2.namespace !== 'eip155' || binding == null)
+							throw new Error(`SqdPortal_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
 
-					const { getEvmBlock } = await import('$/sources/Sqd/Portal/queries.ts')
-					const result = await getEvmBlock(binding, blockNumber)
-					if (result.resolution !== SqdPortalResolution.Complete)
-						throw new Error(`SqdPortal_RawHttp: ${result.resolution} block ${blockNumber.toString()}`)
+						const { getEvmBlock } = await import('$/sources/Sqd/Portal/queries.ts')
+						const result = await getEvmBlock(binding, blockNumber)
+						if (result.resolution !== SqdPortalResolution.Complete)
+							throw new Error(`SqdPortal_RawHttp: ${result.resolution} block ${blockNumber.toString()}`)
 
-					const hash = hexLowerOfByteSize(result.block.header.hash, 32)
-					const parentHash = hexLowerOfByteSize(result.block.header.parentHash, 32)
-					if (hash == null || parentHash == null)
-						throw new Error('SqdPortal_RawHttp: malformed block hash')
+						const hash = hexLowerOfByteSize(result.block.header.hash, 32)
+						const parentHash = hexLowerOfByteSize(result.block.header.parentHash, 32)
+						if (hash == null || parentHash == null)
+							throw new Error('SqdPortal_RawHttp: malformed block hash')
 
-					return {
-						hash,
-						parentHash,
-						timestamp: result.block.header.timestamp * 1_000,
-						gasUsed: quantity(result.block.header.gasUsed, 'gas used'),
-						gasLimit: quantity(result.block.header.gasLimit, 'gas limit'),
-						baseFeePerGas: quantity(result.block.header.baseFeePerGas, 'base fee per gas'),
-						blobGasUsed: quantity(result.block.header.blobGasUsed, 'blob gas used'),
-						excessBlobGas: quantity(result.block.header.excessBlobGas, 'excess blob gas'),
-						transactionCount: result.block.transactions.length,
-						transactions: result.block.transactions.map((transaction) => {
-							const txHash = hexLowerOfByteSize(transaction.hash, 32)
-							if (txHash == null)
-								throw new Error('SqdPortal_RawHttp: malformed transaction hash')
+						return {
+							hash,
+							parentHash,
+							timestamp: result.block.header.timestamp * 1_000,
+							gasUsed: quantity(result.block.header.gasUsed, 'gas used'),
+							gasLimit: quantity(result.block.header.gasLimit, 'gas limit'),
+							baseFeePerGas: quantity(result.block.header.baseFeePerGas, 'base fee per gas'),
+							blobGasUsed: quantity(result.block.header.blobGasUsed, 'blob gas used'),
+							excessBlobGas: quantity(result.block.header.excessBlobGas, 'excess blob gas'),
+							transactionCount: result.block.transactions.length,
+							transactions: result.block.transactions.map((transaction) => {
+								const txHash = hexLowerOfByteSize(transaction.hash, 32)
+								if (txHash == null)
+									throw new Error('SqdPortal_RawHttp: malformed transaction hash')
 
-							return {
-								[EntityMetaKey.Selector]: {
-									$network,
-									txHash,
-								},
-							}
-						}),
-					}
+								return {
+									[EntityMetaKey.Selector]: {
+										$network,
+										txHash,
+									},
+								}
+							}),
+						}
+					},
 				},
 			},
 		})({

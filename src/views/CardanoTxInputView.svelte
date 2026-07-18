@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoTxInput = $derived(selection({}))
+	const cardanoTxInput = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano transaction input')
 	const viewDomId = $derived('cardano-tx-input-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoTxInput}>
-			{#snippet Pending()}
-				{title || 'Cardano transaction input'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoTxInput}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									inputIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const inputIndex = pendingEntity.inputIndex}
-							{#if inputIndex !== undefined && inputIndex !== null}
-								{String((inputIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const inputIndex = resolvedEntity.inputIndex}
@@ -122,24 +118,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							inputKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const inputKind = pendingEntity.inputKind}
-					{#if inputKind !== undefined && inputKind !== null}
-						<div>
-							<dt>input kind</dt>
-							<dd>
-								{String((inputKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const inputKind = resolvedEntity.inputKind}
@@ -157,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							spentTxHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const spentTxHash = pendingEntity.spentTxHash}
-					{#if spentTxHash !== undefined && spentTxHash !== null}
-						<div>
-							<dt>spent transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((spentTxHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const spentTxHash = resolvedEntity.spentTxHash}
@@ -192,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							spentOutputIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const spentOutputIndex = pendingEntity.spentOutputIndex}
-					{#if spentOutputIndex !== undefined && spentOutputIndex !== null}
-						<div>
-							<dt>spent output index</dt>
-							<dd>
-								{String((spentOutputIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const spentOutputIndex = resolvedEntity.spentOutputIndex}
@@ -227,8 +190,6 @@
 			<ResourceBoundary
 				resource={selection.$spentOutput}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoTxOutput)}
 					{#if cardanoTxOutput != null && cardanoTxOutput[EntityMetaKey.Selector] != null}
 						<div>
@@ -249,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							redeemerIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const redeemerIndex = pendingEntity.redeemerIndex}
-					{#if redeemerIndex !== undefined && redeemerIndex !== null}
-						<div>
-							<dt>redeemer index</dt>
-							<dd>
-								{String((redeemerIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const redeemerIndex = resolvedEntity.redeemerIndex}

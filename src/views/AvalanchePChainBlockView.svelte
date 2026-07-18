@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const avalanchePChainBlock = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			timestampMs: true,
 		},
@@ -72,41 +73,45 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={avalanchePChainBlock}>
-			{#snippet Pending()}
-				{@const height0 = pendingEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const height0 = resolvedEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const height0 = pendingEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={avalanchePChainBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const height0 = resolvedEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={avalanchePChainBlock}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={avalanchePChainBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,24 +140,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									height: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const height = pendingEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue value={Number(height)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const height = resolvedEntity.height}
 							{#if height !== undefined && height !== null}
-								<NumberValue value={Number(height)} />
+								<NumberValue
+									value={height}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -165,19 +166,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockId = pendingEntity.blockId}
-							{#if blockId !== undefined && blockId !== null}
-								<TruncatedValue value={String((blockId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockId = resolvedEntity.blockId}
@@ -192,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							parentBlockId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parentBlockId = pendingEntity.parentBlockId}
-					{#if parentBlockId !== undefined && parentBlockId !== null}
-						<div>
-							<dt>parent block ID</dt>
-							<dd>
-								<TruncatedValue value={String((parentBlockId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parentBlockId = resolvedEntity.parentBlockId}
@@ -229,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -264,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							encoding: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const encoding = pendingEntity.encoding}
-					{#if encoding !== undefined && encoding !== null}
-						<div>
-							<dt>encoding</dt>
-							<dd>
-								{String((encoding) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const encoding = resolvedEntity.encoding}
@@ -299,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							txCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const txCount = pendingEntity.txCount}
-					{#if txCount !== undefined && txCount !== null}
-						<div>
-							<dt>transaction count</dt>
-							<dd>
-								<NumberValue value={Number(txCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const txCount = resolvedEntity.txCount}
@@ -324,7 +275,9 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								<NumberValue value={Number(txCount)} />
+								<NumberValue
+									value={txCount}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCashuMintQuoteView from '$/views/BlockheadCashuMintQuoteView.svelte'
 </script>
@@ -61,78 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					quoteId: true,
-					amount: true,
-					unit: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuMintQuote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCashuMintQuote}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				quoteId: true,
+				amount: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCashuMintQuotes) => [...new Map(blockheadCashuMintQuotes.values.map((blockheadCashuMintQuote) => [blockheadCashuMintQuote[EntityMetaKey.SelectorKey], blockheadCashuMintQuote])).values()]}
+	getKey={(blockheadCashuMintQuote) => blockheadCashuMintQuote[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Cashu mint quotes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCashuMintQuotes)}
-			{@const uniqueBlockheadCashuMintQuotes = [...new Map(blockheadCashuMintQuotes.values.map((blockheadCashuMintQuote) => [blockheadCashuMintQuote[EntityMetaKey.SelectorKey], blockheadCashuMintQuote])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuMintQuote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCashuMintQuotes.totalCount}
-				getKey={(blockheadCashuMintQuote) => blockheadCashuMintQuote[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCashuMintQuotes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Cashu mint quotes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCashuMintQuote })}
-					{@const blockheadCashuMintQuoteFields = { ...blockheadCashuMintQuote[EntityMetaKey.Selector], ...blockheadCashuMintQuote }}
-					{@const selection = select(EntityType.BlockheadCashuMintQuote, blockheadCashuMintQuote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCashuMintQuoteView
-						selection={selection}
-						prefetched={blockheadCashuMintQuoteFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCashuMintQuote}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCashuMintQuote })}
+		{@const blockheadCashuMintQuoteFields = { ...blockheadCashuMintQuote[EntityMetaKey.Selector], ...blockheadCashuMintQuote }}
+		{@const selection = select(EntityType.BlockheadCashuMintQuote, blockheadCashuMintQuote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCashuMintQuoteView
+			selection={selection}
+			prefetched={blockheadCashuMintQuoteFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -5,9 +5,11 @@ import type {
 	LotusActor,
 	LotusMinerInfo,
 	LotusMinerPower,
+	LotusMinerSectorCount,
 	LotusMessage,
 	LotusSectorOnChainInfo,
 	LotusTipset,
+	LotusTipsetKey,
 	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
 
@@ -108,7 +110,7 @@ export const getNetworkVersion = ({
 	tipsetKey,
 }: {
 	rpcUrl: string
-	tipsetKey: { '/': string }[]
+	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<number>({
 		rpcUrl,
@@ -126,7 +128,7 @@ export const getMinerPower = ({
 }: {
 	rpcUrl: string
 	minerAddress: string
-	tipsetKey: { '/': string }[]
+	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusMinerPower>({
 		rpcUrl,
@@ -145,7 +147,7 @@ export const getMinerInfo = ({
 }: {
 	rpcUrl: string
 	minerAddress: string
-	tipsetKey: { '/': string }[] | null
+	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusMinerInfo>({
 		rpcUrl,
@@ -176,16 +178,18 @@ export const getMessage = ({
 export const getActor = ({
 	rpcUrl,
 	address,
+	tipsetKey,
 }: {
 	rpcUrl: string
 	address: string
+	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusActor>({
 		rpcUrl,
 		method: 'Filecoin.StateGetActor',
 		params: [
 			address,
-			null,
+			tipsetKey,
 		],
 	})
 )
@@ -193,9 +197,11 @@ export const getActor = ({
 export const getMinerSectors = ({
 	rpcUrl,
 	minerAddress,
+	tipsetKey,
 }: {
 	rpcUrl: string
 	minerAddress: string
+	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusSectorOnChainInfo[]>({
 		rpcUrl,
@@ -203,7 +209,45 @@ export const getMinerSectors = ({
 		params: [
 			minerAddress,
 			null,
-			null,
+			tipsetKey,
+		],
+	})
+)
+
+export const getMinerActiveSectors = ({
+	rpcUrl,
+	minerAddress,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	minerAddress: string
+	tipsetKey: LotusTipsetKey
+}) => (
+	lotusJsonRpc<LotusSectorOnChainInfo[]>({
+		rpcUrl,
+		method: 'Filecoin.StateMinerActiveSectors',
+		params: [
+			minerAddress,
+			tipsetKey,
+		],
+	})
+)
+
+export const getMinerSectorCount = ({
+	rpcUrl,
+	minerAddress,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	minerAddress: string
+	tipsetKey: LotusTipsetKey
+}) => (
+	lotusJsonRpc<LotusMinerSectorCount>({
+		rpcUrl,
+		method: 'Filecoin.StateMinerSectorCount',
+		params: [
+			minerAddress,
+			tipsetKey,
 		],
 	})
 )

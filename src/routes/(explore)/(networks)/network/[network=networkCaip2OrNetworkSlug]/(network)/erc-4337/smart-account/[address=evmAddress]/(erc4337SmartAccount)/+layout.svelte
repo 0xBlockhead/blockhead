@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -39,7 +40,9 @@
 			{@const DetailView = Erc4337SmartAccountView}
 
 			<DetailView
-				selection={select(EntityType.Erc4337SmartAccount, data.selector)}
+				selection={select(EntityType.Erc4337SmartAccount, data.selector, { sources: [
+		Source.Blockscout_Rest,
+	] })}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
 						network: params.network,

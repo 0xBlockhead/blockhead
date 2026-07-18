@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$rollup: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$rollup: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			listingStage: true,
 			isArchived: true,

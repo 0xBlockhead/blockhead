@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditSubreddit_TimestampView from '$/views/RedditSubreddit_TimestampView.svelte'
 </script>
@@ -62,88 +61,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					subscriberCount: true,
-					source: true,
-					activeUserCount: true,
-					$subreddit: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditSubreddit_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RedditSubreddit_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				subscriberCount: true,
+				source: true,
+				activeUserCount: true,
+				$subreddit: true,
+			},
+		})
+	}
+	getResourceItems={(redditSubredditTimestamps) => [...new Map(redditSubredditTimestamps.values.map((redditSubredditTimestamp) => [redditSubredditTimestamp[EntityMetaKey.SelectorKey], redditSubredditTimestamp])).values()]}
+	getKey={(redditSubredditTimestamp) => redditSubredditTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Reddit subreddit observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(redditSubredditTimestamps)}
-			{@const uniqueRedditSubredditTimestamps = [...new Map(redditSubredditTimestamps.values.map((redditSubredditTimestamp) => [redditSubredditTimestamp[EntityMetaKey.SelectorKey], redditSubredditTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditSubreddit_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditSubredditTimestamps.totalCount}
-				getKey={(redditSubredditTimestamp) => redditSubredditTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueRedditSubredditTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Reddit subreddit observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: redditSubredditTimestamp })}
-					{@const redditSubredditTimestampFields = { ...redditSubredditTimestamp[EntityMetaKey.Selector], ...redditSubredditTimestamp }}
-					{@const selection = select(EntityType.RedditSubreddit_Timestamp, redditSubredditTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const redditSubredditTimestampHrefFields = { ...redditSubredditTimestamp, ...redditSubredditTimestamp[EntityMetaKey.Selector] }}
-					<RedditSubreddit_TimestampView
-						selection={selection}
-						prefetched={redditSubredditTimestampFields}
-						href={
-							(redditSubredditTimestampHrefFields.timestampMs !== undefined && redditSubredditTimestampHrefFields.source !== undefined && redditSubredditTimestampHrefFields.$subreddit !== undefined && redditSubredditTimestampHrefFields.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(redditSubredditTimestampHrefFields.timestampMs ?? ''),
-								source: String(redditSubredditTimestampHrefFields.source ?? ''),
-								name: String(redditSubredditTimestampHrefFields.$subreddit.name ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RedditSubreddit_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: redditSubredditTimestamp })}
+		{@const redditSubredditTimestampFields = { ...redditSubredditTimestamp[EntityMetaKey.Selector], ...redditSubredditTimestamp }}
+		{@const selection = select(EntityType.RedditSubreddit_Timestamp, redditSubredditTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const redditSubredditTimestampHrefFields = { ...redditSubredditTimestamp, ...redditSubredditTimestamp[EntityMetaKey.Selector] }}
+		<RedditSubreddit_TimestampView
+			selection={selection}
+			prefetched={redditSubredditTimestampFields}
+			href={
+				(redditSubredditTimestampHrefFields.timestampMs !== undefined && redditSubredditTimestampHrefFields.source !== undefined && redditSubredditTimestampHrefFields.$subreddit !== undefined && redditSubredditTimestampHrefFields.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(redditSubredditTimestampHrefFields.timestampMs ?? ''),
+					source: String(redditSubredditTimestampHrefFields.source ?? ''),
+					name: encodeURIComponent(String(redditSubredditTimestampHrefFields.$subreddit.name ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

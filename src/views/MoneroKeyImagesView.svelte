@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroKeyImageView from '$/views/MoneroKeyImageView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					keyImage: true,
-					inputIndex: true,
-					$ring: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroKeyImage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoneroKeyImage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				keyImage: true,
+				inputIndex: true,
+				$ring: true,
+			},
+		})
+	}
+	getResourceItems={(moneroKeyImages) => [...new Map(moneroKeyImages.values.map((moneroKeyImage) => [moneroKeyImage[EntityMetaKey.SelectorKey], moneroKeyImage])).values()]}
+	getKey={(moneroKeyImage) => moneroKeyImage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Monero key images yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moneroKeyImages)}
-			{@const uniqueMoneroKeyImages = [...new Map(moneroKeyImages.values.map((moneroKeyImage) => [moneroKeyImage[EntityMetaKey.SelectorKey], moneroKeyImage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroKeyImage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moneroKeyImages.totalCount}
-				getKey={(moneroKeyImage) => moneroKeyImage[EntityMetaKey.SelectorKey]}
-				items={uniqueMoneroKeyImages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Monero key images yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moneroKeyImage })}
-					{@const moneroKeyImageFields = { ...moneroKeyImage[EntityMetaKey.Selector], ...moneroKeyImage }}
-					{@const selection = select(EntityType.MoneroKeyImage, moneroKeyImage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoneroKeyImageView
-						selection={selection}
-						prefetched={moneroKeyImageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoneroKeyImage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moneroKeyImage })}
+		{@const moneroKeyImageFields = { ...moneroKeyImage[EntityMetaKey.Selector], ...moneroKeyImage }}
+		{@const selection = select(EntityType.MoneroKeyImage, moneroKeyImage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoneroKeyImageView
+			selection={selection}
+			prefetched={moneroKeyImageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

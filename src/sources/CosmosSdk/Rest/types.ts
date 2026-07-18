@@ -96,14 +96,33 @@ export type CosmosSdkContractInfoResponse = {
 	}
 }
 
-export type CosmosSdkAccountResponse = {
-	account?: {
+export type CosmosSdkAccount = {
+	'@type'?: string
+	address?: string
+	account_number?: string
+	sequence?: string
+	base_account?: {
+		address?: string
 		account_number?: string
 		sequence?: string
+	}
+	base_vesting_account?: {
 		base_account?: {
+			address?: string
 			account_number?: string
 			sequence?: string
 		}
+	}
+}
+
+export type CosmosSdkAccountResponse = {
+	account?: CosmosSdkAccount
+}
+
+export type CosmosSdkAccountsResponse = {
+	accounts: CosmosSdkAccount[]
+	pagination?: {
+		total?: string
 	}
 }
 

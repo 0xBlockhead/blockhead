@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
@@ -45,25 +49,33 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
-					throw new Error('SolanaSimds_Github: unsupported proposal id')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Solana,
+							category: OwnedProposalCategory.Simd,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
+						throw new Error('SolanaSimds_Github: unsupported proposal id')
+					}
+					const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
+					const text = await getProposalMarkdownText({ number: number })
+					const body = stripFrontmatter(text)
+					const frontmatter = parseFrontmatter(text)
+					return {
+						documentCategory: frontmatter.category.trim() || 'SIMD',
+						documentTitle: (
+							frontmatter.title.trim()
+							|| body.match(/^#\s*(.+)$/m)?.[1]?.trim()
+						),
+						documentStatus: frontmatter.status.trim() || undefined,
+						documentBody: body.length > 0 ? body : undefined,
+					}
+				},
 				}
-				const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				const text = await getProposalMarkdownText({ number: number })
-				const body = stripFrontmatter(text)
-				const frontmatter = parseFrontmatter(text)
-				return {
-					documentCategory: frontmatter.category.trim() || 'SIMD',
-					documentTitle: (
-						frontmatter.title.trim()
-						|| body.match(/^#\s*(.+)$/m)?.[1]?.trim()
-					),
-					documentStatus: frontmatter.status.trim() || undefined,
-					documentBody: body.length > 0 ? body : undefined,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -75,10 +87,12 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await getProposalContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+					return solanaSimdProposalRows(await getProposalContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const issuerPower = $derived(selection({}))
+	const issuerPower = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('issuer power')
 	const viewDomId = $derived('issuer-power-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={issuerPower}>
-			{#snippet Pending()}
-				{title || 'issuer power'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={issuerPower}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									powerKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const powerKind = pendingEntity.powerKind}
-							{#if powerKind !== undefined && powerKind !== null}
-								{String((powerKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const powerKind = resolvedEntity.powerKind}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									actorKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const actorKey = pendingEntity.actorKey}
-							{#if actorKey !== undefined && actorKey !== null}
-								{String((actorKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const actorKey = resolvedEntity.actorKey}
@@ -153,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -182,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
-					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
-						<div>
-							<dt>ledger coordinate kind</dt>
-							<dd>
-								{String((ledgerCoordinateKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
@@ -217,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerCoordinateValue: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
-					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
-						<div>
-							<dt>ledger coordinate value</dt>
-							<dd>
-								{String((ledgerCoordinateValue) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}

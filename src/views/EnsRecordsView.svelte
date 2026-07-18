@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EnsRecordView from '$/views/EnsRecordView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					recordKey: true,
-					$name: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EnsRecord}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				recordKey: true,
+				$name: true,
+			},
+		})
+	}
+	getResourceItems={(ensRecords) => [...new Map(ensRecords.values.map((ensRecord) => [ensRecord[EntityMetaKey.SelectorKey], ensRecord])).values()]}
+	getKey={(ensRecord) => ensRecord[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ENS records yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ensRecords)}
-			{@const uniqueEnsRecords = [...new Map(ensRecords.values.map((ensRecord) => [ensRecord[EntityMetaKey.SelectorKey], ensRecord])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensRecords.totalCount}
-				getKey={(ensRecord) => ensRecord[EntityMetaKey.SelectorKey]}
-				items={uniqueEnsRecords}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ENS records yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ensRecord })}
-					{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
-					{@const selection = select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ensRecordHrefFields = { ...ensRecord, ...ensRecord[EntityMetaKey.Selector] }}
-					<EnsRecordView
-						selection={selection}
-						prefetched={ensRecordFields}
-						href={
-							(ensRecordHrefFields.recordKey !== undefined && ensRecordHrefFields.$name !== undefined && ensRecordHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-								recordId: String(ensRecordHrefFields.recordKey ?? ''),
-								ensName: String(ensRecordHrefFields.$name.name ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EnsRecord}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ensRecord })}
+		{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
+		{@const selection = select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ensRecordHrefFields = { ...ensRecord, ...ensRecord[EntityMetaKey.Selector] }}
+		<EnsRecordView
+			selection={selection}
+			prefetched={ensRecordFields}
+			href={
+				(ensRecordHrefFields.recordKey !== undefined && ensRecordHrefFields.$name !== undefined && ensRecordHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+					recordId: encodeURIComponent(String(ensRecordHrefFields.recordKey ?? '')),
+					ensName: encodeURIComponent(String(ensRecordHrefFields.$name.name ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -38,5 +38,8 @@
 			})
 		}
 		id='observed-playlists'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

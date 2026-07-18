@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TrustedIssuerView from '$/views/TrustedIssuerView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TrustedIssuer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TrustedIssuer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(trustedIssuers) => [...new Map(trustedIssuers.values.map((trustedIssuer) => [trustedIssuer[EntityMetaKey.SelectorKey], trustedIssuer])).values()]}
+	getKey={(trustedIssuer) => trustedIssuer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Trusted issuers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(trustedIssuers)}
-			{@const uniqueTrustedIssuers = [...new Map(trustedIssuers.values.map((trustedIssuer) => [trustedIssuer[EntityMetaKey.SelectorKey], trustedIssuer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TrustedIssuer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={trustedIssuers.totalCount}
-				getKey={(trustedIssuer) => trustedIssuer[EntityMetaKey.SelectorKey]}
-				items={uniqueTrustedIssuers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Trusted issuers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: trustedIssuer })}
-					{@const trustedIssuerFields = { ...trustedIssuer[EntityMetaKey.Selector], ...trustedIssuer }}
-					{@const selection = select(EntityType.TrustedIssuer, trustedIssuer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TrustedIssuerView
-						selection={selection}
-						prefetched={trustedIssuerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TrustedIssuer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: trustedIssuer })}
+		{@const trustedIssuerFields = { ...trustedIssuer[EntityMetaKey.Selector], ...trustedIssuer }}
+		{@const selection = select(EntityType.TrustedIssuer, trustedIssuer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TrustedIssuerView
+			selection={selection}
+			prefetched={trustedIssuerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

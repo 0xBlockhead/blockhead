@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZcashWalletState_TimestampView from '$/views/BlockheadZcashWalletState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balanceZatoshis: true,
-					recoveryState: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZcashWalletState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balanceZatoshis: true,
+				recoveryState: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZcashWalletStateTimestamps) => [...new Map(blockheadZcashWalletStateTimestamps.values.map((blockheadZcashWalletStateTimestamp) => [blockheadZcashWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadZcashWalletStateTimestamp])).values()]}
+	getKey={(blockheadZcashWalletStateTimestamp) => blockheadZcashWalletStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zcash wallet state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZcashWalletStateTimestamps)}
-			{@const uniqueBlockheadZcashWalletStateTimestamps = [...new Map(blockheadZcashWalletStateTimestamps.values.map((blockheadZcashWalletStateTimestamp) => [blockheadZcashWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadZcashWalletStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZcashWalletStateTimestamps.totalCount}
-				getKey={(blockheadZcashWalletStateTimestamp) => blockheadZcashWalletStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZcashWalletStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zcash wallet state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZcashWalletStateTimestamp })}
-					{@const blockheadZcashWalletStateTimestampFields = { ...blockheadZcashWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadZcashWalletStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadZcashWalletState_Timestamp, blockheadZcashWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZcashWalletState_TimestampView
-						selection={selection}
-						prefetched={blockheadZcashWalletStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZcashWalletState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZcashWalletStateTimestamp })}
+		{@const blockheadZcashWalletStateTimestampFields = { ...blockheadZcashWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadZcashWalletStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadZcashWalletState_Timestamp, blockheadZcashWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZcashWalletState_TimestampView
+			selection={selection}
+			prefetched={blockheadZcashWalletStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

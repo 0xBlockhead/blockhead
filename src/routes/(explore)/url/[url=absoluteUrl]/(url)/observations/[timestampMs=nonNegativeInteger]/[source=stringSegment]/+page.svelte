@@ -25,12 +25,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$url: {
-			url: decodeURIComponent(params.url),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$url: {
+				url: decodeURIComponent(params.url),
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			$image: true,
 			title: true,

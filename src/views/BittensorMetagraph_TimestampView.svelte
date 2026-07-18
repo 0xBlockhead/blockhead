@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bittensorMetagraphTimestamp = $derived(selection({
-		sources: [
-			Source.Bittensor_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			metagraphByteLength: true,
 		},
@@ -72,41 +69,45 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bittensorMetagraphTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorMetagraphTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bittensorMetagraphTimestamp}>
-			{#snippet Pending()}
-				{@const metagraphByteLength0 = pendingEntity.metagraphByteLength}
-				{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
-					<NumberValue value={Number(metagraphByteLength0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const metagraphByteLength0 = resolvedEntity.metagraphByteLength}
-				{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
-					<NumberValue value={Number(metagraphByteLength0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const metagraphByteLength0 = pendingEntity.metagraphByteLength}
+					{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
+						<NumberValue
+							value={metagraphByteLength0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorMetagraphTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const metagraphByteLength0 = resolvedEntity.metagraphByteLength}
+					{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
+						<NumberValue
+							value={metagraphByteLength0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -158,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -185,24 +174,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metagraphByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metagraphByteLength = pendingEntity.metagraphByteLength}
-					{#if metagraphByteLength !== undefined && metagraphByteLength !== null}
-						<div>
-							<dt>Metagraph bytes</dt>
-							<dd>
-								<NumberValue value={Number(metagraphByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metagraphByteLength = resolvedEntity.metagraphByteLength}
@@ -210,7 +188,9 @@
 						<div>
 							<dt>Metagraph bytes</dt>
 							<dd>
-								<NumberValue value={Number(metagraphByteLength)} />
+								<NumberValue
+									value={metagraphByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -220,24 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							neuronCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const neuronCount = pendingEntity.neuronCount}
-					{#if neuronCount !== undefined && neuronCount !== null}
-						<div>
-							<dt>Neurons</dt>
-							<dd>
-								<NumberValue value={Number(neuronCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const neuronCount = resolvedEntity.neuronCount}
@@ -245,7 +214,9 @@
 						<div>
 							<dt>Neurons</dt>
 							<dd>
-								<NumberValue value={Number(neuronCount)} />
+								<NumberValue
+									value={neuronCount}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -38,6 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const acpAgentProgram = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 		},
@@ -63,29 +64,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={acpAgentProgram}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpAgentProgram}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpAgentProgram}>
-			{#snippet Pending()}
-				{[String((pendingEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpAgentProgram}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,24 +94,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryAgentId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryAgentId = pendingEntity.registryAgentId}
-					{#if registryAgentId !== undefined && registryAgentId !== null}
-						<div>
-							<dt>registry agent ID</dt>
-							<dd>
-								{String((registryAgentId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryAgentId = resolvedEntity.registryAgentId}
@@ -128,24 +118,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							packageName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const packageName = pendingEntity.packageName}
-					{#if packageName !== undefined && packageName !== null}
-						<div>
-							<dt>package name</dt>
-							<dd>
-								{String((packageName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const packageName = resolvedEntity.packageName}
@@ -163,31 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							repositoryUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const repositoryUrl = pendingEntity.repositoryUrl}
-					{#if repositoryUrl !== undefined && repositoryUrl !== null}
-						<div>
-							<dt>repository URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(repositoryUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(repositoryUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const repositoryUrl = resolvedEntity.repositoryUrl}
@@ -212,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -247,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authors: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authors = pendingEntity.authors}
-					{#if authors !== undefined && authors !== null}
-						<div>
-							<dt>authors</dt>
-							<dd>
-								{authors == null ? '' : String(((authors).join(', ')) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authors = resolvedEntity.authors}

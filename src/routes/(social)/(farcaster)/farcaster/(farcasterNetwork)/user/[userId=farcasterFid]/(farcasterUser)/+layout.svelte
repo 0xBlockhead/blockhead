@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,10 @@
 			{@const DetailView = FarcasterUserView}
 
 			<DetailView
-				selection={select(EntityType.FarcasterUser, data.selector)}
+				selection={select(EntityType.FarcasterUser, data.selector, { sources: [
+		Source.Snapchain_Rest,
+		Source.Neynar_Rest,
+	] })}
 				href={
 					resolve('/farcaster/user/[userId=farcasterFid]', {
 						userId: params.userId,

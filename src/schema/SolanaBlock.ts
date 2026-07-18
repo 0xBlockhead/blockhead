@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum SolanaBlockSelector {
@@ -76,6 +77,9 @@ export const SolanaBlock = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SolanaTransaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 })({
 	selectors: {

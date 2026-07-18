@@ -44,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrRepost = $derived(selection({
-		sources: [
-			Source.Primal_Rest,
-			Source.NostrBand_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			kind: true,
 			pubkey: true,
@@ -83,22 +80,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nostrRepost}>
-			{#snippet Pending()}
-				{@const repostedEventId0 = pendingEntity.repostedEventId}
-				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-					<TruncatedValue value={String((repostedEventId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const repostedEventId0 = resolvedEntity.repostedEventId}
-				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-					<TruncatedValue value={String((repostedEventId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const repostedEventId0 = pendingEntity.repostedEventId}
+					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
+						<TruncatedValue value={String((repostedEventId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nostrRepost}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const repostedEventId0 = resolvedEntity.repostedEventId}
+					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
+						<TruncatedValue value={String((repostedEventId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -109,26 +106,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nostrRepost}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const createdAt0 = pendingEntity.createdAt}
+			{#if createdAt0 !== undefined && createdAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(createdAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nostrRepost}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(createdAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -145,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventId = pendingEntity.eventId}
-							{#if eventId !== undefined && eventId !== null}
-								<TruncatedValue value={String((eventId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventId = resolvedEntity.eventId}
@@ -172,27 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -214,22 +191,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.NostrBand_Rest,
-									],
+									sources: selection.sources,
 									fields: {
 										kind: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const kind = pendingEntity.kind}
-								{#if kind !== undefined && kind !== null}
-									{String((kind) ?? '')}
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const kind = resolvedEntity.kind}
@@ -249,22 +217,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.NostrBand_Rest,
-									],
+									sources: selection.sources,
 									fields: {
 										pubkey: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const pubkey = pendingEntity.pubkey}
-								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String((pubkey) ?? '')} />
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const pubkey = resolvedEntity.pubkey}
@@ -287,8 +246,6 @@
 						})
 					}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(nostrProfile)}
 						{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 							<div>
@@ -316,27 +273,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.NostrBand_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								repostedEventId: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const repostedEventId = pendingEntity.repostedEventId}
-						{#if repostedEventId !== undefined && repostedEventId !== null}
-							<div>
-								<dt>Reposted event ID</dt>
-								<dd>
-									<TruncatedValue value={String((repostedEventId) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const repostedEventId = resolvedEntity.repostedEventId}
@@ -362,8 +305,6 @@
 						})
 					}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(nostrNote)}
 						{#if nostrNote != null && nostrNote[EntityMetaKey.Selector] != null}
 							<div>
@@ -397,8 +338,6 @@
 						})
 					}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(nostrArticle)}
 						{#if nostrArticle != null && nostrArticle[EntityMetaKey.Selector] != null}
 							<div>

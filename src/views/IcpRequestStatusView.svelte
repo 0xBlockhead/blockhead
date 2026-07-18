@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpRequestStatus = $derived(selection({}))
+	const icpRequestStatus = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP request status')
 	const viewDomId = $derived('icp-request-status-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpRequestStatus}>
-			{#snippet Pending()}
-				{title || 'ICP request status'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpRequestStatus}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									requestId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const requestId = pendingEntity.requestId}
-							{#if requestId !== undefined && requestId !== null}
-								{String((requestId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const requestId = resolvedEntity.requestId}
@@ -121,8 +117,6 @@
 			<ResourceBoundary
 				resource={selection.$canister}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(icpCanister)}
 					{#if icpCanister != null && icpCanister[EntityMetaKey.Selector] != null}
 						<div>
@@ -143,24 +137,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							methodName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const methodName = pendingEntity.methodName}
-					{#if methodName !== undefined && methodName !== null}
-						<div>
-							<dt>method name</dt>
-							<dd>
-								{String((methodName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const methodName = resolvedEntity.methodName}
@@ -178,24 +161,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							requestKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const requestKind = pendingEntity.requestKind}
-					{#if requestKind !== undefined && requestKind !== null}
-						<div>
-							<dt>request kind</dt>
-							<dd>
-								{String((requestKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const requestKind = resolvedEntity.requestKind}
@@ -213,24 +185,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							callerPrincipal: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const callerPrincipal = pendingEntity.callerPrincipal}
-					{#if callerPrincipal !== undefined && callerPrincipal !== null}
-						<div>
-							<dt>caller principal</dt>
-							<dd>
-								{String((callerPrincipal) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const callerPrincipal = resolvedEntity.callerPrincipal}
@@ -248,24 +209,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ingressExpiryNs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ingressExpiryNs = pendingEntity.ingressExpiryNs}
-					{#if ingressExpiryNs !== undefined && ingressExpiryNs !== null}
-						<div>
-							<dt>ingress expiry ns</dt>
-							<dd>
-								{String((ingressExpiryNs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ingressExpiryNs = resolvedEntity.ingressExpiryNs}

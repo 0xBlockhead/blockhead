@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLitecoinMwebWalletState_TimestampView from '$/views/BlockheadLitecoinMwebWalletState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balanceLitoshis: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLitecoinMwebWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLitecoinMwebWalletState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balanceLitoshis: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLitecoinMwebWalletStateTimestamps) => [...new Map(blockheadLitecoinMwebWalletStateTimestamps.values.map((blockheadLitecoinMwebWalletStateTimestamp) => [blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadLitecoinMwebWalletStateTimestamp])).values()]}
+	getKey={(blockheadLitecoinMwebWalletStateTimestamp) => blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead litecoin mweb wallet state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLitecoinMwebWalletStateTimestamps)}
-			{@const uniqueBlockheadLitecoinMwebWalletStateTimestamps = [...new Map(blockheadLitecoinMwebWalletStateTimestamps.values.map((blockheadLitecoinMwebWalletStateTimestamp) => [blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadLitecoinMwebWalletStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLitecoinMwebWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLitecoinMwebWalletStateTimestamps.totalCount}
-				getKey={(blockheadLitecoinMwebWalletStateTimestamp) => blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLitecoinMwebWalletStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead litecoin mweb wallet state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLitecoinMwebWalletStateTimestamp })}
-					{@const blockheadLitecoinMwebWalletStateTimestampFields = { ...blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadLitecoinMwebWalletStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadLitecoinMwebWalletState_Timestamp, blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLitecoinMwebWalletState_TimestampView
-						selection={selection}
-						prefetched={blockheadLitecoinMwebWalletStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLitecoinMwebWalletState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLitecoinMwebWalletStateTimestamp })}
+		{@const blockheadLitecoinMwebWalletStateTimestampFields = { ...blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadLitecoinMwebWalletStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadLitecoinMwebWalletState_Timestamp, blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLitecoinMwebWalletState_TimestampView
+			selection={selection}
+			prefetched={blockheadLitecoinMwebWalletStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

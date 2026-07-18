@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,7 +34,9 @@
 		{@const DetailView = IpfsProtocolView}
 
 		<DetailView
-			selection={select(EntityType.IpfsProtocol, data.selector)}
+			selection={select(EntityType.IpfsProtocol, data.selector, { sources: [
+	Source.Constants_Internal,
+] })}
 			href={resolve('/ipfs')}
 			layout={EntityLayout.SummaryInline}
 		/>

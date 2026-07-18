@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidVaultEquity_TimestampView from '$/views/HyperliquidVaultEquity_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidVaultEquity_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidVaultEquity_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidVaultEquityTimestamps) => [...new Map(hyperliquidVaultEquityTimestamps.values.map((hyperliquidVaultEquityTimestamp) => [hyperliquidVaultEquityTimestamp[EntityMetaKey.SelectorKey], hyperliquidVaultEquityTimestamp])).values()]}
+	getKey={(hyperliquidVaultEquityTimestamp) => hyperliquidVaultEquityTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid vault equity observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidVaultEquityTimestamps)}
-			{@const uniqueHyperliquidVaultEquityTimestamps = [...new Map(hyperliquidVaultEquityTimestamps.values.map((hyperliquidVaultEquityTimestamp) => [hyperliquidVaultEquityTimestamp[EntityMetaKey.SelectorKey], hyperliquidVaultEquityTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidVaultEquity_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidVaultEquityTimestamps.totalCount}
-				getKey={(hyperliquidVaultEquityTimestamp) => hyperliquidVaultEquityTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidVaultEquityTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid vault equity observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidVaultEquityTimestamp })}
-					{@const hyperliquidVaultEquityTimestampFields = { ...hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], ...hyperliquidVaultEquityTimestamp }}
-					{@const selection = select(EntityType.HyperliquidVaultEquity_Timestamp, hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidVaultEquity_TimestampView
-						selection={selection}
-						prefetched={hyperliquidVaultEquityTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidVaultEquity_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidVaultEquityTimestamp })}
+		{@const hyperliquidVaultEquityTimestampFields = { ...hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], ...hyperliquidVaultEquityTimestamp }}
+		{@const selection = select(EntityType.HyperliquidVaultEquity_Timestamp, hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidVaultEquity_TimestampView
+			selection={selection}
+			prefetched={hyperliquidVaultEquityTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

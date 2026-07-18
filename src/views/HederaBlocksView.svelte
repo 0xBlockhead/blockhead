@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaBlockView from '$/views/HederaBlockView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaBlocks) => [...new Map(hederaBlocks.values.map((hederaBlock) => [hederaBlock[EntityMetaKey.SelectorKey], hederaBlock])).values()]}
+	getKey={(hederaBlock) => hederaBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaBlocks)}
-			{@const uniqueHederaBlocks = [...new Map(hederaBlocks.values.map((hederaBlock) => [hederaBlock[EntityMetaKey.SelectorKey], hederaBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaBlocks.totalCount}
-				getKey={(hederaBlock) => hederaBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaBlock })}
-					{@const hederaBlockFields = { ...hederaBlock[EntityMetaKey.Selector], ...hederaBlock }}
-					{@const selection = select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaBlockView
-						selection={selection}
-						prefetched={hederaBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaBlock })}
+		{@const hederaBlockFields = { ...hederaBlock[EntityMetaKey.Selector], ...hederaBlock }}
+		{@const selection = select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaBlockView
+			selection={selection}
+			prefetched={hederaBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -38,7 +38,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmCalldata = $derived(selection({}))
+	const evmCalldata = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')
 	const viewDomId = $derived('evm-calldata-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,22 +66,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmCalldata}>
-			{#snippet Pending()}
-				{@const hex0 = pendingEntity.hex}
-				{#if hex0 !== undefined && hex0 !== null}
-					<TruncatedValue value={String((hex0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hex0 = resolvedEntity.hex}
-				{#if hex0 !== undefined && hex0 !== null}
-					<TruncatedValue value={String((hex0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const hex0 = pendingEntity.hex}
+					{#if hex0 !== undefined && hex0 !== null}
+						<TruncatedValue value={String((hex0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmCalldata}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hex0 = resolvedEntity.hex}
+					{#if hex0 !== undefined && hex0 !== null}
+						<TruncatedValue value={String((hex0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hex = pendingEntity.hex}
-							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String((hex) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hex = resolvedEntity.hex}

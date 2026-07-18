@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,9 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmProtocol = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolName: true,
 			registryName: true,
@@ -74,29 +71,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmProtocol}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmProtocol}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmProtocol}>
-			{#snippet Pending()}
-				{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmProtocol}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -113,19 +110,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocolName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocolName = pendingEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocolName = resolvedEntity.protocolName}
@@ -143,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									registryName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const registryName = pendingEntity.registryName}
-							{#if registryName !== undefined && registryName !== null}
-								{String((registryName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const registryName = resolvedEntity.registryName}
@@ -173,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									relationshipModel: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const relationshipModel = pendingEntity.relationshipModel}
-							{#if relationshipModel !== undefined && relationshipModel !== null}
-								{String((relationshipModel) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const relationshipModel = resolvedEntity.relationshipModel}
@@ -203,26 +182,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									homeUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const homeUrl = pendingEntity.homeUrl}
-							{#if homeUrl !== undefined && homeUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(homeUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(homeUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const homeUrl = resolvedEntity.homeUrl}
@@ -244,31 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							docsUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const docsUrl = pendingEntity.docsUrl}
-					{#if docsUrl !== undefined && docsUrl !== null}
-						<div>
-							<dt>Docs URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(docsUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(docsUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const docsUrl = resolvedEntity.docsUrl}
@@ -311,11 +259,8 @@
 				}
 				data-card
 				class='network-view-collapsible-signatures'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Signatures</HeadingComponent>
 					</header>
@@ -323,13 +268,13 @@
 
 				{#snippet SectionEvmProtocolSelectors({ id, label, open })}
 					<EvmSelectorsView
-						selection={
-							selection.$$evmSelectors({
-								count: true,
-							})
-						}
+						selection={selection.$$evmSelectors}
 						href={resolve('/evm/selectors')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EVM selectors in this observed.'
 						open={open}
 						title={label}
@@ -339,13 +284,13 @@
 
 				{#snippet SectionEvmProtocolTopics({ id, label, open })}
 					<EvmTopicsView
-						selection={
-							selection.$$evmTopics({
-								count: true,
-							})
-						}
+						selection={selection.$$evmTopics}
 						href={resolve('/evm/topics')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EVM topics in this observed.'
 						open={open}
 						title={label}
@@ -368,11 +313,8 @@
 				}
 				data-card
 				class='network-view-collapsible-errors'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Errors</HeadingComponent>
 					</header>
@@ -380,13 +322,13 @@
 
 				{#snippet SectionEvmProtocolErrorList({ id, label, open })}
 					<EvmErrorsView
-						selection={
-							selection.$$evmErrors({
-								count: true,
-							})
-						}
+						selection={selection.$$evmErrors}
 						href={resolve('/evm/errors')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EVM errors in this observed.'
 						open={open}
 						title={label}

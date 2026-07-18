@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaNftView from '$/views/HederaNftView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaNft}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaNfts) => [...new Map(hederaNfts.values.map((hederaNft) => [hederaNft[EntityMetaKey.SelectorKey], hederaNft])).values()]}
+	getKey={(hederaNft) => hederaNft[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera NFTs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaNfts)}
-			{@const uniqueHederaNfts = [...new Map(hederaNfts.values.map((hederaNft) => [hederaNft[EntityMetaKey.SelectorKey], hederaNft])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaNfts.totalCount}
-				getKey={(hederaNft) => hederaNft[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaNfts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera NFTs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaNft })}
-					{@const hederaNftFields = { ...hederaNft[EntityMetaKey.Selector], ...hederaNft }}
-					{@const selection = select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaNftView
-						selection={selection}
-						prefetched={hederaNftFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaNft}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaNft })}
+		{@const hederaNftFields = { ...hederaNft[EntityMetaKey.Selector], ...hederaNft }}
+		{@const selection = select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaNftView
+			selection={selection}
+			prefetched={hederaNftFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

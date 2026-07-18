@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaHbarTransfer = $derived(selection({}))
+	const hederaHbarTransfer = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera HBAR transfer')
 	const viewDomId = $derived('hedera-hbar-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaHbarTransfer}>
-			{#snippet Pending()}
-				{title || 'hedera HBAR transfer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaHbarTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountId = pendingEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountId = resolvedEntity.accountId}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transferIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transferIndex = pendingEntity.transferIndex}
-							{#if transferIndex !== undefined && transferIndex !== null}
-								{String((transferIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transferIndex = resolvedEntity.transferIndex}
@@ -155,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									amountTinybar: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amountTinybar = pendingEntity.amountTinybar}
-							{#if amountTinybar !== undefined && amountTinybar !== null}
-								{String((amountTinybar) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amountTinybar = resolvedEntity.amountTinybar}
@@ -182,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isApproval: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isApproval = pendingEntity.isApproval}
-					{#if isApproval !== undefined && isApproval !== null}
-						<div>
-							<dt>is approval</dt>
-							<dd>
-								{isApproval ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isApproval = resolvedEntity.isApproval}
@@ -217,8 +190,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>

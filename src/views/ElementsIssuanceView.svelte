@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const elementsIssuance = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			isReissuance: true,
 		},
@@ -71,114 +72,126 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={elementsIssuance}>
-			{#snippet Pending()}
-				{@const inputIndex0 = pendingEntity.inputIndex}
-				{#if inputIndex0 !== undefined && inputIndex0 !== null}
-					<NumberValue value={Number(inputIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const inputIndex0 = resolvedEntity.inputIndex}
-				{#if inputIndex0 !== undefined && inputIndex0 !== null}
-					<NumberValue value={Number(inputIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const inputIndex0 = pendingEntity.inputIndex}
+					{#if inputIndex0 !== undefined && inputIndex0 !== null}
+						<NumberValue
+							value={inputIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={elementsIssuance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const inputIndex0 = resolvedEntity.inputIndex}
+					{#if inputIndex0 !== undefined && inputIndex0 !== null}
+						<NumberValue
+							value={inputIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={elementsIssuance}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$asset}
-				>
-					{#snippet children(elementsAsset)}
-						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-							<ElementsAssetView
-								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-								prefetched={elementsAsset}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$asset}
+					>
+						{#snippet children(elementsAsset)}
+							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+								<ElementsAssetView
+									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+									prefetched={elementsAsset}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-				<ResourceBoundary
-					resource={selection.$reissuanceTokenAsset}
-				>
-					{#snippet children(elementsAsset)}
-						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-							<ElementsAssetView
-								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-								prefetched={elementsAsset}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+					<ResourceBoundary
+						resource={selection.$reissuanceTokenAsset}
+					>
+						{#snippet children(elementsAsset)}
+							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+								<ElementsAssetView
+									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+									prefetched={elementsAsset}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={elementsIssuance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$asset}
+					>
+						{#snippet children(elementsAsset)}
+							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+								<ElementsAssetView
+									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+									prefetched={elementsAsset}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$asset}
-				>
-					{#snippet children(elementsAsset)}
-						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-							<ElementsAssetView
-								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-								prefetched={elementsAsset}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-
-				<ResourceBoundary
-					resource={selection.$reissuanceTokenAsset}
-				>
-					{#snippet children(elementsAsset)}
-						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-							<ElementsAssetView
-								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-								prefetched={elementsAsset}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					<ResourceBoundary
+						resource={selection.$reissuanceTokenAsset}
+					>
+						{#snippet children(elementsAsset)}
+							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+								<ElementsAssetView
+									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+									prefetched={elementsAsset}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={elementsIssuance}>
-			{#snippet Pending()}
-				{@const isReissuance0 = pendingEntity.isReissuance}
-				{#if isReissuance0 !== undefined && isReissuance0 !== null}
-					<span data-text="muted">
-						{isReissuance0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const isReissuance0 = resolvedEntity.isReissuance}
-				{#if isReissuance0 !== undefined && isReissuance0 !== null}
-					<span data-text="muted">
-						{isReissuance0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const isReissuance0 = pendingEntity.isReissuance}
+			{#if isReissuance0 !== undefined && isReissuance0 !== null}
+				<span data-text="muted">
+					{isReissuance0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={elementsIssuance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isReissuance0 = resolvedEntity.isReissuance}
+					{#if isReissuance0 !== undefined && isReissuance0 !== null}
+						<span data-text="muted">
+							{isReissuance0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -209,24 +222,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									inputIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const inputIndex = pendingEntity.inputIndex}
-							{#if inputIndex !== undefined && inputIndex !== null}
-								<NumberValue value={Number(inputIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const inputIndex = resolvedEntity.inputIndex}
 							{#if inputIndex !== undefined && inputIndex !== null}
-								<NumberValue value={Number(inputIndex)} />
+								<NumberValue
+									value={inputIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -236,8 +245,6 @@
 			<ResourceBoundary
 				resource={selection.$asset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -258,8 +265,6 @@
 			<ResourceBoundary
 				resource={selection.$reissuanceTokenAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,24 +287,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							issuedAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const issuedAmount = pendingEntity.issuedAmount}
-					{#if issuedAmount !== undefined && issuedAmount !== null}
-						<div>
-							<dt>Issued amount</dt>
-							<dd>
-								<NumberValue value={Number(issuedAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const issuedAmount = resolvedEntity.issuedAmount}
@@ -307,7 +301,9 @@
 						<div>
 							<dt>Issued amount</dt>
 							<dd>
-								<NumberValue value={Number(issuedAmount)} />
+								<NumberValue
+									value={issuedAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -317,24 +313,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenAmount = pendingEntity.tokenAmount}
-					{#if tokenAmount !== undefined && tokenAmount !== null}
-						<div>
-							<dt>Token amount</dt>
-							<dd>
-								<NumberValue value={Number(tokenAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenAmount = resolvedEntity.tokenAmount}
@@ -342,7 +327,9 @@
 						<div>
 							<dt>Token amount</dt>
 							<dd>
-								<NumberValue value={Number(tokenAmount)} />
+								<NumberValue
+									value={tokenAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -352,24 +339,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isReissuance: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isReissuance = pendingEntity.isReissuance}
-					{#if isReissuance !== undefined && isReissuance !== null}
-						<div>
-							<dt>Reissuance</dt>
-							<dd>
-								{isReissuance ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isReissuance = resolvedEntity.isReissuance}
@@ -387,24 +363,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetEntropy: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetEntropy = pendingEntity.assetEntropy}
-					{#if assetEntropy !== undefined && assetEntropy !== null}
-						<div>
-							<dt>Asset entropy</dt>
-							<dd>
-								<TruncatedValue value={String((assetEntropy) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetEntropy = resolvedEntity.assetEntropy}
@@ -422,24 +387,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetBlindingNonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetBlindingNonce = pendingEntity.assetBlindingNonce}
-					{#if assetBlindingNonce !== undefined && assetBlindingNonce !== null}
-						<div>
-							<dt>Asset blinding nonce</dt>
-							<dd>
-								<TruncatedValue value={String((assetBlindingNonce) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetBlindingNonce = resolvedEntity.assetBlindingNonce}

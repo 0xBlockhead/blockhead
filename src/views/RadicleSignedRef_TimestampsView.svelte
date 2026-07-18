@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadicleSignedRef_TimestampView from '$/views/RadicleSignedRef_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleSignedRef_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadicleSignedRef_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radicleSignedRefTimestamps) => [...new Map(radicleSignedRefTimestamps.values.map((radicleSignedRefTimestamp) => [radicleSignedRefTimestamp[EntityMetaKey.SelectorKey], radicleSignedRefTimestamp])).values()]}
+	getKey={(radicleSignedRefTimestamp) => radicleSignedRefTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle signed ref observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radicleSignedRefTimestamps)}
-			{@const uniqueRadicleSignedRefTimestamps = [...new Map(radicleSignedRefTimestamps.values.map((radicleSignedRefTimestamp) => [radicleSignedRefTimestamp[EntityMetaKey.SelectorKey], radicleSignedRefTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleSignedRef_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radicleSignedRefTimestamps.totalCount}
-				getKey={(radicleSignedRefTimestamp) => radicleSignedRefTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueRadicleSignedRefTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle signed ref observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radicleSignedRefTimestamp })}
-					{@const radicleSignedRefTimestampFields = { ...radicleSignedRefTimestamp[EntityMetaKey.Selector], ...radicleSignedRefTimestamp }}
-					{@const selection = select(EntityType.RadicleSignedRef_Timestamp, radicleSignedRefTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadicleSignedRef_TimestampView
-						selection={selection}
-						prefetched={radicleSignedRefTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadicleSignedRef_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radicleSignedRefTimestamp })}
+		{@const radicleSignedRefTimestampFields = { ...radicleSignedRefTimestamp[EntityMetaKey.Selector], ...radicleSignedRefTimestamp }}
+		{@const selection = select(EntityType.RadicleSignedRef_Timestamp, radicleSignedRefTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadicleSignedRef_TimestampView
+			selection={selection}
+			prefetched={radicleSignedRefTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

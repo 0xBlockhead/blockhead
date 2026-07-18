@@ -40,9 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalNostrNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolName: true,
 			registryName: true,
@@ -65,8 +63,6 @@
 	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
 	import NostrRepostsView from '$/views/NostrRepostsView.svelte'
-	import NostrReactionsView from '$/views/NostrReactionsView.svelte'
-	import GlobalNostrNetwork_TimestampsView from '$/views/_GlobalNostrNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -81,16 +77,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalNostrNetwork}>
-			{#snippet Pending()}
-				{['Nostr'].filter(Boolean).join(' ') || title || 'Nostr'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalNostrNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -104,27 +100,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-						],
+						sources: selection.sources,
 						fields: {
 							registryName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryName = pendingEntity.registryName}
-					{#if registryName !== undefined && registryName !== null}
-						<div>
-							<dt>Registry name</dt>
-							<dd>
-								{String((registryName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryName = resolvedEntity.registryName}
@@ -142,27 +124,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-						],
+						sources: selection.sources,
 						fields: {
 							protocolName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolName = pendingEntity.protocolName}
-					{#if protocolName !== undefined && protocolName !== null}
-						<div>
-							<dt>Protocol</dt>
-							<dd>
-								{String((protocolName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolName = resolvedEntity.protocolName}
@@ -181,34 +149,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Constants_Internal,
-							],
+							sources: selection.sources,
 							fields: {
 								homeUrl: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const homeUrl = pendingEntity.homeUrl}
-						{#if homeUrl !== undefined && homeUrl !== null}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(homeUrl)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(homeUrl)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const homeUrl = resolvedEntity.homeUrl}
@@ -235,34 +182,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Constants_Internal,
-							],
+							sources: selection.sources,
 							fields: {
 								docsUrl: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const docsUrl = pendingEntity.docsUrl}
-						{#if docsUrl !== undefined && docsUrl !== null}
-							<div>
-								<dt>NIPs</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(docsUrl)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(docsUrl)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const docsUrl = resolvedEntity.docsUrl}
@@ -289,27 +215,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Constants_Internal,
-							],
+							sources: selection.sources,
 							fields: {
 								relationshipModel: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const relationshipModel = pendingEntity.relationshipModel}
-						{#if relationshipModel !== undefined && relationshipModel !== null}
-							<div>
-								<dt>Connection model</dt>
-								<dd>
-									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const relationshipModel = resolvedEntity.relationshipModel}
@@ -346,11 +258,8 @@
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Directory</HeadingComponent>
 					</header>
@@ -363,11 +272,14 @@
 								sources: [
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/profiles')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Nostr profiles in this observed.'
 						open={open}
 						title={label}
@@ -383,11 +295,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/relays')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Nostr relays in this observed.'
 						open={open}
 						title={label}
@@ -414,11 +329,8 @@
 				}
 				data-card
 				class='network-view-collapsible-content'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Notes and articles</HeadingComponent>
 					</header>
@@ -432,11 +344,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/notes')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Nostr notes in this observed.'
 						open={open}
 						title={label}
@@ -452,11 +367,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/articles')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Nostr articles in this observed.'
 						open={open}
 						title={label}
@@ -475,19 +393,12 @@
 							id: 'nostr-reposts',
 							label: 'Reposts',
 						},
-						{
-							id: 'nostr-reactions',
-							label: 'Reactions',
-						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-engagement'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Engagement</HeadingComponent>
 					</header>
@@ -501,68 +412,15 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/reposts')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Nostr reposts in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionNostrReactions({ id, label, open })}
-					<NostrReactionsView
-						selection={
-							selection.$$observedReactions({
-								count: true,
-							})
-						}
-						href={resolve('/nostr/reactions')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No Nostr reactions in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-nostr-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'nostr-hub-observations',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionNostrHubObservations({ id, label, open })}
-					<GlobalNostrNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No Nostr network observations.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aArtifactView from '$/views/A2aArtifactView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					$task: true,
-					artifactId: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aArtifact}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aArtifact}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				$task: true,
+				artifactId: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(a2aArtifacts) => [...new Map(a2aArtifacts.values.map((a2aArtifact) => [a2aArtifact[EntityMetaKey.SelectorKey], a2aArtifact])).values()]}
+	getKey={(a2aArtifact) => a2aArtifact[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A artifacts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aArtifacts)}
-			{@const uniqueA2aArtifacts = [...new Map(a2aArtifacts.values.map((a2aArtifact) => [a2aArtifact[EntityMetaKey.SelectorKey], a2aArtifact])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aArtifact}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aArtifacts.totalCount}
-				getKey={(a2aArtifact) => a2aArtifact[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aArtifacts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A artifacts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aArtifact })}
-					{@const a2aArtifactFields = { ...a2aArtifact[EntityMetaKey.Selector], ...a2aArtifact }}
-					{@const selection = select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aArtifactView
-						selection={selection}
-						prefetched={a2aArtifactFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aArtifact}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aArtifact })}
+		{@const a2aArtifactFields = { ...a2aArtifact[EntityMetaKey.Selector], ...a2aArtifact }}
+		{@const selection = select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aArtifactView
+			selection={selection}
+			prefetched={a2aArtifactFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

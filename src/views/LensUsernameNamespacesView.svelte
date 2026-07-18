@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensUsernameNamespaceView from '$/views/LensUsernameNamespaceView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					namespace: true,
-					tokenName: true,
-					address: true,
-					totalUsernames: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensUsernameNamespace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LensUsernameNamespace}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				namespace: true,
+				tokenName: true,
+				address: true,
+				totalUsernames: true,
+			},
+		})
+	}
+	getResourceItems={(lensUsernameNamespaces) => [...new Map(lensUsernameNamespaces.values.map((lensUsernameNamespace) => [lensUsernameNamespace[EntityMetaKey.SelectorKey], lensUsernameNamespace])).values()]}
+	getKey={(lensUsernameNamespace) => lensUsernameNamespace[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lens username namespaces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lensUsernameNamespaces)}
-			{@const uniqueLensUsernameNamespaces = [...new Map(lensUsernameNamespaces.values.map((lensUsernameNamespace) => [lensUsernameNamespace[EntityMetaKey.SelectorKey], lensUsernameNamespace])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensUsernameNamespace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensUsernameNamespaces.totalCount}
-				getKey={(lensUsernameNamespace) => lensUsernameNamespace[EntityMetaKey.SelectorKey]}
-				items={uniqueLensUsernameNamespaces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lens username namespaces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lensUsernameNamespace })}
-					{@const lensUsernameNamespaceFields = { ...lensUsernameNamespace[EntityMetaKey.Selector], ...lensUsernameNamespace }}
-					{@const selection = select(EntityType.LensUsernameNamespace, lensUsernameNamespace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LensUsernameNamespaceView
-						selection={selection}
-						prefetched={lensUsernameNamespaceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LensUsernameNamespace}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lensUsernameNamespace })}
+		{@const lensUsernameNamespaceFields = { ...lensUsernameNamespace[EntityMetaKey.Selector], ...lensUsernameNamespace }}
+		{@const selection = select(EntityType.LensUsernameNamespace, lensUsernameNamespace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LensUsernameNamespaceView
+			selection={selection}
+			prefetched={lensUsernameNamespaceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

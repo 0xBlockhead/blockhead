@@ -2,6 +2,7 @@ import { oauthGetJson } from '$/sources/Reddit/Rest/client.ts'
 import type {
 	RedditApiInfoResponse,
 	RedditApiListing,
+	RedditApiListingRequest,
 	RedditApiSubredditAbout,
 } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
@@ -22,12 +23,17 @@ export const getSubredditAbout = async (publicEnv: SourcePublicEnv, name: string
 export const listSubredditLinks = async (
 	publicEnv: SourcePublicEnv,
 	name: string,
-	limit: number
-) => (
+	limit: number,
+	after?: string,
+	sort: RedditApiListingRequest['sort'] = 'hot'
+): Promise<RedditApiListing> => (
 	oauthGetJson<RedditApiListing>(
 		publicEnv,
-		`/r/${encodeURIComponent(name)}/hot?${(
+		`/r/${encodeURIComponent(name)}/${sort}?${(
 			new URLSearchParams({
+				...(after !== undefined && {
+					after,
+				}),
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
@@ -37,12 +43,17 @@ export const listSubredditLinks = async (
 
 export const listPopularLinks = async (
 	publicEnv: SourcePublicEnv,
-	limit: number
-) => (
+	limit: number,
+	after?: string,
+	sort: RedditApiListingRequest['sort'] = 'hot'
+): Promise<RedditApiListing> => (
 	oauthGetJson<RedditApiListing>(
 		publicEnv,
-		`/r/popular/hot?${(
+		`/r/popular/${sort}?${(
 			new URLSearchParams({
+				...(after !== undefined && {
+					after,
+				}),
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()

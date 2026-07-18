@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconSlot = $derived(selection({}))
+	const beaconSlot = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'beacon slot')
 	const viewDomId = $derived('beacon-slot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -102,60 +104,68 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={beaconSlot}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$epoch}
-				>
-					{#snippet children(beaconEpoch)}
-						<span data-text="muted">
-							<BeaconEpochView
-								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
-								prefetched={beaconEpoch}
-								href={
-									(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-										network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$epoch}
-				>
-					{#snippet children(beaconEpoch)}
-						<span data-text="muted">
-							<BeaconEpochView
-								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
-								prefetched={beaconEpoch}
-								href={
-									(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-										network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$epoch}
+			>
+				{#snippet children(beaconEpoch)}
+					{#if beaconEpoch != null && beaconEpoch[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<BeaconEpochView
+							selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+							prefetched={beaconEpoch}
+							href={
+								(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+									epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+									network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+								}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+									epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+									network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={beaconSlot}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$epoch}
+					>
+						{#snippet children(beaconEpoch)}
+							{#if beaconEpoch != null && beaconEpoch[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<BeaconEpochView
+									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+									prefetched={beaconEpoch}
+									href={
+										(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+											network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -163,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proposerIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proposerIndex = pendingEntity.proposerIndex}
-					{#if proposerIndex !== undefined && proposerIndex !== null}
-						<div>
-							<dt>Proposer index</dt>
-							<dd>
-								<NumberValue value={Number(proposerIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proposerIndex = resolvedEntity.proposerIndex}
@@ -188,7 +187,9 @@
 						<div>
 							<dt>Proposer index</dt>
 							<dd>
-								<NumberValue value={Number(proposerIndex)} />
+								<NumberValue
+									value={proposerIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -228,24 +229,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								root: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const root = pendingEntity.root}
-						{#if root !== undefined && root !== null}
-							<div>
-								<dt>Block root</dt>
-								<dd>
-									<TruncatedValue value={String((root) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const root = resolvedEntity.root}
@@ -265,24 +255,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								canonical: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const canonical = pendingEntity.canonical}
-						{#if canonical !== undefined && canonical !== null}
-							<div>
-								<dt>Canonical</dt>
-								<dd>
-									{canonical ? 'Yes' : 'No'}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const canonical = resolvedEntity.canonical}
@@ -302,24 +281,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								parentRoot: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const parentRoot = pendingEntity.parentRoot}
-						{#if parentRoot !== undefined && parentRoot !== null}
-							<div>
-								<dt>Parent root</dt>
-								<dd>
-									<TruncatedValue value={String((parentRoot) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const parentRoot = resolvedEntity.parentRoot}
@@ -339,24 +307,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								stateRoot: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const stateRoot = pendingEntity.stateRoot}
-						{#if stateRoot !== undefined && stateRoot !== null}
-							<div>
-								<dt>State root</dt>
-								<dd>
-									<TruncatedValue value={String((stateRoot) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const stateRoot = resolvedEntity.stateRoot}
@@ -376,24 +333,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								bodyRoot: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const bodyRoot = pendingEntity.bodyRoot}
-						{#if bodyRoot !== undefined && bodyRoot !== null}
-							<div>
-								<dt>Body root</dt>
-								<dd>
-									<TruncatedValue value={String((bodyRoot) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const bodyRoot = resolvedEntity.bodyRoot}
@@ -413,24 +359,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								signature: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const signature = pendingEntity.signature}
-						{#if signature !== undefined && signature !== null}
-							<div>
-								<dt>Signature</dt>
-								<dd>
-									<TruncatedValue value={String((signature) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const signature = resolvedEntity.signature}
@@ -467,11 +402,8 @@
 				}
 				data-card
 				class='network-view-collapsible-consensus'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Consensus</HeadingComponent>
 					</header>
@@ -479,12 +411,13 @@
 
 				{#snippet SectionBeaconSlotCommittees({ id, label, open })}
 					<BeaconCommitteesView
-						selection={
-							selection.$$beaconCommittees({
-								count: true,
-							})
-						}
+						selection={selection.$$beaconCommittees}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No committees available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -493,12 +426,13 @@
 
 				{#snippet SectionBeaconSlotAttestations({ id, label, open })}
 					<BeaconAttestationsView
-						selection={
-							selection.$$beaconAttestations({
-								count: true,
-							})
-						}
+						selection={selection.$$beaconAttestations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No attestations available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -524,11 +458,8 @@
 				}
 				data-card
 				class='network-view-collapsible-exits'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Withdrawals and slashings</HeadingComponent>
 					</header>
@@ -536,12 +467,13 @@
 
 				{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
 					<BeaconWithdrawalsView
-						selection={
-							selection.$$beaconWithdrawals({
-								count: true,
-							})
-						}
+						selection={selection.$$beaconWithdrawals}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No withdrawals available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -550,12 +482,13 @@
 
 				{#snippet SectionBeaconSlotSlashings({ id, label, open })}
 					<BeaconSlashingsView
-						selection={
-							selection.$$beaconSlashings({
-								count: true,
-							})
-						}
+						selection={selection.$$beaconSlashings}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No slashings available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

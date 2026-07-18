@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCanisterMethod = $derived(selection({}))
+	const icpCanisterMethod = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP canister method')
 	const viewDomId = $derived('icp-canister-method-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpCanisterMethod}>
-			{#snippet Pending()}
-				{title || 'ICP canister method'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpCanisterMethod}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									methodName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const methodName = pendingEntity.methodName}
-							{#if methodName !== undefined && methodName !== null}
-								{String((methodName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const methodName = resolvedEntity.methodName}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									methodKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const methodKind = pendingEntity.methodKind}
-							{#if methodKind !== undefined && methodKind !== null}
-								{String((methodKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const methodKind = resolvedEntity.methodKind}

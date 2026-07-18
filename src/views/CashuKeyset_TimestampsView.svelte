@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CashuKeyset_TimestampView from '$/views/CashuKeyset_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					active: true,
-					inputFeePpk: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CashuKeyset_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CashuKeyset_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				active: true,
+				inputFeePpk: true,
+			},
+		})
+	}
+	getResourceItems={(cashuKeysetTimestamps) => [...new Map(cashuKeysetTimestamps.values.map((cashuKeysetTimestamp) => [cashuKeysetTimestamp[EntityMetaKey.SelectorKey], cashuKeysetTimestamp])).values()]}
+	getKey={(cashuKeysetTimestamp) => cashuKeysetTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cashu keyset observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cashuKeysetTimestamps)}
-			{@const uniqueCashuKeysetTimestamps = [...new Map(cashuKeysetTimestamps.values.map((cashuKeysetTimestamp) => [cashuKeysetTimestamp[EntityMetaKey.SelectorKey], cashuKeysetTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CashuKeyset_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cashuKeysetTimestamps.totalCount}
-				getKey={(cashuKeysetTimestamp) => cashuKeysetTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCashuKeysetTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cashu keyset observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cashuKeysetTimestamp })}
-					{@const cashuKeysetTimestampFields = { ...cashuKeysetTimestamp[EntityMetaKey.Selector], ...cashuKeysetTimestamp }}
-					{@const selection = select(EntityType.CashuKeyset_Timestamp, cashuKeysetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CashuKeyset_TimestampView
-						selection={selection}
-						prefetched={cashuKeysetTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CashuKeyset_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cashuKeysetTimestamp })}
+		{@const cashuKeysetTimestampFields = { ...cashuKeysetTimestamp[EntityMetaKey.Selector], ...cashuKeysetTimestamp }}
+		{@const selection = select(EntityType.CashuKeyset_Timestamp, cashuKeysetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CashuKeyset_TimestampView
+			selection={selection}
+			prefetched={cashuKeysetTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

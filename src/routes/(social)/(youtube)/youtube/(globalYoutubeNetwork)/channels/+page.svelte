@@ -33,10 +33,14 @@
 				sources: [
 					Source.Constants_Internal,
 					Source.Youtube_Rest,
+					Source.Piped_Rest,
 				],
 				count: true,
 			})
 		}
 		id='observed-channels'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

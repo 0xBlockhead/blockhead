@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosNetworkTimestamp = $derived(selection({}))
+	const tezosNetworkTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos network timestamp')
 	const viewDomId = $derived('tezos-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosNetworkTimestamp}>
-			{#snippet Pending()}
-				{title || 'tezos network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestLevel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestLevel = pendingEntity.latestLevel}
-					{#if latestLevel !== undefined && latestLevel !== null}
-						<div>
-							<dt>latest level</dt>
-							<dd>
-								{String((latestLevel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestLevel = resolvedEntity.latestLevel}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolHash = pendingEntity.protocolHash}
-					{#if protocolHash !== undefined && protocolHash !== null}
-						<div>
-							<dt>protocol hash</dt>
-							<dd>
-								<TruncatedValue value={String((protocolHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolHash = resolvedEntity.protocolHash}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cycle: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cycle = pendingEntity.cycle}
-					{#if cycle !== undefined && cycle !== null}
-						<div>
-							<dt>cycle</dt>
-							<dd>
-								{String((cycle) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cycle = resolvedEntity.cycle}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalSupplyMutez: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalSupplyMutez = pendingEntity.totalSupplyMutez}
-					{#if totalSupplyMutez !== undefined && totalSupplyMutez !== null}
-						<div>
-							<dt>total supply mutez</dt>
-							<dd>
-								{String((totalSupplyMutez) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalSupplyMutez = resolvedEntity.totalSupplyMutez}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							activeBakerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activeBakerCount = pendingEntity.activeBakerCount}
-					{#if activeBakerCount !== undefined && activeBakerCount !== null}
-						<div>
-							<dt>active baker count</dt>
-							<dd>
-								{String((activeBakerCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activeBakerCount = resolvedEntity.activeBakerCount}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							indexerLagBlocks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const indexerLagBlocks = pendingEntity.indexerLagBlocks}
-					{#if indexerLagBlocks !== undefined && indexerLagBlocks !== null}
-						<div>
-							<dt>indexer lag blocks</dt>
-							<dd>
-								{String((indexerLagBlocks) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const indexerLagBlocks = resolvedEntity.indexerLagBlocks}

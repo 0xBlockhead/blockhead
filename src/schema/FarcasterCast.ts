@@ -73,6 +73,12 @@ export const FarcasterCast = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	rootParentUrl: {
+		label: 'Root parent URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	timestamp: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,

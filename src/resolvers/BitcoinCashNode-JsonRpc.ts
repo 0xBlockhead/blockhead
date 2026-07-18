@@ -59,36 +59,38 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.TransactionIndexInTransaction]: async (entitySelector) => {
-					const output = await getOutput(entitySelector)
-					return {
-						valueSats: BigInt(Math.round(output.value * 100_000_000)),
-						scriptPubKeyAsm: output.scriptPubKey.asm,
-						scriptPubKeyHex: output.scriptPubKey.hex,
-						scriptPubKeyType: output.scriptPubKey.type,
-						...(output.scriptPubKey.address != null && {
-							$address: {
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$transaction.$network,
-									address: output.scriptPubKey.address,
+				[UtxoOutputSelector.TransactionIndexInTransaction]: {
+					resolve: async (entitySelector) => {
+						const output = await getOutput(entitySelector)
+						return {
+							valueSats: BigInt(Math.round(output.value * 100_000_000)),
+							scriptPubKeyAsm: output.scriptPubKey.asm,
+							scriptPubKeyHex: output.scriptPubKey.hex,
+							scriptPubKeyType: output.scriptPubKey.type,
+							...(output.scriptPubKey.address != null && {
+								$address: {
+									[EntityMetaKey.Selector]: {
+										$network: entitySelector.$transaction.$network,
+										address: output.scriptPubKey.address,
+									},
 								},
-							},
-						}),
-						...(output.tokenData?.amount != null && {
-							$bitcoinCashCashTokenFungibleAmount: {
-								[EntityMetaKey.Selector]: {
-									$output: entitySelector,
+							}),
+							...(output.tokenData?.amount != null && {
+								$bitcoinCashCashTokenFungibleAmount: {
+									[EntityMetaKey.Selector]: {
+										$output: entitySelector,
+									},
 								},
-							},
-						}),
-						...(output.tokenData?.nft != null && {
-							$bitcoinCashCashTokenNft: {
-								[EntityMetaKey.Selector]: {
-									$output: entitySelector,
+							}),
+							...(output.tokenData?.nft != null && {
+								$bitcoinCashCashTokenNft: {
+									[EntityMetaKey.Selector]: {
+										$output: entitySelector,
+									},
 								},
-							},
-						}),
-					}
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -104,18 +106,20 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 			resolve: {
-				[BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput]: async ({ $output }) => {
-					const output = await getOutput($output)
-					if (output.tokenData?.amount == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken fungible amount')
-					return {
-						$category: {
-							[EntityMetaKey.Selector]: {
-								$network: $output.$transaction.$network,
-								categoryId: output.tokenData.category,
+				[BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput]: {
+					resolve: async ({ $output }) => {
+						const output = await getOutput($output)
+						if (output.tokenData?.amount == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken fungible amount')
+						return {
+							$category: {
+								[EntityMetaKey.Selector]: {
+									$network: $output.$transaction.$network,
+									categoryId: output.tokenData.category,
+								},
 							},
-						},
-						amount: BigInt(output.tokenData.amount),
-					}
+							amount: BigInt(output.tokenData.amount),
+						}
+					},
 				}
 			},
 		})({
@@ -126,23 +130,25 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenNft,
 			resolve: {
-				[BitcoinCashCashTokenNftSelector.UtxoOutput]: async ({ $output }) => {
-					const output = await getOutput($output)
-					if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT')
-					return {
-						$category: {
-							[EntityMetaKey.Selector]: {
-								$network: $output.$transaction.$network,
-								categoryId: output.tokenData.category,
+				[BitcoinCashCashTokenNftSelector.UtxoOutput]: {
+					resolve: async ({ $output }) => {
+						const output = await getOutput($output)
+						if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT')
+						return {
+							$category: {
+								[EntityMetaKey.Selector]: {
+									$network: $output.$transaction.$network,
+									categoryId: output.tokenData.category,
+								},
 							},
-						},
-						$commitment: {
-							[EntityMetaKey.Selector]: {
-								$output: $output,
+							$commitment: {
+								[EntityMetaKey.Selector]: {
+									$output: $output,
+								},
 							},
-						},
-						capability: output.tokenData.nft.capability,
-					}
+							capability: output.tokenData.nft.capability,
+						}
+					},
 				}
 			},
 		})({
@@ -154,12 +160,14 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
 			resolve: {
-				[BitcoinCashCashTokenCommitmentSelector.UtxoOutput]: async ({ $output }) => {
-					const output = await getOutput($output)
-					if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT commitment')
-					return {
-						commitmentHex: output.tokenData.nft.commitment,
-					}
+				[BitcoinCashCashTokenCommitmentSelector.UtxoOutput]: {
+					resolve: async ({ $output }) => {
+						const output = await getOutput($output)
+						if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT commitment')
+						return {
+							commitmentHex: output.tokenData.nft.commitment,
+						}
+					},
 				}
 			},
 		})({

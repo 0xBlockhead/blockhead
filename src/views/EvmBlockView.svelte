@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmBlock = $derived(selection({
-		sources: [
-			Source.SqdPortal_RawHttp,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			timestamp: true,
 			transactionCount: true,
@@ -127,19 +123,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -154,24 +144,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>Transactions</dt>
-							<dd>
-								<NumberValue value={Number(transactionCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}
@@ -179,7 +158,9 @@
 						<div>
 							<dt>Transactions</dt>
 							<dd>
-								<NumberValue value={Number(transactionCount)} />
+								<NumberValue
+									value={transactionCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -189,24 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestamp = pendingEntity.timestamp}
-					{#if timestamp !== undefined && timestamp !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestamp = resolvedEntity.timestamp}
@@ -227,24 +197,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								gasUsed: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const gasUsed = pendingEntity.gasUsed}
-						{#if gasUsed !== undefined && gasUsed !== null}
-							<div>
-								<dt>Gas used</dt>
-								<dd>
-									<NumberValue value={Number(gasUsed)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const gasUsed = resolvedEntity.gasUsed}
@@ -252,7 +211,9 @@
 							<div>
 								<dt>Gas used</dt>
 								<dd>
-									<NumberValue value={Number(gasUsed)} />
+									<NumberValue
+										value={gasUsed}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -264,24 +225,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								gasLimit: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const gasLimit = pendingEntity.gasLimit}
-						{#if gasLimit !== undefined && gasLimit !== null}
-							<div>
-								<dt>Gas limit</dt>
-								<dd>
-									<NumberValue value={Number(gasLimit)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const gasLimit = resolvedEntity.gasLimit}
@@ -289,7 +239,9 @@
 							<div>
 								<dt>Gas limit</dt>
 								<dd>
-									<NumberValue value={Number(gasLimit)} />
+									<NumberValue
+										value={gasLimit}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -301,24 +253,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								baseFeePerGas: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const baseFeePerGas = pendingEntity.baseFeePerGas}
-						{#if baseFeePerGas !== undefined && baseFeePerGas !== null}
-							<div>
-								<dt>Base fee</dt>
-								<dd>
-									<NumberValue value={Number(baseFeePerGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const baseFeePerGas = resolvedEntity.baseFeePerGas}
@@ -326,7 +267,9 @@
 							<div>
 								<dt>Base fee</dt>
 								<dd>
-									<NumberValue value={Number(baseFeePerGas)} />
+									<NumberValue
+										value={baseFeePerGas}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -338,24 +281,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								blobGasUsed: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const blobGasUsed = pendingEntity.blobGasUsed}
-						{#if blobGasUsed !== undefined && blobGasUsed !== null}
-							<div>
-								<dt>Blob gas used</dt>
-								<dd>
-									<NumberValue value={Number(blobGasUsed)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const blobGasUsed = resolvedEntity.blobGasUsed}
@@ -363,7 +295,9 @@
 							<div>
 								<dt>Blob gas used</dt>
 								<dd>
-									<NumberValue value={Number(blobGasUsed)} />
+									<NumberValue
+										value={blobGasUsed}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -375,24 +309,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								excessBlobGas: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const excessBlobGas = pendingEntity.excessBlobGas}
-						{#if excessBlobGas !== undefined && excessBlobGas !== null}
-							<div>
-								<dt>Excess blob gas</dt>
-								<dd>
-									<NumberValue value={Number(excessBlobGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const excessBlobGas = resolvedEntity.excessBlobGas}
@@ -400,7 +323,9 @@
 							<div>
 								<dt>Excess blob gas</dt>
 								<dd>
-									<NumberValue value={Number(excessBlobGas)} />
+									<NumberValue
+										value={excessBlobGas}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -414,8 +339,6 @@
 				<ResourceBoundary
 					resource={selection.$parent}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 							<div>
@@ -447,8 +370,6 @@
 				<ResourceBoundary
 					resource={selection.$miner}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(evmAccount)}
 						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 							<div>

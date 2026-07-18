@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadFedimintClientState_TimestampView from '$/views/BlockheadFedimintClientState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balanceMsat: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFedimintClientState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadFedimintClientState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balanceMsat: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadFedimintClientStateTimestamps) => [...new Map(blockheadFedimintClientStateTimestamps.values.map((blockheadFedimintClientStateTimestamp) => [blockheadFedimintClientStateTimestamp[EntityMetaKey.SelectorKey], blockheadFedimintClientStateTimestamp])).values()]}
+	getKey={(blockheadFedimintClientStateTimestamp) => blockheadFedimintClientStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Fedimint client state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadFedimintClientStateTimestamps)}
-			{@const uniqueBlockheadFedimintClientStateTimestamps = [...new Map(blockheadFedimintClientStateTimestamps.values.map((blockheadFedimintClientStateTimestamp) => [blockheadFedimintClientStateTimestamp[EntityMetaKey.SelectorKey], blockheadFedimintClientStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFedimintClientState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadFedimintClientStateTimestamps.totalCount}
-				getKey={(blockheadFedimintClientStateTimestamp) => blockheadFedimintClientStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadFedimintClientStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Fedimint client state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadFedimintClientStateTimestamp })}
-					{@const blockheadFedimintClientStateTimestampFields = { ...blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], ...blockheadFedimintClientStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadFedimintClientState_Timestamp, blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadFedimintClientState_TimestampView
-						selection={selection}
-						prefetched={blockheadFedimintClientStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadFedimintClientState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadFedimintClientStateTimestamp })}
+		{@const blockheadFedimintClientStateTimestampFields = { ...blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], ...blockheadFedimintClientStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadFedimintClientState_Timestamp, blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadFedimintClientState_TimestampView
+			selection={selection}
+			prefetched={blockheadFedimintClientStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

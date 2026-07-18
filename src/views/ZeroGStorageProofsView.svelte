@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGStorageProofView from '$/views/ZeroGStorageProofView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					proofId: true,
-					$storageNode: true,
-					proofKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGStorageProof}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				proofId: true,
+				$storageNode: true,
+				proofKind: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGStorageProofs) => [...new Map(zeroGStorageProofs.values.map((zeroGStorageProof) => [zeroGStorageProof[EntityMetaKey.SelectorKey], zeroGStorageProof])).values()]}
+	getKey={(zeroGStorageProof) => zeroGStorageProof[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g storage proofs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGStorageProofs)}
-			{@const uniqueZeroGStorageProofs = [...new Map(zeroGStorageProofs.values.map((zeroGStorageProof) => [zeroGStorageProof[EntityMetaKey.SelectorKey], zeroGStorageProof])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGStorageProofs.totalCount}
-				getKey={(zeroGStorageProof) => zeroGStorageProof[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGStorageProofs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g storage proofs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGStorageProof })}
-					{@const zeroGStorageProofFields = { ...zeroGStorageProof[EntityMetaKey.Selector], ...zeroGStorageProof }}
-					{@const selection = select(EntityType.ZeroGStorageProof, zeroGStorageProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGStorageProofView
-						selection={selection}
-						prefetched={zeroGStorageProofFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGStorageProof}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGStorageProof })}
+		{@const zeroGStorageProofFields = { ...zeroGStorageProof[EntityMetaKey.Selector], ...zeroGStorageProof }}
+		{@const selection = select(EntityType.ZeroGStorageProof, zeroGStorageProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGStorageProofView
+			selection={selection}
+			prefetched={zeroGStorageProofFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

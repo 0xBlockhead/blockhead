@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosBlock = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			timestampMs: true,
 		},
@@ -69,41 +70,45 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosBlock}>
-			{#snippet Pending()}
-				{@const height0 = pendingEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const height0 = resolvedEntity.height}
-				{#if height0 !== undefined && height0 !== null}
-					<NumberValue value={Number(height0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const height0 = pendingEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const height0 = resolvedEntity.height}
+					{#if height0 !== undefined && height0 !== null}
+						<NumberValue
+							value={height0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosBlock}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -125,24 +130,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									height: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const height = pendingEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue value={Number(height)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const height = resolvedEntity.height}
 							{#if height !== undefined && height !== null}
-								<NumberValue value={Number(height)} />
+								<NumberValue
+									value={height}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -157,24 +158,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									firstVersion: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const firstVersion = pendingEntity.firstVersion}
-							{#if firstVersion !== undefined && firstVersion !== null}
-								<NumberValue value={Number(firstVersion)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const firstVersion = resolvedEntity.firstVersion}
 							{#if firstVersion !== undefined && firstVersion !== null}
-								<NumberValue value={Number(firstVersion)} />
+								<NumberValue
+									value={firstVersion}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -187,24 +184,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									lastVersion: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const lastVersion = pendingEntity.lastVersion}
-							{#if lastVersion !== undefined && lastVersion !== null}
-								<NumberValue value={Number(lastVersion)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const lastVersion = resolvedEntity.lastVersion}
 							{#if lastVersion !== undefined && lastVersion !== null}
-								<NumberValue value={Number(lastVersion)} />
+								<NumberValue
+									value={lastVersion}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -217,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}

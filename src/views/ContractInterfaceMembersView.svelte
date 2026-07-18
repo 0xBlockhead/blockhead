@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ContractInterfaceMemberView from '$/views/ContractInterfaceMemberView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					canonicalSignature: true,
-					memberKey: true,
-					memberKind: true,
-					interfaceId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ContractInterfaceMember}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ContractInterfaceMember}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				canonicalSignature: true,
+				memberKey: true,
+				memberKind: true,
+				interfaceId: true,
+			},
+		})
+	}
+	getResourceItems={(contractInterfaceMembers) => [...new Map(contractInterfaceMembers.values.map((contractInterfaceMember) => [contractInterfaceMember[EntityMetaKey.SelectorKey], contractInterfaceMember])).values()]}
+	getKey={(contractInterfaceMember) => contractInterfaceMember[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Contract interface members yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(contractInterfaceMembers)}
-			{@const uniqueContractInterfaceMembers = [...new Map(contractInterfaceMembers.values.map((contractInterfaceMember) => [contractInterfaceMember[EntityMetaKey.SelectorKey], contractInterfaceMember])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ContractInterfaceMember}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={contractInterfaceMembers.totalCount}
-				getKey={(contractInterfaceMember) => contractInterfaceMember[EntityMetaKey.SelectorKey]}
-				items={uniqueContractInterfaceMembers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Contract interface members yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: contractInterfaceMember })}
-					{@const contractInterfaceMemberFields = { ...contractInterfaceMember[EntityMetaKey.Selector], ...contractInterfaceMember }}
-					{@const selection = select(EntityType.ContractInterfaceMember, contractInterfaceMember[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ContractInterfaceMemberView
-						selection={selection}
-						prefetched={contractInterfaceMemberFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ContractInterfaceMember}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: contractInterfaceMember })}
+		{@const contractInterfaceMemberFields = { ...contractInterfaceMember[EntityMetaKey.Selector], ...contractInterfaceMember }}
+		{@const selection = select(EntityType.ContractInterfaceMember, contractInterfaceMember[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ContractInterfaceMemberView
+			selection={selection}
+			prefetched={contractInterfaceMemberFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

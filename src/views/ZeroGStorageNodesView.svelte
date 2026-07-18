@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGStorageNodeView from '$/views/ZeroGStorageNodeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageNode}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGStorageNode}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(zeroGStorageNodes) => [...new Map(zeroGStorageNodes.values.map((zeroGStorageNode) => [zeroGStorageNode[EntityMetaKey.SelectorKey], zeroGStorageNode])).values()]}
+	getKey={(zeroGStorageNode) => zeroGStorageNode[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g storage nodes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGStorageNodes)}
-			{@const uniqueZeroGStorageNodes = [...new Map(zeroGStorageNodes.values.map((zeroGStorageNode) => [zeroGStorageNode[EntityMetaKey.SelectorKey], zeroGStorageNode])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageNode}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGStorageNodes.totalCount}
-				getKey={(zeroGStorageNode) => zeroGStorageNode[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGStorageNodes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g storage nodes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGStorageNode })}
-					{@const zeroGStorageNodeFields = { ...zeroGStorageNode[EntityMetaKey.Selector], ...zeroGStorageNode }}
-					{@const selection = select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGStorageNodeView
-						selection={selection}
-						prefetched={zeroGStorageNodeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGStorageNode}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGStorageNode })}
+		{@const zeroGStorageNodeFields = { ...zeroGStorageNode[EntityMetaKey.Selector], ...zeroGStorageNode }}
+		{@const selection = select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGStorageNodeView
+			selection={selection}
+			prefetched={zeroGStorageNodeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandRoundView from '$/views/AlgorandRoundView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandRound}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandRound}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandRounds) => [...new Map(algorandRounds.values.map((algorandRound) => [algorandRound[EntityMetaKey.SelectorKey], algorandRound])).values()]}
+	getKey={(algorandRound) => algorandRound[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand rounds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandRounds)}
-			{@const uniqueAlgorandRounds = [...new Map(algorandRounds.values.map((algorandRound) => [algorandRound[EntityMetaKey.SelectorKey], algorandRound])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandRound}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandRounds.totalCount}
-				getKey={(algorandRound) => algorandRound[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandRounds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand rounds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandRound })}
-					{@const algorandRoundFields = { ...algorandRound[EntityMetaKey.Selector], ...algorandRound }}
-					{@const selection = select(EntityType.AlgorandRound, algorandRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandRoundView
-						selection={selection}
-						prefetched={algorandRoundFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandRound}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandRound })}
+		{@const algorandRoundFields = { ...algorandRound[EntityMetaKey.Selector], ...algorandRound }}
+		{@const selection = select(EntityType.AlgorandRound, algorandRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandRoundView
+			selection={selection}
+			prefetched={algorandRoundFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

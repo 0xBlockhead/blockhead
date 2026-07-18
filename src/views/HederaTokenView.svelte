@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaToken = $derived(selection({}))
+	const hederaToken = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera token')
 	const viewDomId = $derived('hedera-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -69,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaToken}>
-			{#snippet Pending()}
-				{title || 'hedera token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,19 +109,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenId = pendingEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenId = resolvedEntity.tokenId}
@@ -137,19 +133,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenType = pendingEntity.tokenType}
-							{#if tokenType !== undefined && tokenType !== null}
-								{String((tokenType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenType = resolvedEntity.tokenType}
@@ -164,24 +154,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supplyType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supplyType = pendingEntity.supplyType}
-					{#if supplyType !== undefined && supplyType !== null}
-						<div>
-							<dt>supply type</dt>
-							<dd>
-								{String((supplyType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supplyType = resolvedEntity.supplyType}
@@ -199,24 +178,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decimals = pendingEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								{String((decimals) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decimals = resolvedEntity.decimals}
@@ -252,11 +220,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -264,12 +229,12 @@
 
 				{#snippet SectionHederaTokenAssociations({ id, label, open })}
 					<HederaTokenAssociationsView
-						selection={
-							selection.$$associations({
-								count: true,
-							})
-						}
+						selection={selection.$$associations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No associations.'
 						open={open}
 						title={label}
@@ -279,12 +244,12 @@
 
 				{#snippet SectionHederaTokenNfts({ id, label, open })}
 					<HederaNftsView
-						selection={
-							selection.$$nfts({
-								count: true,
-							})
-						}
+						selection={selection.$$nfts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No nfts.'
 						open={open}
 						title={label}
@@ -307,11 +272,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -319,12 +281,12 @@
 
 				{#snippet SectionHederaTokenTimestamps({ id, label, open })}
 					<HederaToken_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

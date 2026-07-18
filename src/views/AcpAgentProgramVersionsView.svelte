@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpAgentProgramVersionView from '$/views/AcpAgentProgramVersionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					version: true,
-					$program: true,
-					$artifact: true,
-					distributionKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentProgramVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpAgentProgramVersion}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				version: true,
+				$program: true,
+				$artifact: true,
+				distributionKind: true,
+			},
+		})
+	}
+	getResourceItems={(acpAgentProgramVersions) => [...new Map(acpAgentProgramVersions.values.map((acpAgentProgramVersion) => [acpAgentProgramVersion[EntityMetaKey.SelectorKey], acpAgentProgramVersion])).values()]}
+	getKey={(acpAgentProgramVersion) => acpAgentProgramVersion[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP agent program versions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpAgentProgramVersions)}
-			{@const uniqueAcpAgentProgramVersions = [...new Map(acpAgentProgramVersions.values.map((acpAgentProgramVersion) => [acpAgentProgramVersion[EntityMetaKey.SelectorKey], acpAgentProgramVersion])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentProgramVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpAgentProgramVersions.totalCount}
-				getKey={(acpAgentProgramVersion) => acpAgentProgramVersion[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpAgentProgramVersions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP agent program versions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpAgentProgramVersion })}
-					{@const acpAgentProgramVersionFields = { ...acpAgentProgramVersion[EntityMetaKey.Selector], ...acpAgentProgramVersion }}
-					{@const selection = select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpAgentProgramVersionView
-						selection={selection}
-						prefetched={acpAgentProgramVersionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpAgentProgramVersion}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpAgentProgramVersion })}
+		{@const acpAgentProgramVersionFields = { ...acpAgentProgramVersion[EntityMetaKey.Selector], ...acpAgentProgramVersion }}
+		{@const selection = select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpAgentProgramVersionView
+			selection={selection}
+			prefetched={acpAgentProgramVersionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

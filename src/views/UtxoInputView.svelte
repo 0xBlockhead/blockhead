@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const utxoInput = $derived(selection({}))
+	const utxoInput = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.indexInTransaction) ?? '') ? 'Input #' + String((pendingEntity.indexInTransaction) ?? '') : '') || 'UTXO input')
 	const viewDomId = $derived('utxo-input-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -98,68 +100,72 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={utxoInput}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$spentOutput}
-				>
-					{#snippet children(utxoOutput)}
-						{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-									prefetched={utxoOutput}
-									href={
-										(utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-											transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
-										}) : utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-											transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-											network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$spentOutput}
-				>
-					{#snippet children(utxoOutput)}
-						{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-									prefetched={utxoOutput}
-									href={
-										(utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-											transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
-										}) : utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-											transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-											network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$spentOutput}
+			>
+				{#snippet children(utxoOutput)}
+					{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<UtxoOutputView
+								selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
+								prefetched={utxoOutput}
+								href={
+									(utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+										outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
+										transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+										network: String(caip2StringFromValue(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
+									}) : utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+										outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
+										transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+										network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={utxoInput}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$spentOutput}
+					>
+						{#snippet children(utxoOutput)}
+							{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<UtxoOutputView
+										selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
+										prefetched={utxoOutput}
+										href={
+											(utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+												outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
+												transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+												network: String(caip2StringFromValue(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
+											}) : utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+												outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
+												transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+												network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -170,24 +176,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
+								<NumberValue
+									value={indexInTransaction}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -197,8 +199,6 @@
 			<ResourceBoundary
 				resource={selection.$spentOutput}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
 						<div>
@@ -252,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							coinbaseScript: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const coinbaseScript = pendingEntity.coinbaseScript}
-					{#if coinbaseScript !== undefined && coinbaseScript !== null}
-						<div>
-							<dt>Coinbase script</dt>
-							<dd>
-								{String((coinbaseScript) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const coinbaseScript = resolvedEntity.coinbaseScript}
@@ -287,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptSigAsm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptSigAsm = pendingEntity.scriptSigAsm}
-					{#if scriptSigAsm !== undefined && scriptSigAsm !== null}
-						<div>
-							<dt>Script sig asm</dt>
-							<dd>
-								{String((scriptSigAsm) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptSigAsm = resolvedEntity.scriptSigAsm}
@@ -322,24 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sequence: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sequence = pendingEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
-						<div>
-							<dt>Sequence</dt>
-							<dd>
-								{String((sequence) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sequence = resolvedEntity.sequence}
@@ -360,19 +327,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									witness: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const witness = pendingEntity.witness}
-							{#if witness !== undefined && witness !== null}
-								{witness.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const witness = resolvedEntity.witness}

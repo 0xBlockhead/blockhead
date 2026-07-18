@@ -4,6 +4,7 @@ import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchBridgeRouteStepIndex } from '$/params/bridgeRouteStepIndex.ts'
 import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
+import { match as matchEvmTopicHash } from '$/params/evmTopicHash.ts'
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
 import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
 import { match as matchIpfsNamespace } from '$/params/ipfsNamespace.ts'
@@ -37,9 +38,15 @@ const requiredE2eRouteParam = (
 	const value = params[paramName]
 	if (value == null || value === '')
 		throw new Error(`${routeId} is missing required route parameter ${paramName}`)
-
 	return value
 }
+
+const encodeE2eRouteParam = (value: string, encoding: 'Opaque' | 'Path') => (
+	encoding === 'Opaque' ?
+		encodeURIComponent(value)
+	:
+		value.split('/').map(encodeURIComponent).join('/')
+)
 
 export const e2eRouteParamMatcherByName = {
 	iso4217: matchIso4217,
@@ -50,7 +57,6 @@ export const e2eRouteParamMatcherByName = {
 	nativeCurrencySlug: matchNativeCurrencySlug,
 	evmAddress: matchEvmAddress,
 	nonNegativeBigInt: matchNonNegativeBigInt,
-	zeroExHex: matchZeroExHex,
 	ipfsNamespace: matchIpfsNamespace,
 	networkCaip2: matchNetworkCaip2,
 	networkSlug: matchNetworkSlug,
@@ -60,7 +66,9 @@ export const e2eRouteParamMatcherByName = {
 	solanaSignature: matchSolanaSignature,
 	utxoTxId: matchUtxoTxId,
 	absoluteUrl: matchAbsoluteUrl,
+	zeroExHex: matchZeroExHex,
 	userOperationHash: matchUserOperationHash,
+	evmTopicHash: matchEvmTopicHash,
 	specificationRealmSlug: matchSpecificationRealmSlug,
 	proposalKindSlug: matchProposalKindSlug,
 	proposalRef: matchProposalRef,
@@ -464,7 +472,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/pool/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'chainId'), '/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'poolId'), '/observations/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey')].join(''),
+		resolve: (params) => ['/pool/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'chainId'), '/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'poolId'), '/observations/', requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey'), 'Opaque')].join(''),
 	},
 	'/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]': {
 		nodeId: '/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]',
@@ -515,7 +523,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 	'/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]': {
 		nodeId: '/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]',
 		probeOwnerNodeId: '/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]',
-		routeId: '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]',
+		routeId: '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
 		publicPath: '/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]',
 		parameterMatchers: {
 			marketVenue: [
@@ -540,7 +548,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				'stringSegment',
 			],
 			timeIntervalValue: [
-				'stringSegment',
+				'nonNegativeInteger',
 			],
 			timestampMs: [
 				'nonNegativeInteger',
@@ -568,7 +576,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'marketKind'), '/candles/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'timeIntervalUnit'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'timeIntervalValue'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'marketKind'), '/candles/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'timeIntervalUnit'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'timeIntervalValue'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
 	},
 	'/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]': {
 		nodeId: '/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]',
@@ -622,7 +630,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketKind'), '/derivatives/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey')].join(''),
+		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketKind'), '/derivatives/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey'), 'Opaque')].join(''),
 	},
 	'/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price': {
 		nodeId: '/(assets)/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price',
@@ -722,7 +730,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketKind'), '/price/quotes/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey')].join(''),
+		resolve: (params) => ['/venue/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketVenue'), '/market/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'baseKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'base'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quoteKind'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'quote'), '/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'marketKind'), '/price/quotes/', requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'timestampMs'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', 'feedKey'), 'Opaque')].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]',
@@ -748,7 +756,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]', 'ensName')].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]', 'ensName'), 'Opaque')].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/observations/[timestampMs]/[source]': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/observations/[timestampMs]/[source]',
@@ -782,7 +790,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'ensName'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'ensName'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/record/[recordId]': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/record/[recordId]',
@@ -812,7 +820,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]', 'ensName'), '/record/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]', 'recordId')].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]', 'ensName'), 'Opaque'), '/record/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]', 'recordId'), 'Opaque')].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]',
@@ -850,7 +858,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'ensName'), '/record/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'recordId'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'ensName'), 'Opaque'), '/record/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'recordId'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/records': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/records',
@@ -876,7 +884,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records', 'ensName'), '/records'].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records', 'ensName'), 'Opaque'), '/records'].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/resolver': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/resolver',
@@ -902,7 +910,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/resolver', 'ensName'), '/resolver'].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/resolver', 'ensName'), 'Opaque'), '/resolver'].join(''),
 	},
 	'/(explore)/(ens)/ens/name/[ensName]/resolves-to': {
 		nodeId: '/(explore)/(ens)/ens/name/[ensName]/resolves-to',
@@ -928,7 +936,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/ens/name/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/resolves-to', 'ensName'), '/resolves-to'].join(''),
+		resolve: (params) => ['/ens/name/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/resolves-to', 'ensName'), 'Opaque'), '/resolves-to'].join(''),
 	},
 	'/(explore)/(ens)/ens/observations/[timestampMs]/[source]': {
 		nodeId: '/(explore)/(ens)/ens/observations/[timestampMs]/[source]',
@@ -959,212 +967,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/ens/observations/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ens)/ens/(globalEnsNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
-	},
-	'/(explore)/(evm)/evm/calldata/[hex]': {
-		nodeId: '/(explore)/(evm)/evm/calldata/[hex]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/calldata/[hex]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/calldata/[hex=zeroExHex]',
-		publicPath: '/evm/calldata/[hex]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmCalldata.Hex',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/calldata/[hex]:EvmCalldata.Hex.1.hex',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/calldata/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/calldata/[hex=zeroExHex]', 'hex')].join(''),
-	},
-	'/(explore)/(evm)/evm/error/[hex]': {
-		nodeId: '/(explore)/(evm)/evm/error/[hex]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/error/[hex]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]',
-		publicPath: '/evm/error/[hex]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmError.Hex',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/error/[hex]:EvmError.Hex.1.hex',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/error/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]', 'hex')].join(''),
-	},
-	'/(explore)/(evm)/evm/error/[hex]/observations/[timestampMs]/[source]': {
-		nodeId: '/(explore)/(evm)/evm/error/[hex]/observations/[timestampMs]/[source]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/error/[hex]/observations/[timestampMs]/[source]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		publicPath: '/evm/error/[hex]/observations/[timestampMs]/[source]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-			timestampMs: [
-				'nonNegativeInteger',
-			],
-			source: [
-				'stringSegment',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmError_Timestamp.ErrorTimestampMsSource',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.hex',
-							timestampMs: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.timestampMs',
-							source: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.source',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/error/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
-	},
-	'/(explore)/(evm)/evm/selector/[hex]': {
-		nodeId: '/(explore)/(evm)/evm/selector/[hex]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/selector/[hex]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]',
-		publicPath: '/evm/selector/[hex]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmSelector.Hex',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/selector/[hex]:EvmSelector.Hex.1.hex',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/selector/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]', 'hex')].join(''),
-	},
-	'/(explore)/(evm)/evm/selector/[hex]/observations/[timestampMs]/[source]': {
-		nodeId: '/(explore)/(evm)/evm/selector/[hex]/observations/[timestampMs]/[source]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/selector/[hex]/observations/[timestampMs]/[source]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		publicPath: '/evm/selector/[hex]/observations/[timestampMs]/[source]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-			timestampMs: [
-				'nonNegativeInteger',
-			],
-			source: [
-				'stringSegment',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmSelector_Timestamp.SelectorTimestampMsSource',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.hex',
-							timestampMs: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.timestampMs',
-							source: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.source',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/selector/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
-	},
-	'/(explore)/(evm)/evm/topic/[hex]': {
-		nodeId: '/(explore)/(evm)/evm/topic/[hex]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/topic/[hex]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]',
-		publicPath: '/evm/topic/[hex]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmTopic.Hex',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/topic/[hex]:EvmTopic.Hex.1.hex',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/topic/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]', 'hex')].join(''),
-	},
-	'/(explore)/(evm)/evm/topic/[hex]/observations/[timestampMs]/[source]': {
-		nodeId: '/(explore)/(evm)/evm/topic/[hex]/observations/[timestampMs]/[source]',
-		probeOwnerNodeId: '/(explore)/(evm)/evm/topic/[hex]/observations/[timestampMs]/[source]',
-		routeId: '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		publicPath: '/evm/topic/[hex]/observations/[timestampMs]/[source]',
-		parameterMatchers: {
-			hex: [
-				'zeroExHex',
-			],
-			timestampMs: [
-				'nonNegativeInteger',
-			],
-			source: [
-				'stringSegment',
-			],
-		},
-		mappings: [
-			{
-				id: 'EvmTopic_Timestamp.TopicTimestampMsSource',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							hex: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.hex',
-							timestampMs: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.timestampMs',
-							source: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.source',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/evm/topic/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(evm)/evm/(evmProtocol)/topic/[hex=zeroExHex]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(explore)/(ipfs)/[namespace]/[target]': {
 		nodeId: '/(explore)/(ipfs)/[namespace]/[target]',
@@ -1484,6 +1286,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 				projectionPath: [
 					'Ton',
+				],
+			},
+			{
+				id: 'XrplAccount.NetworkAccount',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.network',
+							accountId: '/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.accountId',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
 				],
 			},
 		],
@@ -2404,129 +2223,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]', 'network'), '/tx/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]', 'transactionId'), '/output/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]', 'outputIndex')].join(''),
 	},
-	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount': {
-		nodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount',
-		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount',
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/fungible-amount',
-		publicPath: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount',
-		parameterMatchers: {
-			network: [
-				'networkCaip2',
-				'networkSlug',
-			],
-			transactionId: [
-				'evmTxHash',
-				'solanaSignature',
-				'utxoTxId',
-			],
-			outputIndex: [
-				'nonNegativeInteger',
-			],
-		},
-		mappings: [
-			{
-				id: 'BitcoinCashCashTokenFungibleAmount.UtxoOutput',
-				routeKind: 'projection',
-				projectionEntity: 'Network',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							network: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.network',
-							transactionId: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.transactionId',
-							outputIndex: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.outputIndex',
-						},
-					},
-				],
-				projectionPath: [
-					'CashTokens',
-				],
-			},
-		],
-		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/fungible-amount', 'network'), '/tx/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/fungible-amount', 'transactionId'), '/output/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/fungible-amount', 'outputIndex'), '/cash-token/fungible-amount'].join(''),
-	},
-	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft': {
-		nodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft',
-		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft',
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft',
-		publicPath: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft',
-		parameterMatchers: {
-			network: [
-				'networkCaip2',
-				'networkSlug',
-			],
-			transactionId: [
-				'evmTxHash',
-				'solanaSignature',
-				'utxoTxId',
-			],
-			outputIndex: [
-				'nonNegativeInteger',
-			],
-		},
-		mappings: [
-			{
-				id: 'BitcoinCashCashTokenNft.UtxoOutput',
-				routeKind: 'projection',
-				projectionEntity: 'Network',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							network: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.network',
-							transactionId: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.transactionId',
-							outputIndex: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.outputIndex',
-						},
-					},
-				],
-				projectionPath: [
-					'CashTokens',
-				],
-			},
-		],
-		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft', 'network'), '/tx/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft', 'transactionId'), '/output/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft', 'outputIndex'), '/cash-token/nft'].join(''),
-	},
-	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment': {
-		nodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment',
-		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment',
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft/(bitcoinCashCashTokenNft)/commitment',
-		publicPath: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment',
-		parameterMatchers: {
-			network: [
-				'networkCaip2',
-				'networkSlug',
-			],
-			transactionId: [
-				'evmTxHash',
-				'solanaSignature',
-				'utxoTxId',
-			],
-			outputIndex: [
-				'nonNegativeInteger',
-			],
-		},
-		mappings: [
-			{
-				id: 'BitcoinCashCashTokenCommitment.UtxoOutput',
-				routeKind: 'projection',
-				projectionEntity: 'Network',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							network: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.network',
-							transactionId: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.transactionId',
-							outputIndex: '/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.outputIndex',
-						},
-					},
-				],
-				projectionPath: [
-					'CashTokens',
-				],
-			},
-		],
-		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft/(bitcoinCashCashTokenNft)/commitment', 'network'), '/tx/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft/(bitcoinCashCashTokenNft)/commitment', 'transactionId'), '/output/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/(utxoOutput)/cash-token/nft/(bitcoinCashCashTokenNft)/commitment', 'outputIndex'), '/cash-token/nft/commitment'].join(''),
-	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/outputs': {
 		nodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/outputs',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]',
@@ -2946,6 +2642,123 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/accounts', 'network'), '/accounts'].join(''),
 	},
+	'/(explore)/(networks)/network/[network]/activity/day/[dayStartTimestampMs]': {
+		nodeId: '/(explore)/(networks)/network/[network]/activity/day/[dayStartTimestampMs]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/activity/day/[dayStartTimestampMs]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]',
+		publicPath: '/network/[network]/activity/day/[dayStartTimestampMs]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			dayStartTimestampMs: [
+				'nonNegativeInteger',
+			],
+		},
+		mappings: [
+			{
+				id: 'Network_Activity_Day.NetworkDayStartTimestampMsSource',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.network',
+							dayStartTimestampMs: '/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.dayStartTimestampMs',
+						},
+					},
+				],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]', 'network'), '/activity/day/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]', 'dayStartTimestampMs')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/actor/[address]': {
+		nodeId: '/(explore)/(networks)/network/[network]/actor/[address]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/actor/[address]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]',
+		publicPath: '/network/[network]/actor/[address]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			address: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'FilecoinActor.NetworkAddress',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.network',
+							address: '/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.address',
+						},
+					},
+				],
+				projectionPath: [
+					'Filecoin',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]', 'network'), '/actor/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]', 'address')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]': {
+		nodeId: '/(explore)/(networks)/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
+		publicPath: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			address: [
+				'stringSegment',
+			],
+			height: [
+				'nonNegativeBigInt',
+			],
+			tipsetKey: [
+				'stringSegment',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'FilecoinActor_Timestamp.ActorHeightTipsetKeySource',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.network',
+							address: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.address',
+							height: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.height',
+							tipsetKey: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.tipsetKey',
+							source: '/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.source',
+						},
+					},
+				],
+				projectionPath: [
+					'Filecoin',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'network'), '/actor/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'address'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'height'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'tipsetKey'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'source')].join(''),
+	},
 	'/(explore)/(networks)/network/[network]/address/[address]': {
 		nodeId: '/(explore)/(networks)/network/[network]/address/[address]',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/address/[address]',
@@ -3058,6 +2871,76 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'network'), '/address/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'address'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/amendment/[amendmentId]': {
+		nodeId: '/(explore)/(networks)/network/[network]/amendment/[amendmentId]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/amendment/[amendmentId]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amendment/[amendmentId=stringSegment]',
+		publicPath: '/network/[network]/amendment/[amendmentId]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			amendmentId: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'XrplAmendment.NetworkAmendmentId',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.network',
+							amendmentId: '/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.amendmentId',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amendment/[amendmentId=stringSegment]', 'network'), '/amendment/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amendment/[amendmentId=stringSegment]', 'amendmentId')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/amm/[ammAccount]': {
+		nodeId: '/(explore)/(networks)/network/[network]/amm/[ammAccount]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/amm/[ammAccount]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]',
+		publicPath: '/network/[network]/amm/[ammAccount]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			ammAccount: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'XrplAmm.NetworkAmmAccount',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.network',
+							ammAccount: '/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.ammAccount',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]', 'network'), '/amm/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]', 'ammAccount')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/asset/[kind]/[assetKey]': {
 		nodeId: '/(explore)/(networks)/network/[network]/asset/[kind]/[assetKey]',
@@ -3750,7 +3633,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'network'), '/bridges/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'toCaip2'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'url')].join(''),
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'network'), '/bridges/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'toCaip2'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', 'url'), 'Opaque')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/channels': {
 		nodeId: '/(explore)/(networks)/network/[network]/channels',
@@ -4155,6 +4038,41 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/contracts', 'network'), '/contracts'].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/drep/[drepCredential]': {
+		nodeId: '/(explore)/(networks)/network/[network]/drep/[drepCredential]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/drep/[drepCredential]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]',
+		publicPath: '/network/[network]/drep/[drepCredential]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			drepCredential: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'CardanoDRep.NetworkDrepCredential',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.network',
+							drepCredential: '/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.drepCredential',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]', 'network'), '/drep/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]', 'drepCredential')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/epoch/[epoch]': {
 		nodeId: '/(explore)/(networks)/network/[network]/epoch/[epoch]',
@@ -6228,6 +6146,84 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance', 'network'), '/governance'].join(''),
 	},
+	'/(explore)/(networks)/network/[network]/governance/committee/epoch/[epoch]/[source]': {
+		nodeId: '/(explore)/(networks)/network/[network]/governance/committee/epoch/[epoch]/[source]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/governance/committee/epoch/[epoch]/[source]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/network/[network]/governance/committee/epoch/[epoch]/[source]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			epoch: [
+				'nonNegativeInteger',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'CardanoCommittee_Epoch.NetworkEpochSource',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.network',
+							epoch: '/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.epoch',
+							source: '/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.source',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', 'network'), '/governance/committee/epoch/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', 'epoch'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]': {
+		nodeId: '/(explore)/(networks)/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]',
+		publicPath: '/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			proposalTxHash: [
+				'stringSegment',
+			],
+			proposalIndex: [
+				'nonNegativeInteger',
+			],
+		},
+		mappings: [
+			{
+				id: 'CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.network',
+							proposalTxHash: '/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalTxHash',
+							proposalIndex: '/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalIndex',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', 'network'), '/governance/proposal/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', 'proposalTxHash'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', 'proposalIndex')].join(''),
+	},
 	'/(explore)/(networks)/network/[network]/invoices': {
 		nodeId: '/(explore)/(networks)/network/[network]/invoices',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]',
@@ -6385,6 +6381,41 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/invoices/[paymentHash=stringSegment]', 'network'), '/invoices/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/invoices/[paymentHash=stringSegment]', 'paymentHash')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/ledger/[ledgerIndex]': {
+		nodeId: '/(explore)/(networks)/network/[network]/ledger/[ledgerIndex]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/ledger/[ledgerIndex]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+		publicPath: '/network/[network]/ledger/[ledgerIndex]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			ledgerIndex: [
+				'nonNegativeBigInt',
+			],
+		},
+		mappings: [
+			{
+				id: 'XrplLedger.NetworkLedgerIndex',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.network',
+							ledgerIndex: '/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.ledgerIndex',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]', 'network'), '/ledger/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]', 'ledgerIndex')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/mempool': {
 		nodeId: '/(explore)/(networks)/network/[network]/mempool',
@@ -7115,6 +7146,88 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relays', 'network'), '/mev/relays'].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/miner/[minerAddress]': {
+		nodeId: '/(explore)/(networks)/network/[network]/miner/[minerAddress]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/miner/[minerAddress]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
+		publicPath: '/network/[network]/miner/[minerAddress]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			minerAddress: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'FilecoinMiner.NetworkMinerAddress',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.network',
+							minerAddress: '/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.minerAddress',
+						},
+					},
+				],
+				projectionPath: [
+					'Filecoin',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]', 'network'), '/miner/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]', 'minerAddress')].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]': {
+		nodeId: '/(explore)/(networks)/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
+		publicPath: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			minerAddress: [
+				'stringSegment',
+			],
+			height: [
+				'nonNegativeBigInt',
+			],
+			tipsetKey: [
+				'stringSegment',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'FilecoinMiner_Timestamp.MinerHeightTipsetKeySource',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.network',
+							minerAddress: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.minerAddress',
+							height: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.height',
+							tipsetKey: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.tipsetKey',
+							source: '/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.source',
+						},
+					},
+				],
+				projectionPath: [
+					'Filecoin',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'network'), '/miner/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'minerAddress'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'height'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'tipsetKey'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/native-assets': {
 		nodeId: '/(explore)/(networks)/network/[network]/native-assets',
@@ -8875,6 +8988,41 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slots', 'network'), '/slots'].join(''),
 	},
+	'/(explore)/(networks)/network/[network]/stake-pool/[poolId]': {
+		nodeId: '/(explore)/(networks)/network/[network]/stake-pool/[poolId]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/stake-pool/[poolId]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]',
+		publicPath: '/network/[network]/stake-pool/[poolId]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			poolId: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'CardanoStakePool.NetworkPoolId',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.network',
+							poolId: '/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.poolId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]', 'network'), '/stake-pool/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]', 'poolId')].join(''),
+	},
 	'/(explore)/(networks)/network/[network]/sync-committee/[period]': {
 		nodeId: '/(explore)/(networks)/network/[network]/sync-committee/[period]',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/sync-committee/[period]',
@@ -9349,6 +9497,41 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mints', 'network'), '/token-mints'].join(''),
 	},
+	'/(explore)/(networks)/network/[network]/transaction/[hash]': {
+		nodeId: '/(explore)/(networks)/network/[network]/transaction/[hash]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/transaction/[hash]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]',
+		publicPath: '/network/[network]/transaction/[hash]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			hash: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'XrplTransaction.NetworkHash',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.network',
+							hash: '/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.hash',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]', 'network'), '/transaction/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]', 'hash')].join(''),
+	},
 	'/(explore)/(networks)/network/[network]/transactions': {
 		nodeId: '/(explore)/(networks)/network/[network]/transactions',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]',
@@ -9471,6 +9654,49 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transactions', 'network'), '/transactions'].join(''),
+	},
+	'/(explore)/(networks)/network/[network]/trustline/[account]/[currency]/[issuer]': {
+		nodeId: '/(explore)/(networks)/network/[network]/trustline/[account]/[currency]/[issuer]',
+		probeOwnerNodeId: '/(explore)/(networks)/network/[network]/trustline/[account]/[currency]/[issuer]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]',
+		publicPath: '/network/[network]/trustline/[account]/[currency]/[issuer]',
+		parameterMatchers: {
+			network: [
+				'networkCaip2',
+				'networkSlug',
+			],
+			account: [
+				'stringSegment',
+			],
+			currency: [
+				'stringSegment',
+			],
+			issuer: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'XrplTrustline.NetworkAccountCurrencyIssuer',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.network',
+							account: '/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.account',
+							currency: '/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.currency',
+							issuer: '/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.issuer',
+						},
+					},
+				],
+				projectionPath: [
+					'Xrpl',
+				],
+			},
+		],
+		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', 'network'), '/trustline/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', 'account'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', 'currency'), '/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', 'issuer')].join(''),
 	},
 	'/(explore)/(networks)/network/[network]/upgrades': {
 		nodeId: '/(explore)/(networks)/network/[network]/upgrades',
@@ -9973,6 +10199,212 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/network/', requiredE2eRouteParam(params, '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/withdrawals', 'network'), '/withdrawals'].join(''),
 	},
+	'/(explore)/(protocols)/evm/(calldata)/calldata/[hex]': {
+		nodeId: '/(explore)/(protocols)/evm/(calldata)/calldata/[hex]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(calldata)/calldata/[hex]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]',
+		publicPath: '/evm/calldata/[hex]',
+		parameterMatchers: {
+			hex: [
+				'zeroExHex',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmCalldata.Hex',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/calldata/[hex]:EvmCalldata.Hex.1.hex',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/calldata/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]', 'hex')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(errors)/error/[hex]': {
+		nodeId: '/(explore)/(protocols)/evm/(errors)/error/[hex]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(errors)/error/[hex]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]',
+		publicPath: '/evm/error/[hex]',
+		parameterMatchers: {
+			hex: [
+				'zeroExHex',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmError.Hex',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/error/[hex]:EvmError.Hex.1.hex',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/error/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]', 'hex')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(errors)/error/[hex]/observations/[timestampMs]/[source]': {
+		nodeId: '/(explore)/(protocols)/evm/(errors)/error/[hex]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(errors)/error/[hex]/observations/[timestampMs]/[source]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/evm/error/[hex]/observations/[timestampMs]/[source]',
+		parameterMatchers: {
+			hex: [
+				'zeroExHex',
+			],
+			timestampMs: [
+				'nonNegativeInteger',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmError_Timestamp.ErrorTimestampMsSource',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.hex',
+							timestampMs: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.timestampMs',
+							source: '/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.source',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/error/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/(evmError)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(selectors)/selector/[hex]': {
+		nodeId: '/(explore)/(protocols)/evm/(selectors)/selector/[hex]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(selectors)/selector/[hex]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+		publicPath: '/evm/selector/[hex]',
+		parameterMatchers: {
+			hex: [
+				'zeroExHex',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmSelector.Hex',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/selector/[hex]:EvmSelector.Hex.1.hex',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/selector/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]', 'hex')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(selectors)/selector/[hex]/observations/[timestampMs]/[source]': {
+		nodeId: '/(explore)/(protocols)/evm/(selectors)/selector/[hex]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(selectors)/selector/[hex]/observations/[timestampMs]/[source]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/evm/selector/[hex]/observations/[timestampMs]/[source]',
+		parameterMatchers: {
+			hex: [
+				'zeroExHex',
+			],
+			timestampMs: [
+				'nonNegativeInteger',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmSelector_Timestamp.SelectorTimestampMsSource',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.hex',
+							timestampMs: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.timestampMs',
+							source: '/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.source',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/selector/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(topics)/topic/[hex]': {
+		nodeId: '/(explore)/(protocols)/evm/(topics)/topic/[hex]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(topics)/topic/[hex]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+		publicPath: '/evm/topic/[hex]',
+		parameterMatchers: {
+			hex: [
+				'evmTopicHash',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmTopic.Hex',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/topic/[hex]:EvmTopic.Hex.1.hex',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/topic/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]', 'hex')].join(''),
+	},
+	'/(explore)/(protocols)/evm/(topics)/topic/[hex]/observations/[timestampMs]/[source]': {
+		nodeId: '/(explore)/(protocols)/evm/(topics)/topic/[hex]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(explore)/(protocols)/evm/(topics)/topic/[hex]/observations/[timestampMs]/[source]',
+		routeId: '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/evm/topic/[hex]/observations/[timestampMs]/[source]',
+		parameterMatchers: {
+			hex: [
+				'evmTopicHash',
+			],
+			timestampMs: [
+				'nonNegativeInteger',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'EvmTopic_Timestamp.TopicTimestampMsSource',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							hex: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.hex',
+							timestampMs: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.timestampMs',
+							source: '/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.source',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/evm/topic/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'hex'), '/observations/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
 	'/(explore)/account/[address]': {
 		nodeId: '/(explore)/account/[address]',
 		probeOwnerNodeId: '/(explore)/account/[address]',
@@ -10023,7 +10455,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/media/', requiredE2eRouteParam(params, '/(explore)/media/[url=absoluteUrl]', 'url')].join(''),
+		resolve: (params) => ['/media/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/media/[url=absoluteUrl]', 'url'), 'Opaque')].join(''),
 	},
 	'/(explore)/network-stack/[networkStackId]': {
 		nodeId: '/(explore)/network-stack/[networkStackId]',
@@ -10075,7 +10507,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/url/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]', 'url')].join(''),
+		resolve: (params) => ['/url/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]', 'url'), 'Opaque')].join(''),
 	},
 	'/(explore)/url/[url]/observations/[timestampMs]/[source]': {
 		nodeId: '/(explore)/url/[url]/observations/[timestampMs]/[source]',
@@ -10109,7 +10541,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/url/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'url'), '/observations/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/url/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'url'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(proposals)/proposals/[specificationRealmSlug]': {
 		nodeId: '/(proposals)/proposals/[specificationRealmSlug]',
@@ -10229,7 +10661,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/actor/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', 'localAccountId')].join(''),
+		resolve: (params) => ['/activitypub/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', 'localAccountId')].join(''),
 	},
 	'/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/notes': {
 		nodeId: '/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/notes',
@@ -10259,13 +10691,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/actor/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes', 'localAccountId'), '/notes'].join(''),
+		resolve: (params) => ['/activitypub/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes', 'localAccountId'), '/notes'].join(''),
 	},
-	'/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]',
-		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]',
+	'/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]',
 		parameterMatchers: {
 			instanceOrigin: [
 				'absoluteUrl',
@@ -10276,24 +10708,88 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'ActivityPubActor_Timestamp.ActivityPubActorTimestampMs',
+				id: 'ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							instanceOrigin: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.instanceOrigin',
-							localAccountId: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.localAccountId',
-							timestampMs: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.timestampMs',
+							instanceOrigin: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.instanceOrigin',
+							localAccountId: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.localAccountId',
+							timestampMs: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.timestampMs',
+							source: '/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.source',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/actor/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]', 'localAccountId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/activitypub/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'localAccountId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+	},
+	'/(social)/(activitypub)/activitypub/instance/[instanceOrigin]': {
+		nodeId: '/(social)/(activitypub)/activitypub/instance/[instanceOrigin]',
+		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/instance/[instanceOrigin]',
+		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+		publicPath: '/activitypub/instance/[instanceOrigin]',
+		parameterMatchers: {
+			instanceOrigin: [
+				'absoluteUrl',
+			],
+		},
+		mappings: [
+			{
+				id: 'ActivityPubInstance.InstanceOrigin',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							instanceOrigin: '/activitypub/instance/[instanceOrigin]:ActivityPubInstance.InstanceOrigin.1.instanceOrigin',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/activitypub/instance/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]', 'instanceOrigin'), 'Opaque')].join(''),
+	},
+	'/(social)/(activitypub)/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(activitypub)/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]',
+		parameterMatchers: {
+			instanceOrigin: [
+				'absoluteUrl',
+			],
+			timestampMs: [
+				'nonNegativeInteger',
+			],
+			source: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'ActivityPubInstance_Timestamp.InstanceTimestampMsSource',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							instanceOrigin: '/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.instanceOrigin',
+							timestampMs: '/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.timestampMs',
+							source: '/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.source',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/activitypub/instance/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'instanceOrigin'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]': {
 		nodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
@@ -10323,13 +10819,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/note/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', 'localStatusId')].join(''),
+		resolve: (params) => ['/activitypub/note/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', 'localStatusId')].join(''),
 	},
-	'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]',
-		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]',
+	'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]',
 		parameterMatchers: {
 			instanceOrigin: [
 				'absoluteUrl',
@@ -10340,24 +10836,28 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs',
+				id: 'ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							instanceOrigin: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.instanceOrigin',
-							localStatusId: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.localStatusId',
-							timestampMs: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.timestampMs',
+							instanceOrigin: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.instanceOrigin',
+							localStatusId: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.localStatusId',
+							timestampMs: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.timestampMs',
+							source: '/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.source',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/note/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]', 'localStatusId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/activitypub/note/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'localStatusId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/thread': {
 		nodeId: '/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/thread',
@@ -10387,7 +10887,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/activitypub/note/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread', 'instanceOrigin'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread', 'localStatusId'), '/thread'].join(''),
+		resolve: (params) => ['/activitypub/note/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread', 'instanceOrigin'), 'Opaque'), '/', requiredE2eRouteParam(params, '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread', 'localStatusId'), '/thread'].join(''),
 	},
 	'/(social)/(atproto)/atproto/actor/[did]': {
 		nodeId: '/(social)/(atproto)/atproto/actor/[did]',
@@ -10413,7 +10913,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/actor/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]', 'did')].join(''),
+		resolve: (params) => ['/atproto/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]', 'did'), 'Opaque')].join(''),
 	},
 	'/(social)/(atproto)/atproto/actor/[did]/observations': {
 		nodeId: '/(social)/(atproto)/atproto/actor/[did]/observations',
@@ -10439,13 +10939,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/actor/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations', 'did'), '/observations'].join(''),
+		resolve: (params) => ['/atproto/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations', 'did'), 'Opaque'), '/observations'].join(''),
 	},
-	'/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]': {
-		nodeId: '/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]',
-		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/atproto/actor/[did]/observations/[timestampMs]',
+	'/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(atproto)/atproto/actor/[did]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/atproto/actor/[did]/observations/[timestampMs]/[source]',
 		parameterMatchers: {
 			did: [
 				'stringSegment',
@@ -10453,23 +10953,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'AtprotoActor_Timestamp.AtprotoActorTimestampMs',
+				id: 'AtprotoActor_Timestamp.AtprotoActorTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							did: '/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.did',
-							timestampMs: '/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.timestampMs',
+							did: '/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.did',
+							timestampMs: '/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.timestampMs',
+							source: '/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.source',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/actor/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]', 'did'), '/observations/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/atproto/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'did'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(atproto)/atproto/actor/[did]/posts': {
 		nodeId: '/(social)/(atproto)/atproto/actor/[did]/posts',
@@ -10495,7 +10999,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/actor/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/posts', 'did'), '/posts'].join(''),
+		resolve: (params) => ['/atproto/actor/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/posts', 'did'), 'Opaque'), '/posts'].join(''),
 	},
 	'/(social)/(atproto)/atproto/actor/handle/[handle]': {
 		nodeId: '/(social)/(atproto)/atproto/actor/handle/[handle]',
@@ -10547,7 +11051,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/post/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]', 'uri')].join(''),
+		resolve: (params) => ['/atproto/post/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]', 'uri'), 'Opaque')].join(''),
 	},
 	'/(social)/(atproto)/atproto/post/[...uri]/observations': {
 		nodeId: '/(social)/(atproto)/atproto/post/[...uri]/observations',
@@ -10573,7 +11077,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/post/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations', 'uri'), '/observations'].join(''),
+		resolve: (params) => ['/atproto/post/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations', 'uri'), 'Opaque'), '/observations'].join(''),
 	},
 	'/(social)/(atproto)/atproto/post/[...uri]/observations/[timestampMs]': {
 		nodeId: '/(social)/(atproto)/atproto/post/[...uri]/observations/[timestampMs]',
@@ -10603,7 +11107,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/post/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]', 'uri'), '/observations/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/atproto/post/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]', 'uri'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
 	},
 	'/(social)/(atproto)/atproto/post/[...uri]/thread': {
 		nodeId: '/(social)/(atproto)/atproto/post/[...uri]/thread',
@@ -10629,33 +11133,33 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/atproto/post/', requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread', 'uri'), '/thread'].join(''),
+		resolve: (params) => ['/atproto/post/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread', 'uri'), 'Opaque'), '/thread'].join(''),
 	},
-	'/(social)/(farcaster)/farcaster/account/[accountId]': {
-		nodeId: '/(social)/(farcaster)/farcaster/account/[accountId]',
-		probeOwnerNodeId: '/(social)/(farcaster)/farcaster/account/[accountId]',
-		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[accountId=nonNegativeInteger]',
-		publicPath: '/farcaster/account/[accountId]',
+	'/(social)/(farcaster)/farcaster/account/[connectionId]': {
+		nodeId: '/(social)/(farcaster)/farcaster/account/[connectionId]',
+		probeOwnerNodeId: '/(social)/(farcaster)/farcaster/account/[connectionId]',
+		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[connectionId=stringSegment]',
+		publicPath: '/farcaster/account/[connectionId]',
 		parameterMatchers: {
-			accountId: [
-				'nonNegativeInteger',
+			connectionId: [
+				'stringSegment',
 			],
 		},
 		mappings: [
 			{
-				id: 'BlockheadFarcasterAccountConnection.Fid',
+				id: 'BlockheadFarcasterAccountConnection.ConnectionId',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							accountId: '/farcaster/account/[accountId]:BlockheadFarcasterAccountConnection.Fid.1.accountId',
+							connectionId: '/farcaster/account/[connectionId]:BlockheadFarcasterAccountConnection.ConnectionId.1.connectionId',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/farcaster/account/', requiredE2eRouteParam(params, '/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[accountId=nonNegativeInteger]', 'accountId')].join(''),
+		resolve: (params) => ['/farcaster/account/', requiredE2eRouteParam(params, '/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[connectionId=stringSegment]', 'connectionId')].join(''),
 	},
 	'/(social)/(farcaster)/farcaster/c/[fname]/[hash]': {
 		nodeId: '/(social)/(farcaster)/farcaster/c/[fname]/[hash]',
@@ -11487,7 +11991,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/nostr/relay/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]', 'relayKey')].join(''),
+		resolve: (params) => ['/nostr/relay/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]', 'relayKey'), 'Opaque')].join(''),
 	},
 	'/(social)/(nostr)/nostr/relay/[relayKey]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(nostr)/nostr/relay/[relayKey]/observations/[timestampMs]/[source]',
@@ -11521,7 +12025,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/nostr/relay/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'relayKey'), '/observations/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/nostr/relay/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'relayKey'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(nostr)/nostr/repost/[eventId]': {
 		nodeId: '/(social)/(nostr)/nostr/repost/[eventId]',
@@ -11549,6 +12053,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/nostr/repost/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/repost/[eventId=stringSegment]', 'eventId')].join(''),
 	},
+	'/(social)/(nostr)/nostr/search/[query]': {
+		nodeId: '/(social)/(nostr)/nostr/search/[query]',
+		probeOwnerNodeId: '/(social)/(nostr)/nostr/search/[query]',
+		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
+		publicPath: '/nostr/search/[query]',
+		parameterMatchers: {
+			query: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'NostrSearchQuery.Query',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							query: 'alice',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/nostr/search/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]', 'query')].join(''),
+	},
 	'/(social)/(reddit)/reddit/comment/[fullname]': {
 		nodeId: '/(social)/(reddit)/reddit/comment/[fullname]',
 		probeOwnerNodeId: '/(social)/(reddit)/reddit/comment/[fullname]',
@@ -11573,7 +12103,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/comment/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]', 'fullname')].join(''),
+		resolve: (params) => ['/reddit/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]', 'fullname'), 'Opaque')].join(''),
 	},
 	'/(social)/(reddit)/reddit/comment/[fullname]/observations': {
 		nodeId: '/(social)/(reddit)/reddit/comment/[fullname]/observations',
@@ -11599,7 +12129,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/comment/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations', 'fullname'), '/observations'].join(''),
+		resolve: (params) => ['/reddit/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations', 'fullname'), 'Opaque'), '/observations'].join(''),
 	},
 	'/(social)/(reddit)/reddit/comment/[fullname]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(reddit)/reddit/comment/[fullname]/observations/[timestampMs]/[source]',
@@ -11633,7 +12163,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/comment/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'fullname'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/reddit/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'fullname'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(reddit)/reddit/comment/[fullname]/replies': {
 		nodeId: '/(social)/(reddit)/reddit/comment/[fullname]/replies',
@@ -11659,7 +12189,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/comment/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/replies', 'fullname'), '/replies'].join(''),
+		resolve: (params) => ['/reddit/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/replies', 'fullname'), 'Opaque'), '/replies'].join(''),
 	},
 	'/(social)/(reddit)/reddit/link/[fullname]': {
 		nodeId: '/(social)/(reddit)/reddit/link/[fullname]',
@@ -11685,7 +12215,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/link/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]', 'fullname')].join(''),
+		resolve: (params) => ['/reddit/link/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]', 'fullname'), 'Opaque')].join(''),
 	},
 	'/(social)/(reddit)/reddit/link/[fullname]/comments': {
 		nodeId: '/(social)/(reddit)/reddit/link/[fullname]/comments',
@@ -11711,7 +12241,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/link/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments', 'fullname'), '/comments'].join(''),
+		resolve: (params) => ['/reddit/link/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments', 'fullname'), 'Opaque'), '/comments'].join(''),
 	},
 	'/(social)/(reddit)/reddit/link/[fullname]/observations': {
 		nodeId: '/(social)/(reddit)/reddit/link/[fullname]/observations',
@@ -11737,7 +12267,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/link/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations', 'fullname'), '/observations'].join(''),
+		resolve: (params) => ['/reddit/link/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations', 'fullname'), 'Opaque'), '/observations'].join(''),
 	},
 	'/(social)/(reddit)/reddit/link/[fullname]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(reddit)/reddit/link/[fullname]/observations/[timestampMs]/[source]',
@@ -11771,7 +12301,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/link/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'fullname'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/reddit/link/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'fullname'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(reddit)/reddit/r/[name]': {
 		nodeId: '/(social)/(reddit)/reddit/r/[name]',
@@ -11797,7 +12327,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/r/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]', 'name')].join(''),
+		resolve: (params) => ['/reddit/r/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]', 'name'), 'Opaque')].join(''),
 	},
 	'/(social)/(reddit)/reddit/r/[name]/links': {
 		nodeId: '/(social)/(reddit)/reddit/r/[name]/links',
@@ -11823,7 +12353,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/r/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/links', 'name'), '/links'].join(''),
+		resolve: (params) => ['/reddit/r/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/links', 'name'), 'Opaque'), '/links'].join(''),
 	},
 	'/(social)/(reddit)/reddit/r/[name]/observations': {
 		nodeId: '/(social)/(reddit)/reddit/r/[name]/observations',
@@ -11849,7 +12379,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/r/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations', 'name'), '/observations'].join(''),
+		resolve: (params) => ['/reddit/r/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations', 'name'), 'Opaque'), '/observations'].join(''),
 	},
 	'/(social)/(reddit)/reddit/r/[name]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(reddit)/reddit/r/[name]/observations/[timestampMs]/[source]',
@@ -11883,7 +12413,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/reddit/r/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'name'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/reddit/r/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'name'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(rss)/rss/feed/[feedUrl]': {
 		nodeId: '/(social)/(rss)/rss/feed/[feedUrl]',
@@ -11909,7 +12439,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/rss/feed/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]', 'feedUrl')].join(''),
+		resolve: (params) => ['/rss/feed/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]', 'feedUrl'), 'Opaque')].join(''),
 	},
 	'/(social)/(rss)/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]': {
 		nodeId: '/(social)/(rss)/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]',
@@ -11943,7 +12473,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/rss/feed/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'feedUrl'), '/item/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'itemIdentityKind'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'itemIdentity')].join(''),
+		resolve: (params) => ['/rss/feed/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'feedUrl'), 'Opaque'), '/item/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'itemIdentityKind'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', 'itemIdentity'), 'Opaque')].join(''),
 	},
 	'/(social)/(rss)/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(rss)/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]',
@@ -11985,7 +12515,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/rss/feed/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'feedUrl'), '/item/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'itemIdentityKind'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'itemIdentity'), '/observations/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/rss/feed/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'feedUrl'), 'Opaque'), '/item/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'itemIdentityKind'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'itemIdentity'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(rss)/rss/feed/[feedUrl]/items': {
 		nodeId: '/(social)/(rss)/rss/feed/[feedUrl]/items',
@@ -12011,7 +12541,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/rss/feed/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/items', 'feedUrl'), '/items'].join(''),
+		resolve: (params) => ['/rss/feed/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/items', 'feedUrl'), 'Opaque'), '/items'].join(''),
 	},
 	'/(social)/(rss)/rss/feed/[feedUrl]/observations/[timestampMs]/[source]': {
 		nodeId: '/(social)/(rss)/rss/feed/[feedUrl]/observations/[timestampMs]/[source]',
@@ -12045,7 +12575,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/rss/feed/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'feedUrl'), '/observations/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
+		resolve: (params) => ['/rss/feed/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'feedUrl'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(x)/x/post/[postId]': {
 		nodeId: '/(social)/(x)/x/post/[postId]',
@@ -12209,13 +12739,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/channel/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]', 'channelId')].join(''),
+		resolve: (params) => ['/youtube/channel/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]', 'channelId'), 'Opaque')].join(''),
 	},
-	'/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]',
-		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/youtube/channel/[channelId]/observations/[timestampMs]',
+	'/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]-[source]': {
+		nodeId: '/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]-[source]',
+		probeOwnerNodeId: '/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]-[source]',
+		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+		publicPath: '/youtube/channel/[channelId]/observations/[timestampMs]-[source]',
 		parameterMatchers: {
 			channelId: [
 				'stringSegment',
@@ -12223,23 +12753,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'YoutubeChannel_Timestamp.YoutubeChannelTimestampMs',
+				id: 'YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							channelId: '/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.channelId',
-							timestampMs: '/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.timestampMs',
+							channelId: '/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.channelId',
+							timestampMs: '/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.timestampMs',
+							source: 'Youtube_Rest',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/channel/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]', 'channelId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/youtube/channel/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'channelId'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'timestampMs'), '-', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(youtube)/youtube/channel/[channelId]/playlists': {
 		nodeId: '/(social)/(youtube)/youtube/channel/[channelId]/playlists',
@@ -12265,7 +12799,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/channel/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/playlists', 'channelId'), '/playlists'].join(''),
+		resolve: (params) => ['/youtube/channel/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/playlists', 'channelId'), 'Opaque'), '/playlists'].join(''),
 	},
 	'/(social)/(youtube)/youtube/channel/[channelId]/videos': {
 		nodeId: '/(social)/(youtube)/youtube/channel/[channelId]/videos',
@@ -12291,7 +12825,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/channel/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/videos', 'channelId'), '/videos'].join(''),
+		resolve: (params) => ['/youtube/channel/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/videos', 'channelId'), 'Opaque'), '/videos'].join(''),
 	},
 	'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]': {
 		nodeId: '/(social)/(youtube)/youtube/comment/[videoId]/[commentId]',
@@ -12321,13 +12855,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/comment/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]', 'videoId'), '/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]', 'commentId')].join(''),
+		resolve: (params) => ['/youtube/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]', 'videoId'), 'Opaque'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]', 'commentId'), 'Opaque')].join(''),
 	},
-	'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]',
-		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]',
+	'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]': {
+		nodeId: '/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]',
+		probeOwnerNodeId: '/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]',
+		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+		publicPath: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]',
 		parameterMatchers: {
 			videoId: [
 				'stringSegment',
@@ -12338,24 +12872,28 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'YoutubeComment_Timestamp.YoutubeCommentTimestampMs',
+				id: 'YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							videoId: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.videoId',
-							commentId: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.commentId',
-							timestampMs: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.timestampMs',
+							videoId: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.videoId',
+							commentId: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.commentId',
+							timestampMs: '/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.timestampMs',
+							source: 'Youtube_Rest',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/comment/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]', 'videoId'), '/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]', 'commentId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/youtube/comment/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'videoId'), 'Opaque'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'commentId'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'timestampMs'), '-', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(youtube)/youtube/playlist/[playlistId]': {
 		nodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]',
@@ -12381,13 +12919,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/playlist/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]', 'playlistId')].join(''),
+		resolve: (params) => ['/youtube/playlist/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]', 'playlistId'), 'Opaque')].join(''),
 	},
-	'/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]',
-		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/youtube/playlist/[playlistId]/observations/[timestampMs]',
+	'/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]': {
+		nodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]',
+		probeOwnerNodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]',
+		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+		publicPath: '/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]',
 		parameterMatchers: {
 			playlistId: [
 				'stringSegment',
@@ -12395,23 +12933,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs',
+				id: 'YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							playlistId: '/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.playlistId',
-							timestampMs: '/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.timestampMs',
+							playlistId: '/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.playlistId',
+							timestampMs: '/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.timestampMs',
+							source: 'Youtube_Rest',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/playlist/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]', 'playlistId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/youtube/playlist/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'playlistId'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'timestampMs'), '-', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(youtube)/youtube/playlist/[playlistId]/videos': {
 		nodeId: '/(social)/(youtube)/youtube/playlist/[playlistId]/videos',
@@ -12437,7 +12979,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/playlist/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/videos', 'playlistId'), '/videos'].join(''),
+		resolve: (params) => ['/youtube/playlist/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/videos', 'playlistId'), 'Opaque'), '/videos'].join(''),
 	},
 	'/(social)/(youtube)/youtube/video/[videoId]': {
 		nodeId: '/(social)/(youtube)/youtube/video/[videoId]',
@@ -12463,7 +13005,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/video/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]', 'videoId')].join(''),
+		resolve: (params) => ['/youtube/video/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]', 'videoId'), 'Opaque')].join(''),
 	},
 	'/(social)/(youtube)/youtube/video/[videoId]/comments': {
 		nodeId: '/(social)/(youtube)/youtube/video/[videoId]/comments',
@@ -12489,13 +13031,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/video/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/comments', 'videoId'), '/comments'].join(''),
+		resolve: (params) => ['/youtube/video/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/comments', 'videoId'), 'Opaque'), '/comments'].join(''),
 	},
-	'/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]',
-		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/youtube/video/[videoId]/observations/[timestampMs]',
+	'/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]-[source]': {
+		nodeId: '/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]-[source]',
+		probeOwnerNodeId: '/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]-[source]',
+		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+		publicPath: '/youtube/video/[videoId]/observations/[timestampMs]-[source]',
 		parameterMatchers: {
 			videoId: [
 				'stringSegment',
@@ -12503,23 +13045,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'YoutubeVideo_Timestamp.YoutubeVideoTimestampMs',
+				id: 'YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							videoId: '/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.videoId',
-							timestampMs: '/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.timestampMs',
+							videoId: '/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.videoId',
+							timestampMs: '/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.timestampMs',
+							source: 'Youtube_Rest',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/youtube/video/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]', 'videoId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/youtube/video/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'videoId'), 'Opaque'), '/observations/', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'timestampMs'), '-', requiredE2eRouteParam(params, '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', 'source')].join(''),
 	},
 	'/(swarm)/swarm/[reference]': {
 		nodeId: '/(swarm)/swarm/[reference]',
@@ -12741,7 +13287,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 		],
-		resolve: (params) => ['/~/accounts/transaction/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'chainId'), '/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'address'), '/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'sourceTxHash'), '/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'createdAt')].join(''),
+		resolve: (params) => ['/~/accounts/transaction/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'chainId'), '/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'address'), '/', encodeE2eRouteParam(requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'sourceTxHash'), 'Opaque'), '/', requiredE2eRouteParam(params, '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', 'createdAt')].join(''),
 	},
 	'/~/agents/conversation/[conversationId]': {
 		nodeId: '/~/agents/conversation/[conversationId]',

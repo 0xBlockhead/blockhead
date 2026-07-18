@@ -37,5 +37,8 @@
 			})
 		}
 		id='lens-posts'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

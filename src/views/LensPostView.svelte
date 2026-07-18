@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensPost = $derived(selection({
-		sources: [
-			Source.Lens_Graphql,
-		],
+		sources: selection.sources,
 		fields: {
 			text: true,
 			timestamp: true,
@@ -82,29 +79,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={lensPost}>
-			{#snippet Pending()}
-				{[String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lensPost}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lensPost}>
-			{#snippet Pending()}
-				{[String((pendingEntity.timestamp) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.timestamp) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.timestamp) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lensPost}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.timestamp) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -112,8 +109,6 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lensAccount)}
 					{#if lensAccount != null && lensAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -141,24 +136,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestamp = pendingEntity.timestamp}
-					{#if timestamp !== undefined && timestamp !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestamp = resolvedEntity.timestamp}
@@ -178,24 +162,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isEdited: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isEdited = pendingEntity.isEdited}
-					{#if isEdited !== undefined && isEdited !== null}
-						<div>
-							<dt>Edited</dt>
-							<dd>
-								{isEdited ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isEdited = resolvedEntity.isEdited}
@@ -215,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isDeleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isDeleted = pendingEntity.isDeleted}
-					{#if isDeleted !== undefined && isDeleted !== null}
-						<div>
-							<dt>Deleted</dt>
-							<dd>
-								{isDeleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isDeleted = resolvedEntity.isDeleted}
@@ -252,31 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contentUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contentUri = pendingEntity.contentUri}
-					{#if contentUri !== undefined && contentUri !== null}
-						<div>
-							<dt>Content URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(contentUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(contentUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contentUri = resolvedEntity.contentUri}
@@ -303,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metadataHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metadataHash = pendingEntity.metadataHash}
-					{#if metadataHash !== undefined && metadataHash !== null}
-						<div>
-							<dt>Metadata hash</dt>
-							<dd>
-								<TruncatedValue value={String((metadataHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metadataHash = resolvedEntity.metadataHash}
@@ -340,8 +273,6 @@
 			<ResourceBoundary
 				resource={selection.$commentOn}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -369,8 +300,6 @@
 			<ResourceBoundary
 				resource={selection.$quoteOf}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -398,8 +327,6 @@
 			<ResourceBoundary
 				resource={selection.$repostOf}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -427,8 +354,6 @@
 			<ResourceBoundary
 				resource={selection.$root}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -455,6 +380,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						text: true,
 					},
@@ -480,7 +406,11 @@
 						})
 					}
 				title='Comments'
-				href={resolve('/lens/observations/posts')}
+				href={
+						(selection.entitySelector.id !== undefined ? resolve('/lens/post/[postId=stringSegment]/comments', {
+							postId: selection.entitySelector.id,
+						}) : undefined)
+					}
 				emptyText='No Lens comments for this post.'
 				id='LensPostsView-comments'
 			/>

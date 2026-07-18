@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadActionReadinessCheck_TimestampView from '$/views/BlockheadActionReadinessCheck_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadActionReadinessCheck_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadActionReadinessCheck_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadActionReadinessCheckTimestamps) => [...new Map(blockheadActionReadinessCheckTimestamps.values.map((blockheadActionReadinessCheckTimestamp) => [blockheadActionReadinessCheckTimestamp[EntityMetaKey.SelectorKey], blockheadActionReadinessCheckTimestamp])).values()]}
+	getKey={(blockheadActionReadinessCheckTimestamp) => blockheadActionReadinessCheckTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead action readiness check observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadActionReadinessCheckTimestamps)}
-			{@const uniqueBlockheadActionReadinessCheckTimestamps = [...new Map(blockheadActionReadinessCheckTimestamps.values.map((blockheadActionReadinessCheckTimestamp) => [blockheadActionReadinessCheckTimestamp[EntityMetaKey.SelectorKey], blockheadActionReadinessCheckTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadActionReadinessCheck_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadActionReadinessCheckTimestamps.totalCount}
-				getKey={(blockheadActionReadinessCheckTimestamp) => blockheadActionReadinessCheckTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadActionReadinessCheckTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead action readiness check observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadActionReadinessCheckTimestamp })}
-					{@const blockheadActionReadinessCheckTimestampFields = { ...blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], ...blockheadActionReadinessCheckTimestamp }}
-					{@const selection = select(EntityType.BlockheadActionReadinessCheck_Timestamp, blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadActionReadinessCheck_TimestampView
-						selection={selection}
-						prefetched={blockheadActionReadinessCheckTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadActionReadinessCheck_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadActionReadinessCheckTimestamp })}
+		{@const blockheadActionReadinessCheckTimestampFields = { ...blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], ...blockheadActionReadinessCheckTimestamp }}
+		{@const selection = select(EntityType.BlockheadActionReadinessCheck_Timestamp, blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadActionReadinessCheck_TimestampView
+			selection={selection}
+			prefetched={blockheadActionReadinessCheckTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

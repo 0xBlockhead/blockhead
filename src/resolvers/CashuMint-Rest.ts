@@ -4,6 +4,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -19,16 +20,18 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[CashuMintSelector.MintUrl]: async ({ mintUrl }) => {
-					return {
-						$$timestamps: [{
-							[EntityMetaKey.Selector]: {
-								$mint: { mintUrl },
-								timestampMs: Date.now(),
-								source: Source.CashuMint_Rest,
-							},
-						}],
-					}
+				[CashuMintSelector.MintUrl]: {
+					resolve: async ({ mintUrl }) => {
+						return {
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$mint: { mintUrl },
+									timestampMs: Date.now(),
+									source: Source.CashuMint_Rest,
+								},
+							}],
+						}
+					},
 				},
 			},
 		})({
@@ -38,36 +41,38 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
 			resolve: {
-				[CashuKeysetSelector.CashuMintKeysetId]: async ({ $mint, keysetId }) => {
-				const {
-					getMintKeysets,
-					getMintKeysForKeyset,
-				} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-				const keyset = (await getMintKeysets({
-					mintUrl: $mint.mintUrl,
-				})).keysets.find((row) => row.id === keysetId)
-				if (keyset == null)
-					throw new Error(`CashuMint_Rest: keyset not found for ${keysetId}`)
+				[CashuKeysetSelector.CashuMintKeysetId]: {
+					resolve: async ({ $mint, keysetId }) => {
+					const {
+						getMintKeysets,
+						getMintKeysForKeyset,
+					} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+					const keyset = (await getMintKeysets({
+						mintUrl: $mint.mintUrl,
+					})).keysets.find((row) => row.id === keysetId)
+					if (keyset == null)
+						throw new Error(`CashuMint_Rest: keyset not found for ${keysetId}`)
 
-				const keys = await getMintKeysForKeyset({
-					mintUrl: $mint.mintUrl,
-					keysetId: keysetId,
-				})
-				const keysByAmount = keys.keysets.find((row) => row.id === keysetId)?.keys
+					const keys = await getMintKeysForKeyset({
+						mintUrl: $mint.mintUrl,
+						keysetId: keysetId,
+					})
+					const keysByAmount = keys.keysets.find((row) => row.id === keysetId)?.keys
 
-				return {
-					unit: keyset.unit,
-					...(keysByAmount != null && {
-						keysByAmountJson: JSON.stringify(keysByAmount),
-					}),
-					$$timestamps: [{
-						[EntityMetaKey.Selector]: {
-							$keyset: { $mint, keysetId },
-							timestampMs: Date.now(),
-							source: Source.CashuMint_Rest,
-						},
-					}],
-				}
+					return {
+						unit: keyset.unit,
+						...(keysByAmount != null && {
+							keysByAmountJson: JSON.stringify(keysByAmount),
+						}),
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$keyset: { $mint, keysetId },
+								timestampMs: Date.now(),
+								source: Source.CashuMint_Rest,
+							},
+						}],
+					}
+					},
 				},
 			},
 		})({
@@ -79,26 +84,28 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint_Timestamp,
 			resolve: {
-				[CashuMint_TimestampSelector.MintTimestampMsSource]: async ({ $mint, timestampMs, source }) => {
-					if (source !== Source.CashuMint_Rest)
-						throw new Error(`CashuMint_Rest: unsupported source ${source}`)
+				[CashuMint_TimestampSelector.MintTimestampMsSource]: {
+					resolve: async ({ $mint, timestampMs, source }) => {
+						if (source !== Source.CashuMint_Rest)
+							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
-					const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-					const info = await getMintInfo({ mintUrl: $mint.mintUrl })
-					return {
-						$mint: { [EntityMetaKey.Selector]: $mint },
-						timestampMs,
-						source,
-						reachable: true,
-						...(info.name != null && { name: info.name }),
-						...(info.pubkey != null && { pubkey: info.pubkey }),
-						...(info.version != null && { version: info.version }),
-						...(info.description != null && { description: info.description }),
-						...(info.motd != null && { motd: info.motd }),
-						...(info.icon_url != null && { iconUrl: info.icon_url }),
-						...(info.tos_url != null && { tosUrl: info.tos_url }),
-						...(info.time != null && { serverTimeMs: info.time * 1000 }),
-					}
+						const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+						const info = await getMintInfo({ mintUrl: $mint.mintUrl })
+						return {
+							$mint: { [EntityMetaKey.Selector]: $mint },
+							timestampMs,
+							source,
+							reachable: true,
+							...(info.name != null && { name: info.name }),
+							...(info.pubkey != null && { pubkey: info.pubkey }),
+							...(info.version != null && { version: info.version }),
+							...(info.description != null && { description: info.description }),
+							...(info.motd != null && { motd: info.motd }),
+							...(info.icon_url != null && { iconUrl: info.icon_url }),
+							...(info.tos_url != null && { tosUrl: info.tos_url }),
+							...(info.time != null && { serverTimeMs: info.time * 1000 }),
+						}
+					},
 				},
 			},
 		})({
@@ -119,25 +126,27 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset_Timestamp,
 			resolve: {
-				[CashuKeyset_TimestampSelector.KeysetTimestampMsSource]: async ({ $keyset, timestampMs, source }) => {
-					if (source !== Source.CashuMint_Rest)
-						throw new Error(`CashuMint_Rest: unsupported source ${source}`)
+				[CashuKeyset_TimestampSelector.KeysetTimestampMsSource]: {
+					resolve: async ({ $keyset, timestampMs, source }) => {
+						if (source !== Source.CashuMint_Rest)
+							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
-					const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-					const keyset = (await getMintKeysets({
-						mintUrl: $keyset.$mint.mintUrl,
-					})).keysets.find((row) => row.id === $keyset.keysetId)
-					if (keyset == null)
-						throw new Error(`CashuMint_Rest: keyset not found for ${$keyset.keysetId}`)
+						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+						const keyset = (await getMintKeysets({
+							mintUrl: $keyset.$mint.mintUrl,
+						})).keysets.find((row) => row.id === $keyset.keysetId)
+						if (keyset == null)
+							throw new Error(`CashuMint_Rest: keyset not found for ${$keyset.keysetId}`)
 
-					return {
-						$keyset: { [EntityMetaKey.Selector]: $keyset },
-						timestampMs,
-						source,
-						active: keyset.active,
-						...(keyset.input_fee_ppk != null && { inputFeePpk: keyset.input_fee_ppk }),
-						listedByKeysetsEndpoint: true,
-					}
+						return {
+							$keyset: { [EntityMetaKey.Selector]: $keyset },
+							timestampMs,
+							source,
+							active: keyset.active,
+							...(keyset.input_fee_ppk != null && { inputFeePpk: keyset.input_fee_ppk }),
+							listedByKeysetsEndpoint: true,
+						}
+					},
 				},
 			},
 		})({
@@ -152,19 +161,23 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[CashuMintSelector.MintUrl]: async ({ mintUrl }, context) => {
-				const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-				return (await getMintKeysets({
-					mintUrl: mintUrl,
-				})).keysets
-					.slice(0, resolverContextRowLimit(context))
-					.map((keyset) => ({
-						[EntityMetaKey.Selector]: {
-							$mint: { mintUrl },
-							keysetId: keyset.id,
-						},
-						unit: keyset.unit,
-					}))
+				[CashuMintSelector.MintUrl]: {
+					resolve: async ({ mintUrl }, context) => {
+					const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+					return (await getMintKeysets({
+						mintUrl: mintUrl,
+					})).keysets
+						.slice(0, resolverContextRowLimit(context))
+						.map((keyset) => ({
+							[EntityMetaKey.Selector]: {
+								$mint: { mintUrl },
+								keysetId: keyset.id,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.CashuKeyset, [], 'unit')]: keyset.unit,
+							},
+						}))
+					},
 				},
 			},
 		})({

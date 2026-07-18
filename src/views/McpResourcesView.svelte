@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpResourceView from '$/views/McpResourceView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					mimeType: true,
-					name: true,
-					uri: true,
-					subscribed: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpResource}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				mimeType: true,
+				name: true,
+				uri: true,
+				subscribed: true,
+			},
+		})
+	}
+	getResourceItems={(mcpResources) => [...new Map(mcpResources.values.map((mcpResource) => [mcpResource[EntityMetaKey.SelectorKey], mcpResource])).values()]}
+	getKey={(mcpResource) => mcpResource[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp resources yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpResources)}
-			{@const uniqueMcpResources = [...new Map(mcpResources.values.map((mcpResource) => [mcpResource[EntityMetaKey.SelectorKey], mcpResource])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpResources.totalCount}
-				getKey={(mcpResource) => mcpResource[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpResources}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp resources yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpResource })}
-					{@const mcpResourceFields = { ...mcpResource[EntityMetaKey.Selector], ...mcpResource }}
-					{@const selection = select(EntityType.McpResource, mcpResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpResourceView
-						selection={selection}
-						prefetched={mcpResourceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpResource}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpResource })}
+		{@const mcpResourceFields = { ...mcpResource[EntityMetaKey.Selector], ...mcpResource }}
+		{@const selection = select(EntityType.McpResource, mcpResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpResourceView
+			selection={selection}
+			prefetched={mcpResourceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IbcPacketView from '$/views/IbcPacketView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					sequence: true,
-					direction: true,
-					status: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcPacket}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IbcPacket}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				sequence: true,
+				direction: true,
+				status: true,
+			},
+		})
+	}
+	getResourceItems={(ibcPackets) => [...new Map(ibcPackets.values.map((ibcPacket) => [ibcPacket[EntityMetaKey.SelectorKey], ibcPacket])).values()]}
+	getKey={(ibcPacket) => ibcPacket[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No IBC packets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ibcPackets)}
-			{@const uniqueIbcPackets = [...new Map(ibcPackets.values.map((ibcPacket) => [ibcPacket[EntityMetaKey.SelectorKey], ibcPacket])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcPacket}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ibcPackets.totalCount}
-				getKey={(ibcPacket) => ibcPacket[EntityMetaKey.SelectorKey]}
-				items={uniqueIbcPackets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No IBC packets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ibcPacket })}
-					{@const ibcPacketFields = { ...ibcPacket[EntityMetaKey.Selector], ...ibcPacket }}
-					{@const selection = select(EntityType.IbcPacket, ibcPacket[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IbcPacketView
-						selection={selection}
-						prefetched={ibcPacketFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IbcPacket}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ibcPacket })}
+		{@const ibcPacketFields = { ...ibcPacket[EntityMetaKey.Selector], ...ibcPacket }}
+		{@const selection = select(EntityType.IbcPacket, ibcPacket[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IbcPacketView
+			selection={selection}
+			prefetched={ibcPacketFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

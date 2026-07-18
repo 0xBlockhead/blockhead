@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashCashTokenFungibleAmount = $derived(selection({
-		sources: [
-			Source.BitcoinCashNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			amount: true,
 		},
@@ -68,108 +66,114 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$output.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
-			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
-			{#snippet Pending()}
-				{@const amount0 = pendingEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amount0 = resolvedEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amount0 = pendingEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amount0 = resolvedEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
-			{#snippet Pending()}
-				{@const amount0 = pendingEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amount0 = resolvedEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue value={Number(amount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amount0 = pendingEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amount0 = resolvedEntity.amount}
+					{#if amount0 !== undefined && amount0 !== null}
+						<NumberValue
+							value={amount0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
-						selection.$category({
-							sources: [
-								Source.BitcoinCashNode_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(bitcoinCashCashTokenCategory)}
-						<span data-text="muted">
-							<BitcoinCashCashTokenCategoryView
-								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-								prefetched={bitcoinCashCashTokenCategory}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection.$category({
-							sources: [
-								Source.BitcoinCashNode_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(bitcoinCashCashTokenCategory)}
-						<span data-text="muted">
-							<BitcoinCashCashTokenCategoryView
-								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-								prefetched={bitcoinCashCashTokenCategory}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={
+					selection.$category({
+						sources: [
+							Source.BitcoinCashNode_JsonRpc,
+						],
+					})
+				}
+			>
+				{#snippet children(bitcoinCashCashTokenCategory)}
+					{#if bitcoinCashCashTokenCategory != null && bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<BitcoinCashCashTokenCategoryView
+							selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+							prefetched={bitcoinCashCashTokenCategory}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
+							selection.$category({
+								sources: [
+									Source.BitcoinCashNode_JsonRpc,
+								],
+							})
+						}
+					>
+						{#snippet children(bitcoinCashCashTokenCategory)}
+							{#if bitcoinCashCashTokenCategory != null && bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<BitcoinCashCashTokenCategoryView
+									selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+									prefetched={bitcoinCashCashTokenCategory}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,27 +184,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.BitcoinCashNode_JsonRpc,
-								],
+								sources: selection.sources,
 								fields: {
 									amount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amount = pendingEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amount = resolvedEntity.amount}
 							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

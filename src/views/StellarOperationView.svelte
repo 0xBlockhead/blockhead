@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarOperation = $derived(selection({}))
+	const stellarOperation = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar operation')
 	const viewDomId = $derived('stellar-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarOperation}>
-			{#snippet Pending()}
-				{title || 'stellar operation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									operationIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const operationIndex = pendingEntity.operationIndex}
-							{#if operationIndex !== undefined && operationIndex !== null}
-								{String((operationIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operationIndex = resolvedEntity.operationIndex}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									operationType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const operationType = pendingEntity.operationType}
-							{#if operationType !== undefined && operationType !== null}
-								{String((operationType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operationType = resolvedEntity.operationType}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceAccount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceAccount = pendingEntity.sourceAccount}
-					{#if sourceAccount !== undefined && sourceAccount !== null}
-						<div>
-							<dt>source account</dt>
-							<dd>
-								<TruncatedValue value={String((sourceAccount) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceAccount = resolvedEntity.sourceAccount}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resultCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resultCode = pendingEntity.resultCode}
-					{#if resultCode !== undefined && resultCode !== null}
-						<div>
-							<dt>result code</dt>
-							<dd>
-								{String((resultCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resultCode = resolvedEntity.resultCode}

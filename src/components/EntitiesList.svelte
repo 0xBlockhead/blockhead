@@ -19,6 +19,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { PersistedCollectionContinuation } from '$/client/$client.svelte.ts'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -53,6 +54,7 @@
 	}
 	type ItemsInput = Iterable<_Item>
 	type ResourceItemsInput = {
+		readonly continuation?: PersistedCollectionContinuation
 		readonly values: ItemsInput
 		readonly totalCount?: number
 	}
@@ -84,6 +86,7 @@
 		getSortValue,
 		placeholderText,
 		resource,
+		getResourceItems,
 		totalCount,
 		placeholderKeys = new SvelteSet<_Key>(),
 		Item,
@@ -135,6 +138,7 @@
 			open?: boolean
 			placeholderText?: string
 			resource?: SvelteKitResource<ResourceItemsInput | undefined>
+			getResourceItems?: (resource: ResourceItemsInput) => ItemsInput
 			totalCount?: number
 			placeholderKeys?: Set<_Key>
 			title?: string
@@ -208,6 +212,14 @@
 
 <article
 	{id}
+	data-entities-state={
+		items === undefined ?
+			undefined
+		: listItems.length === 0 ?
+			'resolved-empty'
+		:
+			'resolved-nonempty'
+	}
 	{...articleElementProps}
 	style:view-transition-name={`EntitiesList-${id}`}
 >
@@ -239,6 +251,8 @@
 					{/if}
 				</Heading>
 			{/if}
+
+			{@render SummaryAnnotation()}
 		</header>
 	{/snippet}
 
@@ -256,7 +270,10 @@
 		{/if}
 	{/snippet}
 
-	{#snippet ListRowsFrom(rows: _Item[])}
+	{#snippet ListRowsFrom(
+		rows: _Item[],
+		continuation?: PersistedCollectionContinuation
+	)}
 		<UnorderedList
 			items={rows}
 			{placeholderKeys}
@@ -265,6 +282,18 @@
 			{getSortValue}
 			Item={Item!}
 			{ItemPlaceholder}
+			pagination={
+				continuation == null || continuation.metadata.terminal ?
+					undefined
+				:
+					{
+						hasMore: true,
+						loading: continuation.loading,
+						onLoadMore: () => {
+							void continuation.loadMore().catch(() => {})
+						},
+					}
+			}
 			{...UnorderedListProps}
 			{...{
 				...(layout === EntitiesListLayout.Carousel && {
@@ -296,9 +325,13 @@
 					}
 				>
 					{#snippet children(resource)}
-						{#key resource}
-							{@render ListRowsFrom(resource === undefined ? [] : [...resource.values])}
-						{/key}
+						{@render ListRowsFrom(
+							resource === undefined ?
+								[]
+							:
+								[...(getResourceItems?.(resource) ?? resource.values)],
+							resource?.continuation
+						)}
 					{/snippet}
 				</ResourceBoundary>
 			{:else if items !== undefined}
@@ -317,7 +350,6 @@
 		{@render listColumnBody()}
 	{:else if !_collapsible}
 		{@render SummaryHeader()}
-		{@render SummaryAnnotation()}
 		{@render listColumnBody()}
 	{:else}
 		<Collapsible
@@ -334,10 +366,6 @@
 		>
 			{#snippet Summary()}
 				{@render SummaryHeader()}
-			{/snippet}
-
-			{#snippet Annotation()}
-				{@render SummaryAnnotation()}
 			{/snippet}
 
 			{@render listColumnBody()}

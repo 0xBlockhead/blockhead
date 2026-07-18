@@ -1,4 +1,5 @@
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { Caip2Reference } from '$/constants/Network.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter } from './types.ts'
@@ -68,14 +69,14 @@ export const createPolkadotInjectedWeb3Adapter = (): WalletAdapter => {
 				scopes: [
 					{
 						namespace: 'polkadot',
-						reference: '0',
+						reference: Caip2Reference.Polkadot,
 						methods: ['enable', 'accounts.get', 'signer.signPayload', 'signer.signRaw'],
 						events: ['accounts.subscribe'],
 					},
 				],
 				accounts: (await (await wallet.enable('Blockhead')).accounts.get()).map((account) => ({
 					namespace: 'polkadot',
-					reference: '0',
+					reference: Caip2Reference.Polkadot,
 					accountAddress: account.address,
 					capabilities: [
 						WalletCapability.Connect,

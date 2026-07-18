@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCashuWalletState_TimestampView from '$/views/BlockheadCashuWalletState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balance: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCashuWalletState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balance: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCashuWalletStateTimestamps) => [...new Map(blockheadCashuWalletStateTimestamps.values.map((blockheadCashuWalletStateTimestamp) => [blockheadCashuWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadCashuWalletStateTimestamp])).values()]}
+	getKey={(blockheadCashuWalletStateTimestamp) => blockheadCashuWalletStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Cashu wallet state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCashuWalletStateTimestamps)}
-			{@const uniqueBlockheadCashuWalletStateTimestamps = [...new Map(blockheadCashuWalletStateTimestamps.values.map((blockheadCashuWalletStateTimestamp) => [blockheadCashuWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadCashuWalletStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuWalletState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCashuWalletStateTimestamps.totalCount}
-				getKey={(blockheadCashuWalletStateTimestamp) => blockheadCashuWalletStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCashuWalletStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Cashu wallet state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCashuWalletStateTimestamp })}
-					{@const blockheadCashuWalletStateTimestampFields = { ...blockheadCashuWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadCashuWalletStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadCashuWalletState_Timestamp, blockheadCashuWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCashuWalletState_TimestampView
-						selection={selection}
-						prefetched={blockheadCashuWalletStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCashuWalletState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCashuWalletStateTimestamp })}
+		{@const blockheadCashuWalletStateTimestampFields = { ...blockheadCashuWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadCashuWalletStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadCashuWalletState_Timestamp, blockheadCashuWalletStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCashuWalletState_TimestampView
+			selection={selection}
+			prefetched={blockheadCashuWalletStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

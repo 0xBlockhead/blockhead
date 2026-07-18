@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoProtocolParametersEpoch = $derived(selection({}))
+	const cardanoProtocolParametersEpoch = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano protocol parameters epoch')
 	const viewDomId = $derived('cardano-protocol-parameters-epoch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoProtocolParametersEpoch}>
-			{#snippet Pending()}
-				{title || 'Cardano protocol parameters epoch'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoProtocolParametersEpoch}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									epoch: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const epoch = pendingEntity.epoch}
-							{#if epoch !== undefined && epoch !== null}
-								{String((epoch) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const epoch = resolvedEntity.epoch}
@@ -132,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -159,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minFeeA: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minFeeA = pendingEntity.minFeeA}
-					{#if minFeeA !== undefined && minFeeA !== null}
-						<div>
-							<dt>min fee a</dt>
-							<dd>
-								{String((minFeeA) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minFeeA = resolvedEntity.minFeeA}
@@ -194,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minFeeB: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minFeeB = pendingEntity.minFeeB}
-					{#if minFeeB !== undefined && minFeeB !== null}
-						<div>
-							<dt>min fee b</dt>
-							<dd>
-								{String((minFeeB) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minFeeB = resolvedEntity.minFeeB}
@@ -229,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxBlockBodySize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxBlockBodySize = pendingEntity.maxBlockBodySize}
-					{#if maxBlockBodySize !== undefined && maxBlockBodySize !== null}
-						<div>
-							<dt>max block body size</dt>
-							<dd>
-								{String((maxBlockBodySize) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxBlockBodySize = resolvedEntity.maxBlockBodySize}
@@ -264,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxTxSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxTxSize = pendingEntity.maxTxSize}
-					{#if maxTxSize !== undefined && maxTxSize !== null}
-						<div>
-							<dt>max transaction size</dt>
-							<dd>
-								{String((maxTxSize) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxTxSize = resolvedEntity.maxTxSize}
@@ -299,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxBlockHeaderSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxBlockHeaderSize = pendingEntity.maxBlockHeaderSize}
-					{#if maxBlockHeaderSize !== undefined && maxBlockHeaderSize !== null}
-						<div>
-							<dt>max block header size</dt>
-							<dd>
-								{String((maxBlockHeaderSize) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxBlockHeaderSize = resolvedEntity.maxBlockHeaderSize}
@@ -334,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							keyDeposit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const keyDeposit = pendingEntity.keyDeposit}
-					{#if keyDeposit !== undefined && keyDeposit !== null}
-						<div>
-							<dt>key deposit</dt>
-							<dd>
-								{String((keyDeposit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const keyDeposit = resolvedEntity.keyDeposit}
@@ -369,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							poolDeposit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const poolDeposit = pendingEntity.poolDeposit}
-					{#if poolDeposit !== undefined && poolDeposit !== null}
-						<div>
-							<dt>pool deposit</dt>
-							<dd>
-								{String((poolDeposit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const poolDeposit = resolvedEntity.poolDeposit}
@@ -404,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxEpoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxEpoch = pendingEntity.maxEpoch}
-					{#if maxEpoch !== undefined && maxEpoch !== null}
-						<div>
-							<dt>max epoch</dt>
-							<dd>
-								{String((maxEpoch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxEpoch = resolvedEntity.maxEpoch}
@@ -439,24 +341,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nOpt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nOpt = pendingEntity.nOpt}
-					{#if nOpt !== undefined && nOpt !== null}
-						<div>
-							<dt>n opt</dt>
-							<dd>
-								{String((nOpt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nOpt = resolvedEntity.nOpt}
@@ -474,24 +365,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rho: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rho = pendingEntity.rho}
-					{#if rho !== undefined && rho !== null}
-						<div>
-							<dt>rho</dt>
-							<dd>
-								{String((rho) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rho = resolvedEntity.rho}
@@ -509,24 +389,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tau: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tau = pendingEntity.tau}
-					{#if tau !== undefined && tau !== null}
-						<div>
-							<dt>tau</dt>
-							<dd>
-								{String((tau) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tau = resolvedEntity.tau}
@@ -544,24 +413,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							decentralisation: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decentralisation = pendingEntity.decentralisation}
-					{#if decentralisation !== undefined && decentralisation !== null}
-						<div>
-							<dt>decentralisation</dt>
-							<dd>
-								{String((decentralisation) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decentralisation = resolvedEntity.decentralisation}
@@ -579,24 +437,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolMajor: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolMajor = pendingEntity.protocolMajor}
-					{#if protocolMajor !== undefined && protocolMajor !== null}
-						<div>
-							<dt>protocol major</dt>
-							<dd>
-								{String((protocolMajor) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolMajor = resolvedEntity.protocolMajor}
@@ -614,24 +461,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolMinor: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolMinor = pendingEntity.protocolMinor}
-					{#if protocolMinor !== undefined && protocolMinor !== null}
-						<div>
-							<dt>protocol minor</dt>
-							<dd>
-								{String((protocolMinor) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolMinor = resolvedEntity.protocolMinor}
@@ -649,24 +485,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minPoolCost: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minPoolCost = pendingEntity.minPoolCost}
-					{#if minPoolCost !== undefined && minPoolCost !== null}
-						<div>
-							<dt>min pool cost</dt>
-							<dd>
-								{String((minPoolCost) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minPoolCost = resolvedEntity.minPoolCost}
@@ -684,24 +509,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							coinsPerUtxoByte: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const coinsPerUtxoByte = pendingEntity.coinsPerUtxoByte}
-					{#if coinsPerUtxoByte !== undefined && coinsPerUtxoByte !== null}
-						<div>
-							<dt>coins per UTXO byte</dt>
-							<dd>
-								{String((coinsPerUtxoByte) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const coinsPerUtxoByte = resolvedEntity.coinsPerUtxoByte}
@@ -719,24 +533,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxValueSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxValueSize = pendingEntity.maxValueSize}
-					{#if maxValueSize !== undefined && maxValueSize !== null}
-						<div>
-							<dt>max value size</dt>
-							<dd>
-								{String((maxValueSize) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxValueSize = resolvedEntity.maxValueSize}
@@ -754,24 +557,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							collateralPercentage: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const collateralPercentage = pendingEntity.collateralPercentage}
-					{#if collateralPercentage !== undefined && collateralPercentage !== null}
-						<div>
-							<dt>collateral percentage</dt>
-							<dd>
-								{String((collateralPercentage) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const collateralPercentage = resolvedEntity.collateralPercentage}
@@ -789,24 +581,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxCollateralInputs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxCollateralInputs = pendingEntity.maxCollateralInputs}
-					{#if maxCollateralInputs !== undefined && maxCollateralInputs !== null}
-						<div>
-							<dt>max collateral inputs</dt>
-							<dd>
-								{String((maxCollateralInputs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxCollateralInputs = resolvedEntity.maxCollateralInputs}

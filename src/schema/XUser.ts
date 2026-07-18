@@ -95,6 +95,7 @@ export const XUser = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.X_Rest,
+			Source.X_FxEmbed_Rest,
 		],
 	},
 })({

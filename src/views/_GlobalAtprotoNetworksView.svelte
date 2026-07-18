@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAtprotoNetworkView from '$/views/_GlobalAtprotoNetworkView.svelte'
 </script>
@@ -62,79 +61,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAtprotoNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAtprotoNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(globalAtprotoNetworks) => [...new Map(globalAtprotoNetworks.values.map((globalAtprotoNetwork) => [globalAtprotoNetwork[EntityMetaKey.SelectorKey], globalAtprotoNetwork])).values()]}
+	getKey={(globalAtprotoNetwork) => globalAtprotoNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAtprotoNetworks)}
-			{@const uniqueGlobalAtprotoNetworks = [...new Map(globalAtprotoNetworks.values.map((globalAtprotoNetwork) => [globalAtprotoNetwork[EntityMetaKey.SelectorKey], globalAtprotoNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAtprotoNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAtprotoNetworks.totalCount}
-				getKey={(globalAtprotoNetwork) => globalAtprotoNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAtprotoNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAtprotoNetwork })}
-					{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
-					{@const selection = select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const globalAtprotoNetworkHrefFields = { ...globalAtprotoNetwork, ...globalAtprotoNetwork[EntityMetaKey.Selector] }}
-					<GlobalAtprotoNetworkView
-						selection={selection}
-						prefetched={globalAtprotoNetworkFields}
-						href={(globalAtprotoNetwork[EntityMetaKey.Selector].scope === '_GlobalAtprotoNetwork' ? resolve('/atproto') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAtprotoNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAtprotoNetwork })}
+		{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
+		{@const selection = select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const globalAtprotoNetworkHrefFields = { ...globalAtprotoNetwork, ...globalAtprotoNetwork[EntityMetaKey.Selector] }}
+		<GlobalAtprotoNetworkView
+			selection={selection}
+			prefetched={globalAtprotoNetworkFields}
+			href={(globalAtprotoNetwork[EntityMetaKey.Selector].scope === '_GlobalAtprotoNetwork' ? resolve('/atproto') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

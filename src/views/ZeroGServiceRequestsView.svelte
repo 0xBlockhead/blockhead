@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGServiceRequestView from '$/views/ZeroGServiceRequestView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					requestId: true,
-					$serviceProvider: true,
-					$requester: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGServiceRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGServiceRequest}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				requestId: true,
+				$serviceProvider: true,
+				$requester: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGServiceRequests) => [...new Map(zeroGServiceRequests.values.map((zeroGServiceRequest) => [zeroGServiceRequest[EntityMetaKey.SelectorKey], zeroGServiceRequest])).values()]}
+	getKey={(zeroGServiceRequest) => zeroGServiceRequest[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g service requests yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGServiceRequests)}
-			{@const uniqueZeroGServiceRequests = [...new Map(zeroGServiceRequests.values.map((zeroGServiceRequest) => [zeroGServiceRequest[EntityMetaKey.SelectorKey], zeroGServiceRequest])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGServiceRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGServiceRequests.totalCount}
-				getKey={(zeroGServiceRequest) => zeroGServiceRequest[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGServiceRequests}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g service requests yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGServiceRequest })}
-					{@const zeroGServiceRequestFields = { ...zeroGServiceRequest[EntityMetaKey.Selector], ...zeroGServiceRequest }}
-					{@const selection = select(EntityType.ZeroGServiceRequest, zeroGServiceRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGServiceRequestView
-						selection={selection}
-						prefetched={zeroGServiceRequestFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGServiceRequest}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGServiceRequest })}
+		{@const zeroGServiceRequestFields = { ...zeroGServiceRequest[EntityMetaKey.Selector], ...zeroGServiceRequest }}
+		{@const selection = select(EntityType.ZeroGServiceRequest, zeroGServiceRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGServiceRequestView
+			selection={selection}
+			prefetched={zeroGServiceRequestFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

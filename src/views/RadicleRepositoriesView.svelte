@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadicleRepositoryView from '$/views/RadicleRepositoryView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleRepository}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadicleRepository}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radicleRepositories) => [...new Map(radicleRepositories.values.map((radicleRepository) => [radicleRepository[EntityMetaKey.SelectorKey], radicleRepository])).values()]}
+	getKey={(radicleRepository) => radicleRepository[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle repositories yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radicleRepositories)}
-			{@const uniqueRadicleRepositories = [...new Map(radicleRepositories.values.map((radicleRepository) => [radicleRepository[EntityMetaKey.SelectorKey], radicleRepository])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleRepository}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radicleRepositories.totalCount}
-				getKey={(radicleRepository) => radicleRepository[EntityMetaKey.SelectorKey]}
-				items={uniqueRadicleRepositories}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle repositories yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radicleRepository })}
-					{@const radicleRepositoryFields = { ...radicleRepository[EntityMetaKey.Selector], ...radicleRepository }}
-					{@const selection = select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadicleRepositoryView
-						selection={selection}
-						prefetched={radicleRepositoryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadicleRepository}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radicleRepository })}
+		{@const radicleRepositoryFields = { ...radicleRepository[EntityMetaKey.Selector], ...radicleRepository }}
+		{@const selection = select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadicleRepositoryView
+			selection={selection}
+			prefetched={radicleRepositoryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrRelay_TimestampView from '$/views/NostrRelay_TimestampView.svelte'
 </script>
@@ -62,89 +61,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					source: true,
-					reachable: true,
-					software: true,
-					timestampMs: true,
-					$relay: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrRelay_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrRelay_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				source: true,
+				reachable: true,
+				software: true,
+				timestampMs: true,
+				$relay: true,
+			},
+		})
+	}
+	getResourceItems={(nostrRelayTimestamps) => [...new Map(nostrRelayTimestamps.values.map((nostrRelayTimestamp) => [nostrRelayTimestamp[EntityMetaKey.SelectorKey], nostrRelayTimestamp])).values()]}
+	getKey={(nostrRelayTimestamp) => nostrRelayTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr relay observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrRelayTimestamps)}
-			{@const uniqueNostrRelayTimestamps = [...new Map(nostrRelayTimestamps.values.map((nostrRelayTimestamp) => [nostrRelayTimestamp[EntityMetaKey.SelectorKey], nostrRelayTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrRelay_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrRelayTimestamps.totalCount}
-				getKey={(nostrRelayTimestamp) => nostrRelayTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrRelayTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr relay observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrRelayTimestamp })}
-					{@const nostrRelayTimestampFields = { ...nostrRelayTimestamp[EntityMetaKey.Selector], ...nostrRelayTimestamp }}
-					{@const selection = select(EntityType.NostrRelay_Timestamp, nostrRelayTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const nostrRelayTimestampHrefFields = { ...nostrRelayTimestamp, ...nostrRelayTimestamp[EntityMetaKey.Selector] }}
-					<NostrRelay_TimestampView
-						selection={selection}
-						prefetched={nostrRelayTimestampFields}
-						href={
-							(nostrRelayTimestampHrefFields.timestampMs !== undefined && nostrRelayTimestampHrefFields.source !== undefined && nostrRelayTimestampHrefFields.$relay !== undefined && nostrRelayTimestampHrefFields.$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(nostrRelayTimestampHrefFields.timestampMs ?? ''),
-								source: String(nostrRelayTimestampHrefFields.source ?? ''),
-								relayKey: String(nostrRelayTimestampHrefFields.$relay.relayUrl ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrRelay_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrRelayTimestamp })}
+		{@const nostrRelayTimestampFields = { ...nostrRelayTimestamp[EntityMetaKey.Selector], ...nostrRelayTimestamp }}
+		{@const selection = select(EntityType.NostrRelay_Timestamp, nostrRelayTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const nostrRelayTimestampHrefFields = { ...nostrRelayTimestamp, ...nostrRelayTimestamp[EntityMetaKey.Selector] }}
+		<NostrRelay_TimestampView
+			selection={selection}
+			prefetched={nostrRelayTimestampFields}
+			href={
+				(nostrRelayTimestampHrefFields.timestampMs !== undefined && nostrRelayTimestampHrefFields.source !== undefined && nostrRelayTimestampHrefFields.$relay !== undefined && nostrRelayTimestampHrefFields.$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(nostrRelayTimestampHrefFields.timestampMs ?? ''),
+					source: String(nostrRelayTimestampHrefFields.source ?? ''),
+					relayKey: encodeURIComponent(String(nostrRelayTimestampHrefFields.$relay.relayUrl ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

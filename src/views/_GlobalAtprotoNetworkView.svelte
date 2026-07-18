@@ -40,9 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalAtprotoNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolName: true,
 		},
@@ -73,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalAtprotoNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalAtprotoNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -99,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocolName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocolName = pendingEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocolName = resolvedEntity.protocolName}
@@ -127,24 +119,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								relationshipModel: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const relationshipModel = pendingEntity.relationshipModel}
-						{#if relationshipModel !== undefined && relationshipModel !== null}
-							<div>
-								<dt>Connection model</dt>
-								<dd>
-									{String((relationshipModel) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const relationshipModel = resolvedEntity.relationshipModel}
@@ -167,26 +148,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
+									sources: selection.sources,
 									fields: {
 										homeUrl: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const homeUrl = pendingEntity.homeUrl}
-								{#if homeUrl !== undefined && homeUrl !== null}
-									<svelte:element
-										this={'a'}
-										href={String(homeUrl)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(homeUrl)} />
-									</svelte:element>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const homeUrl = resolvedEntity.homeUrl}
@@ -210,31 +178,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								docsUrl: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const docsUrl = pendingEntity.docsUrl}
-						{#if docsUrl !== undefined && docsUrl !== null}
-							<div>
-								<dt>Documentation</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(docsUrl)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(docsUrl)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const docsUrl = resolvedEntity.docsUrl}
@@ -277,11 +227,8 @@
 					]
 				}
 				data-card
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Directory and examples</HeadingComponent>
 						<Tooltip contentProps={{ side: 'top' }}>
@@ -307,11 +254,15 @@
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/atproto/actors')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No accounts available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -326,11 +277,15 @@
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/atproto/posts')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No recent posts available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

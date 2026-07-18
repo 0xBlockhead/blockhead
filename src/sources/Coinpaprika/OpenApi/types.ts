@@ -1,5 +1,7 @@
 import type { components } from '$/sources/Coinpaprika/OpenApi/openapi.d.ts'
 
+export type CoinpaprikaCurrency = components['schemas']['currency']
+
 export type CoinpaprikaCoin = components['schemas']['coin_extended']
 
 export type CoinpaprikaTicker = components['schemas']['tick']

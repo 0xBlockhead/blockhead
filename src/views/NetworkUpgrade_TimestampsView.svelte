@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NetworkUpgrade_TimestampView from '$/views/NetworkUpgrade_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					activationHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NetworkUpgrade_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NetworkUpgrade_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				activationHeight: true,
+			},
+		})
+	}
+	getResourceItems={(networkUpgradeTimestamps) => [...new Map(networkUpgradeTimestamps.values.map((networkUpgradeTimestamp) => [networkUpgradeTimestamp[EntityMetaKey.SelectorKey], networkUpgradeTimestamp])).values()]}
+	getKey={(networkUpgradeTimestamp) => networkUpgradeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Network upgrade observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(networkUpgradeTimestamps)}
-			{@const uniqueNetworkUpgradeTimestamps = [...new Map(networkUpgradeTimestamps.values.map((networkUpgradeTimestamp) => [networkUpgradeTimestamp[EntityMetaKey.SelectorKey], networkUpgradeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NetworkUpgrade_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={networkUpgradeTimestamps.totalCount}
-				getKey={(networkUpgradeTimestamp) => networkUpgradeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNetworkUpgradeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Network upgrade observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: networkUpgradeTimestamp })}
-					{@const networkUpgradeTimestampFields = { ...networkUpgradeTimestamp[EntityMetaKey.Selector], ...networkUpgradeTimestamp }}
-					{@const selection = select(EntityType.NetworkUpgrade_Timestamp, networkUpgradeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NetworkUpgrade_TimestampView
-						selection={selection}
-						prefetched={networkUpgradeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NetworkUpgrade_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: networkUpgradeTimestamp })}
+		{@const networkUpgradeTimestampFields = { ...networkUpgradeTimestamp[EntityMetaKey.Selector], ...networkUpgradeTimestamp }}
+		{@const selection = select(EntityType.NetworkUpgrade_Timestamp, networkUpgradeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NetworkUpgrade_TimestampView
+			selection={selection}
+			prefetched={networkUpgradeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

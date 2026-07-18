@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosContract = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			codeId: true,
 		},
@@ -70,64 +71,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cosmosContract}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cosmosContract}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosContract}>
-			{#snippet Pending()}
-				{@const codeId0 = pendingEntity.codeId}
-				{#if codeId0 !== undefined && codeId0 !== null}
-					<span data-text="muted">
-						{String((codeId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const codeId0 = resolvedEntity.codeId}
-				{#if codeId0 !== undefined && codeId0 !== null}
-					<span data-text="muted">
-						{String((codeId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const codeId0 = pendingEntity.codeId}
+			{#if codeId0 !== undefined && codeId0 !== null}
+				<span data-text="muted">
+					{String((codeId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const codeId0 = resolvedEntity.codeId}
+					{#if codeId0 !== undefined && codeId0 !== null}
+						<span data-text="muted">
+							{String((codeId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -165,24 +160,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							codeId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const codeId = pendingEntity.codeId}
-					{#if codeId !== undefined && codeId !== null}
-						<div>
-							<dt>Code ID</dt>
-							<dd>
-								{String((codeId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const codeId = resolvedEntity.codeId}
@@ -200,8 +184,6 @@
 			<ResourceBoundary
 				resource={selection.$creator}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null && cosmosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -231,8 +213,6 @@
 			<ResourceBoundary
 				resource={selection.$admin}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null && cosmosAccount[EntityMetaKey.Selector] != null}
 						<div>

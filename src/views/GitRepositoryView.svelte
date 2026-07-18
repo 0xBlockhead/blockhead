@@ -38,6 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitRepository = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			objectFormat: true,
 		},
@@ -69,29 +70,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitRepository}>
-			{#snippet Pending()}
-				{[String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.repositoryId) ?? ''), String((resolvedEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitRepository}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.repositoryId) ?? ''), String((resolvedEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitRepository}>
-			{#snippet Pending()}
-				{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.repositoryId) ?? ''), String((resolvedEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitRepository}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.repositoryId) ?? ''), String((resolvedEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +103,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									repositoryId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const repositoryId = pendingEntity.repositoryId}
-							{#if repositoryId !== undefined && repositoryId !== null}
-								{String((repositoryId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const repositoryId = resolvedEntity.repositoryId}
@@ -129,31 +124,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							canonicalRemoteUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const canonicalRemoteUrl = pendingEntity.canonicalRemoteUrl}
-					{#if canonicalRemoteUrl !== undefined && canonicalRemoteUrl !== null}
-						<div>
-							<dt>canonical remote URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(canonicalRemoteUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(canonicalRemoteUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const canonicalRemoteUrl = resolvedEntity.canonicalRemoteUrl}
@@ -181,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectFormat: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectFormat = pendingEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectFormat = resolvedEntity.objectFormat}
@@ -208,24 +179,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							defaultRefName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const defaultRefName = pendingEntity.defaultRefName}
-					{#if defaultRefName !== undefined && defaultRefName !== null}
-						<div>
-							<dt>default ref name</dt>
-							<dd>
-								{String((defaultRefName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const defaultRefName = resolvedEntity.defaultRefName}
@@ -261,11 +221,8 @@
 				}
 				data-card
 				class='network-view-collapsible-refs-objects'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Refs and objects</HeadingComponent>
 					</header>
@@ -273,12 +230,12 @@
 
 				{#snippet SectionGitRepositoryRefs({ id, label, open })}
 					<GitRefsView
-						selection={
-							selection.$$refs({
-								count: true,
-							})
-						}
+						selection={selection.$$refs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No refs.'
 						open={open}
 						title={label}
@@ -288,12 +245,12 @@
 
 				{#snippet SectionGitRepositoryObjectList({ id, label, open })}
 					<GitObjectsView
-						selection={
-							selection.$$objects({
-								count: true,
-							})
-						}
+						selection={selection.$$objects}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No objects.'
 						open={open}
 						title={label}
@@ -320,11 +277,8 @@
 				}
 				data-card
 				class='network-view-collapsible-remotes'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Remotes and fetches</HeadingComponent>
 					</header>
@@ -332,12 +286,12 @@
 
 				{#snippet SectionGitRepositoryRemoteList({ id, label, open })}
 					<GitRemotesView
-						selection={
-							selection.$$remotes({
-								count: true,
-							})
-						}
+						selection={selection.$$remotes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No remotes.'
 						open={open}
 						title={label}
@@ -347,12 +301,12 @@
 
 				{#snippet SectionGitRepositoryFetches({ id, label, open })}
 					<GitFetchObservationsView
-						selection={
-							selection.$$fetches({
-								count: true,
-							})
-						}
+						selection={selection.$$fetches}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No fetch observations.'
 						open={open}
 						title={label}

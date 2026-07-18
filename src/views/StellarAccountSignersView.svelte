@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarAccountSignerView from '$/views/StellarAccountSignerView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccountSigner}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarAccountSigner}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarAccountSigners) => [...new Map(stellarAccountSigners.values.map((stellarAccountSigner) => [stellarAccountSigner[EntityMetaKey.SelectorKey], stellarAccountSigner])).values()]}
+	getKey={(stellarAccountSigner) => stellarAccountSigner[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar account signers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarAccountSigners)}
-			{@const uniqueStellarAccountSigners = [...new Map(stellarAccountSigners.values.map((stellarAccountSigner) => [stellarAccountSigner[EntityMetaKey.SelectorKey], stellarAccountSigner])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccountSigner}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarAccountSigners.totalCount}
-				getKey={(stellarAccountSigner) => stellarAccountSigner[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarAccountSigners}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar account signers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarAccountSigner })}
-					{@const stellarAccountSignerFields = { ...stellarAccountSigner[EntityMetaKey.Selector], ...stellarAccountSigner }}
-					{@const selection = select(EntityType.StellarAccountSigner, stellarAccountSigner[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarAccountSignerView
-						selection={selection}
-						prefetched={stellarAccountSignerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarAccountSigner}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarAccountSigner })}
+		{@const stellarAccountSignerFields = { ...stellarAccountSigner[EntityMetaKey.Selector], ...stellarAccountSigner }}
+		{@const selection = select(EntityType.StellarAccountSigner, stellarAccountSigner[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarAccountSignerView
+			selection={selection}
+			prefetched={stellarAccountSignerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

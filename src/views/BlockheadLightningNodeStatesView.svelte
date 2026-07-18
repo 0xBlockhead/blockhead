@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLightningNodeStateView from '$/views/BlockheadLightningNodeStateView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					alias: true,
-					$network: true,
-					connectionId: true,
-					$node: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLightningNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				alias: true,
+				$network: true,
+				connectionId: true,
+				$node: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLightningNodeStates) => [...new Map(blockheadLightningNodeStates.values.map((blockheadLightningNodeState) => [blockheadLightningNodeState[EntityMetaKey.SelectorKey], blockheadLightningNodeState])).values()]}
+	getKey={(blockheadLightningNodeState) => blockheadLightningNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Lightning node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLightningNodeStates)}
-			{@const uniqueBlockheadLightningNodeStates = [...new Map(blockheadLightningNodeStates.values.map((blockheadLightningNodeState) => [blockheadLightningNodeState[EntityMetaKey.SelectorKey], blockheadLightningNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLightningNodeStates.totalCount}
-				getKey={(blockheadLightningNodeState) => blockheadLightningNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLightningNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Lightning node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLightningNodeState })}
-					{@const blockheadLightningNodeStateFields = { ...blockheadLightningNodeState[EntityMetaKey.Selector], ...blockheadLightningNodeState }}
-					{@const selection = select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLightningNodeStateView
-						selection={selection}
-						prefetched={blockheadLightningNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLightningNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLightningNodeState })}
+		{@const blockheadLightningNodeStateFields = { ...blockheadLightningNodeState[EntityMetaKey.Selector], ...blockheadLightningNodeState }}
+		{@const selection = select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLightningNodeStateView
+			selection={selection}
+			prefetched={blockheadLightningNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

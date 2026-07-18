@@ -1,8 +1,6 @@
-import { getJson } from '$/lib/http.ts'
-import { atprotoAppViewBySlug } from '$/constants/AtprotoAppView.ts'
 import { bskyPublicXrpcGet } from '$/sources/AtprotoBsky/Rest/client.ts'
-import { atprotoBskyRestOrigins } from '$/sources/AtprotoBsky/Rest/constants.ts'
 import type {
+	AtprotoIdentityResolveHandleResponse,
 	BskyAppViewGetAuthorFeedResponse,
 	BskyAppViewGetPostThreadResponse,
 	BskyAppViewGetPostsResponse,
@@ -10,6 +8,13 @@ import type {
 	BskyAppViewSearchActorsTypeaheadResponse,
 	BskyAppViewSearchPostsResponse,
 } from '$/sources/AtprotoBsky/Rest/types.ts'
+
+export const resolveHandle = async (handle: string) => (
+	bskyPublicXrpcGet<AtprotoIdentityResolveHandleResponse>(
+		'/com.atproto.identity.resolveHandle',
+		{ handle }
+	)
+)
 
 export const getProfile = async (actor: string) => (
 	bskyPublicXrpcGet<BskyAppViewProfile>(
@@ -22,15 +27,10 @@ export const getPosts = async (uris: string[]) => (
 	uris.length === 0 ?
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
 	:
-		getJson<BskyAppViewGetPostsResponse>(
-			`${atprotoAppViewBySlug.bsky_public.origin}${atprotoAppViewBySlug.bsky_public.xrpcPath}/app.bsky.feed.getPosts?${(
-			new URLSearchParams(uris.map((u) => [
-				'uris',
-				u,
-			])).toString()
-			)}`,
-			{ origins: atprotoBskyRestOrigins }
-	)
+		bskyPublicXrpcGet<BskyAppViewGetPostsResponse>(
+			'/app.bsky.feed.getPosts',
+			{ uris }
+		)
 )
 
 export const getPostThread = async (
@@ -98,13 +98,11 @@ export const searchPosts = async ({
 	limit?: number
 	q: string
 }) => (
-	getJson<BskyAppViewSearchPostsResponse>(
-		`${atprotoAppViewBySlug.bsky_public.origin}${atprotoAppViewBySlug.bsky_public.xrpcPath}/app.bsky.feed.searchPosts?${(
-			new URLSearchParams({
-				limit: String(limit),
-				q,
-			}).toString()
-		)}`,
-		{ origins: atprotoBskyRestOrigins }
+	bskyPublicXrpcGet<BskyAppViewSearchPostsResponse>(
+		'/app.bsky.feed.searchPosts',
+		{
+			limit,
+			q,
+		}
 	)
 )

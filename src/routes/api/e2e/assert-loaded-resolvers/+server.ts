@@ -7,13 +7,13 @@ import type { RequestHandler } from './$types'
 
 
 /** Dev-only: exercises `assertLoaded*` on rows built from enabled resolvers (probe ids + network). */
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ url }) => {
 	if (!dev) {
 		return new Response('Not Found', { status: 404 })
 	}
 
 	try {
-		return json(await runAssertLoadedResolverProbes())
+		return json(await runAssertLoadedResolverProbes(url.searchParams.get('includes') ?? undefined))
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error)
 		const stack = error instanceof Error ? error.stack : undefined

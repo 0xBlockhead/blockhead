@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cronosNetworkProfile = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			chainKind: true,
 			consensusKind: true,
@@ -71,74 +72,74 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cronosNetworkProfile}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={cronosNetworkProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cronosNetworkProfile}>
-			{#snippet Pending()}
-				{[String((pendingEntity.chainKind) ?? '')].filter(Boolean).join(' ') || title || 'cronos network profile'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.chainKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.chainKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cronosNetworkProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.chainKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cronosNetworkProfile}>
-			{#snippet Pending()}
-				{@const consensusKind0 = pendingEntity.consensusKind}
-				{#if consensusKind0 !== undefined && consensusKind0 !== null}
-					<span data-text="muted">
-						{String((consensusKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const consensusKind0 = resolvedEntity.consensusKind}
-				{#if consensusKind0 !== undefined && consensusKind0 !== null}
-					<span data-text="muted">
-						{String((consensusKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const consensusKind0 = pendingEntity.consensusKind}
+			{#if consensusKind0 !== undefined && consensusKind0 !== null}
+				<span data-text="muted">
+					{String((consensusKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cronosNetworkProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const consensusKind0 = resolvedEntity.consensusKind}
+					{#if consensusKind0 !== undefined && consensusKind0 !== null}
+						<span data-text="muted">
+							{String((consensusKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -164,8 +165,6 @@
 			<ResourceBoundary
 				resource={selection.$evmNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -193,8 +192,6 @@
 			<ResourceBoundary
 				resource={selection.$cosmosNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -225,19 +222,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chainKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chainKind = pendingEntity.chainKind}
-							{#if chainKind !== undefined && chainKind !== null}
-								{String((chainKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chainKind = resolvedEntity.chainKind}
@@ -252,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consensusKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consensusKind = pendingEntity.consensusKind}
-					{#if consensusKind !== undefined && consensusKind !== null}
-						<div>
-							<dt>consensus kind</dt>
-							<dd>
-								{String((consensusKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consensusKind = resolvedEntity.consensusKind}
@@ -289,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							bech32Prefix: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const bech32Prefix = pendingEntity.bech32Prefix}
-					{#if bech32Prefix !== undefined && bech32Prefix !== null}
-						<div>
-							<dt>bech32 prefix</dt>
-							<dd>
-								{String((bech32Prefix) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const bech32Prefix = resolvedEntity.bech32Prefix}
@@ -324,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							evmChainId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const evmChainId = pendingEntity.evmChainId}
-					{#if evmChainId !== undefined && evmChainId !== null}
-						<div>
-							<dt>EVM chain ID</dt>
-							<dd>
-								{String((evmChainId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const evmChainId = resolvedEntity.evmChainId}
@@ -359,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cosmosChainId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cosmosChainId = pendingEntity.cosmosChainId}
-					{#if cosmosChainId !== undefined && cosmosChainId !== null}
-						<div>
-							<dt>Cosmos chain ID</dt>
-							<dd>
-								{String((cosmosChainId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cosmosChainId = resolvedEntity.cosmosChainId}

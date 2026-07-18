@@ -12,6 +12,11 @@ export const EvmAddress = type(
 	'/^0x[0-9a-fA-F]{40}$/' as type.cast<`0x${string}`>
 )
 
+/** `0x` + 64 lowercase hex digits: an EVM log topic word / event signature hash. */
+export const EvmTopicHash = type(
+	'/^0x[0-9a-f]{64}$/' as type.cast<`0x${string}`>
+)
+
 export const lowercaseHexIdentityValue: EntityFieldValueNormalizer = (value) => (
 	String(value).toLowerCase()
 )

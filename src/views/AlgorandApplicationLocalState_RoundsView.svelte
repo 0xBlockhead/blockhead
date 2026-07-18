@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandApplicationLocalState_RoundView from '$/views/AlgorandApplicationLocalState_RoundView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplicationLocalState_Round}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandApplicationLocalState_Round}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandApplicationLocalStateRounds) => [...new Map(algorandApplicationLocalStateRounds.values.map((algorandApplicationLocalStateRound) => [algorandApplicationLocalStateRound[EntityMetaKey.SelectorKey], algorandApplicationLocalStateRound])).values()]}
+	getKey={(algorandApplicationLocalStateRound) => algorandApplicationLocalStateRound[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand application local state rounds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandApplicationLocalStateRounds)}
-			{@const uniqueAlgorandApplicationLocalStateRounds = [...new Map(algorandApplicationLocalStateRounds.values.map((algorandApplicationLocalStateRound) => [algorandApplicationLocalStateRound[EntityMetaKey.SelectorKey], algorandApplicationLocalStateRound])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplicationLocalState_Round}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandApplicationLocalStateRounds.totalCount}
-				getKey={(algorandApplicationLocalStateRound) => algorandApplicationLocalStateRound[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandApplicationLocalStateRounds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand application local state rounds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandApplicationLocalStateRound })}
-					{@const algorandApplicationLocalStateRoundFields = { ...algorandApplicationLocalStateRound[EntityMetaKey.Selector], ...algorandApplicationLocalStateRound }}
-					{@const selection = select(EntityType.AlgorandApplicationLocalState_Round, algorandApplicationLocalStateRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandApplicationLocalState_RoundView
-						selection={selection}
-						prefetched={algorandApplicationLocalStateRoundFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandApplicationLocalState_Round}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandApplicationLocalStateRound })}
+		{@const algorandApplicationLocalStateRoundFields = { ...algorandApplicationLocalStateRound[EntityMetaKey.Selector], ...algorandApplicationLocalStateRound }}
+		{@const selection = select(EntityType.AlgorandApplicationLocalState_Round, algorandApplicationLocalStateRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandApplicationLocalState_RoundView
+			selection={selection}
+			prefetched={algorandApplicationLocalStateRoundFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

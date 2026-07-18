@@ -4,6 +4,7 @@ import {
 	type BridgeToolRow,
 	CoinInstanceRepresentation,
 } from '$/constants/Bridge.ts'
+import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { ChainId } from '$/constants/ChainId.ts'
 import { CoinId, coins } from '$/constants/Coin.ts'
 import {
@@ -145,6 +146,8 @@ import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
 import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
 import { _GlobalAtprotoNetworkSelector } from '$/schema/_GlobalAtprotoNetwork.ts'
+import { _GlobalIpfsAccessSelector } from '$/schema/_GlobalIpfsAccess.ts'
+import { _GlobalSwarmAccessSelector } from '$/schema/_GlobalSwarmAccess.ts'
 import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 import { IpfsProtocolSelector } from '$/schema/IpfsProtocol.ts'
 import { SwarmProtocolSelector } from '$/schema/SwarmProtocol.ts'
@@ -170,16 +173,19 @@ import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
 import { _GlobalEnsNetworkSelector } from '$/schema/_GlobalEnsNetwork.ts'
 import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { ZcashShieldedPoolKind, ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
 
 const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Bittensor]: CoinId.TAO,
 	[NetworkNamespace.Bitcoin]: CoinId.BTC,
 	[NetworkNamespace.BitcoinCash]: CoinId.BCH,
+	[NetworkNamespace.Cardano]: CoinId.ADA,
 	[NetworkNamespace.Cosmos]: CoinId.ATOM,
 	[NetworkNamespace.Dogecoin]: CoinId.DOGE,
 	[NetworkNamespace.Elements]: CoinId.BTC,
 	[NetworkNamespace.Evm]: CoinId.ETH,
 	[NetworkNamespace.Filecoin]: CoinId.FIL,
+	[NetworkNamespace.Hedera]: CoinId.HBAR,
 	[NetworkNamespace.Hyperliquid]: CoinId.HYPE,
 	[NetworkNamespace.Lightning]: undefined,
 	[NetworkNamespace.Litecoin]: CoinId.LTC,
@@ -190,6 +196,7 @@ const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Quilibrium]: CoinId.QUIL,
 	[NetworkNamespace.Solana]: CoinId.SOL,
 	[NetworkNamespace.Tron]: CoinId.TRX,
+	[NetworkNamespace.Xrpl]: CoinId.XRP,
 	[NetworkNamespace.Zcash]: CoinId.ZEC,
 	[NetworkNamespace.ZeroG]: CoinId._0G,
 } as const satisfies Record<NetworkNamespace, CoinId | undefined>
@@ -419,122 +426,126 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
-				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const {
-						networkUpgrades,
-						networkExecutionUpgrades,
-						networkConsensusUpgrades,
-					} = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkUpgrade = networkUpgrades.find((candidate) => (
-						String(candidate.chainId) === $network.caip2.reference
-						&& candidate.upgradeId === upgradeId
-					))
-					if (networkUpgrade == null)
-						throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
+				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const {
+							networkUpgrades,
+							networkExecutionUpgrades,
+							networkConsensusUpgrades,
+						} = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkUpgrade = networkUpgrades.find((candidate) => (
+							String(candidate.chainId) === $network.caip2.reference
+							&& candidate.upgradeId === upgradeId
+						))
+						if (networkUpgrade == null)
+							throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
 
-					const linkedNetworkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
-						candidate.chainId === networkUpgrade.chainId
-						&& candidate.upgradeId === networkUpgrade.executionUpgradeId
-					))
-					if (linkedNetworkExecutionUpgrade == null)
-						throw new Error(`Constants_Internal: linked execution upgrade not found for ${$network.caip2.reference}:${upgradeId}`)
+						const linkedNetworkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
+							candidate.chainId === networkUpgrade.chainId
+							&& candidate.upgradeId === networkUpgrade.executionUpgradeId
+						))
+						if (linkedNetworkExecutionUpgrade == null)
+							throw new Error(`Constants_Internal: linked execution upgrade not found for ${$network.caip2.reference}:${upgradeId}`)
 
-					const linkedNetworkConsensusUpgrade = (
-						networkUpgrade.consensusUpgradeId == null ?
-							undefined
-						:
-							networkConsensusUpgrades.find((candidate) => (
-								candidate.chainId === networkUpgrade.chainId
-								&& candidate.upgradeId === networkUpgrade.consensusUpgradeId
-							))
-					)
-					const activationTimestampsMs = [
-						linkedNetworkExecutionUpgrade.activationTimestampMs,
-						linkedNetworkConsensusUpgrade?.activationTimestampMs,
-					].filter((timestamp): timestamp is number => timestamp != null)
-					const proposals = [
-						...ethereumProposalRefs(linkedNetworkExecutionUpgrade.proposalIds),
-						...ethereumProposalRefs(linkedNetworkConsensusUpgrade?.proposalIds),
-					]
+						const linkedNetworkConsensusUpgrade = (
+							networkUpgrade.consensusUpgradeId == null ?
+								undefined
+							:
+								networkConsensusUpgrades.find((candidate) => (
+									candidate.chainId === networkUpgrade.chainId
+									&& candidate.upgradeId === networkUpgrade.consensusUpgradeId
+								))
+						)
+						const activationTimestampsMs = [
+							linkedNetworkExecutionUpgrade.activationTimestampMs,
+							linkedNetworkConsensusUpgrade?.activationTimestampMs,
+						].filter((timestamp): timestamp is number => timestamp != null)
+						const proposals = [
+							...ethereumProposalRefs(linkedNetworkExecutionUpgrade.proposalIds),
+							...ethereumProposalRefs(linkedNetworkConsensusUpgrade?.proposalIds),
+						]
 
-					return {
-						...networkUpgrade,
-						...(linkedNetworkExecutionUpgrade.activationBlock != null && {
-							activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
-						}),
-						...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
-							activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
-						}),
-						...(activationTimestampsMs.length > 0 && {
-							activationTimestampMs: Math.max(...activationTimestampsMs),
-						}),
-						...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
-							activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
-						}),
-						...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
-							activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
-						}),
-						$$proposals: uniqueProposalRefs(proposals),
-					}
+						return {
+							...networkUpgrade,
+							...(linkedNetworkExecutionUpgrade.activationBlock != null && {
+								activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
+							}),
+							...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+								activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
+							}),
+							...(activationTimestampsMs.length > 0 && {
+								activationTimestampMs: Math.max(...activationTimestampsMs),
+							}),
+							...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
+								activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
+							}),
+							...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
+								activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
+							}),
+							$$proposals: uniqueProposalRefs(proposals),
+						}
+					},
 				},
-				[EthereumNetworkUpgradeSelector.EvmNetworkSlug]: async ({ $network, slug }) => {
-					const {
-						networkUpgradeByChainIdAndRouteSegment,
-						networkExecutionUpgrades,
-						networkConsensusUpgrades,
-					} = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkUpgrade = networkUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
-					if (networkUpgrade == null)
-						throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${slug} not found`)
+				[EthereumNetworkUpgradeSelector.EvmNetworkSlug]: {
+					resolve: async ({ $network, slug }) => {
+						const {
+							networkUpgradeByChainIdAndRouteSegment,
+							networkExecutionUpgrades,
+							networkConsensusUpgrades,
+						} = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkUpgrade = networkUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
+						if (networkUpgrade == null)
+							throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${slug} not found`)
 
-					const linkedNetworkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
-						candidate.chainId === networkUpgrade.chainId
-						&& candidate.upgradeId === networkUpgrade.executionUpgradeId
-					))
-					if (linkedNetworkExecutionUpgrade == null)
-						throw new Error(`Constants_Internal: linked execution upgrade not found for ${$network.caip2.reference}:${slug}`)
+						const linkedNetworkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
+							candidate.chainId === networkUpgrade.chainId
+							&& candidate.upgradeId === networkUpgrade.executionUpgradeId
+						))
+						if (linkedNetworkExecutionUpgrade == null)
+							throw new Error(`Constants_Internal: linked execution upgrade not found for ${$network.caip2.reference}:${slug}`)
 
-					const linkedNetworkConsensusUpgrade = (
-						networkUpgrade.consensusUpgradeId == null ?
-							undefined
-						:
-							networkConsensusUpgrades.find((candidate) => (
-								candidate.chainId === networkUpgrade.chainId
-								&& candidate.upgradeId === networkUpgrade.consensusUpgradeId
-							))
-					)
-					const activationTimestampsMs = [
-						linkedNetworkExecutionUpgrade.activationTimestampMs,
-						linkedNetworkConsensusUpgrade?.activationTimestampMs,
-					].filter((timestamp): timestamp is number => timestamp != null)
-					const proposals = [
-						...ethereumProposalRefs(linkedNetworkExecutionUpgrade.proposalIds),
-						...ethereumProposalRefs(linkedNetworkConsensusUpgrade?.proposalIds),
-					]
+						const linkedNetworkConsensusUpgrade = (
+							networkUpgrade.consensusUpgradeId == null ?
+								undefined
+							:
+								networkConsensusUpgrades.find((candidate) => (
+									candidate.chainId === networkUpgrade.chainId
+									&& candidate.upgradeId === networkUpgrade.consensusUpgradeId
+								))
+						)
+						const activationTimestampsMs = [
+							linkedNetworkExecutionUpgrade.activationTimestampMs,
+							linkedNetworkConsensusUpgrade?.activationTimestampMs,
+						].filter((timestamp): timestamp is number => timestamp != null)
+						const proposals = [
+							...ethereumProposalRefs(linkedNetworkExecutionUpgrade.proposalIds),
+							...ethereumProposalRefs(linkedNetworkConsensusUpgrade?.proposalIds),
+						]
 
-					return {
-						...networkUpgrade,
-						...(linkedNetworkExecutionUpgrade.activationBlock != null && {
-							activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
-						}),
-						...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
-							activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
-						}),
-						...(activationTimestampsMs.length > 0 && {
-							activationTimestampMs: Math.max(...activationTimestampsMs),
-						}),
-						...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
-							activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
-						}),
-						...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
-							activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
-						}),
-						$$proposals: uniqueProposalRefs(proposals),
-					}
+						return {
+							...networkUpgrade,
+							...(linkedNetworkExecutionUpgrade.activationBlock != null && {
+								activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
+							}),
+							...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+								activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
+							}),
+							...(activationTimestampsMs.length > 0 && {
+								activationTimestampMs: Math.max(...activationTimestampsMs),
+							}),
+							...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
+								activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
+							}),
+							...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
+								activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
+							}),
+							$$proposals: uniqueProposalRefs(proposals),
+						}
+					},
 				},
 			},
 		})({
@@ -570,32 +581,36 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
-				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const { networkExecutionUpgrades } = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
-						String(candidate.chainId) === $network.caip2.reference
-						&& candidate.upgradeId === upgradeId
-					))
-					if (networkExecutionUpgrade == null)
-						throw new Error(`Constants_Internal: ExecutionUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
+				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const { networkExecutionUpgrades } = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkExecutionUpgrade = networkExecutionUpgrades.find((candidate) => (
+							String(candidate.chainId) === $network.caip2.reference
+							&& candidate.upgradeId === upgradeId
+						))
+						if (networkExecutionUpgrade == null)
+							throw new Error(`Constants_Internal: ExecutionUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
 
-					return {
-						...networkExecutionUpgrade,
-						$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
-					}
+						return {
+							...networkExecutionUpgrade,
+							$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+						}
+					},
 				},
-				[EthereumExecutionUpgradeSelector.EvmNetworkSlug]: async ({ $network, slug }) => {
-					const { networkExecutionUpgradeByChainIdAndRouteSegment } = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
+				[EthereumExecutionUpgradeSelector.EvmNetworkSlug]: {
+					resolve: async ({ $network, slug }) => {
+						const { networkExecutionUpgradeByChainIdAndRouteSegment } = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
 
-					return {
-						...networkExecutionUpgrade,
-						$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
-					}
+						return {
+							...networkExecutionUpgrade,
+							$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+						}
+					},
 				},
 			},
 		})({
@@ -619,42 +634,46 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
-				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const { networkConsensusUpgrades } = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkConsensusUpgrade = networkConsensusUpgrades.find((candidate) => (
-						String(candidate.chainId) === $network.caip2.reference
-						&& candidate.upgradeId === upgradeId
-					))
-					if (networkConsensusUpgrade == null)
-						throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
+				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const { networkConsensusUpgrades } = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkConsensusUpgrade = networkConsensusUpgrades.find((candidate) => (
+							String(candidate.chainId) === $network.caip2.reference
+							&& candidate.upgradeId === upgradeId
+						))
+						if (networkConsensusUpgrade == null)
+							throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
 
-					return {
-						...networkConsensusUpgrade,
-						$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
-					}
+						return {
+							...networkConsensusUpgrade,
+							$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+						}
+					},
 				},
-				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async ({ $network, slug }) => {
-					const { networkConsensusUpgrades } = await import(
-						'$/constants/EthereumNetworkUpgrades.ts'
-					)
-					const networkConsensusUpgrade = networkConsensusUpgrades.find((candidate) => (
-						String(candidate.chainId) === $network.caip2.reference
-						&& [
-							candidate.upgradeId,
-							candidate.slug,
-							candidate.upgradeId.toLowerCase(),
-							candidate.slug.toLowerCase(),
-						].includes(slug)
-					))
-					if (networkConsensusUpgrade == null)
-						throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${slug} not found`)
+				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: {
+					resolve: async ({ $network, slug }) => {
+						const { networkConsensusUpgrades } = await import(
+							'$/constants/EthereumNetworkUpgrades.ts'
+						)
+						const networkConsensusUpgrade = networkConsensusUpgrades.find((candidate) => (
+							String(candidate.chainId) === $network.caip2.reference
+							&& [
+								candidate.upgradeId,
+								candidate.slug,
+								candidate.upgradeId.toLowerCase(),
+								candidate.slug.toLowerCase(),
+							].includes(slug)
+						))
+						if (networkConsensusUpgrade == null)
+							throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${slug} not found`)
 
-					return {
-						...networkConsensusUpgrade,
-						$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
-					}
+						return {
+							...networkConsensusUpgrade,
+							$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+						}
+					},
 				},
 			},
 		})({
@@ -676,15 +695,17 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }) => {
-					const currency = currencyByIso4217[iso4217]
-					if (currency == null)
-						throw new Error(`Constants_Internal: Currency not found for ${iso4217}`)
-					return {
-						name: currency.name,
-						symbol: currency.symbol,
-						minorUnitExponent: currency.minorUnitExponent,
-					}
+				[CurrencySelector.Iso4217]: {
+					resolve: async ({ iso4217 }) => {
+						const currency = currencyByIso4217[iso4217]
+						if (currency == null)
+							throw new Error(`Constants_Internal: Currency not found for ${iso4217}`)
+						return {
+							name: currency.name,
+							symbol: currency.symbol,
+							minorUnitExponent: currency.minorUnitExponent,
+						}
+					},
 				}
 			},
 		})({
@@ -696,15 +717,17 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency_Timestamp,
 			resolve: {
-				[Currency_TimestampSelector.CurrencyTimestampMs]: async ({ $currency, timestampMs }) => {
-					const currency = currencyByIso4217[$currency.iso4217]
-					if (currency == null)
-						throw new Error(`Constants_Internal: Currency not found for ${$currency.iso4217}`)
-					if (timestampMs !== currencyCatalogSnapshotTimestampMs)
-						throw new Error(`Constants_Internal: Currency snapshot not found for ${$currency.iso4217}:${String(timestampMs)}`)
-					return {
-						marketCap: BigInt(currency.marketCapUsd),
-					}
+				[Currency_TimestampSelector.CurrencyTimestampMs]: {
+					resolve: async ({ $currency, timestampMs }) => {
+						const currency = currencyByIso4217[$currency.iso4217]
+						if (currency == null)
+							throw new Error(`Constants_Internal: Currency not found for ${$currency.iso4217}`)
+						if (timestampMs !== currencyCatalogSnapshotTimestampMs)
+							throw new Error(`Constants_Internal: Currency snapshot not found for ${$currency.iso4217}:${String(timestampMs)}`)
+						return {
+							marketCap: BigInt(currency.marketCapUsd),
+						}
+					},
 				}
 			},
 		})({
@@ -714,22 +737,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async ({ $network, address: addressSelector }) => {
-					const address = hexLowerOfByteSize(addressSelector, 20)
-					if (address == null)
-						throw new Error('Constants_Internal: EvmContract address not normalized')
-					const chainPrecompiles = (
-						precompilesByChainId[Number($network.caip2.reference)]
-					?? standardPrecompiles
-					)
-					const precompileName = chainPrecompiles.find((precompile) => (
-						precompile.address.toLowerCase() === address.toLowerCase()
-					))?.name
-					if (precompileName == null)
-						throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(Number($network.caip2.reference))}`)
-					return {
-						precompileName,
-					}
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async ({ $network, address: addressSelector }) => {
+						const address = hexLowerOfByteSize(addressSelector, 20)
+						if (address == null)
+							throw new Error('Constants_Internal: EvmContract address not normalized')
+						const chainPrecompiles = (
+							precompilesByChainId[Number($network.caip2.reference)]
+						?? standardPrecompiles
+						)
+						const precompileName = chainPrecompiles.find((precompile) => (
+							precompile.address.toLowerCase() === address.toLowerCase()
+						))?.name
+						if (precompileName == null)
+							throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(Number($network.caip2.reference))}`)
+						return {
+							precompileName,
+						}
+					},
 				}
 			},
 		})({
@@ -739,26 +764,56 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }) => {
-					const { coinById } = await import('$/constants/Coin.ts')
-					const coin = coinById[coinId]
-					return {
-						name: coin.symbol,
-						symbol: coin.symbol,
-					}
+				[CoinSelector.CoinId]: {
+					resolve: async ({ coinId }) => {
+						const { coinById } = await import('$/constants/Coin.ts')
+						const coin = coinById[coinId]
+						return {
+							symbol: coin.symbol,
+						}
+					},
+				}
+			},
+		})({
+				symbol: (coin) => coin.symbol,
+			}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.Coin,
+			resolve: {
+				[CoinSelector.CoinId]: {
+					appliesTo: [
+						{
+							coinId: CoinId.BTC,
+						},
+						{
+							coinId: CoinId.ETH,
+						},
+					],
+					resolve: async ({ coinId }) => {
+						const { coinById } = await import('$/constants/Coin.ts')
+						const coin = coinById[coinId]
+						if (!('name' in coin))
+							throw new Error(`Constants_Internal: Coin ${coinId} has no catalog name`)
+
+						return {
+							name: coin.name,
+						}
+					},
 				}
 			},
 		})({
 				name: (coin) => coin.name,
-				symbol: (coin) => coin.symbol,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
-				[EvmAccountSelector.Address]: async ({ address }) => ({
-					address,
-				}),
+				[EvmAccountSelector.Address]: {
+					resolve: async ({ address }) => ({
+						address,
+					}),
+				},
 			},
 		})({
 				address: (account) => account.address,
@@ -767,53 +822,57 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: ({ $network, type }) => {
-					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
-					if (
-					type !== CoinInstanceType.NativeCurrency
-					|| representation == null
-					) {
-						throw new Error('Constants_Internal: CoinInstance not found')
-					}
-					return {
-						coinId: CoinId.ETH,
-						name: 'Ether',
-						symbol: 'ETH',
-						decimals: 18,
-						representation,
-						caip19: `eip155:${$network.caip2.reference}/slip44:60`,
-					}
-				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: ({ $contract, $network, type }) => {
-					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
-					if (
-						type === CoinInstanceType.Erc20Token
-						&& $network.caip2.namespace === 'eip155'
-						&& $network.caip2.reference === '1'
-						&& $contract.address.toLowerCase() === '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-					)
-						return {
-							coinId: CoinId.USDC,
-							name: 'USD Coin',
-							symbol: 'USDC',
-							decimals: 6,
-							caip19: `eip155:1/erc20:${$contract.address.toLowerCase()}`,
+				[EvmCoinInstanceSelector.NetworkType]: {
+					resolve: ({ $network, type }) => {
+						const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
+						if (
+						type !== CoinInstanceType.NativeCurrency
+						|| representation == null
+						) {
+							throw new Error('Constants_Internal: CoinInstance not found')
 						}
+						return {
+							coinId: CoinId.ETH,
+							name: 'Ether',
+							symbol: 'ETH',
+							decimals: 18,
+							representation,
+							caip19: `eip155:${$network.caip2.reference}/slip44:60`,
+						}
+					},
+				},
+				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+					resolve: ({ $contract, $network, type }) => {
+						const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
+						if (
+							type === CoinInstanceType.Erc20Token
+							&& $network.caip2.namespace === 'eip155'
+							&& $network.caip2.reference === '1'
+							&& $contract.address.toLowerCase() === '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+						)
+							return {
+								coinId: CoinId.USDC,
+								name: 'USD Coin',
+								symbol: 'USDC',
+								decimals: 6,
+								caip19: `eip155:1/erc20:${$contract.address.toLowerCase()}`,
+							}
 
-					if (
-					type !== CoinInstanceType.NativeCurrency
-					|| representation == null
-					) {
-						throw new Error('Constants_Internal: CoinInstance not found')
-					}
-					return {
-						coinId: CoinId.ETH,
-						name: 'Ether',
-						symbol: 'ETH',
-						decimals: 18,
-						representation,
-						caip19: `eip155:${$network.caip2.reference}/slip44:60`,
-					}
+						if (
+						type !== CoinInstanceType.NativeCurrency
+						|| representation == null
+						) {
+							throw new Error('Constants_Internal: CoinInstance not found')
+						}
+						return {
+							coinId: CoinId.ETH,
+							name: 'Ether',
+							symbol: 'ETH',
+							decimals: 18,
+							representation,
+							caip19: `eip155:${$network.caip2.reference}/slip44:60`,
+						}
+					},
 				},
 			},
 		})({
@@ -837,14 +896,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
-				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
-					const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
-					if (coinBridgeCapabilityFields == null)
-						throw new Error(`Constants_Internal: unknown LI.FI tool key ${toolKey}`)
-					return {
-						toolKey: coinBridgeCapabilityFields.key,
-						...coinBridgeCapabilityFields,
-					}
+				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: {
+					resolve: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
+						const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
+						if (coinBridgeCapabilityFields == null)
+							throw new Error(`Constants_Internal: unknown LI.FI tool key ${toolKey}`)
+						return {
+							toolKey: coinBridgeCapabilityFields.key,
+							...coinBridgeCapabilityFields,
+						}
+					},
 				}
 			},
 		})({
@@ -858,9 +919,11 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MevRelay,
 			resolve: {
-				[MevRelaySelector.EvmNetworkHost]: async ({ host }) => ({
-					url: `https://${host}`,
-				})
+				[MevRelaySelector.EvmNetworkHost]: {
+					resolve: async ({ host }) => ({
+						url: `https://${host}`,
+					}),
+				}
 			},
 		})({
 				url: (relay) => relay.url,
@@ -869,7 +932,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
-				[EvmProtocolSelector.Scope]: async ({ scope }) => evmProtocolByScope[scope],
+				[EvmProtocolSelector.Scope]: {
+					resolve: async ({ scope }) => evmProtocolByScope[scope],
+				},
 			},
 		})({
 				protocolName: (protocol) => protocol.protocolName,
@@ -880,7 +945,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketVenue,
 			resolve: {
-				[MarketVenueSelector.MarketVenueId]: async ({ marketVenueId }) => marketVenueById[marketVenueId],
+				[MarketVenueSelector.MarketVenueId]: {
+					resolve: async ({ marketVenueId }) => marketVenueById[marketVenueId],
+				},
 			},
 		})({
 				marketVenueId: (marketVenue) => marketVenue.id,
@@ -928,7 +995,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkStack,
 			resolve: {
-				[NetworkStackSelector.NetworkStackId]: async ({ networkStackId }) => networkStackByNetworkStackId[networkStackId],
+				[NetworkStackSelector.NetworkStackId]: {
+					resolve: async ({ networkStackId }) => networkStackByNetworkStackId[networkStackId],
+				},
 			},
 		})({
 				label: (networkStack) => networkStack.label,
@@ -937,7 +1006,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[SpecificationRealmSelector.Realm]: async ({ realm }) => specificationRealmById[realm],
+				[SpecificationRealmSelector.Realm]: {
+					resolve: async ({ realm }) => specificationRealmById[realm],
+				},
 			},
 		})({
 				label: (realm) => realm.label,
@@ -956,7 +1027,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: async ({ realm, category }) => proposalKindAllowedInRealmByKey[`${realm}:${category}`],
+				[SpecificationProposalKindSelector.RealmCategory]: {
+					resolve: async ({ realm, category }) => proposalKindAllowedInRealmByKey[`${realm}:${category}`],
+				},
 			},
 		})({
 				label: (proposalKind) => proposalCategoryById[proposalKind.category].label,
@@ -972,77 +1045,142 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const beaconRestBase = beaconRestBaseByExecutionChainId[Number(caip2.reference)]
-					return {
-						slug: network.slug,
-						name: network.name,
-						...('caip2' in network && {
-							caip2: network.caip2,
-						}),
-						namespace: network.namespace,
-						ledgerModels: network.ledgerModels,
-						executionModels: network.executionModels,
-						networkStackId: networkNamespaceByNamespace[network.namespace].networkStackId,
-						environment: network.environment,
-						...(network.slug === networkBySlug['0g'].slug && {
-							zeroGChainId,
-						}),
-						evmConsensusProtocol: beaconRestBase?.consensusProtocol,
-						consensusEndpoints: (
-							beaconRestBase == null ?
-								[]
-							:
-								[
-									{
-										restBaseUrl: beaconRestBase.restBaseUrl,
-										consensusProtocol: beaconRestBase.consensusProtocol,
-									},
-								]
-						),
-					}
+				[NetworkSelector.Caip2]: {
+					appliesTo: [{
+						caip2: bitcoinNetworkBySlug.zcash.caip2,
+					}],
+					resolve: async (network) => (
+						Object.values(ZcashShieldedPoolKind).map((pool) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								pool,
+							},
+						}))
+					),
 				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
-					const network = networkBySlug[slug]
-					if (network == null)
-						throw new Error('Constants_Internal: Network not found')
-					const beaconRestBase = (
-						'caip2' in network ?
-							beaconRestBaseByExecutionChainId[Number(network.caip2.reference)]
-						:
-							undefined
-					)
+				[NetworkSelector.Slug]: {
+					appliesTo: [{
+						slug: networkBySlug.zcash.slug,
+					}],
+					resolve: async (network) => (
+						Object.values(ZcashShieldedPoolKind).map((pool) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								pool,
+							},
+						}))
+					),
+				},
+			},
+		})({
+				Zcash: {
+					$$shieldedPools: (pools) => pools,
+				},
+			}),
 
-					return {
-						slug: network.slug,
-						name: network.name,
-						...('caip2' in network && {
-							caip2: network.caip2,
-						}),
-						namespace: network.namespace,
-						ledgerModels: network.ledgerModels,
-						executionModels: network.executionModels,
-						networkStackId: networkNamespaceByNamespace[network.namespace].networkStackId,
-						environment: network.environment,
-						...(network.slug === networkBySlug['0g'].slug && {
-							zeroGChainId,
-						}),
-						evmConsensusProtocol: beaconRestBase?.consensusProtocol,
-						consensusEndpoints: (
-							beaconRestBase == null ?
-								[]
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.ZcashShieldedPool,
+			resolve: {
+				[ZcashShieldedPoolSelector.NetworkPool]: {
+					resolve: async ({ pool }) => ({
+						activationNetworkUpgrade: (
+							pool === ZcashShieldedPoolKind.Sprout ?
+								'Sprout'
+							: pool === ZcashShieldedPoolKind.Sapling ?
+								'Sapling'
 							:
-								[
-									{
-										restBaseUrl: beaconRestBase.restBaseUrl,
-										consensusProtocol: beaconRestBase.consensusProtocol,
-									},
-								]
+								'NU5'
 						),
-					}
+						noteProtocol: pool,
+					}),
+				},
+			},
+		})({
+				activationNetworkUpgrade: (pool) => pool.activationNetworkUpgrade,
+				noteProtocol: (pool) => pool.noteProtocol,
+			}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: {
+					appliesTo: Object.values(networkByCaip2).map((network) => ({
+						caip2: network.caip2,
+					})),
+					resolve: async ({ caip2 }) => {
+						const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+						const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const beaconRestBase = beaconRestBaseByExecutionChainId[Number(caip2.reference)]
+						return {
+							slug: network.slug,
+							name: network.name,
+							...('caip2' in network && {
+								caip2: network.caip2,
+							}),
+							namespace: network.namespace,
+							ledgerModels: network.ledgerModels,
+							executionModels: network.executionModels,
+							networkStackId: networkNamespaceByNamespace[network.namespace]?.networkStackId,
+							environment: network.environment,
+							...(network.slug === networkBySlug['0g'].slug && {
+								zeroGChainId,
+							}),
+							evmConsensusProtocol: beaconRestBase?.consensusProtocol,
+							consensusEndpoints: (
+								beaconRestBase == null ?
+									[]
+								:
+									[
+										{
+											restBaseUrl: beaconRestBase.restBaseUrl,
+											consensusProtocol: beaconRestBase.consensusProtocol,
+										},
+									]
+							),
+						}
+					},
+				},
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+						const network = networkBySlug[slug]
+						if (network == null)
+							throw new Error('Constants_Internal: Network not found')
+						const beaconRestBase = (
+							'caip2' in network ?
+								beaconRestBaseByExecutionChainId[Number(network.caip2.reference)]
+							:
+								undefined
+						)
+
+						return {
+							slug: network.slug,
+							name: network.name,
+							...('caip2' in network && {
+								caip2: network.caip2,
+							}),
+							namespace: network.namespace,
+							ledgerModels: network.ledgerModels,
+							executionModels: network.executionModels,
+							networkStackId: networkNamespaceByNamespace[network.namespace]?.networkStackId,
+							environment: network.environment,
+							...(network.slug === networkBySlug['0g'].slug && {
+								zeroGChainId,
+							}),
+							evmConsensusProtocol: beaconRestBase?.consensusProtocol,
+							consensusEndpoints: (
+								beaconRestBase == null ?
+									[]
+								:
+									[
+										{
+											restBaseUrl: beaconRestBase.restBaseUrl,
+											consensusProtocol: beaconRestBase.consensusProtocol,
+										},
+									]
+							),
+						}
+					},
 				},
 			},
 		})({
@@ -1091,22 +1229,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
-				[NearNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) throw new Error('Constants_Internal: NearNetwork not found')
-					return {
-						slug: network.slug,
-						name: network.name,
-						namespace: network.namespace,
-						environment: network.environment,
-						rpcEndpoints: [
-							{
-								url: 'https://rpc.mainnet.near.org',
-								transportType: TransportType.Http,
-								providerName: 'NEAR',
-							},
-						],
-					}
+				[NearNetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						if (network == null) throw new Error('Constants_Internal: NearNetwork not found')
+						return {
+							slug: network.slug,
+							name: network.name,
+							namespace: network.namespace,
+							environment: network.environment,
+							rpcEndpoints: [
+								{
+									url: 'https://rpc.mainnet.near.org',
+									transportType: TransportType.Http,
+									providerName: 'NEAR',
+								},
+							],
+						}
+					},
 				}
 			},
 		})({
@@ -1120,19 +1260,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
-					return {
-						slug: network.slug,
-						name: network.name,
-						namespace: network.namespace,
-						environment: network.environment,
-						chainId: zeroGChainId,
-						$executionNetwork: {
-							[EntityMetaKey.Selector]: zeroGEvmNetworkId,
-						},
-					}
+				[ZeroGNetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						if (network == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
+						return {
+							slug: network.slug,
+							name: network.name,
+							namespace: network.namespace,
+							environment: network.environment,
+							chainId: zeroGChainId,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.ZeroGNetwork, [], '$executionNetwork')]: {
+									[EntityMetaKey.Selector]: zeroGEvmNetworkId,
+								},
+							},
+						}
+					},
 				}
 			},
 		})({
@@ -1147,33 +1291,31 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async ({ $network }) => {
-					const network = (
-						'slug' in $network ?
-							networkBySlug[$network.slug]
-						:
-							networkByCaip2[`${$network.caip2.namespace}:${$network.caip2.reference}`]
-					)
-					if (network?.slug !== networkBySlug.liquid.slug)
-						throw new Error('Constants_Internal: unsupported Elements network')
+				[ElementsNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						const network = (
+							'slug' in $network ?
+								networkBySlug[$network.slug]
+							:
+								networkByCaip2[`${$network.caip2.namespace}:${$network.caip2.reference}`]
+						)
+						if (network?.slug !== networkBySlug.liquid.slug)
+							throw new Error('Constants_Internal: unsupported Elements network')
 
-					return {
-						$network: {
-							[EntityMetaKey.Selector]: {
-								slug: network.slug,
-							},
-						},
-						$settlementNetwork: {
-							[EntityMetaKey.Selector]: {
-								$network: {
-									slug: 'bitcoin',
+						return {
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.ElementsNetwork, [], '$network')]: {
+									[EntityMetaKey.Selector]: { slug: network.slug },
+								},
+								[entityFieldAddressKey(EntityType.ElementsNetwork, [], '$settlementNetwork')]: {
+									[EntityMetaKey.Selector]: { slug: 'bitcoin' },
 								},
 							},
-						},
-						federationName: 'Liquid Federation',
-						blockTimeSeconds: 60,
-						confidentialTransactionsDefault: true,
-					}
+							federationName: 'Liquid Federation',
+							blockTimeSeconds: 60,
+							confidentialTransactionsDefault: true,
+						}
+					},
 				}
 			},
 		})({
@@ -1186,14 +1328,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
-				[AssetInstanceSelector.NetworkKindAssetKey]: async ({ assetKey, kind }) => {
-					if (kind !== AssetInstanceKind.Native)
-						throw new Error('Constants_Internal: AssetInstance name and symbol are native-only')
+				[AssetInstanceSelector.NetworkKindAssetKey]: {
+					resolve: async ({ assetKey, kind }) => {
+						if (kind !== AssetInstanceKind.Native)
+							throw new Error('Constants_Internal: AssetInstance name and symbol are native-only')
 
-					return {
-						name: assetKey,
-						symbol: assetKey,
-					}
+						return {
+							name: assetKey,
+							symbol: assetKey,
+						}
+					},
 				}
 			},
 		})({
@@ -1204,9 +1348,11 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[BittensorSubnetSelector.NetworkNetuid]: async ({ netuid }) => ({
-					name: netuid === 0 ? 'Root' : `Subnet ${netuid}`,
-				})
+				[BittensorSubnetSelector.NetworkNetuid]: {
+					resolve: async ({ netuid }) => ({
+						name: netuid === 0 ? 'Root' : `Subnet ${netuid}`,
+					}),
+				}
 			},
 		})({
 				name: (subnet) => subnet.name,
@@ -1215,9 +1361,11 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkUpgrade,
 			resolve: {
-				[NetworkUpgradeSelector.NetworkUpgradeId]: async ({ upgradeId }) => ({
-					name: upgradeId,
-				})
+				[NetworkUpgradeSelector.NetworkUpgradeId]: {
+					resolve: async ({ upgradeId }) => ({
+						name: upgradeId,
+					}),
+				}
 			},
 		})({
 				name: (upgrade) => upgrade.name,
@@ -1227,17 +1375,19 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
-				[ActivityPubNetworkSelector.Scope]: async () => ({
-					$$activityPubActors: activityPubNetworkSeedActors.map((actor) => ({
-						[EntityMetaKey.Selector]: {
-							instanceOrigin: actor.instanceOrigin,
-							acct: actor.acct,
-						},
-					})),
-					docsUrl: 'https://w3c.github.io/activitypub/',
-					homeUrl: 'https://www.w3.org/TR/activitypub/',
-					protocolName: 'ActivityPub (federated)',
-				})
+				[ActivityPubNetworkSelector.Scope]: {
+					resolve: async () => ({
+						$$activityPubActors: activityPubNetworkSeedActors.map((actor) => ({
+							[EntityMetaKey.Selector]: {
+								instanceOrigin: actor.instanceOrigin,
+								acct: actor.acct,
+							},
+						})),
+						docsUrl: 'https://w3c.github.io/activitypub/',
+						homeUrl: 'https://www.w3.org/TR/activitypub/',
+						protocolName: 'ActivityPub (federated)',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1249,11 +1399,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
-				[AtprotoNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://atproto.com/specs/atp',
-					homeUrl: 'https://atproto.com',
-					protocolName: 'AT Protocol (Bluesky / appviews)',
-				})
+				[AtprotoNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://atproto.com/specs/atp',
+						homeUrl: 'https://atproto.com',
+						protocolName: 'AT Protocol (Bluesky / appviews)',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1264,22 +1416,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[_GlobalAtprotoNetworkSelector.Scope]: async () => ({
-					$$observedActors: atprotoNetworkSeedActors.map((actor) => ({
-						[EntityMetaKey.Selector]: {
-							did: actor.did,
-						},
-					})),
-					$$observedPosts: atprotoNetworkSeedPosts.map((post) => ({
-						[EntityMetaKey.Selector]: {
-							uri: post.uri,
-						},
-					})),
-					docsUrl: 'https://atproto.com/specs/atp',
-					homeUrl: 'https://atproto.com',
-					protocolName: 'AT Protocol',
-					relationshipModel: 'DIDs identify repos; PDS hosts serve signed records; appviews index public profiles, feeds, and relationships.',
-				})
+				[_GlobalAtprotoNetworkSelector.Scope]: {
+					resolve: async () => ({
+						$$observedActors: atprotoNetworkSeedActors.map((actor) => ({
+							[EntityMetaKey.Selector]: {
+								did: actor.did,
+							},
+						})),
+						$$observedPosts: atprotoNetworkSeedPosts.map((post) => ({
+							[EntityMetaKey.Selector]: {
+								uri: post.uri,
+							},
+						})),
+						docsUrl: 'https://atproto.com/specs/atp',
+						homeUrl: 'https://atproto.com',
+						protocolName: 'AT Protocol',
+						relationshipModel: 'DIDs identify repos; PDS hosts serve signed records; appviews index public profiles, feeds, and relationships.',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1294,36 +1448,40 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._GlobalEnsNetwork,
 			resolve: {
-				[_GlobalEnsNetworkSelector.Scope]: async ({ scope }) => {
-					const protocol = ensProtocolByScope[scope]
-					if (protocol == null)
-						throw new Error(`Constants_Internal: _GlobalEnsNetwork scope ${scope} not found`)
+				[_GlobalEnsNetworkSelector.Scope]: {
+					resolve: async ({ scope }) => {
+						const protocol = ensProtocolByScope[scope]
+						if (protocol == null)
+							throw new Error(`Constants_Internal: _GlobalEnsNetwork scope ${scope} not found`)
 
-					const mainnetCaip2 = {
-						namespace: 'eip155',
-						reference: String(protocol.mainnetChainId),
-					} as const
+						const mainnetCaip2 = {
+							namespace: 'eip155',
+							reference: String(protocol.mainnetChainId),
+						} as const
 
-					const evmContractRef = (address: string) => {
-						const normalizedAddress = hexLowerOfByteSize(address, 20)
-						if (normalizedAddress == null)
-							throw new Error(`Constants_Internal: invalid ENS deployment address ${address}`)
+						const evmContractRef = (address: string) => {
+							const normalizedAddress = hexLowerOfByteSize(address, 20)
+							if (normalizedAddress == null)
+								throw new Error(`Constants_Internal: invalid ENS deployment address ${address}`)
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: { caip2: mainnetCaip2 },
+									address: normalizedAddress,
+								},
+							}
+						}
 
 						return {
-							[EntityMetaKey.Selector]: {
-								$network: { caip2: mainnetCaip2 },
-								address: normalizedAddress,
+							scope: protocol.scope,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType._GlobalEnsNetwork, [], '$registryContract')]: evmContractRef(protocol.registryContractAddress),
+								[entityFieldAddressKey(EntityType._GlobalEnsNetwork, [], '$ethRegistrarController')]: evmContractRef(protocol.ethRegistrarControllerAddress),
+								[entityFieldAddressKey(EntityType._GlobalEnsNetwork, [], '$reverseRegistrar')]: evmContractRef(protocol.reverseRegistrarAddress),
+								[entityFieldAddressKey(EntityType._GlobalEnsNetwork, [], '$nameWrapper')]: evmContractRef(protocol.nameWrapperAddress),
 							},
 						}
-					}
-
-					return {
-						scope: protocol.scope,
-						$registryContract: evmContractRef(protocol.registryContractAddress),
-						$ethRegistrarController: evmContractRef(protocol.ethRegistrarControllerAddress),
-						$reverseRegistrar: evmContractRef(protocol.reverseRegistrarAddress),
-						$nameWrapper: evmContractRef(protocol.nameWrapperAddress),
-					}
+					},
 				},
 			},
 		})({
@@ -1337,18 +1495,35 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.IpfsProtocol,
 			resolve: {
-				[IpfsProtocolSelector.Scope]: async ({ scope }) => ipfsProtocolByScope[scope]
+				[IpfsProtocolSelector.Scope]: {
+					resolve: async ({ scope }) => ipfsProtocolByScope[scope],
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 			}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType._GlobalIpfsAccess,
+			resolve: {
+				[_GlobalIpfsAccessSelector.Scope]: {
+					resolve: async ({ scope }) => ({
+						scope,
+					}),
+				},
+			},
+		})({
+			scope: (entity) => entity.scope,
+		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SwarmProtocol,
 			resolve: {
-				[SwarmProtocolSelector.Scope]: async ({ scope }) => swarmProtocolByScope[scope]
+				[SwarmProtocolSelector.Scope]: {
+					resolve: async ({ scope }) => swarmProtocolByScope[scope],
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1357,21 +1532,38 @@ export default {
 			}),
 
 		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType._GlobalSwarmAccess,
+			resolve: {
+				[_GlobalSwarmAccessSelector.Scope]: {
+					resolve: async ({ scope }) => ({
+						scope,
+					}),
+				},
+			},
+		})({
+			scope: (entity) => entity.scope,
+		}),
+
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://docs.farcaster.xyz',
-					homeUrl: 'https://www.farcaster.xyz',
-					protocolName: 'Farcaster',
-					registryName: 'Farcaster hub and indexer source window',
-					relationshipModel: 'FID-keyed users, channels, and immutable casts resolved through configured Farcaster REST, Neynar, and Snapchain sources.',
-					$$feeds: Object.values(farcasterFeedKindByVariant).map((feed) => ({
-						[EntityMetaKey.Selector]: {
-							variant: feed.variant,
-						},
-						label: feed.label,
-					})),
-				})
+				[FarcasterNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://docs.farcaster.xyz',
+						homeUrl: 'https://www.farcaster.xyz',
+						protocolName: 'Farcaster',
+						registryName: 'Farcaster hub and indexer source window',
+						relationshipModel: 'FID-keyed users, channels, and immutable casts resolved through configured Farcaster REST, Neynar, and Snapchain sources.',
+						$$feeds: Object.values(farcasterFeedKindByVariant).map((feed) => ({
+							[EntityMetaKey.Selector]: {
+								variant: feed.variant,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.FarcasterFeed, [], 'label')]: feed.label,
+							},
+						})),
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1385,18 +1577,20 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
-				[LensNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://docs.lens.xyz',
-					homeUrl: 'https://lens.xyz',
-					protocolName: 'Lens',
-					registryName: 'Lens GraphQL source window',
-					relationshipModel: 'Profiles and posts are indexed social graph records resolved through configured Lens GraphQL endpoints.',
-					$$lensAccounts: lensNetworkSeedAccounts.map((account) => ({
-						[EntityMetaKey.Selector]: {
-							address: account.address,
-						},
-					})),
-				})
+				[LensNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://docs.lens.xyz',
+						homeUrl: 'https://lens.xyz',
+						protocolName: 'Lens',
+						registryName: 'Lens GraphQL source window',
+						relationshipModel: 'Profiles and posts are indexed social graph records resolved through configured Lens GraphQL endpoints.',
+						$$lensAccounts: lensNetworkSeedAccounts.map((account) => ({
+							[EntityMetaKey.Selector]: {
+								address: account.address,
+							},
+						})),
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1410,28 +1604,30 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
-				[_GlobalNostrNetworkSelector.Scope]: async (_entitySelector, context) => ({
-					docsUrl: 'https://github.com/nostr-protocol/nips',
-					homeUrl: 'https://nostr.com',
-					protocolName: 'Nostr',
-					registryName: 'Nostr public relay and indexer source window',
-					relationshipModel: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
-					$$observedProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
-						[EntityMetaKey.Selector]: {
-							pubkey: profile.pubkey,
-						},
-					})),
-					$$observedNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
-						[EntityMetaKey.Selector]: {
-							eventId: note.eventId,
-						},
-					})),
-					$$observedRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
-						[EntityMetaKey.Selector]: {
-							relayUrl: relay.relayUrl,
-						},
-					})),
-				})
+				[_GlobalNostrNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => ({
+						docsUrl: 'https://github.com/nostr-protocol/nips',
+						homeUrl: 'https://nostr.com',
+						protocolName: 'Nostr',
+						registryName: 'Nostr public relay and indexer source window',
+						relationshipModel: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
+						$$observedProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
+							[EntityMetaKey.Selector]: {
+								pubkey: profile.pubkey,
+							},
+						})),
+						$$observedNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
+							[EntityMetaKey.Selector]: {
+								eventId: note.eventId,
+							},
+						})),
+						$$observedRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
+							[EntityMetaKey.Selector]: {
+								relayUrl: relay.relayUrl,
+							},
+						})),
+					}),
+				}
 			},
 		})({
 				protocolName: (network) => network.protocolName,
@@ -1447,22 +1643,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }, context) => {
-					const profile = nostrNetworkSeedProfiles.find((seedProfile) => seedProfile.pubkey === pubkey)
-					if (profile == null)
-						throw new Error('Constants_Internal: NostrProfile seed not found')
+				[NostrProfileSelector.CanonicalPubkey]: {
+					resolve: async ({ pubkey }, context) => {
+						const profile = nostrNetworkSeedProfiles.find((seedProfile) => seedProfile.pubkey === pubkey)
+						if (profile == null)
+							throw new Error('Constants_Internal: NostrProfile seed not found')
 
-					return {
-						...profile,
-						$$notes: nostrNetworkSeedNotes
-							.filter((note) => note.pubkey === pubkey)
-							.slice(0, resolverContextRowLimit(context))
-							.map((note) => ({
-								[EntityMetaKey.Selector]: {
-									eventId: note.eventId,
-								},
-							})),
-					}
+						return {
+							...profile,
+							$$notes: nostrNetworkSeedNotes
+								.filter((note) => note.pubkey === pubkey)
+								.slice(0, resolverContextRowLimit(context))
+								.map((note) => ({
+									[EntityMetaKey.Selector]: {
+										eventId: note.eventId,
+									},
+								})),
+						}
+					},
 				}
 			},
 		})({
@@ -1473,14 +1671,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: async ({ relayUrl }) => {
-					const relay = nostrNetworkSeedRelays.find((seedRelay) => seedRelay.relayUrl === relayUrl)
-					if (relay == null)
-						throw new Error('Constants_Internal: NostrRelay seed not found')
+				[NostrRelaySelector.RelayUrl]: {
+					resolve: async ({ relayUrl }) => {
+						const relay = nostrNetworkSeedRelays.find((seedRelay) => seedRelay.relayUrl === relayUrl)
+						if (relay == null)
+							throw new Error('Constants_Internal: NostrRelay seed not found')
 
-					return {
-						...relay,
-					}
+						return {
+							...relay,
+						}
+					},
 				}
 			},
 		})({
@@ -1490,23 +1690,25 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: async ({ eventId }) => {
-					const note = nostrNetworkSeedNotes.find((seedNote) => seedNote.eventId === eventId)
-					if (note == null)
-						throw new Error('Constants_Internal: NostrNote seed not found')
+				[NostrNoteSelector.CanonicalEventId]: {
+					resolve: async ({ eventId }) => {
+						const note = nostrNetworkSeedNotes.find((seedNote) => seedNote.eventId === eventId)
+						if (note == null)
+							throw new Error('Constants_Internal: NostrNote seed not found')
 
-					return {
-						eventId: note.eventId,
-						kind: 1,
-						pubkey: note.pubkey,
-						content: note.content,
-						createdAt: note.createdAt * 1000,
-						$author: {
-							[EntityMetaKey.Selector]: {
-								pubkey: note.pubkey,
+						return {
+							eventId: note.eventId,
+							kind: 1,
+							pubkey: note.pubkey,
+							content: note.content,
+							createdAt: note.createdAt * 1000,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.NostrNote, [], '$author')]: {
+									[EntityMetaKey.Selector]: { pubkey: note.pubkey },
+								},
 							},
-						},
-					}
+						}
+					},
 				}
 			},
 		})({
@@ -1521,11 +1723,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
-				[RedditNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://www.reddit.com/dev/api/',
-					homeUrl: 'https://www.reddit.com',
-					protocolName: 'Reddit data API',
-				})
+				[RedditNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://www.reddit.com/dev/api/',
+						homeUrl: 'https://www.reddit.com',
+						protocolName: 'Reddit data API',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1536,18 +1740,20 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
-				[RssNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://www.rssboard.org/rss-specification',
-					homeUrl: 'https://www.rssboard.org',
-					protocolName: 'RSS / Atom syndication',
-					registryName: 'Seed feeds',
-					relationshipModel: 'A configured feed directory with live item windows resolved from each feed URL.',
-					$$rssFeeds: rssNetworkSeedFeeds.map((feed) => ({
-						[EntityMetaKey.Selector]: {
-							feedUrl: feed.feedUrl,
-						},
-					})),
-				})
+				[RssNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://www.rssboard.org/rss-specification',
+						homeUrl: 'https://www.rssboard.org',
+						protocolName: 'RSS / Atom syndication',
+						registryName: 'Seed feeds',
+						relationshipModel: 'A configured feed directory with live item windows resolved from each feed URL.',
+						$$rssFeeds: rssNetworkSeedFeeds.map((feed) => ({
+							[EntityMetaKey.Selector]: {
+								feedUrl: feed.feedUrl,
+							},
+						})),
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1561,13 +1767,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
 			resolve: {
-				[XNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://developer.x.com',
-					homeUrl: 'https://x.com',
-					protocolName: 'X (API v2)',
-					registryName: 'Public profiles and posts',
-					relationshipModel: 'Public X users and posts resolved from configured HTTP sources.',
-				})
+				[XNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://developer.x.com',
+						homeUrl: 'https://x.com',
+						protocolName: 'X (API v2)',
+						registryName: 'Public profiles and posts',
+						relationshipModel: 'Public X users and posts resolved from configured HTTP sources.',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1580,13 +1788,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
-				[XmtpNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://docs.xmtp.org',
-					homeUrl: 'https://xmtp.org',
-					protocolName: 'XMTP (wallet messaging)',
-					registryName: 'Local inbox state',
-					relationshipModel: 'Local catalog conversations associated with provisioned wallet identities.',
-				})
+				[XmtpNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://docs.xmtp.org',
+						homeUrl: 'https://xmtp.org',
+						protocolName: 'XMTP (wallet messaging)',
+						registryName: 'Local inbox state',
+						relationshipModel: 'Local catalog conversations associated with provisioned wallet identities.',
+					}),
+				}
 			},
 		})({
 				protocolName: (entity) => entity.protocolName,
@@ -1599,11 +1809,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.YoutubeNetwork,
 			resolve: {
-				[YoutubeNetworkSelector.Scope]: async () => ({
-					docsUrl: 'https://developers.google.com/youtube/v3',
-					homeUrl: 'https://www.youtube.com',
-					protocolName: 'YouTube Data API',
-				})
+				[YoutubeNetworkSelector.Scope]: {
+					resolve: async () => ({
+						docsUrl: 'https://developers.google.com/youtube/v3',
+						homeUrl: 'https://www.youtube.com',
+						protocolName: 'YouTube Data API',
+					}),
+				}
 			},
 			})({
 					protocolName: (entity) => entity.protocolName,
@@ -1614,12 +1826,14 @@ export default {
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YoutubeChannel,
 				resolve: {
-				[YoutubeChannelSelector.ChannelId]: async ({ channelId }) => {
-						const channel = youtubeNetworkSeedChannelByChannelId[channelId]
-						if (channel == null) throw new Error(`Constants_Internal: YoutubeChannel ${channelId} not found`)
+				[YoutubeChannelSelector.ChannelId]: {
+					resolve: async ({ channelId }) => {
+							const channel = youtubeNetworkSeedChannelByChannelId[channelId]
+							if (channel == null) throw new Error(`Constants_Internal: YoutubeChannel ${channelId} not found`)
 
-						return channel
-					}
+							return channel
+						},
+				}
 				},
 				})({
 						title: (entity) => entity.title,
@@ -1628,32 +1842,164 @@ export default {
 				defineResolver(Source.Constants_Internal, {
 					entityType: EntityType.YoutubePlaylist,
 				resolve: {
-				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
-						const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
-						if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
+				[YoutubePlaylistSelector.PlaylistId]: {
+					resolve: async ({ playlistId }) => {
+							const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
+							if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
 
-						return playlist
-					}
+							return {
+								...playlist,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$channel')]: {
+										[EntityMetaKey.Selector]: { channelId: playlist.channelId },
+									},
+								},
+							}
+						},
+				}
 				},
 			})({
 					title: (entity) => entity.title,
-					$channel: (entity) => ({
-						[EntityMetaKey.Selector]: {
-							channelId: entity.channelId,
-						},
-					}),
+					$channel: (entity) => entity.$channel,
 				}),
 
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YoutubePlaylist,
 				resolve: {
-					[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
-						const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
-						if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
+					[YoutubePlaylistSelector.PlaylistId]: {
+						resolve: async ({ playlistId }) => {
+							const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
+							if (playlist == null) throw new Error(`Constants_Internal: YoutubePlaylist ${playlistId} not found`)
 
-						return [...youtubeNetworkSeedVideos]
-							.filter((video) => video.channelId === playlist.channelId)
-							.map((video) => ({
+							return [...youtubeNetworkSeedVideos]
+								.filter((video) => video.channelId === playlist.channelId)
+								.map((video) => ({
+									[EntityMetaKey.Selector]: {
+										videoId: video.videoId,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'title')]: video.title,
+										[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAt')]: video.publishedAt,
+										[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAtMs')]: video.publishedAtMs,
+										[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'thumbnailUrl')]: video.thumbnailUrl,
+										[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
+											[EntityMetaKey.Selector]: {
+												channelId: video.channelId,
+											},
+										},
+									},
+								}))
+						},
+					},
+				},
+			})({
+					$$videos: (entity) => entity,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType.YoutubeVideo,
+				resolve: {
+				[YoutubeVideoSelector.VideoId]: {
+					resolve: async ({ videoId }) => {
+							const video = youtubeNetworkSeedVideoByVideoId[videoId]
+							if (video == null) throw new Error(`Constants_Internal: YoutubeVideo ${videoId} not found`)
+
+							return video
+						},
+				}
+				},
+			})({
+					title: (entity) => entity.title,
+					publishedAt: (entity) => entity.publishedAt,
+					publishedAtMs: (entity) => entity.publishedAtMs,
+					thumbnailUrl: (entity) => entity.thumbnailUrl,
+					$author: (entity) => entity.$author,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: {
+						resolve: async ({ scope }) => ({
+							scope,
+						}),
+					},
+				},
+			})({
+					scope: (entity) => entity.scope,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: {
+						resolve: async () => (
+							[...redditNetworkSeedSubreddits].map((subreddit) => ({
+								[EntityMetaKey.Selector]: {
+									name: subreddit.name,
+								},
+							}))
+						),
+					},
+				},
+			})({
+					$$observedSubreddits: (entity) => entity,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalRedditNetwork,
+				resolve: {
+					[_GlobalRedditNetworkSelector.Scope]: {
+						resolve: async () => (
+							[...redditNetworkSeedLinks].map((link) => ({
+								[EntityMetaKey.Selector]: {
+									fullname: link.fullname,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
+									[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
+										[EntityMetaKey.Selector]: {
+											name: link.subredditName,
+										},
+									},
+								},
+							}))
+						),
+					},
+				},
+			})({
+					$$observedLinks: (entity) => entity,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalYoutubeNetwork,
+				resolve: {
+					[_GlobalYoutubeNetworkSelector.Scope]: {
+						resolve: async () => (
+							[...youtubeNetworkSeedChannels].map((channel) => ({
+								[EntityMetaKey.Selector]: {
+									channelId: channel.channelId,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: channel.title,
+								},
+							}))
+						),
+					},
+				},
+			})({
+					$$observedChannels: (entity) => entity,
+				}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType._GlobalYoutubeNetwork,
+				resolve: {
+					[_GlobalYoutubeNetworkSelector.Scope]: {
+						resolve: async () => (
+							[...youtubeNetworkSeedVideos].map((video) => ({
 								[EntityMetaKey.Selector]: {
 									videoId: video.videoId,
 								},
@@ -1669,125 +2015,8 @@ export default {
 									},
 								},
 							}))
+						),
 					},
-				},
-			})({
-					$$videos: (entity) => entity,
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.YoutubeVideo,
-				resolve: {
-				[YoutubeVideoSelector.VideoId]: async ({ videoId }) => {
-						const video = youtubeNetworkSeedVideoByVideoId[videoId]
-						if (video == null) throw new Error(`Constants_Internal: YoutubeVideo ${videoId} not found`)
-
-						return video
-					}
-				},
-			})({
-					title: (entity) => entity.title,
-					publishedAt: (entity) => entity.publishedAt,
-					publishedAtMs: (entity) => entity.publishedAtMs,
-					thumbnailUrl: (entity) => entity.thumbnailUrl,
-					$author: (entity) => ({
-						[EntityMetaKey.Selector]: {
-							channelId: entity.channelId,
-						},
-					}),
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType._GlobalRedditNetwork,
-				resolve: {
-					[_GlobalRedditNetworkSelector.Scope]: async ({ scope }) => ({
-						scope,
-					}),
-				},
-			})({
-					scope: (entity) => entity.scope,
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType._GlobalRedditNetwork,
-				resolve: {
-					[_GlobalRedditNetworkSelector.Scope]: async () => (
-						[...redditNetworkSeedSubreddits].map((subreddit) => ({
-							[EntityMetaKey.Selector]: {
-								name: subreddit.name,
-							},
-						}))
-					),
-				},
-			})({
-					$$observedSubreddits: (entity) => entity,
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType._GlobalRedditNetwork,
-				resolve: {
-					[_GlobalRedditNetworkSelector.Scope]: async () => (
-						[...redditNetworkSeedLinks].map((link) => ({
-							[EntityMetaKey.Selector]: {
-								fullname: link.fullname,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
-								[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
-									[EntityMetaKey.Selector]: {
-										name: link.subredditName,
-									},
-								},
-							},
-						}))
-					),
-				},
-			})({
-					$$observedLinks: (entity) => entity,
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType._GlobalYoutubeNetwork,
-				resolve: {
-					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
-						[...youtubeNetworkSeedChannels].map((channel) => ({
-							[EntityMetaKey.Selector]: {
-								channelId: channel.channelId,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: channel.title,
-							},
-						}))
-					),
-				},
-			})({
-					$$observedChannels: (entity) => entity,
-				}),
-
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType._GlobalYoutubeNetwork,
-				resolve: {
-					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
-						[...youtubeNetworkSeedVideos].map((video) => ({
-							[EntityMetaKey.Selector]: {
-								videoId: video.videoId,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'title')]: video.title,
-								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAt')]: video.publishedAt,
-								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAtMs')]: video.publishedAtMs,
-								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'thumbnailUrl')]: video.thumbnailUrl,
-								[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
-									[EntityMetaKey.Selector]: {
-										channelId: video.channelId,
-									},
-								},
-							},
-						}))
-					),
 				},
 			})({
 					$$observedVideos: {
@@ -1799,21 +2028,23 @@ export default {
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType._GlobalYoutubeNetwork,
 				resolve: {
-					[_GlobalYoutubeNetworkSelector.Scope]: async () => (
-						[...youtubeNetworkSeedPlaylists].map((playlist) => ({
-							[EntityMetaKey.Selector]: {
-								playlistId: playlist.playlistId,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.YoutubePlaylist, [], 'title')]: playlist.title,
-								[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$channel')]: {
-									[EntityMetaKey.Selector]: {
-										channelId: playlist.channelId,
+					[_GlobalYoutubeNetworkSelector.Scope]: {
+						resolve: async () => (
+							[...youtubeNetworkSeedPlaylists].map((playlist) => ({
+								[EntityMetaKey.Selector]: {
+									playlistId: playlist.playlistId,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.YoutubePlaylist, [], 'title')]: playlist.title,
+									[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$channel')]: {
+										[EntityMetaKey.Selector]: {
+											channelId: playlist.channelId,
+										},
 									},
 								},
-							},
-						}))
-					),
+							}))
+						),
+					},
 				},
 			})({
 					$$observedPlaylists: (entity) => entity,
@@ -1822,13 +2053,15 @@ export default {
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType._Global,
 				resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					[...networks].map((network) => ({
-						[EntityMetaKey.Selector]: {
-							slug: network.slug,
-						},
-					}))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						[...networks].map((network) => ({
+							[EntityMetaKey.Selector]: {
+								slug: network.slug,
+							},
+						}))
+					),
+				}
 			},
 		})({
 				$$networks: (entity) => entity,
@@ -1837,13 +2070,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					Object.values(networkStackByNetworkStackId).map((networkStack) => ({
-						[EntityMetaKey.Selector]: {
-							networkStackId: networkStack.networkStackId,
-						},
-					}))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						Object.values(networkStackByNetworkStackId).map((networkStack) => ({
+							[EntityMetaKey.Selector]: {
+								networkStackId: networkStack.networkStackId,
+							},
+						}))
+					),
+				}
 			},
 		})({
 				$$networkStacks: (entity) => entity,
@@ -1852,19 +2087,21 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const {
-						networkUpgrades,
-						networkExecutionUpgradeByChainIdAndUpgradeId,
-						networkConsensusUpgradeByChainIdAndUpgradeId,
-					} = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkUpgrades.map((networkUpgrade) => (
-						evmNetworkUpgradeEntityFromRow(
-							networkUpgrade,
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
+						const {
+							networkUpgrades,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
-							networkConsensusUpgradeByChainIdAndUpgradeId
-					)
-					))
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
+						return networkUpgrades.map((networkUpgrade) => (
+							evmNetworkUpgradeEntityFromRow(
+								networkUpgrade,
+								networkExecutionUpgradeByChainIdAndUpgradeId,
+								networkConsensusUpgradeByChainIdAndUpgradeId
+						)
+						))
+					},
 				}
 			},
 		})({
@@ -1874,81 +2111,85 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					const namespace: NetworkNamespace = network.namespace
-					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					return {
-						nativeCoin: {
-							[EntityMetaKey.Selector]: {
-								coinId,
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const namespace: NetworkNamespace = network.namespace
+						const coinId = nativeAssetCoinIdByNamespace[namespace]
+						return {
+							nativeCoin: {
+								[EntityMetaKey.Selector]: {
+									coinId,
+								},
 							},
-						},
-						nativeCoinInstance: (
-							namespace === NetworkNamespace.Evm ?
+							nativeCoinInstance: (
+								namespace === NetworkNamespace.Evm ?
+									{
+										[EntityMetaKey.Selector]: {
+										$network: {
+											caip2,
+										},
+										type: CoinInstanceType.NativeCurrency,
+									},
+								}
+								:
+									undefined
+							),
+							nativeAssets: [
 								{
 									[EntityMetaKey.Selector]: {
-									$network: {
-										caip2,
+										$network: {
+											caip2,
+										},
+										kind: AssetInstanceKind.Native,
+										assetKey: coinId,
 									},
-									type: CoinInstanceType.NativeCurrency,
 								},
-							}
-							:
-								undefined
-						),
-						nativeAssets: [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: {
-										caip2,
-									},
-									kind: AssetInstanceKind.Native,
-									assetKey: coinId,
-								},
-							},
-						],
-					}
+							],
+						}
+					},
 				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					if (network == null)
-						throw new Error('Constants_Internal: Network not found')
-					const namespace: NetworkNamespace = network.namespace
-					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					if (coinId == null)
-						throw new Error(`Constants_Internal: native asset not cataloged for ${namespace}`)
-					return {
-						nativeCoin: {
-							[EntityMetaKey.Selector]: {
-								coinId,
-							},
-						},
-						nativeCoinInstance: (
-							namespace === NetworkNamespace.Evm ?
-								{
-									[EntityMetaKey.Selector]: {
-									$network: {
-										caip2: network.caip2,
-									},
-									type: CoinInstanceType.NativeCurrency,
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						if (network == null)
+							throw new Error('Constants_Internal: Network not found')
+						const namespace: NetworkNamespace = network.namespace
+						const coinId = nativeAssetCoinIdByNamespace[namespace]
+						if (coinId == null)
+							throw new Error(`Constants_Internal: native asset not cataloged for ${namespace}`)
+						return {
+							nativeCoin: {
+								[EntityMetaKey.Selector]: {
+									coinId,
 								},
-							}
-							:
-								undefined
-						),
+							},
+							nativeCoinInstance: (
+								namespace === NetworkNamespace.Evm ?
+									{
+										[EntityMetaKey.Selector]: {
+										$network: {
+											caip2: network.caip2,
+										},
+										type: CoinInstanceType.NativeCurrency,
+									},
+								}
+								:
+									undefined
+							),
 						nativeAssets: [
 							{
 								[EntityMetaKey.Selector]: {
 									$network: {
-										caip2: network.caip2,
+										slug,
 									},
-									kind: AssetInstanceKind.Native,
-									assetKey: coinId,
+										kind: AssetInstanceKind.Native,
+										assetKey: coinId,
+									},
 								},
-							},
-						],
-					}
+							],
+						}
+					},
 				},
 			},
 		})({
@@ -1962,19 +2203,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					return networkResourceUrlEntitySelectors(
-						network.slug,
-						NetworkResourceKind.Faucet
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						return networkResourceUrlEntitySelectors(
+							network.slug,
+							NetworkResourceKind.Faucet
+						)
+					},
 				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					return networkResourceUrlEntitySelectors(
-						network.slug,
-						NetworkResourceKind.Faucet
-					)
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						return networkResourceUrlEntitySelectors(
+							network.slug,
+							NetworkResourceKind.Faucet
+						)
+					},
 				},
 			},
 		})({
@@ -1984,19 +2229,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
-					return networkResourceUrlEntitySelectors(
-						network.slug,
-						NetworkResourceKind.BlockExplorer
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						return networkResourceUrlEntitySelectors(
+							network.slug,
+							NetworkResourceKind.BlockExplorer
+						)
+					},
 				},
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const network = networkBySlug[slug]
-					return networkResourceUrlEntitySelectors(
-						network.slug,
-						NetworkResourceKind.BlockExplorer
-					)
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						return networkResourceUrlEntitySelectors(
+							network.slug,
+							NetworkResourceKind.BlockExplorer
+						)
+					},
 				},
 			},
 		})({
@@ -2006,9 +2255,11 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Url,
 			resolve: {
-				[UrlSelector.Url]: async ({ url }) => ({
-					url,
-				}),
+				[UrlSelector.Url]: {
+					resolve: async ({ url }) => ({
+						url,
+					}),
+				},
 			},
 		})({
 				url: (entity) => entity.url,
@@ -2017,13 +2268,15 @@ export default {
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					specificationRealms.map((realm) => ({
-						[EntityMetaKey.Selector]: {
-							realm: realm.id,
-						},
-					}))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						specificationRealms.map((realm) => ({
+							[EntityMetaKey.Selector]: {
+								realm: realm.id,
+							},
+						}))
+					),
+				}
 			},
 		})({
 				$$specificationRealms: (entity) => entity,
@@ -2032,14 +2285,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					proposalKinds.map((proposalKind) => ({
-						[EntityMetaKey.Selector]: {
-							realm: proposalKind.realm,
-							category: proposalKind.category,
-						},
-					}))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						proposalKinds.map((proposalKind) => ({
+							[EntityMetaKey.Selector]: {
+								realm: proposalKind.realm,
+								category: proposalKind.category,
+							},
+						}))
+					),
+				}
 			},
 		})({
 				$$proposalKinds: (entity) => entity,
@@ -2049,22 +2304,26 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coins } = await import('$/constants/Coin.ts')
-					return (
-						coins.map((coin) => (
-							{
-								[EntityMetaKey.Selector]: {
-									coinId: coin.id,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.Coin, [], 'coinId')]: coin.id,
-									[entityFieldAddressKey(EntityType.Coin, [], 'name')]: coin.symbol,
-									[entityFieldAddressKey(EntityType.Coin, [], 'symbol')]: coin.symbol,
-								},
-							}
-						))
-					)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
+						const { coins } = await import('$/constants/Coin.ts')
+						return (
+							coins.map((coin) => (
+								{
+									[EntityMetaKey.Selector]: {
+										coinId: coin.id,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Coin, [], 'coinId')]: coin.id,
+										...('name' in coin && {
+											[entityFieldAddressKey(EntityType.Coin, [], 'name')]: coin.name,
+										}),
+										[entityFieldAddressKey(EntityType.Coin, [], 'symbol')]: coin.symbol,
+									},
+								}
+							))
+						)
+					},
 				}
 			},
 		})({
@@ -2074,13 +2333,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					marketVenues.map((marketVenue) => ({
-						[EntityMetaKey.Selector]: {
-							marketVenueId: marketVenue.id,
-						},
-					}))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						marketVenues.map((marketVenue) => ({
+							[EntityMetaKey.Selector]: {
+								marketVenueId: marketVenue.id,
+							},
+						}))
+					),
+				}
 			},
 		})({
 				$$marketVenues: (entity) => entity,
@@ -2089,15 +2350,17 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					[...currencies].map((currency) => (
-						{
-							[EntityMetaKey.Selector]: {
-								iso4217: currency.iso4217,
-							},
-						}
-					))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
+						[...currencies].map((currency) => (
+							{
+								[EntityMetaKey.Selector]: {
+									iso4217: currency.iso4217,
+								},
+							}
+						))
+					),
+				}
 			},
 		})({
 				$$currencies: (entity) => entity,
@@ -2106,20 +2369,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[CurrencySelector.Iso4217]: async (entitySelector: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const currency = currencyByIso4217[entitySelector.iso4217]
-						if (currency == null)
-							throw new Error(`Constants_Internal: Currency not found for ${entitySelector.iso4217}`)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$currency: entitySelector,
-								timestampMs: currencyCatalogSnapshotTimestampMs,
-								source: Source.Constants_Internal,
+				[CurrencySelector.Iso4217]: {
+					resolve: async (entitySelector: EntitySelector<typeof schema, EntityType.Currency>) => {
+						const currency = currencyByIso4217[entitySelector.iso4217]
+							if (currency == null)
+								throw new Error(`Constants_Internal: Currency not found for ${entitySelector.iso4217}`)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$currency: entitySelector,
+									timestampMs: currencyCatalogSnapshotTimestampMs,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.Currency_Timestamp, [], 'marketCap')]: BigInt(currency.marketCapUsd),
+								},
 							},
-							marketCap: BigInt(currency.marketCapUsd),
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -2129,15 +2395,17 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { coins } = await import('$/constants/Coin.ts')
-					return (
-						coins.map((coin) => (
-						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coin.id]),
-						}
-						))
-					)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
+						const { coins } = await import('$/constants/Coin.ts')
+						return (
+							coins.map((coin) => (
+							{
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coin.id]),
+							}
+							))
+						)
+					},
 				}
 			},
 		})({
@@ -2147,18 +2415,19 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-					seededCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
-						{
-							[EntityMetaKey.Selector]: {
-								$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-								timeInterval: marketOhlcDailyTimeInterval,
-								timestampMs: currencyCatalogSnapshotTimestampMs,
-								source: Source.Constants_Internal,
-							},
-						}
-					))
-				)
+				[_GlobalSelector.Scope]: {
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
+						seededCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
+							{
+								[EntityMetaKey.Selector]: {
+									$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
+									timeInterval: marketOhlcDailyTimeInterval,
+									timestampMs: currencyCatalogSnapshotTimestampMs,
+								},
+							}
+						))
+					),
+				}
 			},
 		})({
 				$$marketTimeIntervalTimestamps: (entity) => entity,
@@ -2167,13 +2436,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
-					[
-						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-						},
-					]
-				)
+				[CoinSelector.CoinId]: {
+					resolve: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
+						[
+							{
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
+							},
+						]
+					),
+				}
 			},
 		})({
 				$$marketsWithCoinAsBase: (entity) => entity,
@@ -2182,11 +2453,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
-					(seededMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
-						[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCoinMarket(catalogMarket),
-					}))
-				)
+				[CoinSelector.CoinId]: {
+					resolve: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
+						(seededMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCoinMarket(catalogMarket),
+						}))
+					),
+				}
 			},
 		})({
 				$$marketsWithCoinAsQuote: (entity) => entity,
@@ -2195,11 +2468,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => (
-					(seededMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
-						[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
-					}))
-				)
+				[CurrencySelector.Iso4217]: {
+					resolve: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => (
+						(seededMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
+						}))
+					),
+				}
 			},
 		})({
 				$$marketsWithCurrencyAsBase: (entity) => entity,
@@ -2208,21 +2483,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => [
-					...(
-						iso4217 === Iso4217.USD ?
-							seededCoinSpotUsdMarkets.map((catalogMarket) => ({
-								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-							}))
-						:
-							[]
-					),
-					...seededSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.quoteIso4217 === iso4217)
-						.map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
-						})),
-				]
+				[CurrencySelector.Iso4217]: {
+					resolve: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => [
+						...(
+							iso4217 === Iso4217.USD ?
+								seededCoinSpotUsdMarkets.map((catalogMarket) => ({
+									[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
+								}))
+							:
+								[]
+						),
+						...seededSpotMarketsWithCurrencyAsBase
+							.filter((catalogMarket) => catalogMarket.quoteIso4217 === iso4217)
+							.map((catalogMarket) => ({
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
+							})),
+					],
+				}
 			},
 		})({
 				$$marketsWithCurrencyAsQuote: (entity) => entity,
@@ -2231,22 +2508,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
-					coinId !== CoinId.ETH ?
-						[]
-					:
-						Object.keys(ethNativeCoinInstanceRepresentationByChainId).map((chainId) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2: {
-										namespace: 'eip155' as const,
-										reference: chainId,
+				[CoinSelector.CoinId]: {
+					resolve: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
+						coinId !== CoinId.ETH ?
+							[]
+						:
+							Object.keys(ethNativeCoinInstanceRepresentationByChainId).map((chainId) => ({
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: {
+											namespace: 'eip155' as const,
+											reference: chainId,
+										},
 									},
+									type: CoinInstanceType.NativeCurrency as const,
 								},
-								type: CoinInstanceType.NativeCurrency as const,
-							},
-						}))
-				)
+							}))
+					),
+				}
 			},
 		})({
 				$$coinInstances: (entity) => entity,
@@ -2255,32 +2534,34 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketAsset,
 			resolve: {
-				[MarketAssetSelector.KindAssetKey]: async ({ kind, assetKey }: EntitySelector<typeof schema, EntityType.MarketAsset>) => {
-					const coin = kind === MarketAssetKind.Coin ? coins.find((row) => row.id === assetKey) : undefined
-					const currency = kind === MarketAssetKind.Currency ? currencies.find((row) => row.iso4217 === assetKey) : undefined
-					if (kind === MarketAssetKind.Coin && coin == null)
-						throw new Error(`Constants_Internal: Coin market asset not found for ${assetKey}`)
-					if (kind === MarketAssetKind.Currency && currency == null)
-						throw new Error(`Constants_Internal: Currency market asset not found for ${assetKey}`)
+				[MarketAssetSelector.KindAssetKey]: {
+					resolve: async ({ kind, assetKey }: EntitySelector<typeof schema, EntityType.MarketAsset>) => {
+						const coin = kind === MarketAssetKind.Coin ? coins.find((row) => row.id === assetKey) : undefined
+						const currency = kind === MarketAssetKind.Currency ? currencies.find((row) => row.iso4217 === assetKey) : undefined
+						if (kind === MarketAssetKind.Coin && coin == null)
+							throw new Error(`Constants_Internal: Coin market asset not found for ${assetKey}`)
+						if (kind === MarketAssetKind.Currency && currency == null)
+							throw new Error(`Constants_Internal: Currency market asset not found for ${assetKey}`)
 
-					return {
-						kind,
-						assetKey,
-						...(coin != null && {
-							$coin: {
-								[EntityMetaKey.Selector]: {
-									coinId: coin.id,
+						return {
+							kind,
+							assetKey,
+							...(coin != null && {
+								$coin: {
+									[EntityMetaKey.Selector]: {
+										coinId: coin.id,
+									},
 								},
-							},
-						}),
-						...(currency != null && {
-							$currency: {
-								[EntityMetaKey.Selector]: {
-									iso4217: currency.iso4217,
+							}),
+							...(currency != null && {
+								$currency: {
+									[EntityMetaKey.Selector]: {
+										iso4217: currency.iso4217,
+									},
 								},
-							},
-						}),
-					}
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -2297,16 +2578,18 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
-				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
-					catalogCoinCurrencyMarketMatchesMarket(entitySelector) ?
-						{
-							[EntityMetaKey.Selector]: {
-								coinId: entitySelector.$base.assetKey,
-							},
-						}
-					:
-						undefined
-				)
+				[MarketSelector.BaseQuoteMarketVenueKind]: {
+					resolve: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
+						catalogCoinCurrencyMarketMatchesMarket(entitySelector) ?
+							{
+								[EntityMetaKey.Selector]: {
+									coinId: entitySelector.$base.assetKey,
+								},
+							}
+						:
+							undefined
+					),
+				}
 			},
 		})({
 				$baseCoin: (entity) => entity,
@@ -2315,21 +2598,23 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
-				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
-					(
-						entitySelector.$base.kind === MarketAssetKind.Coin
-					&& catalogCoinCurrencyMarketMatchesMarket(entitySelector)
-					) ?
-						[
-							{
-								[EntityMetaKey.Selector]: {
-									$market: entitySelector,
+				[MarketSelector.BaseQuoteMarketVenueKind]: {
+					resolve: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
+						(
+							entitySelector.$base.kind === MarketAssetKind.Coin
+						&& catalogCoinCurrencyMarketMatchesMarket(entitySelector)
+						) ?
+							[
+								{
+									[EntityMetaKey.Selector]: {
+										$market: entitySelector,
+									},
 								},
-							},
-						]
-					:
-						[]
-				)
+							]
+						:
+							[]
+					),
+				}
 			},
 		})({
 				$$marketPrices: (entity) => entity,
@@ -2338,11 +2623,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
-					{
-						[EntityMetaKey.Selector]: $market,
-					}
-				)
+				[MarketPriceSelector.Market]: {
+					resolve: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
+						{
+							[EntityMetaKey.Selector]: $market,
+						}
+					),
+				}
 			},
 		})({
 				$parentMarket: (entity) => entity,
@@ -2351,36 +2638,48 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
-					const caip2 = networkBySlug[slug].caip2
-					const chainId = Number(caip2.reference)
-					return (
-						mevRelayHosts
-							.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
-							.map((mevRelayHost) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									host: mevRelayHost.host,
-								},
-								url: `https://${mevRelayHost.host}`,
-							}))
-					)
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+						const network = networkBySlug[slug]
+						if (!('caip2' in network))
+							return []
+
+						const caip2 = network.caip2
+						const chainId = Number(caip2.reference)
+						return (
+							mevRelayHosts
+								.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+								.map((mevRelayHost) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										host: mevRelayHost.host,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.MevRelay, [], 'url')]: `https://${mevRelayHost.host}`,
+									},
+								}))
+						)
+					},
 				},
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
-					const chainId = Number(caip2.reference)
-					return (
-						mevRelayHosts
-							.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
-							.map((mevRelayHost) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									host: mevRelayHost.host,
-								},
-								url: `https://${mevRelayHost.host}`,
-							}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+						const chainId = Number(caip2.reference)
+						return (
+							mevRelayHosts
+								.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+								.map((mevRelayHost) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										host: mevRelayHost.host,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.MevRelay, [], 'url')]: `https://${mevRelayHost.host}`,
+									},
+								}))
+						)
+					},
 				}
 			},
 		})({
@@ -2392,41 +2691,49 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const {
-						networkUpgrades,
-						networkExecutionUpgradeByChainIdAndUpgradeId,
-						networkConsensusUpgradeByChainIdAndUpgradeId,
-					} = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkUpgrades
-						.filter((networkUpgrade) => (
-						String(networkUpgrade.chainId) === networkBySlug[slug].caip2.reference
-						))
-						.map((networkUpgrade) => (
-						evmNetworkUpgradeEntityFromRow(
-							networkUpgrade,
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const {
+							networkUpgrades,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
-							networkConsensusUpgradeByChainIdAndUpgradeId
-						)
-						))
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const network = networkBySlug[slug]
+						if (!('caip2' in network))
+							return []
+
+						return networkUpgrades
+							.filter((networkUpgrade) => (
+							String(networkUpgrade.chainId) === network.caip2.reference
+							))
+							.map((networkUpgrade) => (
+							evmNetworkUpgradeEntityFromRow(
+								networkUpgrade,
+								networkExecutionUpgradeByChainIdAndUpgradeId,
+								networkConsensusUpgradeByChainIdAndUpgradeId
+							)
+							))
+					},
 				},
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const {
-						networkUpgrades,
-						networkExecutionUpgradeByChainIdAndUpgradeId,
-						networkConsensusUpgradeByChainIdAndUpgradeId,
-					} = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkUpgrades
-						.filter((networkUpgrade) => (
-						String(networkUpgrade.chainId) === caip2.reference
-						))
-						.map((networkUpgrade) => (
-						evmNetworkUpgradeEntityFromRow(
-							networkUpgrade,
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const {
+							networkUpgrades,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
-							networkConsensusUpgradeByChainIdAndUpgradeId
-						)
-						))
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
+						return networkUpgrades
+							.filter((networkUpgrade) => (
+							String(networkUpgrade.chainId) === caip2.reference
+							))
+							.map((networkUpgrade) => (
+							evmNetworkUpgradeEntityFromRow(
+								networkUpgrade,
+								networkExecutionUpgradeByChainIdAndUpgradeId,
+								networkConsensusUpgradeByChainIdAndUpgradeId
+							)
+							))
+					},
 				}
 			},
 		})({
@@ -2438,91 +2745,99 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkExecutionUpgrades
-						.filter((networkExecutionUpgrade) => (
-						String(networkExecutionUpgrade.chainId) === networkBySlug[slug].caip2.reference
-						))
-						.map((networkExecutionUpgrade) => ({
-							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
-								...(networkExecutionUpgrade.layer != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
-								}),
-								...(networkExecutionUpgrade.activationBlock != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
-								}),
-								...(networkExecutionUpgrade.activationTimestampMs != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
-								}),
-								...(networkExecutionUpgrade.activationEpoch != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
-								}),
-								...(networkExecutionUpgrade.forkHash != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
-								}),
-								...(networkExecutionUpgrade.linkEthereumOrg != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
-								}),
-								...(networkExecutionUpgrade.linkExecutionDocs != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
-								}),
-								...(networkExecutionUpgrade.linkForkcast != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
-								}),
-								...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
-								}),
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
-							},
-						}))
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const network = networkBySlug[slug]
+						if (!('caip2' in network))
+							return []
+
+						return networkExecutionUpgrades
+							.filter((networkExecutionUpgrade) => (
+							String(networkExecutionUpgrade.chainId) === network.caip2.reference
+							))
+							.map((networkExecutionUpgrade) => ({
+								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
+									...(networkExecutionUpgrade.layer != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
+									}),
+									...(networkExecutionUpgrade.activationBlock != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
+									}),
+									...(networkExecutionUpgrade.activationTimestampMs != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
+									}),
+									...(networkExecutionUpgrade.activationEpoch != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
+									}),
+									...(networkExecutionUpgrade.forkHash != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
+									}),
+									...(networkExecutionUpgrade.linkEthereumOrg != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
+									}),
+									...(networkExecutionUpgrade.linkExecutionDocs != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
+									}),
+									...(networkExecutionUpgrade.linkForkcast != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
+									}),
+									...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
+									}),
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+								},
+							}))
+					},
 				},
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkExecutionUpgrades
-						.filter((networkExecutionUpgrade) => (
-						String(networkExecutionUpgrade.chainId) === caip2.reference
-						))
-						.map((networkExecutionUpgrade) => ({
-							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
-								...(networkExecutionUpgrade.layer != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
-								}),
-								...(networkExecutionUpgrade.activationBlock != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
-								}),
-								...(networkExecutionUpgrade.activationTimestampMs != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
-								}),
-								...(networkExecutionUpgrade.activationEpoch != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
-								}),
-								...(networkExecutionUpgrade.forkHash != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
-								}),
-								...(networkExecutionUpgrade.linkEthereumOrg != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
-								}),
-								...(networkExecutionUpgrade.linkExecutionDocs != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
-								}),
-								...(networkExecutionUpgrade.linkForkcast != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
-								}),
-								...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
-									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
-								}),
-								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
-							},
-						}))
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						return networkExecutionUpgrades
+							.filter((networkExecutionUpgrade) => (
+							String(networkExecutionUpgrade.chainId) === caip2.reference
+							))
+							.map((networkExecutionUpgrade) => ({
+								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
+									...(networkExecutionUpgrade.layer != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
+									}),
+									...(networkExecutionUpgrade.activationBlock != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
+									}),
+									...(networkExecutionUpgrade.activationTimestampMs != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
+									}),
+									...(networkExecutionUpgrade.activationEpoch != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
+									}),
+									...(networkExecutionUpgrade.forkHash != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
+									}),
+									...(networkExecutionUpgrade.linkEthereumOrg != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
+									}),
+									...(networkExecutionUpgrade.linkExecutionDocs != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
+									}),
+									...(networkExecutionUpgrade.linkForkcast != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
+									}),
+									...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
+										[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
+									}),
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+								},
+							}))
+					},
 				}
 			},
 		})({
@@ -2534,73 +2849,81 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async ({ slug }) => {
-					const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkConsensusUpgrades
-						.filter((networkConsensusUpgrade) => (
-						String(networkConsensusUpgrade.chainId) === networkBySlug[slug].caip2.reference
-						))
-						.map((networkConsensusUpgrade) => ({
-							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
-								...(networkConsensusUpgrade.activationBlock != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
-								}),
-								...(networkConsensusUpgrade.activationTimestampMs != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
-								}),
-								...(networkConsensusUpgrade.activationEpoch != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
-								}),
-								...(networkConsensusUpgrade.linkEthereumOrg != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
-								}),
-								...(networkConsensusUpgrade.linkConsensusDocs != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
-								}),
-								...(networkConsensusUpgrade.linkForkcast != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
-								}),
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
-							},
-						}))
+				[NetworkSelector.Slug]: {
+					resolve: async ({ slug }) => {
+						const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const network = networkBySlug[slug]
+						if (!('caip2' in network))
+							return []
+
+						return networkConsensusUpgrades
+							.filter((networkConsensusUpgrade) => (
+							String(networkConsensusUpgrade.chainId) === network.caip2.reference
+							))
+							.map((networkConsensusUpgrade) => ({
+								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
+									...(networkConsensusUpgrade.activationBlock != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
+									}),
+									...(networkConsensusUpgrade.activationTimestampMs != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
+									}),
+									...(networkConsensusUpgrade.activationEpoch != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
+									}),
+									...(networkConsensusUpgrade.linkEthereumOrg != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
+									}),
+									...(networkConsensusUpgrade.linkConsensusDocs != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
+									}),
+									...(networkConsensusUpgrade.linkForkcast != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
+									}),
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+								},
+							}))
+					},
 				},
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					return networkConsensusUpgrades
-						.filter((networkConsensusUpgrade) => (
-						String(networkConsensusUpgrade.chainId) === caip2.reference
-						))
-						.map((networkConsensusUpgrade) => ({
-							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
-								...(networkConsensusUpgrade.activationBlock != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
-								}),
-								...(networkConsensusUpgrade.activationTimestampMs != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
-								}),
-								...(networkConsensusUpgrade.activationEpoch != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
-								}),
-								...(networkConsensusUpgrade.linkEthereumOrg != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
-								}),
-								...(networkConsensusUpgrade.linkConsensusDocs != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
-								}),
-								...(networkConsensusUpgrade.linkForkcast != null && {
-									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
-								}),
-								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
-							},
-						}))
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						return networkConsensusUpgrades
+							.filter((networkConsensusUpgrade) => (
+							String(networkConsensusUpgrade.chainId) === caip2.reference
+							))
+							.map((networkConsensusUpgrade) => ({
+								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
+									...(networkConsensusUpgrade.activationBlock != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
+									}),
+									...(networkConsensusUpgrade.activationTimestampMs != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
+									}),
+									...(networkConsensusUpgrade.activationEpoch != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
+									}),
+									...(networkConsensusUpgrade.linkEthereumOrg != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
+									}),
+									...(networkConsensusUpgrade.linkConsensusDocs != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
+									}),
+									...(networkConsensusUpgrade.linkForkcast != null && {
+										[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
+									}),
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+								},
+							}))
+					},
 				}
 			},
 		})({
@@ -2612,17 +2935,19 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
-				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
-					return (
-						{
-							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector({
-								chainId: networkUpgrade.chainId,
-								upgradeId: networkUpgrade.executionUpgradeId,
-							}),
-						}
-					)
+				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
+						return (
+							{
+								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector({
+									chainId: networkUpgrade.chainId,
+									upgradeId: networkUpgrade.executionUpgradeId,
+								}),
+							}
+						)
+					},
 				}
 			},
 		})({
@@ -2632,20 +2957,22 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
-				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
-					return (
-						networkUpgrade.consensusUpgradeId == null ?
-							undefined
-						:
-							{
-								[EntityMetaKey.Selector]: evmNetworkUpgradeSelector({
-									chainId: networkUpgrade.chainId,
-									upgradeId: networkUpgrade.consensusUpgradeId,
-								}),
-							}
-					)
+				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
+						return (
+							networkUpgrade.consensusUpgradeId == null ?
+								undefined
+							:
+								{
+									[EntityMetaKey.Selector]: evmNetworkUpgradeSelector({
+										chainId: networkUpgrade.chainId,
+										upgradeId: networkUpgrade.consensusUpgradeId,
+									}),
+								}
+						)
+					},
 				}
 			},
 		})({
@@ -2655,30 +2982,32 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
-				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const {
-						networkUpgradeByChainIdAndUpgradeId,
-						networkExecutionUpgradeByChainIdAndUpgradeId,
-						networkConsensusUpgradeByChainIdAndUpgradeId,
-					} = await import('$/constants/EthereumNetworkUpgrades.ts')
-					const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
+				[EthereumNetworkUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const {
+							networkUpgradeByChainIdAndUpgradeId,
+							networkExecutionUpgradeByChainIdAndUpgradeId,
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
 
-					const proposals = uniqueProposalRefs([
-						...ethereumProposalRefs(
-							networkExecutionUpgradeByChainIdAndUpgradeId[
-								`${networkUpgrade.chainId}:${networkUpgrade.executionUpgradeId}`
-								]?.proposalIds
-					),
-						...ethereumProposalRefs(
-							networkUpgrade.consensusUpgradeId == null ?
-							undefined
-						:
-							networkConsensusUpgradeByChainIdAndUpgradeId[
-								`${networkUpgrade.chainId}:${networkUpgrade.consensusUpgradeId}`
-								]?.proposalIds
-					),
-					])
-					return proposals
+						const proposals = uniqueProposalRefs([
+							...ethereumProposalRefs(
+								networkExecutionUpgradeByChainIdAndUpgradeId[
+									`${networkUpgrade.chainId}:${networkUpgrade.executionUpgradeId}`
+									]?.proposalIds
+						),
+							...ethereumProposalRefs(
+								networkUpgrade.consensusUpgradeId == null ?
+								undefined
+							:
+								networkConsensusUpgradeByChainIdAndUpgradeId[
+									`${networkUpgrade.chainId}:${networkUpgrade.consensusUpgradeId}`
+									]?.proposalIds
+						),
+						])
+						return proposals
+					},
 				}
 			},
 		})({
@@ -2688,10 +3017,12 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
-				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
-					const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
-					return ethereumProposalRefs(networkExecutionUpgrade.proposalIds)
+				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
+						return ethereumProposalRefs(networkExecutionUpgrade.proposalIds)
+					},
 				}
 			},
 		})({
@@ -2701,37 +3032,39 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
-				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
-					const {
-						networkConsensusUpgradeByChainIdAndUpgradeId,
-						networkExecutionUpgradeByChainIdAndUpgradeId,
-						networkUpgrades,
-					} = await import('$/constants/EthereumNetworkUpgrades.ts')
-					const networkConsensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
-					const directProposals = ethereumProposalRefs(networkConsensusUpgrade.proposalIds)
-					if (directProposals.length > 0)
-						return directProposals
-					const umbrellaNetworkUpgrade = networkUpgrades.find((networkUpgrade) => (
-						String(networkUpgrade.chainId) === $network.caip2.reference
-						&& networkUpgrade.consensusUpgradeId === upgradeId
-					))
-					if (umbrellaNetworkUpgrade != null) {
-						const linkedProposals = uniqueProposalRefs([
-							...ethereumProposalRefs(
-								networkExecutionUpgradeByChainIdAndUpgradeId[
-									`${umbrellaNetworkUpgrade.chainId}:${umbrellaNetworkUpgrade.executionUpgradeId}`
-									]?.proposalIds
-						),
-							...ethereumProposalRefs(
-								networkConsensusUpgradeByChainIdAndUpgradeId[
-									`${umbrellaNetworkUpgrade.chainId}:${umbrellaNetworkUpgrade.consensusUpgradeId}`
-									]?.proposalIds
-						),
-						])
-						if (linkedProposals.length > 0)
-							return linkedProposals
-					}
-					return []
+				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async ({ $network, upgradeId }) => {
+						const {
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+							networkExecutionUpgradeByChainIdAndUpgradeId,
+							networkUpgrades,
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
+						const networkConsensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[`${$network.caip2.reference}:${upgradeId}`]
+						const directProposals = ethereumProposalRefs(networkConsensusUpgrade.proposalIds)
+						if (directProposals.length > 0)
+							return directProposals
+						const umbrellaNetworkUpgrade = networkUpgrades.find((networkUpgrade) => (
+							String(networkUpgrade.chainId) === $network.caip2.reference
+							&& networkUpgrade.consensusUpgradeId === upgradeId
+						))
+						if (umbrellaNetworkUpgrade != null) {
+							const linkedProposals = uniqueProposalRefs([
+								...ethereumProposalRefs(
+									networkExecutionUpgradeByChainIdAndUpgradeId[
+										`${umbrellaNetworkUpgrade.chainId}:${umbrellaNetworkUpgrade.executionUpgradeId}`
+										]?.proposalIds
+							),
+								...ethereumProposalRefs(
+									networkConsensusUpgradeByChainIdAndUpgradeId[
+										`${umbrellaNetworkUpgrade.chainId}:${umbrellaNetworkUpgrade.consensusUpgradeId}`
+										]?.proposalIds
+							),
+							])
+							if (linkedProposals.length > 0)
+								return linkedProposals
+						}
+						return []
+					},
 				}
 			},
 		})({
@@ -2741,30 +3074,37 @@ export default {
 				defineResolver(Source.Constants_Internal, {
 					entityType: EntityType.AtprotoPost,
 					resolve: {
-						[AtprotoPostSelector.Uri]: async ({ uri }) => {
-							const post = atprotoNetworkSeedPostByUri[uri]
-							if (post == null) throw new Error(`Constants_Internal: AtprotoPost ${uri} not found`)
+						[AtprotoPostSelector.Uri]: {
+							resolve: async ({ uri }) => {
+								const post = atprotoNetworkSeedPostByUri[uri]
+								if (post == null) throw new Error(`Constants_Internal: AtprotoPost ${uri} not found`)
 
-							return post
+								return {
+									...post,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.AtprotoPost, [], '$author')]: {
+											[EntityMetaKey.Selector]: { did: post.authorDid },
+										},
+									},
+								}
+							},
 						}
 					},
 				})({
 						uri: (entity) => entity.uri,
-						$author: (entity) => ({
-							[EntityMetaKey.Selector]: {
-								did: entity.authorDid,
-							},
-						}),
+						$author: (entity) => entity.$author,
 					}),
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => {
-					const subreddit = redditNetworkSeedSubreddits.find((seedSubreddit) => seedSubreddit.name === name)
-					if (subreddit == null)
-						throw new Error('Constants_Internal: RedditSubreddit seed not found')
+				[RedditSubredditSelector.Name]: {
+					resolve: async ({ name }) => {
+						const subreddit = redditNetworkSeedSubreddits.find((seedSubreddit) => seedSubreddit.name === name)
+						if (subreddit == null)
+							throw new Error('Constants_Internal: RedditSubreddit seed not found')
 
-					return subreddit
+						return subreddit
+					},
 				}
 			},
 		})({
@@ -2774,26 +3114,28 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => (
-					[...redditNetworkSeedLinks]
-						.filter((link) => link.subredditName === name)
-						.map((link) => ({
-							[EntityMetaKey.Selector]: {
-								fullname: link.fullname,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
-								[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
-								[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
-									[EntityMetaKey.Selector]: {
-										name: link.subredditName,
+				[RedditSubredditSelector.Name]: {
+					resolve: async ({ name }) => (
+						[...redditNetworkSeedLinks]
+							.filter((link) => link.subredditName === name)
+							.map((link) => ({
+								[EntityMetaKey.Selector]: {
+									fullname: link.fullname,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
+									[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
+									[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
+										[EntityMetaKey.Selector]: {
+											name: link.subredditName,
+										},
 									},
 								},
-							},
-						}))
-				),
+							}))
+					),
+				},
 			},
 		})({
 				$$links: (entity) => entity,
@@ -2802,23 +3144,25 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }) => {
-					const link = redditNetworkSeedLinks.find((seedLink) => seedLink.fullname === fullname)
-					if (link == null)
-						throw new Error('Constants_Internal: RedditLink seed not found')
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const link = redditNetworkSeedLinks.find((seedLink) => seedLink.fullname === fullname)
+						if (link == null)
+							throw new Error('Constants_Internal: RedditLink seed not found')
 
-					return {
-						fullname: link.fullname,
-						title: link.title,
-						permalink: link.permalink,
-						author: link.author,
-						createdAt: link.createdAt,
-						$subreddit: {
-							[EntityMetaKey.Selector]: {
-								name: link.subredditName,
+						return {
+							fullname: link.fullname,
+							title: link.title,
+							permalink: link.permalink,
+							author: link.author,
+							createdAt: link.createdAt,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
+									[EntityMetaKey.Selector]: { name: link.subredditName },
+								},
 							},
-						},
-					}
+						}
+					},
 				}
 			},
 		})({
@@ -2833,25 +3177,27 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }) => (
-					[...redditNetworkSeedComments]
-						.filter((comment) => comment.linkFullname === fullname)
-						.map((comment) => ({
-							[EntityMetaKey.Selector]: {
-								fullname: comment.fullname,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.RedditComment, [], 'body')]: comment.body,
-								[entityFieldAddressKey(EntityType.RedditComment, [], 'author')]: comment.author,
-								[entityFieldAddressKey(EntityType.RedditComment, [], 'createdAt')]: comment.createdAt,
-								[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
-									[EntityMetaKey.Selector]: {
-										fullname: comment.linkFullname,
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }) => (
+						[...redditNetworkSeedComments]
+							.filter((comment) => comment.linkFullname === fullname)
+							.map((comment) => ({
+								[EntityMetaKey.Selector]: {
+									fullname: comment.fullname,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.RedditComment, [], 'body')]: comment.body,
+									[entityFieldAddressKey(EntityType.RedditComment, [], 'author')]: comment.author,
+									[entityFieldAddressKey(EntityType.RedditComment, [], 'createdAt')]: comment.createdAt,
+									[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
+										[EntityMetaKey.Selector]: {
+											fullname: comment.linkFullname,
+										},
 									},
 								},
-							},
-						}))
-				),
+							}))
+					),
+				},
 			},
 		})({
 				$$comments: (entity) => entity,
@@ -2860,22 +3206,24 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async ({ fullname }) => {
-					const comment = redditNetworkSeedComments.find((seedComment) => seedComment.fullname === fullname)
-					if (comment == null)
-						throw new Error('Constants_Internal: RedditComment seed not found')
+				[RedditCommentSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const comment = redditNetworkSeedComments.find((seedComment) => seedComment.fullname === fullname)
+						if (comment == null)
+							throw new Error('Constants_Internal: RedditComment seed not found')
 
-					return {
-						fullname: comment.fullname,
-						body: comment.body,
-						author: comment.author,
-						createdAt: comment.createdAt,
-						$link: {
-							[EntityMetaKey.Selector]: {
-								fullname: comment.linkFullname,
+						return {
+							fullname: comment.fullname,
+							body: comment.body,
+							author: comment.author,
+							createdAt: comment.createdAt,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
+									[EntityMetaKey.Selector]: { fullname: comment.linkFullname },
+								},
 							},
-						},
-					}
+						}
+					},
 				}
 			},
 		})({
@@ -2889,11 +3237,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: async ({ id }) => {
-					const post = xNetworkSeedPostById[id]
-					if (post == null) throw new Error(`Constants_Internal: XPost ${id} not found`)
+				[XPostSelector.Id]: {
+					resolve: async ({ id }) => {
+						const post = xNetworkSeedPostById[id]
+						if (post == null) throw new Error(`Constants_Internal: XPost ${id} not found`)
 
-					return post
+						return post
+					},
 				}
 			},
 		})({
@@ -2904,17 +3254,19 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async ({ $network, address: addressSelector }) => {
-					const address = hexLowerOfByteSize(addressSelector, 20)
-					if (address == null)
-						throw new Error('Constants_Internal: EvmContract address not normalized')
-					const chainPrecompiles = (
-						precompilesByChainId[Number($network.caip2.reference)]
-					?? standardPrecompiles
-					)
-					return chainPrecompiles.find((precompile) => (
-						precompile.address.toLowerCase() === address.toLowerCase()
-					))?.name
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async ({ $network, address: addressSelector }) => {
+						const address = hexLowerOfByteSize(addressSelector, 20)
+						if (address == null)
+							throw new Error('Constants_Internal: EvmContract address not normalized')
+						const chainPrecompiles = (
+							precompilesByChainId[Number($network.caip2.reference)]
+						?? standardPrecompiles
+						)
+						return chainPrecompiles.find((precompile) => (
+							precompile.address.toLowerCase() === address.toLowerCase()
+						))?.name
+					},
 				}
 			},
 		})({
@@ -2924,25 +3276,27 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const limit = resolverContextRowLimit(context)
-					return (
-						precompilesByChainId[Number(caip2.reference)]
-					?? standardPrecompiles
-					)
-						.slice(0, limit)
-						.flatMap((precompile) => {
-						const address = hexLowerOfByteSize(precompile.address, 20)
-						return address == null ?
-							[]
-						:
-							[{
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									address,
-								},
-							}]
-						})
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const limit = resolverContextRowLimit(context)
+						return (
+							precompilesByChainId[Number(caip2.reference)]
+						?? standardPrecompiles
+						)
+							.slice(0, limit)
+							.flatMap((precompile) => {
+							const address = hexLowerOfByteSize(precompile.address, 20)
+							return address == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										address,
+									},
+								}]
+							})
+					},
 				}
 			},
 		})({

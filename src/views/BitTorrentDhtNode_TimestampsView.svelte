@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentDhtNode_TimestampView from '$/views/BitTorrentDhtNode_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					reachable: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentDhtNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentDhtNode_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				reachable: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentDhtNodeTimestamps) => [...new Map(bitTorrentDhtNodeTimestamps.values.map((bitTorrentDhtNodeTimestamp) => [bitTorrentDhtNodeTimestamp[EntityMetaKey.SelectorKey], bitTorrentDhtNodeTimestamp])).values()]}
+	getKey={(bitTorrentDhtNodeTimestamp) => bitTorrentDhtNodeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent DHT node observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentDhtNodeTimestamps)}
-			{@const uniqueBitTorrentDhtNodeTimestamps = [...new Map(bitTorrentDhtNodeTimestamps.values.map((bitTorrentDhtNodeTimestamp) => [bitTorrentDhtNodeTimestamp[EntityMetaKey.SelectorKey], bitTorrentDhtNodeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentDhtNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentDhtNodeTimestamps.totalCount}
-				getKey={(bitTorrentDhtNodeTimestamp) => bitTorrentDhtNodeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentDhtNodeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent DHT node observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentDhtNodeTimestamp })}
-					{@const bitTorrentDhtNodeTimestampFields = { ...bitTorrentDhtNodeTimestamp[EntityMetaKey.Selector], ...bitTorrentDhtNodeTimestamp }}
-					{@const selection = select(EntityType.BitTorrentDhtNode_Timestamp, bitTorrentDhtNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentDhtNode_TimestampView
-						selection={selection}
-						prefetched={bitTorrentDhtNodeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentDhtNode_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentDhtNodeTimestamp })}
+		{@const bitTorrentDhtNodeTimestampFields = { ...bitTorrentDhtNodeTimestamp[EntityMetaKey.Selector], ...bitTorrentDhtNodeTimestamp }}
+		{@const selection = select(EntityType.BitTorrentDhtNode_Timestamp, bitTorrentDhtNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentDhtNode_TimestampView
+			selection={selection}
+			prefetched={bitTorrentDhtNodeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

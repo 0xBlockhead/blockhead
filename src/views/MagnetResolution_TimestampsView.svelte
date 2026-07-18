@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MagnetResolution_TimestampView from '$/views/MagnetResolution_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MagnetResolution_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MagnetResolution_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(magnetResolutionTimestamps) => [...new Map(magnetResolutionTimestamps.values.map((magnetResolutionTimestamp) => [magnetResolutionTimestamp[EntityMetaKey.SelectorKey], magnetResolutionTimestamp])).values()]}
+	getKey={(magnetResolutionTimestamp) => magnetResolutionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Magnet resolution observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(magnetResolutionTimestamps)}
-			{@const uniqueMagnetResolutionTimestamps = [...new Map(magnetResolutionTimestamps.values.map((magnetResolutionTimestamp) => [magnetResolutionTimestamp[EntityMetaKey.SelectorKey], magnetResolutionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MagnetResolution_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={magnetResolutionTimestamps.totalCount}
-				getKey={(magnetResolutionTimestamp) => magnetResolutionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMagnetResolutionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Magnet resolution observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: magnetResolutionTimestamp })}
-					{@const magnetResolutionTimestampFields = { ...magnetResolutionTimestamp[EntityMetaKey.Selector], ...magnetResolutionTimestamp }}
-					{@const selection = select(EntityType.MagnetResolution_Timestamp, magnetResolutionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MagnetResolution_TimestampView
-						selection={selection}
-						prefetched={magnetResolutionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MagnetResolution_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: magnetResolutionTimestamp })}
+		{@const magnetResolutionTimestampFields = { ...magnetResolutionTimestamp[EntityMetaKey.Selector], ...magnetResolutionTimestamp }}
+		{@const selection = select(EntityType.MagnetResolution_Timestamp, magnetResolutionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MagnetResolution_TimestampView
+			selection={selection}
+			prefetched={magnetResolutionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

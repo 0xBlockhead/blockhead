@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalEvmAbiCatalog_TimestampView from '$/views/_GlobalEvmAbiCatalog_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$hub: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$hub: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(globalEvmAbiCatalogTimestamps) => [...new Map(globalEvmAbiCatalogTimestamps.values.map((globalEvmAbiCatalogTimestamp) => [globalEvmAbiCatalogTimestamp[EntityMetaKey.SelectorKey], globalEvmAbiCatalogTimestamp])).values()]}
+	getKey={(globalEvmAbiCatalogTimestamp) => globalEvmAbiCatalogTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global EVM ABI catalog observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalEvmAbiCatalogTimestamps)}
-			{@const uniqueGlobalEvmAbiCatalogTimestamps = [...new Map(globalEvmAbiCatalogTimestamps.values.map((globalEvmAbiCatalogTimestamp) => [globalEvmAbiCatalogTimestamp[EntityMetaKey.SelectorKey], globalEvmAbiCatalogTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalEvmAbiCatalogTimestamps.totalCount}
-				getKey={(globalEvmAbiCatalogTimestamp) => globalEvmAbiCatalogTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalEvmAbiCatalogTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global EVM ABI catalog observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalEvmAbiCatalogTimestamp })}
-					{@const globalEvmAbiCatalogTimestampFields = { ...globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], ...globalEvmAbiCatalogTimestamp }}
-					{@const selection = select(EntityType._GlobalEvmAbiCatalog_Timestamp, globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalEvmAbiCatalog_TimestampView
-						selection={selection}
-						prefetched={globalEvmAbiCatalogTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalEvmAbiCatalogTimestamp })}
+		{@const globalEvmAbiCatalogTimestampFields = { ...globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], ...globalEvmAbiCatalogTimestamp }}
+		{@const selection = select(EntityType._GlobalEvmAbiCatalog_Timestamp, globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalEvmAbiCatalog_TimestampView
+			selection={selection}
+			prefetched={globalEvmAbiCatalogTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

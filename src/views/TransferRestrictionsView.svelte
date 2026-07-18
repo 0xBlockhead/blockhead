@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TransferRestrictionView from '$/views/TransferRestrictionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TransferRestriction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TransferRestriction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(transferRestrictions) => [...new Map(transferRestrictions.values.map((transferRestriction) => [transferRestriction[EntityMetaKey.SelectorKey], transferRestriction])).values()]}
+	getKey={(transferRestriction) => transferRestriction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Transfer restrictions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(transferRestrictions)}
-			{@const uniqueTransferRestrictions = [...new Map(transferRestrictions.values.map((transferRestriction) => [transferRestriction[EntityMetaKey.SelectorKey], transferRestriction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TransferRestriction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={transferRestrictions.totalCount}
-				getKey={(transferRestriction) => transferRestriction[EntityMetaKey.SelectorKey]}
-				items={uniqueTransferRestrictions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Transfer restrictions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: transferRestriction })}
-					{@const transferRestrictionFields = { ...transferRestriction[EntityMetaKey.Selector], ...transferRestriction }}
-					{@const selection = select(EntityType.TransferRestriction, transferRestriction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TransferRestrictionView
-						selection={selection}
-						prefetched={transferRestrictionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TransferRestriction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: transferRestriction })}
+		{@const transferRestrictionFields = { ...transferRestriction[EntityMetaKey.Selector], ...transferRestriction }}
+		{@const selection = select(EntityType.TransferRestriction, transferRestriction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TransferRestrictionView
+			selection={selection}
+			prefetched={transferRestrictionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

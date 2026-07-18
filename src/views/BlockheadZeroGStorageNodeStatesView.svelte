@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZeroGStorageNodeStateView from '$/views/BlockheadZeroGStorageNodeStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					$network: true,
-					connectionId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZeroGStorageNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				$network: true,
+				connectionId: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZeroGStorageNodeStates) => [...new Map(blockheadZeroGStorageNodeStates.values.map((blockheadZeroGStorageNodeState) => [blockheadZeroGStorageNodeState[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeState])).values()]}
+	getKey={(blockheadZeroGStorageNodeState) => blockheadZeroGStorageNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zero g storage node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZeroGStorageNodeStates)}
-			{@const uniqueBlockheadZeroGStorageNodeStates = [...new Map(blockheadZeroGStorageNodeStates.values.map((blockheadZeroGStorageNodeState) => [blockheadZeroGStorageNodeState[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZeroGStorageNodeStates.totalCount}
-				getKey={(blockheadZeroGStorageNodeState) => blockheadZeroGStorageNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZeroGStorageNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zero g storage node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZeroGStorageNodeState })}
-					{@const blockheadZeroGStorageNodeStateFields = { ...blockheadZeroGStorageNodeState[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeState }}
-					{@const selection = select(EntityType.BlockheadZeroGStorageNodeState, blockheadZeroGStorageNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZeroGStorageNodeStateView
-						selection={selection}
-						prefetched={blockheadZeroGStorageNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZeroGStorageNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZeroGStorageNodeState })}
+		{@const blockheadZeroGStorageNodeStateFields = { ...blockheadZeroGStorageNodeState[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeState }}
+		{@const selection = select(EntityType.BlockheadZeroGStorageNodeState, blockheadZeroGStorageNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZeroGStorageNodeStateView
+			selection={selection}
+			prefetched={blockheadZeroGStorageNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

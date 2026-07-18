@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ArweaveNetworkView from '$/views/ArweaveNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ArweaveNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(arweaveNetworks) => [...new Map(arweaveNetworks.values.map((arweaveNetwork) => [arweaveNetwork[EntityMetaKey.SelectorKey], arweaveNetwork])).values()]}
+	getKey={(arweaveNetwork) => arweaveNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Arweave networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(arweaveNetworks)}
-			{@const uniqueArweaveNetworks = [...new Map(arweaveNetworks.values.map((arweaveNetwork) => [arweaveNetwork[EntityMetaKey.SelectorKey], arweaveNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={arweaveNetworks.totalCount}
-				getKey={(arweaveNetwork) => arweaveNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueArweaveNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Arweave networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: arweaveNetwork })}
-					{@const arweaveNetworkFields = { ...arweaveNetwork[EntityMetaKey.Selector], ...arweaveNetwork }}
-					{@const selection = select(EntityType.ArweaveNetwork, arweaveNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ArweaveNetworkView
-						selection={selection}
-						prefetched={arweaveNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ArweaveNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: arweaveNetwork })}
+		{@const arweaveNetworkFields = { ...arweaveNetwork[EntityMetaKey.Selector], ...arweaveNetwork }}
+		{@const selection = select(EntityType.ArweaveNetwork, arweaveNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ArweaveNetworkView
+			selection={selection}
+			prefetched={arweaveNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

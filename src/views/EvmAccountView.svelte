@@ -12,7 +12,6 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,9 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmAccount = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'EVM account')
 	const viewDomId = $derived('evm-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -79,22 +76,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmAccount}>
-			{#snippet Pending()}
-				{@const address0 = pendingEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const address0 = resolvedEntity.address}
-				{#if address0 !== undefined && address0 !== null}
-					<TruncatedValue value={String((address0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const address0 = pendingEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const address0 = resolvedEntity.address}
+					{#if address0 !== undefined && address0 !== null}
+						<TruncatedValue value={String((address0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -141,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -168,24 +159,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							interopAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const interopAddress = pendingEntity.interopAddress}
-					{#if interopAddress !== undefined && interopAddress !== null}
-						<div>
-							<dt>Interop address</dt>
-							<dd>
-								<TruncatedValue value={String((interopAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const interopAddress = resolvedEntity.interopAddress}
@@ -203,31 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							avatarUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const avatarUrl = pendingEntity.avatarUrl}
-					{#if avatarUrl !== undefined && avatarUrl !== null}
-						<div>
-							<dt>Avatar URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(avatarUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(avatarUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const avatarUrl = resolvedEntity.avatarUrl}
@@ -254,8 +216,6 @@
 			<ResourceBoundary
 				resource={selection.$primaryName}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
 						<div>
@@ -266,7 +226,7 @@
 									prefetched={ensName}
 									href={
 										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-											ensName: String(ensName[EntityMetaKey.Selector].name ?? ''),
+											ensName: encodeURIComponent(String(ensName[EntityMetaKey.Selector].name ?? '')),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -295,11 +255,8 @@
 				}
 				data-card
 				class='actor-view-collapsible-identity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Identity</HeadingComponent>
 						<Tooltip contentProps={{ side: 'top' }}>
@@ -319,12 +276,12 @@
 
 				{#snippet SectionActorEns({ id, label, open })}
 					<EnsNamesView
-						selection={
-							selection.$$ensNamesOwned({
-								count: true,
-							})
-						}
+						selection={selection.$$ensNamesOwned}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ENS names owned by this account yet.'
 						open={open}
 						title={label}

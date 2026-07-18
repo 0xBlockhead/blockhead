@@ -37,5 +37,8 @@
 			})
 		}
 		id='rss-feeds'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

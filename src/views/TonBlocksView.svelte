@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonBlockView from '$/views/TonBlockView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonBlocks) => [...new Map(tonBlocks.values.map((tonBlock) => [tonBlock[EntityMetaKey.SelectorKey], tonBlock])).values()]}
+	getKey={(tonBlock) => tonBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonBlocks)}
-			{@const uniqueTonBlocks = [...new Map(tonBlocks.values.map((tonBlock) => [tonBlock[EntityMetaKey.SelectorKey], tonBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonBlocks.totalCount}
-				getKey={(tonBlock) => tonBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueTonBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonBlock })}
-					{@const tonBlockFields = { ...tonBlock[EntityMetaKey.Selector], ...tonBlock }}
-					{@const selection = select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonBlockView
-						selection={selection}
-						prefetched={tonBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonBlock })}
+		{@const tonBlockFields = { ...tonBlock[EntityMetaKey.Selector], ...tonBlock }}
+		{@const selection = select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonBlockView
+			selection={selection}
+			prefetched={tonBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

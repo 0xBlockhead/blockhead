@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZeroGStorageNodeState_TimestampView from '$/views/BlockheadZeroGStorageNodeState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					$nodeState: true,
-					localChunkCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				$nodeState: true,
+				localChunkCount: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZeroGStorageNodeStateTimestamps) => [...new Map(blockheadZeroGStorageNodeStateTimestamps.values.map((blockheadZeroGStorageNodeStateTimestamp) => [blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeStateTimestamp])).values()]}
+	getKey={(blockheadZeroGStorageNodeStateTimestamp) => blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zero g storage node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZeroGStorageNodeStateTimestamps)}
-			{@const uniqueBlockheadZeroGStorageNodeStateTimestamps = [...new Map(blockheadZeroGStorageNodeStateTimestamps.values.map((blockheadZeroGStorageNodeStateTimestamp) => [blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZeroGStorageNodeStateTimestamps.totalCount}
-				getKey={(blockheadZeroGStorageNodeStateTimestamp) => blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZeroGStorageNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zero g storage node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp })}
-					{@const blockheadZeroGStorageNodeStateTimestampFields = { ...blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadZeroGStorageNodeState_Timestamp, blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZeroGStorageNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadZeroGStorageNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp })}
+		{@const blockheadZeroGStorageNodeStateTimestampFields = { ...blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadZeroGStorageNodeState_Timestamp, blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZeroGStorageNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadZeroGStorageNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconSlashing = $derived(selection({}))
+	const beaconSlashing = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.indexInSlot) ?? '') ? 'Slashing #' + String((pendingEntity.indexInSlot) ?? '') : '') || 'beacon slashing')
 	const viewDomId = $derived('beacon-slashing-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -78,54 +80,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={beaconSlashing}>
-			{#snippet Pending()}
-				{(String((pendingEntity.indexInSlot) ?? '') ? 'Slashing #' + String((pendingEntity.indexInSlot) ?? '') : '') || title || 'beacon slashing'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.kind) ?? ''), (String((resolvedEntity.indexInSlot) ?? '') ? ' #' + String((resolvedEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.kind) ?? ''), (String((pendingEntity.indexInSlot) ?? '') ? ' #' + String((pendingEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={beaconSlashing}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.kind) ?? ''), (String((resolvedEntity.indexInSlot) ?? '') ? ' #' + String((resolvedEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={beaconSlashing}>
-			{#snippet Pending()}
-				{[String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.kind) ?? ''), (String((pendingEntity.indexInSlot) ?? '') ? ' #' + String((pendingEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || 'beacon slashing'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.kind) ?? ''), (String((resolvedEntity.indexInSlot) ?? '') ? ' #' + String((resolvedEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.kind) ?? ''), (String((pendingEntity.indexInSlot) ?? '') ? ' #' + String((pendingEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={beaconSlashing}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.kind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.kind) ?? ''), (String((resolvedEntity.indexInSlot) ?? '') ? ' #' + String((resolvedEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={beaconSlashing}>
-			{#snippet Pending()}
-				{@const slot0 = pendingEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slot0 = resolvedEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<span data-text="muted">
+					<span>Slot </span>
+					<NumberValue
+						value={slot0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={beaconSlashing}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot0 = resolvedEntity.slot}
+					{#if slot0 !== undefined && slot0 !== null}
+						<span data-text="muted">
+							<span>Slot </span>
+							<NumberValue
+								value={slot0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									kind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const kind = pendingEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const kind = resolvedEntity.kind}
@@ -166,24 +166,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInSlot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInSlot = pendingEntity.indexInSlot}
-							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInSlot = resolvedEntity.indexInSlot}
 							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
+								<NumberValue
+									value={indexInSlot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -196,24 +192,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									slot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const slot = pendingEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const slot = resolvedEntity.slot}
 							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
+								<NumberValue
+									value={slot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

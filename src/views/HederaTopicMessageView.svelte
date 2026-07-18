@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTopicMessage = $derived(selection({}))
+	const hederaTopicMessage = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera topic message')
 	const viewDomId = $derived('hedera-topic-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaTopicMessage}>
-			{#snippet Pending()}
-				{title || 'hedera topic message'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaTopicMessage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sequenceNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sequenceNumber = pendingEntity.sequenceNumber}
-							{#if sequenceNumber !== undefined && sequenceNumber !== null}
-								{String((sequenceNumber) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sequenceNumber = resolvedEntity.sequenceNumber}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consensusTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
-					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-						<div>
-							<dt>consensus timestamp</dt>
-							<dd>
-								{String((consensusTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
@@ -156,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							runningHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const runningHash = pendingEntity.runningHash}
-					{#if runningHash !== undefined && runningHash !== null}
-						<div>
-							<dt>running hash</dt>
-							<dd>
-								<TruncatedValue value={String((runningHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const runningHash = resolvedEntity.runningHash}
@@ -191,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payerAccount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payerAccount = pendingEntity.payerAccount}
-					{#if payerAccount !== undefined && payerAccount !== null}
-						<div>
-							<dt>payer account</dt>
-							<dd>
-								<TruncatedValue value={String((payerAccount) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payerAccount = resolvedEntity.payerAccount}
@@ -226,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							message: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const message = pendingEntity.message}
-					{#if message !== undefined && message !== null}
-						<div>
-							<dt>message</dt>
-							<dd>
-								{String((message) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const message = resolvedEntity.message}

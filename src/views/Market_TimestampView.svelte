@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const marketTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			price: true,
 		},
@@ -67,7 +68,7 @@
 	href={
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.feedKey !== undefined && pendingEntity.$market !== undefined && pendingEntity.$market.marketKind !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.assetKey !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.assetKey !== undefined && pendingEntity.$market.$marketVenue !== undefined && pendingEntity.$market.$marketVenue.marketVenueId !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.kind !== undefined && pendingEntity.$quote !== undefined && pendingEntity.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			feedKey: String(pendingEntity.feedKey ?? ''),
+			feedKey: encodeURIComponent(String(pendingEntity.feedKey ?? '')),
 			marketKind: String(pendingEntity.$market.marketKind ?? ''),
 			base: String(pendingEntity.$market.$base.assetKey ?? ''),
 			quote: String(pendingEntity.$market.$quote.assetKey ?? ''),
@@ -81,64 +82,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={marketTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || 'market timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={marketTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={marketTimestamp}>
-			{#snippet Pending()}
-				{@const price0 = pendingEntity.price}
-				{#if price0 !== undefined && price0 !== null}
-					<NumberValue
-						value={Number(price0) / 1e8}
-						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-					/>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const price0 = resolvedEntity.price}
-				{#if price0 !== undefined && price0 !== null}
-					<NumberValue
-						value={Number(price0) / 1e8}
-						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const price0 = pendingEntity.price}
+					{#if price0 !== undefined && price0 !== null}
+						<NumberValue
+							value={Number(price0) / 1e8}
+							formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={marketTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const price0 = resolvedEntity.price}
+					{#if price0 !== undefined && price0 !== null}
+						<NumberValue
+							value={Number(price0) / 1e8}
+							formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={marketTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={marketTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -155,22 +156,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									price: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const price = pendingEntity.price}
-							{#if price !== undefined && price !== null}
-								<NumberValue
-									value={Number(price) / 1e8}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const price = resolvedEntity.price}
@@ -191,19 +183,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -221,19 +207,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									feedKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const feedKey = pendingEntity.feedKey}
-							{#if feedKey !== undefined && feedKey !== null}
-								{String((feedKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const feedKey = resolvedEntity.feedKey}
@@ -250,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transport: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transport = pendingEntity.transport}
-					{#if transport !== undefined && transport !== null}
-						<div>
-							<dt>Transport</dt>
-							<dd>
-								{String((transport) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transport = resolvedEntity.transport}
@@ -285,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerAssetId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerAssetId = pendingEntity.providerAssetId}
-					{#if providerAssetId !== undefined && providerAssetId !== null}
-						<div>
-							<dt>Provider asset ID</dt>
-							<dd>
-								{String((providerAssetId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerAssetId = resolvedEntity.providerAssetId}
@@ -320,24 +278,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							caip19: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const caip19 = pendingEntity.caip19}
-					{#if caip19 !== undefined && caip19 !== null}
-						<div>
-							<dt>CAIP-19</dt>
-							<dd>
-								{String((caip19) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const caip19 = resolvedEntity.caip19}

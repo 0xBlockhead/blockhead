@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -40,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAmendmentTimestamp = $derived(selection({}))
+	const xrplAmendmentTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('XRPL amendment timestamp')
 	const viewDomId = $derived('xrpl-amendment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xrplAmendmentTimestamp}>
-			{#snippet Pending()}
-				{title || 'XRPL amendment timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xrplAmendmentTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -81,6 +85,15 @@
 				<dd>
 					<XrplAmendmentView
 						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment, {})}
+						href={
+							(selection.entitySelector.$amendment.amendmentId !== undefined && selection.entitySelector.$amendment.$network !== undefined && selection.entitySelector.$amendment.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
+								amendmentId: String(selection.entitySelector.$amendment.amendmentId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$amendment.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$amendment.amendmentId !== undefined && selection.entitySelector.$amendment.$network !== undefined && selection.entitySelector.$amendment.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
+								amendmentId: String(selection.entitySelector.$amendment.amendmentId ?? ''),
+								network: String(selection.entitySelector.$amendment.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -93,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerIndex = pendingEntity.ledgerIndex}
-							{#if ledgerIndex !== undefined && ledgerIndex !== null}
-								{String((ledgerIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerIndex = resolvedEntity.ledgerIndex}
@@ -123,19 +130,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -150,24 +151,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -185,24 +175,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							enabled: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const enabled = pendingEntity.enabled}
-					{#if enabled !== undefined && enabled !== null}
-						<div>
-							<dt>enabled</dt>
-							<dd>
-								{enabled ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const enabled = resolvedEntity.enabled}
@@ -220,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supported: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supported = pendingEntity.supported}
-					{#if supported !== undefined && supported !== null}
-						<div>
-							<dt>supported</dt>
-							<dd>
-								{supported ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supported = resolvedEntity.supported}
@@ -255,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -290,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							enabledAtLedger: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const enabledAtLedger = pendingEntity.enabledAtLedger}
-					{#if enabledAtLedger !== undefined && enabledAtLedger !== null}
-						<div>
-							<dt>enabled AT ledger</dt>
-							<dd>
-								{String((enabledAtLedger) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const enabledAtLedger = resolvedEntity.enabledAtLedger}

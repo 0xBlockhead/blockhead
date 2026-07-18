@@ -52,6 +52,9 @@
 					})
 				}
 				id='erc4337-smart-accounts'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

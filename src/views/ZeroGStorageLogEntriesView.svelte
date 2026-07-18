@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGStorageLogEntryView from '$/views/ZeroGStorageLogEntryView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					logEntryId: true,
-					$network: true,
-					sequenceNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageLogEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGStorageLogEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				logEntryId: true,
+				$network: true,
+				sequenceNumber: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGStorageLogEntries) => [...new Map(zeroGStorageLogEntries.values.map((zeroGStorageLogEntry) => [zeroGStorageLogEntry[EntityMetaKey.SelectorKey], zeroGStorageLogEntry])).values()]}
+	getKey={(zeroGStorageLogEntry) => zeroGStorageLogEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g storage log entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGStorageLogEntries)}
-			{@const uniqueZeroGStorageLogEntries = [...new Map(zeroGStorageLogEntries.values.map((zeroGStorageLogEntry) => [zeroGStorageLogEntry[EntityMetaKey.SelectorKey], zeroGStorageLogEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGStorageLogEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGStorageLogEntries.totalCount}
-				getKey={(zeroGStorageLogEntry) => zeroGStorageLogEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGStorageLogEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g storage log entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGStorageLogEntry })}
-					{@const zeroGStorageLogEntryFields = { ...zeroGStorageLogEntry[EntityMetaKey.Selector], ...zeroGStorageLogEntry }}
-					{@const selection = select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGStorageLogEntryView
-						selection={selection}
-						prefetched={zeroGStorageLogEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGStorageLogEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGStorageLogEntry })}
+		{@const zeroGStorageLogEntryFields = { ...zeroGStorageLogEntry[EntityMetaKey.Selector], ...zeroGStorageLogEntry }}
+		{@const selection = select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGStorageLogEntryView
+			selection={selection}
+			prefetched={zeroGStorageLogEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

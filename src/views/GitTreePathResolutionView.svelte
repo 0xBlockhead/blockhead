@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitTreePathResolution = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			status: true,
 		},
@@ -68,52 +69,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitTreePathResolution}>
-			{#snippet Pending()}
-				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitTreePathResolution}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitTreePathResolution}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitTreePathResolution}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitTreePathResolution}>
-			{#snippet Pending()}
-				{@const commitObjectId0 = pendingEntity.commitObjectId}
-				{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((commitObjectId0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const commitObjectId0 = resolvedEntity.commitObjectId}
-				{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((commitObjectId0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const commitObjectId0 = pendingEntity.commitObjectId}
+			{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((commitObjectId0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={gitTreePathResolution}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const commitObjectId0 = resolvedEntity.commitObjectId}
+					{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((commitObjectId0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									commitObjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const commitObjectId = pendingEntity.commitObjectId}
-							{#if commitObjectId !== undefined && commitObjectId !== null}
-								<TruncatedValue value={String((commitObjectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const commitObjectId = resolvedEntity.commitObjectId}
@@ -165,19 +160,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									path: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const path = pendingEntity.path}
-							{#if path !== undefined && path !== null}
-								{String((path) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const path = resolvedEntity.path}
@@ -195,19 +184,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									treeObjectIds: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const treeObjectIds = pendingEntity.treeObjectIds}
-							{#if treeObjectIds !== undefined && treeObjectIds !== null}
-								{treeObjectIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const treeObjectIds = resolvedEntity.treeObjectIds}
@@ -222,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blobObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blobObjectId = pendingEntity.blobObjectId}
-					{#if blobObjectId !== undefined && blobObjectId !== null}
-						<div>
-							<dt>blob object ID</dt>
-							<dd>
-								<TruncatedValue value={String((blobObjectId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blobObjectId = resolvedEntity.blobObjectId}
@@ -257,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							submoduleCommitId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const submoduleCommitId = pendingEntity.submoduleCommitId}
-					{#if submoduleCommitId !== undefined && submoduleCommitId !== null}
-						<div>
-							<dt>submodule commit ID</dt>
-							<dd>
-								<TruncatedValue value={String((submoduleCommitId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const submoduleCommitId = resolvedEntity.submoduleCommitId}
@@ -295,19 +256,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									status: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const status = pendingEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const status = resolvedEntity.status}

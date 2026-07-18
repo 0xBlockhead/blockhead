@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaAddress_TimestampView from '$/views/KaspaAddress_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddress_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaAddress_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(kaspaAddressTimestamps) => [...new Map(kaspaAddressTimestamps.values.map((kaspaAddressTimestamp) => [kaspaAddressTimestamp[EntityMetaKey.SelectorKey], kaspaAddressTimestamp])).values()]}
+	getKey={(kaspaAddressTimestamp) => kaspaAddressTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa address observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaAddressTimestamps)}
-			{@const uniqueKaspaAddressTimestamps = [...new Map(kaspaAddressTimestamps.values.map((kaspaAddressTimestamp) => [kaspaAddressTimestamp[EntityMetaKey.SelectorKey], kaspaAddressTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddress_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaAddressTimestamps.totalCount}
-				getKey={(kaspaAddressTimestamp) => kaspaAddressTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaAddressTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa address observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaAddressTimestamp })}
-					{@const kaspaAddressTimestampFields = { ...kaspaAddressTimestamp[EntityMetaKey.Selector], ...kaspaAddressTimestamp }}
-					{@const selection = select(EntityType.KaspaAddress_Timestamp, kaspaAddressTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaAddress_TimestampView
-						selection={selection}
-						prefetched={kaspaAddressTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaAddress_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaAddressTimestamp })}
+		{@const kaspaAddressTimestampFields = { ...kaspaAddressTimestamp[EntityMetaKey.Selector], ...kaspaAddressTimestamp }}
+		{@const selection = select(EntityType.KaspaAddress_Timestamp, kaspaAddressTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaAddress_TimestampView
+			selection={selection}
+			prefetched={kaspaAddressTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

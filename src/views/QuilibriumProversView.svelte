@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import QuilibriumProverView from '$/views/QuilibriumProverView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					proverPeerId: true,
-					$network: true,
-					version: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumProver}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.QuilibriumProver}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				proverPeerId: true,
+				$network: true,
+				version: true,
+			},
+		})
+	}
+	getResourceItems={(quilibriumProvers) => [...new Map(quilibriumProvers.values.map((quilibriumProver) => [quilibriumProver[EntityMetaKey.SelectorKey], quilibriumProver])).values()]}
+	getKey={(quilibriumProver) => quilibriumProver[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Quilibrium provers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(quilibriumProvers)}
-			{@const uniqueQuilibriumProvers = [...new Map(quilibriumProvers.values.map((quilibriumProver) => [quilibriumProver[EntityMetaKey.SelectorKey], quilibriumProver])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumProver}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={quilibriumProvers.totalCount}
-				getKey={(quilibriumProver) => quilibriumProver[EntityMetaKey.SelectorKey]}
-				items={uniqueQuilibriumProvers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Quilibrium provers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: quilibriumProver })}
-					{@const quilibriumProverFields = { ...quilibriumProver[EntityMetaKey.Selector], ...quilibriumProver }}
-					{@const selection = select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<QuilibriumProverView
-						selection={selection}
-						prefetched={quilibriumProverFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.QuilibriumProver}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: quilibriumProver })}
+		{@const quilibriumProverFields = { ...quilibriumProver[EntityMetaKey.Selector], ...quilibriumProver }}
+		{@const selection = select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<QuilibriumProverView
+			selection={selection}
+			prefetched={quilibriumProverFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

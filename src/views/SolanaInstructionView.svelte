@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaInstruction = $derived(selection({}))
+	const solanaInstruction = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('solana instruction')
 	const viewDomId = $derived('solana-instruction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -91,11 +94,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={solanaInstruction}>
-			{#snippet Pending()}
-				<SolanaTransactionView
-					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<SolanaTransactionView
+						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
+						href={
 						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
@@ -104,16 +106,16 @@
 							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<SolanaTransactionView
-					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={solanaInstruction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<SolanaTransactionView
+						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
+						href={
 						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
@@ -122,19 +124,19 @@
 							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaInstruction}>
-			{#snippet Pending()}
-				<SolanaTransactionView
-					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<SolanaTransactionView
+						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
+						href={
 						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
@@ -143,16 +145,16 @@
 							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<SolanaTransactionView
-					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={solanaInstruction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<SolanaTransactionView
+						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
+						href={
 						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
@@ -161,46 +163,47 @@
 							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaInstruction}>
-			{#snippet Pending()}
-				{@const instructionKind0 = pendingEntity.instructionKind}
-				{#if instructionKind0 !== undefined && instructionKind0 !== null}
-					<span data-text="muted">
-						{String((instructionKind0) ?? '')}
-					</span>
-				{/if}
-				{@const indexInTransaction1 = pendingEntity.indexInTransaction}
-				{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
-					<span data-text="muted">
-						{String((indexInTransaction1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const instructionKind0 = resolvedEntity.instructionKind}
-				{#if instructionKind0 !== undefined && instructionKind0 !== null}
-					<span data-text="muted">
-						{String((instructionKind0) ?? '')}
-					</span>
-				{/if}
-				{@const indexInTransaction1 = resolvedEntity.indexInTransaction}
-				{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
-					<span data-text="muted">
-						{String((indexInTransaction1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const instructionKind0 = pendingEntity.instructionKind}
+			{#if instructionKind0 !== undefined && instructionKind0 !== null}
+				<span data-text="muted">
+					{String((instructionKind0) ?? '')}
+				</span>
+			{/if}
+			{@const indexInTransaction1 = pendingEntity.indexInTransaction}
+			{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
+				<span data-text="muted">
+					{String((indexInTransaction1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={solanaInstruction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const instructionKind0 = resolvedEntity.instructionKind}
+					{#if instructionKind0 !== undefined && instructionKind0 !== null}
+						<span data-text="muted">
+							{String((instructionKind0) ?? '')}
+						</span>
+					{/if}
+					{@const indexInTransaction1 = resolvedEntity.indexInTransaction}
+					{#if indexInTransaction1 !== undefined && indexInTransaction1 !== null}
+						<span data-text="muted">
+							{String((indexInTransaction1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -211,19 +214,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									instructionKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const instructionKind = pendingEntity.instructionKind}
-							{#if instructionKind !== undefined && instructionKind !== null}
-								{String((instructionKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const instructionKind = resolvedEntity.instructionKind}
@@ -241,24 +238,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
+								<NumberValue
+									value={indexInTransaction}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -268,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							indexInInstruction: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const indexInInstruction = pendingEntity.indexInInstruction}
-					{#if indexInInstruction !== undefined && indexInInstruction !== null}
-						<div>
-							<dt>Index in instruction</dt>
-							<dd>
-								<NumberValue value={Number(indexInInstruction)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const indexInInstruction = resolvedEntity.indexInInstruction}
@@ -293,7 +275,9 @@
 						<div>
 							<dt>Index in instruction</dt>
 							<dd>
-								<NumberValue value={Number(indexInInstruction)} />
+								<NumberValue
+									value={indexInInstruction}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -303,24 +287,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							parsedType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parsedType = pendingEntity.parsedType}
-					{#if parsedType !== undefined && parsedType !== null}
-						<div>
-							<dt>Parsed type</dt>
-							<dd>
-								{String((parsedType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parsedType = resolvedEntity.parsedType}
@@ -338,24 +311,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stackHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stackHeight = pendingEntity.stackHeight}
-					{#if stackHeight !== undefined && stackHeight !== null}
-						<div>
-							<dt>Stack height</dt>
-							<dd>
-								{String((stackHeight) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stackHeight = resolvedEntity.stackHeight}
@@ -375,8 +337,6 @@
 			<ResourceBoundary
 				resource={selection.$program}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaProgram)}
 					{#if solanaProgram != null && solanaProgram[EntityMetaKey.Selector] != null}
 						<div>
@@ -427,6 +387,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						data: true,
 					},
@@ -450,6 +411,9 @@
 			<SolanaAccountsView
 				selection={
 						selection.$$accounts({
+							sources: [
+								Source.Solana_JsonRpc,
+							],
 							count: true,
 						})
 					}

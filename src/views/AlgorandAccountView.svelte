@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandAccount = $derived(selection({}))
+	const algorandAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand account')
 	const viewDomId = $derived('algorand-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -68,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandAccount}>
-			{#snippet Pending()}
-				{title || 'algorand account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -99,19 +101,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -140,11 +136,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -152,12 +145,12 @@
 
 				{#snippet SectionAlgorandAccountTimestamps({ id, label, open })}
 					<AlgorandAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand account observations.'
 						open={open}
 						title={label}
@@ -184,11 +177,8 @@
 				}
 				data-card
 				class='network-view-collapsible-holdings'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Holdings and apps</HeadingComponent>
 					</header>
@@ -196,12 +186,12 @@
 
 				{#snippet SectionAlgorandAccountAssetHoldings({ id, label, open })}
 					<AlgorandAssetHolding_RoundsView
-						selection={
-							selection.$$assetHoldingRounds({
-								count: true,
-							})
-						}
+						selection={selection.$$assetHoldingRounds}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand asset holding rounds.'
 						open={open}
 						title={label}
@@ -211,12 +201,12 @@
 
 				{#snippet SectionAlgorandAccountAppLocalState({ id, label, open })}
 					<AlgorandApplicationLocalState_RoundsView
-						selection={
-							selection.$$applicationLocalStateRounds({
-								count: true,
-							})
-						}
+						selection={selection.$$applicationLocalStateRounds}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand application local state rounds.'
 						open={open}
 						title={label}

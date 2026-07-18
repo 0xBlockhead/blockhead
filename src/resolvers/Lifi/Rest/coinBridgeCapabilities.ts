@@ -3,10 +3,8 @@
  */
 
 import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/resolvers/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
+import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import type { EntitySelector } from '$/schema/$schema.ts'
-import type { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
 
 
@@ -19,7 +17,7 @@ export const coinBridgeCapabilityRowsFromInstancesAndTools = (
 }
 
 const coinInstanceEntitySelectorKey = (
-	instanceId: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
+	instanceId: CoinInstanceEntitySelector
 ) => (
 	[
 		instanceId.$network.caip2.namespace,
@@ -34,7 +32,7 @@ const coinInstanceEntitySelectorKey = (
 
 export const filterCoinBridgeCapabilityRowsForInstance = (
 	rows: ReturnType<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>,
-	instanceId: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
+	instanceId: CoinInstanceEntitySelector,
 	direction: 'inbound' | 'outbound'
 ) => {
 	const instanceKey = coinInstanceEntitySelectorKey(instanceId)

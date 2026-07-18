@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import type { SourceDefinition, SourceProviderDefinition as SourceProviderDefinitionTemplate, SourcePublicEnv } from '$/sources/$sources.ts'
-import type { Source } from '$/sources/Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { Type } from 'arktype'
 
@@ -206,6 +206,7 @@ export enum SourceProvider {
 	PolkadotRfcs = 'PolkadotRfcs',
 	Pontem = 'Pontem',
 	Primal = 'Primal',
+	PublicNode = 'PublicNode',
 	Pyth = 'Pyth',
 	qBittorrentWebUi = 'qBittorrentWebUi',
 	QuilibriumDocs = 'QuilibriumDocs',
@@ -223,7 +224,7 @@ export enum SourceProvider {
 	Rss2Json = 'Rss2Json',
 	SigstoreRekor = 'SigstoreRekor',
 	Snapchain = 'Snapchain',
-	Solana = 'Solana',
+	SpaceAndTime = 'SpaceAndTime',
 	SolanaMobileWalletAdapter = 'SolanaMobileWalletAdapter',
 	SolanaSimds = 'SolanaSimds',
 	Sourcify = 'Sourcify',

@@ -72,7 +72,9 @@ export type TronScanContract = {
 	verifyStatus?: string
 	is_proxy?: boolean
 	proxy_implementation?: string
-	creator?: string
+	creator?: {
+		address?: string
+	}
 	creator_address?: string
 	create_tx_hash?: string
 	trc20token?: TronScanToken

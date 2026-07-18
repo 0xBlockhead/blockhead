@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGDataChunkView from '$/views/ZeroGDataChunkView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDataChunk}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGDataChunk}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(zeroGDataChunks) => [...new Map(zeroGDataChunks.values.map((zeroGDataChunk) => [zeroGDataChunk[EntityMetaKey.SelectorKey], zeroGDataChunk])).values()]}
+	getKey={(zeroGDataChunk) => zeroGDataChunk[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g data chunks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGDataChunks)}
-			{@const uniqueZeroGDataChunks = [...new Map(zeroGDataChunks.values.map((zeroGDataChunk) => [zeroGDataChunk[EntityMetaKey.SelectorKey], zeroGDataChunk])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDataChunk}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGDataChunks.totalCount}
-				getKey={(zeroGDataChunk) => zeroGDataChunk[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGDataChunks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g data chunks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGDataChunk })}
-					{@const zeroGDataChunkFields = { ...zeroGDataChunk[EntityMetaKey.Selector], ...zeroGDataChunk }}
-					{@const selection = select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGDataChunkView
-						selection={selection}
-						prefetched={zeroGDataChunkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGDataChunk}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGDataChunk })}
+		{@const zeroGDataChunkFields = { ...zeroGDataChunk[EntityMetaKey.Selector], ...zeroGDataChunk }}
+		{@const selection = select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGDataChunkView
+			selection={selection}
+			prefetched={zeroGDataChunkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

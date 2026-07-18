@@ -38,10 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			environment: true,
@@ -73,52 +70,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearNetwork}>
-			{#snippet Pending()}
-				{@const namespace0 = pendingEntity.namespace}
-				{#if namespace0 !== undefined && namespace0 !== null}
-					<span data-text="muted">
-						{String((namespace0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const namespace0 = resolvedEntity.namespace}
-				{#if namespace0 !== undefined && namespace0 !== null}
-					<span data-text="muted">
-						{String((namespace0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const namespace0 = pendingEntity.namespace}
+			{#if namespace0 !== undefined && namespace0 !== null}
+				<span data-text="muted">
+					{String((namespace0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nearNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const namespace0 = resolvedEntity.namespace}
+					{#if namespace0 !== undefined && namespace0 !== null}
+						<span data-text="muted">
+							{String((namespace0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -135,22 +132,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.Constants_Internal,
-								],
+								sources: selection.sources,
 								fields: {
 									rpcEndpoints: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rpcEndpoints = pendingEntity.rpcEndpoints}
-							{#if rpcEndpoints !== undefined && rpcEndpoints !== null}
-								{rpcEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rpcEndpoints = resolvedEntity.rpcEndpoints}
@@ -183,11 +171,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -200,10 +185,14 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No observations available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -217,10 +206,14 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No blocks available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -242,11 +235,8 @@
 				}
 				data-card
 				class='network-view-collapsible-validators'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Validators</HeadingComponent>
 					</header>
@@ -259,10 +249,14 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No validators available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

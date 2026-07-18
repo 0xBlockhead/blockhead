@@ -7,7 +7,10 @@ import {
 import {
 	entityFieldAddressKey,
 	entitySelectorKey,
+	evaluateEntityFacetConditionPlan,
 	indexSchema,
+	ProjectionResolution,
+	type EntityFacetConditionPlan,
 } from '$/schema/$schema.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { schema } from '$/schema/index.ts'
@@ -18,7 +21,7 @@ import {
 	type ResolverValue,
 	type SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
-import { resolvers } from '$/resolvers/index.ts'
+import { loadAllResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EntityType as SchemaEntityType } from '$/schema/$schema.ts'
 import {
@@ -35,6 +38,8 @@ import {
 	type AssertLoadedResolverProbeCategoryBucket,
 	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
+
+const resolvers = await loadAllResolvers()
 
 const {
 	resolverDefinitions,
@@ -140,14 +145,74 @@ export const resolverSnapshotCoordinates = <
 
 export const resolveSnapshotOnceThenProject = async <_Snapshot, _Projection>(
 	resolveSnapshot: () => _Snapshot | Promise<_Snapshot>,
-	projectSnapshot: readonly ((snapshot: _Snapshot) => _Projection)[]
+	projectSnapshot: readonly ((snapshot: _Snapshot) => _Projection | Promise<_Projection>)[]
 ) => {
 	const snapshot = await resolveSnapshot()
+	const projections: _Projection[] = []
+	for (const project of projectSnapshot)
+		projections.push(await project(snapshot))
 
 	return {
 		snapshot,
-		projections: projectSnapshot.map((project) => project(snapshot)),
+		projections,
 	}
+}
+
+export const resolveFacetConditions = async ({
+	conditionPlan,
+	resolveDependency,
+}: {
+	conditionPlan: EntityFacetConditionPlan
+	resolveDependency: (facetPath: readonly string[], fieldName: string) => ResolverValue | Promise<ResolverValue>
+}): Promise<ProjectionResolution> => {
+	return evaluateEntityFacetConditionPlan(
+		conditionPlan,
+		await Promise.all(conditionPlan.dependencies.map((dependency) => (
+			resolveDependency(dependency.facetPath, dependency.fieldName)
+		)))
+	)
+}
+
+export const resolveIndexedConditionalFacetDependency = async <_Part extends {
+	entityType: string
+	facetPath: readonly string[]
+	fieldName: PropertyKey
+	select?: unknown
+}>({
+	entityType,
+	facetPath,
+	fieldName,
+	indexedParts,
+	entitySelector,
+	rootFields,
+	resolvePart,
+}: {
+	entityType: string
+	facetPath: readonly string[]
+	fieldName: string
+	indexedParts: readonly _Part[]
+	entitySelector: Partial<Record<string, ResolverValue>>
+	rootFields?: ResolverValue
+	resolvePart: (part: _Part) => ResolverValue | Promise<ResolverValue>
+}) => {
+	if (fieldName in entitySelector)
+		return entitySelector[fieldName]
+
+	const rootFieldValue = Object.getOwnPropertyDescriptor(Object(rootFields), fieldName)?.value
+	if (rootFieldValue !== undefined)
+		return rootFieldValue
+
+	const matchesAddress = (candidate: _Part) => (
+		candidate.entityType === entityType
+		&& candidate.fieldName === fieldName
+		&& candidate.facetPath.length === facetPath.length
+		&& candidate.facetPath.every((segment, index) => segment === facetPath[index])
+	)
+	const indexedPart = indexedParts.find(matchesAddress)
+	if (indexedPart?.select != null)
+		return resolvePart(indexedPart)
+
+	throw new Error(`Unsupported conditional facet dependency ${entityType}.${[...facetPath, fieldName].join('.')}`)
 }
 
 const resolverDefinitionProbes: ResolverDefinitionProbe[] = []
@@ -285,12 +350,27 @@ const finalizeProbeCase = (
 	category: classifyAssertLoadedResolverProbeCase(probeCase),
 })
 
+export const assertNoFulfilledButAssertFailed = (
+	fulfilledButAssertFailed: readonly AssertLoadedResolverProbeCase[]
+) => {
+	if (fulfilledButAssertFailed.length > 0)
+		throw new Error(`Resolver materialization failures: ${fulfilledButAssertFailed.map(({ key, assertError }) => `${key}: ${assertError}`).join('; ')}`)
+}
 
-export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResolverProbeResult> => {
+
+export const runAssertLoadedResolverProbes = async (
+	includes?: string
+): Promise<AssertLoadedResolverProbeResult> => {
 	if (unassignedResolverPartProbes.length > 0)
 		throw new Error(`Resolver parts reference unsupported selectors: ${unassignedResolverPartProbes.map((part) => `${part.entityType}.${part.parentSelectorName}.${part.fieldName} (${part.source})`).join(', ')}`)
 
-	const fixtures = await Promise.all(resolverSnapshotProbes.map(async (probe) => {
+	const fixtures = await Promise.all(resolverSnapshotProbes
+		.filter((probe) => (
+			includes == null
+			|| `${probe.entityType}.${probe.selectorName}:${probe.source}`.includes(includes)
+			|| [...probe.valueParts, ...probe.countParts].some((part) => part.fieldName.includes(includes))
+		))
+		.map(async (probe) => {
 		try {
 			return {
 				kind: 'Ready' as const,
@@ -317,6 +397,63 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			const context = {
 				...resolverContext,
 				publicEnv: resolverPublicEnvBySource.get(probe.source) ?? {},
+			}
+			const dependencyValueByAddress = new Map<string, Promise<ResolverValue>>()
+			const dependencySnapshotByCoordinate = new Map<string, Promise<ResolverValue>>()
+			const resolveDependency = (
+				rootSnapshot: ResolverValue,
+				facetPath: readonly string[],
+				fieldName: string
+			) => {
+				const address = entityFieldAddressKey(probe.entityType, facetPath, fieldName)
+				const cachedValue = dependencyValueByAddress.get(address)
+				if (cachedValue != null)
+					return cachedValue
+
+				const value = resolveIndexedConditionalFacetDependency({
+					entityType: probe.entityType,
+					facetPath,
+					fieldName,
+					indexedParts: resolverValuePartProbes.filter((candidate) => candidate.parentSelectorName === probe.selectorName),
+					entitySelector,
+					rootFields: rootSnapshot,
+					resolvePart: async (dependencyPart) => {
+						const dependencyProbe = resolverSnapshotProbes.find((candidate) => (
+							candidate.index === dependencyPart.resolverIndex
+							&& candidate.selectorName === dependencyPart.parentSelectorName
+						))
+						if (dependencyProbe == null || dependencyPart.select == null)
+							throw new Error(`Unsupported conditional facet dependency ${probe.entityType}.${[...facetPath, fieldName].join('.')}`)
+
+						const coordinate = `${dependencyProbe.index}:${dependencyProbe.selectorName}`
+						let dependencySnapshot = dependencySnapshotByCoordinate.get(coordinate)
+						if (dependencySnapshot == null) {
+							dependencySnapshot = dependencyProbe.index === probe.index && dependencyProbe.selectorName === probe.selectorName ?
+								Promise.resolve(rootSnapshot)
+							:
+								Promise.resolve(dependencyProbe.resolve[dependencyProbe.selectorName]?.(
+									entitySelector,
+									{
+										...resolverContext,
+										publicEnv: resolverPublicEnvBySource.get(dependencyProbe.source) ?? {},
+									}
+								))
+							dependencySnapshotByCoordinate.set(coordinate, dependencySnapshot)
+						}
+
+						return dependencyPart.select(
+							await dependencySnapshot,
+							entitySelector,
+							{
+								...resolverContext,
+								publicEnv: resolverPublicEnvBySource.get(dependencyProbe.source) ?? {},
+							}
+						)
+					},
+				})
+				dependencyValueByAddress.set(address, value)
+
+				return value
 			}
 			const partKey = (kind: 'field' | 'count', part: ResolverPartProbe) => {
 				const key = resolverPartProbeKey(
@@ -399,7 +536,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 								})
 							}
 						},
-						...probe.valueParts.map((part) => (snapshot: ResolverValue) => {
+						...probe.valueParts.map((part) => async (snapshot: ResolverValue) => {
 							const key = partKey('field', part)
 							let value: ResolverValue
 							try {
@@ -417,7 +554,39 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 								})
 							}
 
+							let projectionResolution: ProjectionResolution
 							try {
+								projectionResolution = await resolveFacetConditions({
+									conditionPlan: schemaIndex.projectionDefinitionByEntityTypeAndPath[
+										entityFieldAddressKey(part.entityType, part.facetPath, '')
+									]?.conditionPlan ?? {
+										dependencies: [],
+										predicates: [],
+									},
+									resolveDependency: (facetPath, fieldName) => resolveDependency(snapshot, facetPath, fieldName),
+								})
+							} catch (error) {
+								return finalizeProbeCase({
+									kind: 'field',
+									key,
+									resolveRejected: true,
+									resolveError: error instanceof Error ? error.message : String(error),
+									assertThrew: false,
+								})
+							}
+
+							if (projectionResolution === ProjectionResolution.Blocked || projectionResolution === ProjectionResolution.NotApplicable)
+								return finalizeProbeCase({
+									kind: 'field',
+									key,
+									resolveRejected: false,
+									assertThrew: false,
+								})
+
+							try {
+								if (projectionResolution === ProjectionResolution.Unsupported)
+									throw new Error(`Unsupported conditional facet dependency ${part.entityType}.${part.facetPath.join('.')}`)
+
 								const fieldDefinition = (
 									schemaIndex.entityFieldDefinitionByEntityTypePathAndName[part.entityType][
 										entityFieldAddressKey(
@@ -458,7 +627,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 								})
 							}
 						}),
-						...probe.countParts.map((part) => (snapshot: ResolverValue) => {
+						...probe.countParts.map((part) => async (snapshot: ResolverValue) => {
 							const key = partKey('count', part)
 							let value: number
 							try {
@@ -476,7 +645,39 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 								})
 							}
 
+							let projectionResolution: ProjectionResolution
 							try {
+								projectionResolution = await resolveFacetConditions({
+									conditionPlan: schemaIndex.projectionDefinitionByEntityTypeAndPath[
+										entityFieldAddressKey(part.entityType, part.facetPath, '')
+									]?.conditionPlan ?? {
+										dependencies: [],
+										predicates: [],
+									},
+									resolveDependency: (facetPath, fieldName) => resolveDependency(snapshot, facetPath, fieldName),
+								})
+							} catch (error) {
+								return finalizeProbeCase({
+									kind: 'count',
+									key,
+									resolveRejected: true,
+									resolveError: error instanceof Error ? error.message : String(error),
+									assertThrew: false,
+								})
+							}
+
+							if (projectionResolution === ProjectionResolution.Blocked || projectionResolution === ProjectionResolution.NotApplicable)
+								return finalizeProbeCase({
+									kind: 'count',
+									key,
+									resolveRejected: false,
+									assertThrew: false,
+								})
+
+							try {
+								if (projectionResolution === ProjectionResolution.Unsupported)
+									throw new Error(`Unsupported conditional facet dependency ${part.entityType}.${part.facetPath.join('.')}`)
+
 								const fieldDefinition = (
 									schemaIndex.entityFieldDefinitionByEntityTypePathAndName[part.entityType][
 										entityFieldAddressKey(
@@ -551,8 +752,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 	if (resolveOk === 0 || assertOk === 0)
 		throw new Error(`Resolver probes were vacuous: resolveOk=${resolveOk}, assertOk=${assertOk}`)
-	if (fulfilledButAssertFailed.length > 0)
-		throw new Error(`Resolver materialization failures: ${fulfilledButAssertFailed.map(({ key }) => key).join(', ')}`)
+	assertNoFulfilledButAssertFailed(fulfilledButAssertFailed)
 
 	return {
 		cases,

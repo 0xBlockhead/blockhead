@@ -19,7 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.XUser_Timestamp, {
 		$user: {
-			id: decodeURIComponent(params.userId),
+			id: params.userId,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

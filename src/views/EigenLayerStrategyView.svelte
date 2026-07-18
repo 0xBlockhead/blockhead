@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,13 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerStrategy = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			underlyingToken: true,
 		},
@@ -85,68 +78,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerStrategy}>
-			{#snippet Pending()}
-				{[String((pendingEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer strategy'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategy}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerStrategy}>
-			{#snippet Pending()}
-				{[String((pendingEntity.underlyingToken) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer strategy'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.underlyingToken) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.underlyingToken) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategy}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.underlyingToken) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.strategyAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerStrategy}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={eigenLayerStrategy}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -157,19 +150,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									strategyAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const strategyAddress = pendingEntity.strategyAddress}
-							{#if strategyAddress !== undefined && strategyAddress !== null}
-								<TruncatedValue value={String((strategyAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const strategyAddress = resolvedEntity.strategyAddress}
@@ -184,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							underlyingToken: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const underlyingToken = pendingEntity.underlyingToken}
-					{#if underlyingToken !== undefined && underlyingToken !== null}
-						<div>
-							<dt>underlying token</dt>
-							<dd>
-								{String((underlyingToken) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const underlyingToken = resolvedEntity.underlyingToken}
@@ -219,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$underlyingCoin}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,24 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							strategyKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const strategyKind = pendingEntity.strategyKind}
-					{#if strategyKind !== undefined && strategyKind !== null}
-						<div>
-							<dt>strategy kind</dt>
-							<dd>
-								{String((strategyKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const strategyKind = resolvedEntity.strategyKind}
@@ -305,8 +268,6 @@
 			<ResourceBoundary
 				resource={selection.$strategyContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -350,11 +311,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -362,12 +320,12 @@
 
 				{#snippet SectionEigenlayerStrategyTimestamps({ id, label, open })}
 					<EigenLayerStrategy_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer strategy observations.'
 						open={open}
 						title={label}
@@ -394,11 +352,8 @@
 				}
 				data-card
 				class='network-view-collapsible-stake'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Stake</HeadingComponent>
 					</header>
@@ -406,12 +361,12 @@
 
 				{#snippet SectionEigenlayerStrategyDelegations({ id, label, open })}
 					<EigenLayerDelegation_TimestampsView
-						selection={
-							selection.$$delegations({
-								count: true,
-							})
-						}
+						selection={selection.$$delegations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer delegation observations.'
 						open={open}
 						title={label}
@@ -421,12 +376,12 @@
 
 				{#snippet SectionEigenlayerStrategyAllocations({ id, label, open })}
 					<EigenLayerAllocation_TimestampsView
-						selection={
-							selection.$$allocations({
-								count: true,
-							})
-						}
+						selection={selection.$$allocations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EigenLayer allocation observations.'
 						open={open}
 						title={label}

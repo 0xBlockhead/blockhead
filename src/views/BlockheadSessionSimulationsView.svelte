@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionSimulationView from '$/views/BlockheadSessionSimulationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					createdAt: true,
-					$session: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionSimulation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSessionSimulation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				createdAt: true,
+				$session: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSessionSimulations) => [...new Map(blockheadSessionSimulations.values.map((blockheadSessionSimulation) => [blockheadSessionSimulation[EntityMetaKey.SelectorKey], blockheadSessionSimulation])).values()]}
+	getKey={(blockheadSessionSimulation) => blockheadSessionSimulation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead session simulations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSessionSimulations)}
-			{@const uniqueBlockheadSessionSimulations = [...new Map(blockheadSessionSimulations.values.map((blockheadSessionSimulation) => [blockheadSessionSimulation[EntityMetaKey.SelectorKey], blockheadSessionSimulation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionSimulation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSessionSimulations.totalCount}
-				getKey={(blockheadSessionSimulation) => blockheadSessionSimulation[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSessionSimulations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead session simulations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSessionSimulation })}
-					{@const blockheadSessionSimulationFields = { ...blockheadSessionSimulation[EntityMetaKey.Selector], ...blockheadSessionSimulation }}
-					{@const selection = select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSessionSimulationView
-						selection={selection}
-						prefetched={blockheadSessionSimulationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSessionSimulation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSessionSimulation })}
+		{@const blockheadSessionSimulationFields = { ...blockheadSessionSimulation[EntityMetaKey.Selector], ...blockheadSessionSimulation }}
+		{@const selection = select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSessionSimulationView
+			selection={selection}
+			prefetched={blockheadSessionSimulationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

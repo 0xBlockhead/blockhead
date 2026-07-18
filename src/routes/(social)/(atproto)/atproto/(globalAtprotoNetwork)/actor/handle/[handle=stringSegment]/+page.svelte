@@ -23,20 +23,22 @@
 		sources: [
 			Source.Atproto_Xrpc,
 		],
-		fields: {
-			$icon: true,
-			displayName: true,
-			indexedAt: true,
-			$banner: true,
-			description: true,
-		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.handle) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).handle) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'))
+	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'))
+	const canonicalEntityHref = $derived(pageSelection.entity == null ? undefined : (({ ...pageSelection.entitySelector, ...pageSelection.entity }).did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+		did: encodeURIComponent(String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).did ?? '')),
+	}) : undefined))
+
+	$effect(() => {
+		if (canonicalEntityHref == null) return
+
+		globalThis.location.replace(canonicalEntityHref)
+	})
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -46,12 +48,9 @@
 
 
 <Page>
-	<AtprotoActorView
-		href={
-			resolve('/atproto/actor/handle/[handle=stringSegment]', {
-				handle: params.handle,
-			})
-		}
-		selection={pageSelection}
-	/>
+	<ResourceBoundary resource={pageSelection}>
+		{#snippet children()}
+			<!-- The canonical alias navigation effect owns the resolved state. -->
+		{/snippet}
+	</ResourceBoundary>
 </Page>

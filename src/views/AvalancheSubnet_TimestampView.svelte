@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const avalancheSubnetTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			validatorCount: true,
 			delegatorCount: true,
@@ -69,58 +70,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={avalancheSubnetTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={avalancheSubnetTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={avalancheSubnetTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.validatorCount) ?? ''), String((pendingEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'avalanche subnet timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.validatorCount) ?? ''), String((resolvedEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.validatorCount) ?? ''), String((pendingEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={avalancheSubnetTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.validatorCount) ?? ''), String((resolvedEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={avalancheSubnetTimestamp}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={avalancheSubnetTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -172,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -201,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validatorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validatorCount = pendingEntity.validatorCount}
-					{#if validatorCount !== undefined && validatorCount !== null}
-						<div>
-							<dt>validator count</dt>
-							<dd>
-								<NumberValue value={Number(validatorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validatorCount = resolvedEntity.validatorCount}
@@ -226,7 +204,9 @@
 						<div>
 							<dt>validator count</dt>
 							<dd>
-								<NumberValue value={Number(validatorCount)} />
+								<NumberValue
+									value={validatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -236,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							delegatorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const delegatorCount = pendingEntity.delegatorCount}
-					{#if delegatorCount !== undefined && delegatorCount !== null}
-						<div>
-							<dt>delegator count</dt>
-							<dd>
-								<NumberValue value={Number(delegatorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const delegatorCount = resolvedEntity.delegatorCount}
@@ -261,7 +230,9 @@
 						<div>
 							<dt>delegator count</dt>
 							<dd>
-								<NumberValue value={Number(delegatorCount)} />
+								<NumberValue
+									value={delegatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -271,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalStakeNavax: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalStakeNavax = pendingEntity.totalStakeNavax}
-					{#if totalStakeNavax !== undefined && totalStakeNavax !== null}
-						<div>
-							<dt>total stake navax</dt>
-							<dd>
-								<NumberValue value={Number(totalStakeNavax)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalStakeNavax = resolvedEntity.totalStakeNavax}
@@ -296,7 +256,9 @@
 						<div>
 							<dt>total stake navax</dt>
 							<dd>
-								<NumberValue value={Number(totalStakeNavax)} />
+								<NumberValue
+									value={totalStakeNavax}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -306,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chainCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chainCount = pendingEntity.chainCount}
-					{#if chainCount !== undefined && chainCount !== null}
-						<div>
-							<dt>chain count</dt>
-							<dd>
-								<NumberValue value={Number(chainCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chainCount = resolvedEntity.chainCount}
@@ -331,7 +282,9 @@
 						<div>
 							<dt>chain count</dt>
 							<dd>
-								<NumberValue value={Number(chainCount)} />
+								<NumberValue
+									value={chainCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -341,24 +294,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pendingValidatorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pendingValidatorCount = pendingEntity.pendingValidatorCount}
-					{#if pendingValidatorCount !== undefined && pendingValidatorCount !== null}
-						<div>
-							<dt>pending validator count</dt>
-							<dd>
-								<NumberValue value={Number(pendingValidatorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pendingValidatorCount = resolvedEntity.pendingValidatorCount}
@@ -366,7 +308,9 @@
 						<div>
 							<dt>pending validator count</dt>
 							<dd>
-								<NumberValue value={Number(pendingValidatorCount)} />
+								<NumberValue
+									value={pendingValidatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}

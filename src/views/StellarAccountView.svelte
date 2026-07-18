@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarAccount = $derived(selection({}))
+	const stellarAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar account')
 	const viewDomId = $derived('stellar-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarAccount}>
-			{#snippet Pending()}
-				{title || 'stellar account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountId = pendingEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountId = resolvedEntity.accountId}
@@ -151,11 +147,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -163,12 +156,12 @@
 
 				{#snippet SectionStellarAccountTrustlines({ id, label, open })}
 					<StellarTrustlinesView
-						selection={
-							selection.$$trustlines({
-								count: true,
-							})
-						}
+						selection={selection.$$trustlines}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trustlines.'
 						open={open}
 						title={label}
@@ -178,12 +171,12 @@
 
 				{#snippet SectionStellarAccountOffers({ id, label, open })}
 					<StellarOffersView
-						selection={
-							selection.$$offers({
-								count: true,
-							})
-						}
+						selection={selection.$$offers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No offers.'
 						open={open}
 						title={label}
@@ -193,12 +186,12 @@
 
 				{#snippet SectionStellarAccountTrades({ id, label, open })}
 					<StellarTradesView
-						selection={
-							selection.$$trades({
-								count: true,
-							})
-						}
+						selection={selection.$$trades}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trades.'
 						open={open}
 						title={label}
@@ -225,11 +218,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -237,12 +227,12 @@
 
 				{#snippet SectionStellarAccountTransactions({ id, label, open })}
 					<StellarTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions.'
 						open={open}
 						title={label}
@@ -252,12 +242,12 @@
 
 				{#snippet SectionStellarAccountSigners({ id, label, open })}
 					<StellarAccountSignersView
-						selection={
-							selection.$$signers({
-								count: true,
-							})
-						}
+						selection={selection.$$signers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No signers.'
 						open={open}
 						title={label}
@@ -280,11 +270,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -292,12 +279,12 @@
 
 				{#snippet SectionStellarAccountTimestamps({ id, label, open })}
 					<StellarAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

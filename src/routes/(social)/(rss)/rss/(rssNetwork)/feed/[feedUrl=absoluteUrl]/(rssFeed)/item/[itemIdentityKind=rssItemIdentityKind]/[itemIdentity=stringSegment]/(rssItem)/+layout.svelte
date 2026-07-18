@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,7 +41,10 @@
 			{@const DetailView = RssItemView}
 
 			<DetailView
-				selection={select(EntityType.RssItem, data.selector)}
+				selection={select(EntityType.RssItem, data.selector, { sources: [
+		Source.Rss_Rest,
+		Source.Rss2Json_Rest,
+	] })}
 				href={
 					resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
 						feedUrl: params.feedUrl,

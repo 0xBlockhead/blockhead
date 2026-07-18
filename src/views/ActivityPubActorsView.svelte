@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
@@ -62,88 +61,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					displayName: true,
-					acct: true,
-					username: true,
-					localAccountId: true,
-					instanceOrigin: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ActivityPubActor}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				displayName: true,
+				acct: true,
+				username: true,
+				localAccountId: true,
+				instanceOrigin: true,
+			},
+		})
+	}
+	getResourceItems={(activityPubActors) => [...new Map(activityPubActors.values.map((activityPubActor) => [activityPubActor[EntityMetaKey.SelectorKey], activityPubActor])).values()]}
+	getKey={(activityPubActor) => activityPubActor[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ActivityPub actors yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(activityPubActors)}
-			{@const uniqueActivityPubActors = [...new Map(activityPubActors.values.map((activityPubActor) => [activityPubActor[EntityMetaKey.SelectorKey], activityPubActor])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubActors.totalCount}
-				getKey={(activityPubActor) => activityPubActor[EntityMetaKey.SelectorKey]}
-				items={uniqueActivityPubActors}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ActivityPub actors yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: activityPubActor })}
-					{@const activityPubActorFields = { ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }}
-					{@const selection = select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const activityPubActorHrefFields = { ...activityPubActor, ...activityPubActor[EntityMetaKey.Selector] }}
-					<ActivityPubActorView
-						selection={selection}
-						prefetched={activityPubActorFields}
-						href={
-							(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-								instanceOrigin: String(activityPubActorHrefFields.instanceOrigin ?? ''),
-								localAccountId: String(activityPubActorHrefFields.localAccountId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ActivityPubActor}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: activityPubActor })}
+		{@const activityPubActorFields = { ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }}
+		{@const selection = select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const activityPubActorHrefFields = { ...activityPubActor, ...activityPubActor[EntityMetaKey.Selector] }}
+		<ActivityPubActorView
+			selection={selection}
+			prefetched={activityPubActorFields}
+			href={
+				(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
+					instanceOrigin: encodeURIComponent(String(activityPubActorHrefFields.instanceOrigin ?? '')),
+					localAccountId: String(activityPubActorHrefFields.localAccountId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

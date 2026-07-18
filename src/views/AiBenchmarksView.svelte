@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiBenchmarkView from '$/views/AiBenchmarkView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					taskType: true,
-					benchmarkId: true,
-					benchmarkUri: true,
-					metricName: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiBenchmark}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiBenchmark}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				taskType: true,
+				benchmarkId: true,
+				benchmarkUri: true,
+				metricName: true,
+			},
+		})
+	}
+	getResourceItems={(aiBenchmarks) => [...new Map(aiBenchmarks.values.map((aiBenchmark) => [aiBenchmark[EntityMetaKey.SelectorKey], aiBenchmark])).values()]}
+	getKey={(aiBenchmark) => aiBenchmark[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI benchmarks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiBenchmarks)}
-			{@const uniqueAiBenchmarks = [...new Map(aiBenchmarks.values.map((aiBenchmark) => [aiBenchmark[EntityMetaKey.SelectorKey], aiBenchmark])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiBenchmark}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiBenchmarks.totalCount}
-				getKey={(aiBenchmark) => aiBenchmark[EntityMetaKey.SelectorKey]}
-				items={uniqueAiBenchmarks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI benchmarks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiBenchmark })}
-					{@const aiBenchmarkFields = { ...aiBenchmark[EntityMetaKey.Selector], ...aiBenchmark }}
-					{@const selection = select(EntityType.AiBenchmark, aiBenchmark[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiBenchmarkView
-						selection={selection}
-						prefetched={aiBenchmarkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiBenchmark}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiBenchmark })}
+		{@const aiBenchmarkFields = { ...aiBenchmark[EntityMetaKey.Selector], ...aiBenchmark }}
+		{@const selection = select(EntityType.AiBenchmark, aiBenchmark[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiBenchmarkView
+			selection={selection}
+			prefetched={aiBenchmarkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

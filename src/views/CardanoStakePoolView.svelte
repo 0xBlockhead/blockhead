@@ -42,8 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoStakePool = $derived(selection({}))
-	const titleFallback = $derived('Cardano stake pool')
+	const cardanoStakePool = $derived(selection({
+		sources: selection.sources,
+		fields: {
+			vrfKeyHash: true,
+		},
+	}))
+	const titleFallback = $derived([String((pendingEntity.poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool')
 	const viewDomId = $derived('cardano-stake-pool-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -59,22 +64,43 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.poolId !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+			poolId: String(pendingEntity.poolId ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.poolId !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+			poolId: String(pendingEntity.poolId ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoStakePool}>
-			{#snippet Pending()}
-				{title || 'Cardano stake pool'}
-			{/snippet}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.poolId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoStakePool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.poolId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+	{#snippet Value()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.vrfKeyHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.poolId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoStakePool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.vrfKeyHash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.poolId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									poolId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const poolId = pendingEntity.poolId}
-							{#if poolId !== undefined && poolId !== null}
-								{String((poolId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const poolId = resolvedEntity.poolId}
@@ -130,14 +150,16 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							vrfKeyHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const vrfKeyHash = pendingEntity.vrfKeyHash}
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const vrfKeyHash = resolvedEntity.vrfKeyHash}
 					{#if vrfKeyHash !== undefined && vrfKeyHash !== null}
 						<div>
 							<dt>vrf key hash</dt>
@@ -147,15 +169,100 @@
 						</div>
 					{/if}
 				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							name: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const vrfKeyHash = resolvedEntity.vrfKeyHash}
-					{#if vrfKeyHash !== undefined && vrfKeyHash !== null}
+					{@const name = resolvedEntity.name}
+					{#if name !== undefined && name !== null}
 						<div>
-							<dt>vrf key hash</dt>
+							<dt>name</dt>
 							<dd>
-								<TruncatedValue value={String((vrfKeyHash) ?? '')} />
+								{String((name) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							ticker: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ticker = resolvedEntity.ticker}
+					{#if ticker !== undefined && ticker !== null}
+						<div>
+							<dt>ticker</dt>
+							<dd>
+								{String((ticker) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							description: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const description = resolvedEntity.description}
+					{#if description !== undefined && description !== null}
+						<div>
+							<dt>description</dt>
+							<dd>
+								{String((description) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							homepage: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const homepage = resolvedEntity.homepage}
+					{#if homepage !== undefined && homepage !== null}
+						<div>
+							<dt>homepage</dt>
+							<dd>
+								{String((homepage) ?? '')}
 							</dd>
 						</div>
 					{/if}

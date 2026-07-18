@@ -42,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moneroRing = $derived(selection({
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('monero ring')
 	const viewDomId = $derived('monero-ring-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -68,37 +66,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroRing}>
-			{#snippet Pending()}
-				<MoneroKeyImageView
-					selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<MoneroKeyImageView
-					selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<MoneroKeyImageView
+						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={moneroRing}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<MoneroKeyImageView
+						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroRing}>
-			{#snippet Pending()}
-				{title || 'monero ring'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{titleFallback}
+		{:else}
+			<ResourceBoundary resource={moneroRing}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

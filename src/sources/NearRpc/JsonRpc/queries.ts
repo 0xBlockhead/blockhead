@@ -13,6 +13,7 @@ import type {
 	NearRpcStatus,
 	NearRpcTransactionStatus,
 	NearRpcValidators,
+	NearRpcViewState,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
 export const nearMainnetRpcEndpoints = [
@@ -220,6 +221,29 @@ export const viewAccessKey = ({
 			finality: 'final',
 			account_id: accountId,
 			public_key: publicKey,
+		},
+	})
+)
+
+export const viewState = ({
+	rpcUrl,
+	accountId,
+	prefixBase64,
+	blockHeight,
+}: {
+	rpcUrl: string
+	accountId: string
+	prefixBase64: string
+	blockHeight: number
+}) => (
+	nearJsonRpc<NearRpcViewState>({
+		rpcUrl,
+		method: 'query',
+		params: {
+			request_type: 'view_state',
+			block_id: blockHeight,
+			account_id: accountId,
+			prefix_base64: prefixBase64,
 		},
 	})
 )

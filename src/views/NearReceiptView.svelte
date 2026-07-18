@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearReceipt = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.receiptId) ?? '')].filter(Boolean).join(' ') || 'near receipt')
 	const viewDomId = $derived('near-receipt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -71,128 +69,136 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearReceipt}>
-			{#snippet Pending()}
-				{@const receiptId0 = pendingEntity.receiptId}
-				{#if receiptId0 !== undefined && receiptId0 !== null}
-					<TruncatedValue value={String((receiptId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const receiptId0 = resolvedEntity.receiptId}
-				{#if receiptId0 !== undefined && receiptId0 !== null}
-					<TruncatedValue value={String((receiptId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const receiptId0 = pendingEntity.receiptId}
+					{#if receiptId0 !== undefined && receiptId0 !== null}
+						<TruncatedValue value={String((receiptId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearReceipt}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const receiptId0 = resolvedEntity.receiptId}
+					{#if receiptId0 !== undefined && receiptId0 !== null}
+						<TruncatedValue value={String((receiptId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearReceipt}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={
 						selection.$receiver({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(nearAccount)}
-						{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
-							<NearAccountView
-								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-								prefetched={nearAccount}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
+					>
+						{#snippet children(nearAccount)}
+							{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
+								<NearAccountView
+									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+									prefetched={nearAccount}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={nearReceipt}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
 						selection.$receiver({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(nearAccount)}
-						{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
-							<NearAccountView
-								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-								prefetched={nearAccount}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					>
+						{#snippet children(nearAccount)}
+							{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
+								<NearAccountView
+									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+									prefetched={nearAccount}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearReceipt}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
-						selection.$predecessor({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(nearAccount)}
-						{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<NearAccountView
-									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-									prefetched={nearAccount}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection.$predecessor({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(nearAccount)}
-						{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<NearAccountView
-									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-									prefetched={nearAccount}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={
+					selection.$predecessor({
+						sources: [
+							Source.NearRpc_JsonRpc,
+						],
+					})
+				}
+			>
+				{#snippet children(nearAccount)}
+					{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<NearAccountView
+								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+								prefetched={nearAccount}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={nearReceipt}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
+							selection.$predecessor({
+								sources: [
+									Source.NearRpc_JsonRpc,
+								],
+							})
+						}
+					>
+						{#snippet children(nearAccount)}
+							{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<NearAccountView
+										selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+										prefetched={nearAccount}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -221,19 +227,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									receiptId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const receiptId = pendingEntity.receiptId}
-							{#if receiptId !== undefined && receiptId !== null}
-								<TruncatedValue value={String((receiptId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const receiptId = resolvedEntity.receiptId}
@@ -254,8 +254,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,8 +280,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null && nearAccount[EntityMetaKey.Selector] != null}
 						<div>

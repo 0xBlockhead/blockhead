@@ -24,12 +24,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$link: {
-			fullname: decodeURIComponent(params.fullname),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$link: {
+				fullname: decodeURIComponent(params.fullname),
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			score: true,
 			commentCount: true,

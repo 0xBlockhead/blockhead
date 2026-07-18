@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandApplication_TimestampView from '$/views/AlgorandApplication_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplication_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandApplication_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandApplicationTimestamps) => [...new Map(algorandApplicationTimestamps.values.map((algorandApplicationTimestamp) => [algorandApplicationTimestamp[EntityMetaKey.SelectorKey], algorandApplicationTimestamp])).values()]}
+	getKey={(algorandApplicationTimestamp) => algorandApplicationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand application observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandApplicationTimestamps)}
-			{@const uniqueAlgorandApplicationTimestamps = [...new Map(algorandApplicationTimestamps.values.map((algorandApplicationTimestamp) => [algorandApplicationTimestamp[EntityMetaKey.SelectorKey], algorandApplicationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplication_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandApplicationTimestamps.totalCount}
-				getKey={(algorandApplicationTimestamp) => algorandApplicationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandApplicationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand application observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandApplicationTimestamp })}
-					{@const algorandApplicationTimestampFields = { ...algorandApplicationTimestamp[EntityMetaKey.Selector], ...algorandApplicationTimestamp }}
-					{@const selection = select(EntityType.AlgorandApplication_Timestamp, algorandApplicationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandApplication_TimestampView
-						selection={selection}
-						prefetched={algorandApplicationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandApplication_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandApplicationTimestamp })}
+		{@const algorandApplicationTimestampFields = { ...algorandApplicationTimestamp[EntityMetaKey.Selector], ...algorandApplicationTimestamp }}
+		{@const selection = select(EntityType.AlgorandApplication_Timestamp, algorandApplicationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandApplication_TimestampView
+			selection={selection}
+			prefetched={algorandApplicationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

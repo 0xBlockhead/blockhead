@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiRegulatedCoinStateTimestamp = $derived(selection({}))
+	const suiRegulatedCoinStateTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui regulated coin state timestamp')
 	const viewDomId = $derived('sui-regulated-coin-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiRegulatedCoinStateTimestamp}>
-			{#snippet Pending()}
-				{title || 'Sui regulated coin state timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiRegulatedCoinStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							denyCapObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const denyCapObjectId = pendingEntity.denyCapObjectId}
-					{#if denyCapObjectId !== undefined && denyCapObjectId !== null}
-						<div>
-							<dt>deny cap object ID</dt>
-							<dd>
-								{String((denyCapObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const denyCapObjectId = resolvedEntity.denyCapObjectId}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							denyListObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const denyListObjectId = pendingEntity.denyListObjectId}
-					{#if denyListObjectId !== undefined && denyListObjectId !== null}
-						<div>
-							<dt>deny list object ID</dt>
-							<dd>
-								{String((denyListObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const denyListObjectId = resolvedEntity.denyListObjectId}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							globalPause: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const globalPause = pendingEntity.globalPause}
-					{#if globalPause !== undefined && globalPause !== null}
-						<div>
-							<dt>global pause</dt>
-							<dd>
-								{globalPause ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const globalPause = resolvedEntity.globalPause}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							denyListEpoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const denyListEpoch = pendingEntity.denyListEpoch}
-					{#if denyListEpoch !== undefined && denyListEpoch !== null}
-						<div>
-							<dt>deny list epoch</dt>
-							<dd>
-								{String((denyListEpoch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const denyListEpoch = resolvedEntity.denyListEpoch}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deniedAddressCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deniedAddressCount = pendingEntity.deniedAddressCount}
-					{#if deniedAddressCount !== undefined && deniedAddressCount !== null}
-						<div>
-							<dt>denied address count</dt>
-							<dd>
-								<TruncatedValue value={String((deniedAddressCount) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deniedAddressCount = resolvedEntity.deniedAddressCount}

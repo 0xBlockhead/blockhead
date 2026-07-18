@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IssuerPowerView from '$/views/IssuerPowerView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IssuerPower}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IssuerPower}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(issuerPowers) => [...new Map(issuerPowers.values.map((issuerPower) => [issuerPower[EntityMetaKey.SelectorKey], issuerPower])).values()]}
+	getKey={(issuerPower) => issuerPower[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Issuer powers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(issuerPowers)}
-			{@const uniqueIssuerPowers = [...new Map(issuerPowers.values.map((issuerPower) => [issuerPower[EntityMetaKey.SelectorKey], issuerPower])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IssuerPower}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={issuerPowers.totalCount}
-				getKey={(issuerPower) => issuerPower[EntityMetaKey.SelectorKey]}
-				items={uniqueIssuerPowers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Issuer powers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: issuerPower })}
-					{@const issuerPowerFields = { ...issuerPower[EntityMetaKey.Selector], ...issuerPower }}
-					{@const selection = select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IssuerPowerView
-						selection={selection}
-						prefetched={issuerPowerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IssuerPower}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: issuerPower })}
+		{@const issuerPowerFields = { ...issuerPower[EntityMetaKey.Selector], ...issuerPower }}
+		{@const selection = select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IssuerPowerView
+			selection={selection}
+			prefetched={issuerPowerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

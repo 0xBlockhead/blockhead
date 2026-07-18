@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaAcceptedTransactionView from '$/views/KaspaAcceptedTransactionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAcceptedTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaAcceptedTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(kaspaAcceptedTransactions) => [...new Map(kaspaAcceptedTransactions.values.map((kaspaAcceptedTransaction) => [kaspaAcceptedTransaction[EntityMetaKey.SelectorKey], kaspaAcceptedTransaction])).values()]}
+	getKey={(kaspaAcceptedTransaction) => kaspaAcceptedTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa accepted transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaAcceptedTransactions)}
-			{@const uniqueKaspaAcceptedTransactions = [...new Map(kaspaAcceptedTransactions.values.map((kaspaAcceptedTransaction) => [kaspaAcceptedTransaction[EntityMetaKey.SelectorKey], kaspaAcceptedTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAcceptedTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaAcceptedTransactions.totalCount}
-				getKey={(kaspaAcceptedTransaction) => kaspaAcceptedTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaAcceptedTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa accepted transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaAcceptedTransaction })}
-					{@const kaspaAcceptedTransactionFields = { ...kaspaAcceptedTransaction[EntityMetaKey.Selector], ...kaspaAcceptedTransaction }}
-					{@const selection = select(EntityType.KaspaAcceptedTransaction, kaspaAcceptedTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaAcceptedTransactionView
-						selection={selection}
-						prefetched={kaspaAcceptedTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaAcceptedTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaAcceptedTransaction })}
+		{@const kaspaAcceptedTransactionFields = { ...kaspaAcceptedTransaction[EntityMetaKey.Selector], ...kaspaAcceptedTransaction }}
+		{@const selection = select(EntityType.KaspaAcceptedTransaction, kaspaAcceptedTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaAcceptedTransactionView
+			selection={selection}
+			prefetched={kaspaAcceptedTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

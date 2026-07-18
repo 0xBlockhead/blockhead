@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$address: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$address: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			balanceSats: true,
 			transactionCount: true,

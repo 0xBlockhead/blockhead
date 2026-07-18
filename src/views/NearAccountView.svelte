@@ -44,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearAccount = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-			Source.NearBlocks_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			amountYoctoNear: true,
 		},
@@ -77,74 +74,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearAccount}>
-			{#snippet Pending()}
-				{[String((pendingEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || 'near account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearAccount}>
-			{#snippet Pending()}
-				{@const amountYoctoNear0 = pendingEntity.amountYoctoNear}
-				{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
-					<NumberValue value={Number(amountYoctoNear0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amountYoctoNear0 = resolvedEntity.amountYoctoNear}
-				{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
-					<NumberValue value={Number(amountYoctoNear0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amountYoctoNear0 = pendingEntity.amountYoctoNear}
+					{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
+						<NumberValue
+							value={amountYoctoNear0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amountYoctoNear0 = resolvedEntity.amountYoctoNear}
+					{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
+						<NumberValue
+							value={amountYoctoNear0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearAccount}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={nearAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -173,19 +174,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountId = pendingEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountId = resolvedEntity.accountId}
@@ -200,28 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-							Source.NearBlocks_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							amountYoctoNear: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountYoctoNear = pendingEntity.amountYoctoNear}
-					{#if amountYoctoNear !== undefined && amountYoctoNear !== null}
-						<div>
-							<dt>Amount yocto near</dt>
-							<dd>
-								<NumberValue value={Number(amountYoctoNear)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountYoctoNear = resolvedEntity.amountYoctoNear}
@@ -229,7 +209,9 @@
 						<div>
 							<dt>Amount yocto near</dt>
 							<dd>
-								<NumberValue value={Number(amountYoctoNear)} />
+								<NumberValue
+									value={amountYoctoNear}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -239,27 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							storageUsageBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const storageUsageBytes = pendingEntity.storageUsageBytes}
-					{#if storageUsageBytes !== undefined && storageUsageBytes !== null}
-						<div>
-							<dt>Storage usage bytes</dt>
-							<dd>
-								<NumberValue value={Number(storageUsageBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const storageUsageBytes = resolvedEntity.storageUsageBytes}
@@ -267,7 +235,9 @@
 						<div>
 							<dt>Storage usage bytes</dt>
 							<dd>
-								<NumberValue value={Number(storageUsageBytes)} />
+								<NumberValue
+									value={storageUsageBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -283,8 +253,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nearContract)}
 					{#if nearContract != null && nearContract[EntityMetaKey.Selector] != null}
 						<div>

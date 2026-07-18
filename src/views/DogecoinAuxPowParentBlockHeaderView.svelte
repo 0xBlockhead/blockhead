@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dogecoinAuxPowParentBlockHeader = $derived(selection({
-		sources: [
-			Source.DogecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			merkleRoot: true,
 		},
@@ -72,37 +69,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
-			{#snippet Pending()}
-				<DogecoinBlockAuxPowView
-					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<DogecoinBlockAuxPowView
-					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<DogecoinBlockAuxPowView
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<DogecoinBlockAuxPowView
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
-			{#snippet Pending()}
-				{[String((pendingEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow parent block header'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,24 +118,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hash = resolvedEntity.hash}
@@ -156,24 +142,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							merkleRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const merkleRoot = pendingEntity.merkleRoot}
-					{#if merkleRoot !== undefined && merkleRoot !== null}
-						<div>
-							<dt>Merkle root</dt>
-							<dd>
-								{String((merkleRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const merkleRoot = resolvedEntity.merkleRoot}
@@ -191,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								<NumberValue value={Number(nonce)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonce = resolvedEntity.nonce}
@@ -216,7 +180,9 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								<NumberValue value={Number(nonce)} />
+								<NumberValue
+									value={nonce}
+								/>
 							</dd>
 						</div>
 					{/if}

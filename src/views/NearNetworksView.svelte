@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearNetworkView from '$/views/NearNetworkView.svelte'
 </script>
@@ -62,82 +61,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					slug: true,
-					environment: true,
-					namespace: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Constants_Internal,
+			],
+			fields: {
+				name: true,
+				slug: true,
+				environment: true,
+				namespace: true,
+			},
+		})
+	}
+	getResourceItems={(nearNetworks) => [...new Map(nearNetworks.values.map((nearNetwork) => [nearNetwork[EntityMetaKey.SelectorKey], nearNetwork])).values()]}
+	getKey={(nearNetwork) => nearNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearNetworks)}
-			{@const uniqueNearNetworks = [...new Map(nearNetworks.values.map((nearNetwork) => [nearNetwork[EntityMetaKey.SelectorKey], nearNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearNetworks.totalCount}
-				getKey={(nearNetwork) => nearNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueNearNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearNetwork })}
-					{@const nearNetworkFields = { ...nearNetwork[EntityMetaKey.Selector], ...nearNetwork }}
-					{@const selection = select(EntityType.NearNetwork, nearNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearNetworkView
-						selection={selection}
-						prefetched={nearNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearNetwork })}
+		{@const nearNetworkFields = { ...nearNetwork[EntityMetaKey.Selector], ...nearNetwork }}
+		{@const selection = select(EntityType.NearNetwork, nearNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearNetworkView
+			selection={selection}
+			prefetched={nearNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

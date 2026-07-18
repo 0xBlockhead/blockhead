@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoConstitution_EpochView from '$/views/CardanoConstitution_EpochView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoConstitution_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoConstitution_Epoch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoConstitutionEpochs) => [...new Map(cardanoConstitutionEpochs.values.map((cardanoConstitutionEpoch) => [cardanoConstitutionEpoch[EntityMetaKey.SelectorKey], cardanoConstitutionEpoch])).values()]}
+	getKey={(cardanoConstitutionEpoch) => cardanoConstitutionEpoch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano constitution epochs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoConstitutionEpochs)}
-			{@const uniqueCardanoConstitutionEpochs = [...new Map(cardanoConstitutionEpochs.values.map((cardanoConstitutionEpoch) => [cardanoConstitutionEpoch[EntityMetaKey.SelectorKey], cardanoConstitutionEpoch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoConstitution_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoConstitutionEpochs.totalCount}
-				getKey={(cardanoConstitutionEpoch) => cardanoConstitutionEpoch[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoConstitutionEpochs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano constitution epochs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoConstitutionEpoch })}
-					{@const cardanoConstitutionEpochFields = { ...cardanoConstitutionEpoch[EntityMetaKey.Selector], ...cardanoConstitutionEpoch }}
-					{@const selection = select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoConstitution_EpochView
-						selection={selection}
-						prefetched={cardanoConstitutionEpochFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoConstitution_Epoch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoConstitutionEpoch })}
+		{@const cardanoConstitutionEpochFields = { ...cardanoConstitutionEpoch[EntityMetaKey.Selector], ...cardanoConstitutionEpoch }}
+		{@const selection = select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoConstitution_EpochView
+			selection={selection}
+			prefetched={cardanoConstitutionEpochFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

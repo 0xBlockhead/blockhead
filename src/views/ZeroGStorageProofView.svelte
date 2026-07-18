@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGStorageProof = $derived(selection({
-		sources: [
-			Source.ZeroGStorageScan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			proofKind: true,
 		},
@@ -73,60 +70,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGStorageProof}>
-			{#snippet Pending()}
-				{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || 'zero g storage proof'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGStorageProof}>
-			{#snippet Pending()}
-				<ZeroGStorageNodeView
-					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ZeroGStorageNodeView
-					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ZeroGStorageNodeView
+						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ZeroGStorageNodeView
+						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGStorageProof}>
-			{#snippet Pending()}
-				{@const proofKind0 = pendingEntity.proofKind}
-				{#if proofKind0 !== undefined && proofKind0 !== null}
-					<span data-text="muted">
-						{String((proofKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const proofKind0 = resolvedEntity.proofKind}
-				{#if proofKind0 !== undefined && proofKind0 !== null}
-					<span data-text="muted">
-						{String((proofKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const proofKind0 = pendingEntity.proofKind}
+			{#if proofKind0 !== undefined && proofKind0 !== null}
+				<span data-text="muted">
+					{String((proofKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zeroGStorageProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const proofKind0 = resolvedEntity.proofKind}
+					{#if proofKind0 !== undefined && proofKind0 !== null}
+						<span data-text="muted">
+							{String((proofKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									proofId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const proofId = pendingEntity.proofId}
-							{#if proofId !== undefined && proofId !== null}
-								{String((proofId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const proofId = resolvedEntity.proofId}
@@ -175,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proofKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proofKind = pendingEntity.proofKind}
-					{#if proofKind !== undefined && proofKind !== null}
-						<div>
-							<dt>proof kind</dt>
-							<dd>
-								{String((proofKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proofKind = resolvedEntity.proofKind}
@@ -210,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifiedAtBlock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifiedAtBlock = pendingEntity.verifiedAtBlock}
-					{#if verifiedAtBlock !== undefined && verifiedAtBlock !== null}
-						<div>
-							<dt>verified AT block</dt>
-							<dd>
-								<NumberValue value={Number(verifiedAtBlock)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifiedAtBlock = resolvedEntity.verifiedAtBlock}
@@ -235,7 +204,9 @@
 						<div>
 							<dt>verified AT block</dt>
 							<dd>
-								<NumberValue value={Number(verifiedAtBlock)} />
+								<NumberValue
+									value={verifiedAtBlock}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -245,8 +216,6 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -267,8 +236,6 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>

@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadRadiclePeer = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			connectionKind: true,
 			remoteAlias: true,
@@ -73,52 +70,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadRadiclePeer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRadiclePeer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadRadiclePeer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRadiclePeer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadRadiclePeer}>
-			{#snippet Pending()}
-				{@const remoteAlias0 = pendingEntity.remoteAlias}
-				{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
-					<span data-text="muted">
-						{String((remoteAlias0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const remoteAlias0 = resolvedEntity.remoteAlias}
-				{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
-					<span data-text="muted">
-						{String((remoteAlias0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const remoteAlias0 = pendingEntity.remoteAlias}
+			{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
+				<span data-text="muted">
+					{String((remoteAlias0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadRadiclePeer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const remoteAlias0 = resolvedEntity.remoteAlias}
+					{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
+						<span data-text="muted">
+							{String((remoteAlias0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									peerNodeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const peerNodeId = pendingEntity.peerNodeId}
-							{#if peerNodeId !== undefined && peerNodeId !== null}
-								{String((peerNodeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const peerNodeId = resolvedEntity.peerNodeId}
@@ -167,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							connectionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const connectionKind = pendingEntity.connectionKind}
-					{#if connectionKind !== undefined && connectionKind !== null}
-						<div>
-							<dt>connection kind</dt>
-							<dd>
-								{String((connectionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const connectionKind = resolvedEntity.connectionKind}
@@ -205,19 +185,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									addresses: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const addresses = pendingEntity.addresses}
-							{#if addresses !== undefined && addresses !== null}
-								<TruncatedValue value={addresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const addresses = resolvedEntity.addresses}
@@ -232,24 +206,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSeenMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSeenMs = pendingEntity.lastSeenMs}
-					{#if lastSeenMs !== undefined && lastSeenMs !== null}
-						<div>
-							<dt>last seen ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSeenMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSeenMs = resolvedEntity.lastSeenMs}
@@ -267,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							remoteAlias: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const remoteAlias = pendingEntity.remoteAlias}
-					{#if remoteAlias !== undefined && remoteAlias !== null}
-						<div>
-							<dt>remote alias</dt>
-							<dd>
-								{String((remoteAlias) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const remoteAlias = resolvedEntity.remoteAlias}
@@ -302,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							remoteDid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const remoteDid = pendingEntity.remoteDid}
-					{#if remoteDid !== undefined && remoteDid !== null}
-						<div>
-							<dt>remote DID</dt>
-							<dd>
-								{String((remoteDid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const remoteDid = resolvedEntity.remoteDid}

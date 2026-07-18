@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearContract = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			codeHash: true,
 			codeSizeBytes: true,
@@ -75,58 +72,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearContract}>
-			{#snippet Pending()}
-				{[String((pendingEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || 'near contract'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.accountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearContract}>
-			{#snippet Pending()}
-				{@const codeHash0 = pendingEntity.codeHash}
-				{#if codeHash0 !== undefined && codeHash0 !== null}
-					<TruncatedValue value={String((codeHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const codeHash0 = resolvedEntity.codeHash}
-				{#if codeHash0 !== undefined && codeHash0 !== null}
-					<TruncatedValue value={String((codeHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const codeHash0 = pendingEntity.codeHash}
+					{#if codeHash0 !== undefined && codeHash0 !== null}
+						<TruncatedValue value={String((codeHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const codeHash0 = resolvedEntity.codeHash}
+					{#if codeHash0 !== undefined && codeHash0 !== null}
+						<TruncatedValue value={String((codeHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearContract}>
-			{#snippet Pending()}
-				{@const codeSizeBytes0 = pendingEntity.codeSizeBytes}
-				{#if codeSizeBytes0 !== undefined && codeSizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(codeSizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const codeSizeBytes0 = resolvedEntity.codeSizeBytes}
-				{#if codeSizeBytes0 !== undefined && codeSizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(codeSizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const codeSizeBytes0 = pendingEntity.codeSizeBytes}
+			{#if codeSizeBytes0 !== undefined && codeSizeBytes0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={codeSizeBytes0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nearContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const codeSizeBytes0 = resolvedEntity.codeSizeBytes}
+					{#if codeSizeBytes0 !== undefined && codeSizeBytes0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={codeSizeBytes0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,19 +156,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountId = pendingEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountId = resolvedEntity.accountId}
@@ -182,27 +177,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							codeHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const codeHash = pendingEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
-						<div>
-							<dt>Code hash</dt>
-							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const codeHash = resolvedEntity.codeHash}
@@ -220,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							codeSizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const codeSizeBytes = pendingEntity.codeSizeBytes}
-					{#if codeSizeBytes !== undefined && codeSizeBytes !== null}
-						<div>
-							<dt>Code size bytes</dt>
-							<dd>
-								<NumberValue value={Number(codeSizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const codeSizeBytes = resolvedEntity.codeSizeBytes}
@@ -245,7 +215,9 @@
 						<div>
 							<dt>Code size bytes</dt>
 							<dd>
-								<NumberValue value={Number(codeSizeBytes)} />
+								<NumberValue
+									value={codeSizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}

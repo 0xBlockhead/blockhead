@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosEvent = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			eventType: true,
 		},
@@ -69,29 +70,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosEvent}>
-			{#snippet Pending()}
-				{[String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosEvent}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transactionVersion) ?? ''), String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transactionVersion) ?? ''), String((resolvedEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transactionVersion) ?? ''), String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transactionVersion) ?? ''), String((resolvedEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventType = pendingEntity.eventType}
-							{#if eventType !== undefined && eventType !== null}
-								{String((eventType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventType = resolvedEntity.eventType}
@@ -163,24 +158,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionVersion: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionVersion = pendingEntity.transactionVersion}
-							{#if transactionVersion !== undefined && transactionVersion !== null}
-								<NumberValue value={Number(transactionVersion)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionVersion = resolvedEntity.transactionVersion}
 							{#if transactionVersion !== undefined && transactionVersion !== null}
-								<NumberValue value={Number(transactionVersion)} />
+								<NumberValue
+									value={transactionVersion}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -193,24 +184,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventIndex = pendingEntity.eventIndex}
-							{#if eventIndex !== undefined && eventIndex !== null}
-								<NumberValue value={Number(eventIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventIndex = resolvedEntity.eventIndex}
 							{#if eventIndex !== undefined && eventIndex !== null}
-								<NumberValue value={Number(eventIndex)} />
+								<NumberValue
+									value={eventIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -225,19 +212,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountAddress = pendingEntity.accountAddress}
-							{#if accountAddress !== undefined && accountAddress !== null}
-								<TruncatedValue value={String((accountAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountAddress = resolvedEntity.accountAddress}
@@ -255,24 +236,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									creationNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const creationNumber = pendingEntity.creationNumber}
-							{#if creationNumber !== undefined && creationNumber !== null}
-								<NumberValue value={Number(creationNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const creationNumber = resolvedEntity.creationNumber}
 							{#if creationNumber !== undefined && creationNumber !== null}
-								<NumberValue value={Number(creationNumber)} />
+								<NumberValue
+									value={creationNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -285,24 +262,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sequenceNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sequenceNumber = pendingEntity.sequenceNumber}
-							{#if sequenceNumber !== undefined && sequenceNumber !== null}
-								<NumberValue value={Number(sequenceNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sequenceNumber = resolvedEntity.sequenceNumber}
 							{#if sequenceNumber !== undefined && sequenceNumber !== null}
-								<NumberValue value={Number(sequenceNumber)} />
+								<NumberValue
+									value={sequenceNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

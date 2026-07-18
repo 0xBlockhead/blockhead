@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashBcmrMetadata = $derived(selection({
-		sources: [
-			Source.BitcoinCashBcmr_Github,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			symbol: true,
@@ -76,52 +73,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin cash bcmr metadata'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
-			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin cash bcmr metadata'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
-			{#snippet Pending()}
-				{@const decimals0 = pendingEntity.decimals}
-				{#if decimals0 !== undefined && decimals0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(decimals0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const decimals0 = resolvedEntity.decimals}
-				{#if decimals0 !== undefined && decimals0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(decimals0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const decimals0 = pendingEntity.decimals}
+			{#if decimals0 !== undefined && decimals0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={decimals0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const decimals0 = resolvedEntity.decimals}
+					{#if decimals0 !== undefined && decimals0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={decimals0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									categoryId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const categoryId = pendingEntity.categoryId}
-							{#if categoryId !== undefined && categoryId !== null}
-								<TruncatedValue value={String((categoryId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const categoryId = resolvedEntity.categoryId}
@@ -180,26 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									registryUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const registryUrl = pendingEntity.registryUrl}
-							{#if registryUrl !== undefined && registryUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(registryUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(registryUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const registryUrl = resolvedEntity.registryUrl}
@@ -223,27 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.BitcoinCashBcmr_Github,
-						],
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -261,27 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.BitcoinCashBcmr_Github,
-						],
+						sources: selection.sources,
 						fields: {
 							symbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const symbol = pendingEntity.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const symbol = resolvedEntity.symbol}
@@ -299,27 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.BitcoinCashBcmr_Github,
-						],
+						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decimals = pendingEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								<NumberValue value={Number(decimals)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decimals = resolvedEntity.decimals}
@@ -327,7 +267,9 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								<NumberValue value={Number(decimals)} />
+								<NumberValue
+									value={decimals}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -337,27 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.BitcoinCashBcmr_Github,
-						],
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}

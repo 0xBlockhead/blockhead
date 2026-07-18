@@ -8,6 +8,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import BlockheadSessionCreateControl from '$/components/BlockheadSessionCreateControl.svelte'
 
 
 	// Context
@@ -50,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 </script>
@@ -62,85 +62,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					status: true,
-					id: true,
-					updatedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSession}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				status: true,
+				id: true,
+				updatedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSessions) => [...new Map(blockheadSessions.values.map((blockheadSession) => [blockheadSession[EntityMetaKey.SelectorKey], blockheadSession])).values()]}
+	getKey={(blockheadSession) => blockheadSession[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sessions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSessions)}
-			{@const uniqueBlockheadSessions = [...new Map(blockheadSessions.values.map((blockheadSession) => [blockheadSession[EntityMetaKey.SelectorKey], blockheadSession])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSessions.totalCount}
-				getKey={(blockheadSession) => blockheadSession[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSessions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sessions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSession })}
-					{@const blockheadSessionFields = { ...blockheadSession[EntityMetaKey.Selector], ...blockheadSession }}
-					{@const selection = select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadSessionHrefFields = { ...blockheadSession, ...blockheadSession[EntityMetaKey.Selector] }}
-					<BlockheadSessionView
-						selection={selection}
-						prefetched={blockheadSessionFields}
-						href={
-							(blockheadSessionHrefFields.id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
-								sessionId: String(blockheadSessionHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSession}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSession })}
+		{@const blockheadSessionFields = { ...blockheadSession[EntityMetaKey.Selector], ...blockheadSession }}
+		{@const selection = select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadSessionHrefFields = { ...blockheadSession, ...blockheadSession[EntityMetaKey.Selector] }}
+		<BlockheadSessionView
+			selection={selection}
+			prefetched={blockheadSessionFields}
+			href={
+				(blockheadSessionHrefFields.id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+					sessionId: String(blockheadSessionHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

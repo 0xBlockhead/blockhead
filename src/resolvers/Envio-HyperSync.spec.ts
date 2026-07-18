@@ -185,7 +185,7 @@ describe('Envio HyperSync resolver', () => {
 	it('maps the approved EVM block fields and transaction selectors', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockPage))
 		const resolver = envioHyperSync.resolvers[0]
-		const block = await resolver.resolve[EvmBlockSelector.EvmNetworkBlockNumber]({
+		const block = await resolver.resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
 			$network: network,
 			blockNumber: 19_000_000n,
 		}, context)
@@ -219,7 +219,7 @@ describe('Envio HyperSync resolver', () => {
 	})
 
 	it('rejects unsupported networks before transport', async () => {
-		await expect(envioHyperSync.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber]({
+		await expect(envioHyperSync.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
 			$network: {
 				caip2: {
 					namespace: 'eip155',

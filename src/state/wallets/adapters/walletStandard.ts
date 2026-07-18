@@ -49,7 +49,6 @@ export const createWalletStandardAdapter = (): WalletAdapter => ({
 		scopes: [],
 		accounts: [],
 		selected: false,
-		connectedAt: Date.now(),
 		error: 'Wallet Standard discovery is available, but connection is not implemented yet.',
 	}),
 	disconnect: () => {},

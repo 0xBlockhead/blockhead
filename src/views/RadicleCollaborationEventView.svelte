@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleCollaborationEvent = $derived(selection({}))
+	const radicleCollaborationEvent = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle collaboration event')
 	const viewDomId = $derived('radicle-collaboration-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radicleCollaborationEvent}>
-			{#snippet Pending()}
-				{title || 'radicle collaboration event'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radicleCollaborationEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventId = pendingEntity.eventId}
-							{#if eventId !== undefined && eventId !== null}
-								{String((eventId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventId = resolvedEntity.eventId}
@@ -126,19 +122,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventKind = pendingEntity.eventKind}
-							{#if eventKind !== undefined && eventKind !== null}
-								{String((eventKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventKind = resolvedEntity.eventKind}
@@ -153,24 +143,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorDid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorDid = pendingEntity.authorDid}
-					{#if authorDid !== undefined && authorDid !== null}
-						<div>
-							<dt>author DID</dt>
-							<dd>
-								{String((authorDid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorDid = resolvedEntity.authorDid}
@@ -188,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payloadHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payloadHash = pendingEntity.payloadHash}
-					{#if payloadHash !== undefined && payloadHash !== null}
-						<div>
-							<dt>payload hash</dt>
-							<dd>
-								<TruncatedValue value={String((payloadHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payloadHash = resolvedEntity.payloadHash}
@@ -223,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payloadObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payloadObjectId = pendingEntity.payloadObjectId}
-					{#if payloadObjectId !== undefined && payloadObjectId !== null}
-						<div>
-							<dt>payload object ID</dt>
-							<dd>
-								{String((payloadObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payloadObjectId = resolvedEntity.payloadObjectId}
@@ -258,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -293,8 +239,6 @@
 			<ResourceBoundary
 				resource={selection.$gitCommit}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>
@@ -315,8 +259,6 @@
 			<ResourceBoundary
 				resource={selection.$payloadObject}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -340,19 +282,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									verificationStatus: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const verificationStatus = pendingEntity.verificationStatus}
-							{#if verificationStatus !== undefined && verificationStatus !== null}
-								{String((verificationStatus) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const verificationStatus = resolvedEntity.verificationStatus}

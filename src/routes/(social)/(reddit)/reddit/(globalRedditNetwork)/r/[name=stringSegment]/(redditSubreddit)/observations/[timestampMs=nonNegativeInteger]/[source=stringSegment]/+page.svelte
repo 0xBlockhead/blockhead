@@ -24,12 +24,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$subreddit: {
-			name: decodeURIComponent(params.name),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$subreddit: {
+				name: decodeURIComponent(params.name),
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			subscriberCount: true,
 			activeUserCount: true,

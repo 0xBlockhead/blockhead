@@ -50,6 +50,7 @@ vi.mock('$/sources/index.server.ts', () => ({
 		['header', {
 			serverCredentialId: 'header',
 			endpoints: [{
+				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
 				origin: 'https://api.example.test',
 			}],
@@ -57,6 +58,7 @@ vi.mock('$/sources/index.server.ts', () => ({
 		['query', {
 			serverCredentialId: 'query',
 			endpoints: [{
+				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
 				origin: 'https://api.example.test',
 			}],
@@ -64,12 +66,31 @@ vi.mock('$/sources/index.server.ts', () => ({
 		['template', {
 			serverCredentialId: 'template',
 			endpoints: [{
+				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/tenant/{token}/v1',
 				origin: 'https://api.example.test',
 			}],
 		}],
+		['fallback', {
+			endpoints: [
+				{
+					endpointKind: 'HttpUrl',
+					locator: 'https://primary.example.test/v1',
+					origin: 'https://primary.example.test',
+				},
+				{
+					endpointKind: 'HttpUrl',
+					locator: 'https://fallback.example.test/api',
+					origin: 'https://fallback.example.test',
+				},
+			],
+		}],
 	]),
-	httpProxyOrigins: new Set(['https://api.example.test']),
+	httpProxyOrigins: new Set([
+		'https://api.example.test',
+		'https://primary.example.test',
+		'https://fallback.example.test',
+	]),
 }))
 
 import { proxySourceHttpRequest } from '$/sources/_runtime/proxy.server.ts'
@@ -142,6 +163,38 @@ describe('runtime secret proxy', () => {
 
 		expect(String(event.fetch.mock.calls[0]?.[0]))
 			.toBe('https://api.example.test/tenant/template%2Fsecret/v1/blocks')
+	})
+
+	it('fails over transient failures within one credential-free binding', async () => {
+		const { event } = proxyEvent(
+			'fallback',
+			0,
+			'https://primary.example.test/v1/blocks?height=latest'
+		)
+		event.request = new Request(event.url, {
+			method: 'POST',
+			body: '{"jsonrpc":"2.0"}',
+		})
+		event.fetch
+			.mockResolvedValueOnce(new Response('upstream unavailable', { status: 502 }))
+			.mockResolvedValueOnce(new Response('{"result":"0x1"}', {
+				status: 200,
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+
+		const response = await proxySourceHttpRequest(event)
+
+		expect(response.status).toBe(200)
+		expect(await response.text()).toBe('{"result":"0x1"}')
+		expect(event.fetch).toHaveBeenCalledTimes(2)
+		expect(String(event.fetch.mock.calls[1]?.[0]))
+			.toBe('https://fallback.example.test/api/blocks?height=latest')
+		expect(new TextDecoder().decode(event.fetch.mock.calls[1]?.[1]?.body as ArrayBuffer))
+			.toBe('{"jsonrpc":"2.0"}')
+		expect(event.fetch.mock.calls[0]?.[1]?.signal)
+			.toBeInstanceOf(AbortSignal)
 	})
 
 	it.each([

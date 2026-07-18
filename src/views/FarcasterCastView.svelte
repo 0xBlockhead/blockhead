@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,11 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterCast = $derived(selection({
-		sources: [
-			Source.Snapchain_Rest,
-			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			text: true,
 			timestamp: true,
@@ -89,52 +84,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterCast}>
-			{#snippet Pending()}
-				{[String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterCast}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterCast}>
-			{#snippet Pending()}
-				{[String((pendingEntity.fid) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.fid) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.text) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.fid) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterCast}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fid) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.text) ?? ''), String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={farcasterCast}>
-			{#snippet Pending()}
-				{@const timestamp0 = pendingEntity.timestamp}
-				{#if timestamp0 !== undefined && timestamp0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestamp0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestamp0 = resolvedEntity.timestamp}
-				{#if timestamp0 !== undefined && timestamp0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestamp0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestamp0 = pendingEntity.timestamp}
+			{#if timestamp0 !== undefined && timestamp0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestamp0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterCast}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestamp0 = resolvedEntity.timestamp}
+					{#if timestamp0 !== undefined && timestamp0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestamp0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,8 +137,6 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
 						<div>
@@ -171,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestamp = pendingEntity.timestamp}
-					{#if timestamp !== undefined && timestamp !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestamp = resolvedEntity.timestamp}
@@ -208,8 +190,6 @@
 			<ResourceBoundary
 				resource={selection.$channel}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(farcasterChannel)}
 					{#if farcasterChannel != null && farcasterChannel[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,8 +217,6 @@
 			<ResourceBoundary
 				resource={selection.$parentCast}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
 						<div>
@@ -270,31 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							parentUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parentUrl = pendingEntity.parentUrl}
-					{#if parentUrl !== undefined && parentUrl !== null}
-						<div>
-							<dt>Parent URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(parentUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(parentUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parentUrl = resolvedEntity.parentUrl}
@@ -321,24 +281,46 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
+						fields: {
+							rootParentUrl: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const rootParentUrl = resolvedEntity.rootParentUrl}
+					{#if rootParentUrl !== undefined && rootParentUrl !== null}
+						<div>
+							<dt>Root parent URL</dt>
+							<dd>
+								<svelte:element
+									this={'a'}
+									href={String(rootParentUrl)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(rootParentUrl)} />
+								</svelte:element>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
 						fields: {
 							threadHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const threadHash = pendingEntity.threadHash}
-					{#if threadHash !== undefined && threadHash !== null}
-						<div>
-							<dt>Thread hash</dt>
-							<dd>
-								<TruncatedValue value={String((threadHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const threadHash = resolvedEntity.threadHash}
@@ -358,31 +340,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clientUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clientUrl = pendingEntity.clientUrl}
-					{#if clientUrl !== undefined && clientUrl !== null}
-						<div>
-							<dt>Client URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(clientUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(clientUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clientUrl = resolvedEntity.clientUrl}
@@ -408,6 +372,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						text: true,
 					},

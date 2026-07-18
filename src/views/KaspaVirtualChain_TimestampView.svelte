@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaVirtualChainTimestamp = $derived(selection({
-		sources: [
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa virtual chain timestamp')
 	const viewDomId = $derived('kaspa-virtual-chain-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -71,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaVirtualChainTimestamp}>
-			{#snippet Pending()}
-				{title || 'kaspa virtual chain timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaVirtualChainTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									startHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const startHash = pendingEntity.startHash}
-							{#if startHash !== undefined && startHash !== null}
-								<TruncatedValue value={String((startHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const startHash = resolvedEntity.startHash}
@@ -132,19 +122,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -162,19 +146,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -189,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minConfirmationCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minConfirmationCount = pendingEntity.minConfirmationCount}
-					{#if minConfirmationCount !== undefined && minConfirmationCount !== null}
-						<div>
-							<dt>min confirmation count</dt>
-							<dd>
-								<NumberValue value={Number(minConfirmationCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minConfirmationCount = resolvedEntity.minConfirmationCount}
@@ -214,7 +181,9 @@
 						<div>
 							<dt>min confirmation count</dt>
 							<dd>
-								<NumberValue value={Number(minConfirmationCount)} />
+								<NumberValue
+									value={minConfirmationCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -227,19 +196,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									addedChainBlockHashes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const addedChainBlockHashes = pendingEntity.addedChainBlockHashes}
-							{#if addedChainBlockHashes !== undefined && addedChainBlockHashes !== null}
-								<TruncatedValue value={addedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const addedChainBlockHashes = resolvedEntity.addedChainBlockHashes}
@@ -259,19 +222,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									removedChainBlockHashes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const removedChainBlockHashes = pendingEntity.removedChainBlockHashes}
-							{#if removedChainBlockHashes !== undefined && removedChainBlockHashes !== null}
-								<TruncatedValue value={removedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const removedChainBlockHashes = resolvedEntity.removedChainBlockHashes}
@@ -286,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							acceptedTransactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const acceptedTransactionCount = pendingEntity.acceptedTransactionCount}
-					{#if acceptedTransactionCount !== undefined && acceptedTransactionCount !== null}
-						<div>
-							<dt>accepted transaction count</dt>
-							<dd>
-								<NumberValue value={Number(acceptedTransactionCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const acceptedTransactionCount = resolvedEntity.acceptedTransactionCount}
@@ -311,7 +257,9 @@
 						<div>
 							<dt>accepted transaction count</dt>
 							<dd>
-								<NumberValue value={Number(acceptedTransactionCount)} />
+								<NumberValue
+									value={acceptedTransactionCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -321,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextCheckpointHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextCheckpointHash = pendingEntity.nextCheckpointHash}
-					{#if nextCheckpointHash !== undefined && nextCheckpointHash !== null}
-						<div>
-							<dt>next checkpoint hash</dt>
-							<dd>
-								<TruncatedValue value={String((nextCheckpointHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextCheckpointHash = resolvedEntity.nextCheckpointHash}

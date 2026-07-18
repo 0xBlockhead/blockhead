@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosEntrypoint = $derived(selection({}))
+	const tezosEntrypoint = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos entrypoint')
 	const viewDomId = $derived('tezos-entrypoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosEntrypoint}>
-			{#snippet Pending()}
-				{title || 'tezos entrypoint'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosEntrypoint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									entrypointName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const entrypointName = pendingEntity.entrypointName}
-							{#if entrypointName !== undefined && entrypointName !== null}
-								{String((entrypointName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const entrypointName = resolvedEntity.entrypointName}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									annotations: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const annotations = pendingEntity.annotations}
-							{#if annotations !== undefined && annotations !== null}
-								{annotations.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const annotations = resolvedEntity.annotations}

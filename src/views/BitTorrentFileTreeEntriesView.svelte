@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentFileTreeEntryView from '$/views/BitTorrentFileTreeEntryView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					path: true,
-					entryKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentFileTreeEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentFileTreeEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				path: true,
+				entryKind: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentFileTreeEntries) => [...new Map(bitTorrentFileTreeEntries.values.map((bitTorrentFileTreeEntry) => [bitTorrentFileTreeEntry[EntityMetaKey.SelectorKey], bitTorrentFileTreeEntry])).values()]}
+	getKey={(bitTorrentFileTreeEntry) => bitTorrentFileTreeEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent file tree entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentFileTreeEntries)}
-			{@const uniqueBitTorrentFileTreeEntries = [...new Map(bitTorrentFileTreeEntries.values.map((bitTorrentFileTreeEntry) => [bitTorrentFileTreeEntry[EntityMetaKey.SelectorKey], bitTorrentFileTreeEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentFileTreeEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentFileTreeEntries.totalCount}
-				getKey={(bitTorrentFileTreeEntry) => bitTorrentFileTreeEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentFileTreeEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent file tree entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentFileTreeEntry })}
-					{@const bitTorrentFileTreeEntryFields = { ...bitTorrentFileTreeEntry[EntityMetaKey.Selector], ...bitTorrentFileTreeEntry }}
-					{@const selection = select(EntityType.BitTorrentFileTreeEntry, bitTorrentFileTreeEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentFileTreeEntryView
-						selection={selection}
-						prefetched={bitTorrentFileTreeEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentFileTreeEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentFileTreeEntry })}
+		{@const bitTorrentFileTreeEntryFields = { ...bitTorrentFileTreeEntry[EntityMetaKey.Selector], ...bitTorrentFileTreeEntry }}
+		{@const selection = select(EntityType.BitTorrentFileTreeEntry, bitTorrentFileTreeEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentFileTreeEntryView
+			selection={selection}
+			prefetched={bitTorrentFileTreeEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

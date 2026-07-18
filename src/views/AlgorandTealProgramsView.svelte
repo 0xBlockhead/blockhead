@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandTealProgramView from '$/views/AlgorandTealProgramView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					programHash: true,
-					programKind: true,
-					tealVersion: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTealProgram}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandTealProgram}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				programHash: true,
+				programKind: true,
+				tealVersion: true,
+			},
+		})
+	}
+	getResourceItems={(algorandTealPrograms) => [...new Map(algorandTealPrograms.values.map((algorandTealProgram) => [algorandTealProgram[EntityMetaKey.SelectorKey], algorandTealProgram])).values()]}
+	getKey={(algorandTealProgram) => algorandTealProgram[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand teal programs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandTealPrograms)}
-			{@const uniqueAlgorandTealPrograms = [...new Map(algorandTealPrograms.values.map((algorandTealProgram) => [algorandTealProgram[EntityMetaKey.SelectorKey], algorandTealProgram])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTealProgram}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandTealPrograms.totalCount}
-				getKey={(algorandTealProgram) => algorandTealProgram[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandTealPrograms}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand teal programs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandTealProgram })}
-					{@const algorandTealProgramFields = { ...algorandTealProgram[EntityMetaKey.Selector], ...algorandTealProgram }}
-					{@const selection = select(EntityType.AlgorandTealProgram, algorandTealProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandTealProgramView
-						selection={selection}
-						prefetched={algorandTealProgramFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandTealProgram}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandTealProgram })}
+		{@const algorandTealProgramFields = { ...algorandTealProgram[EntityMetaKey.Selector], ...algorandTealProgram }}
+		{@const selection = select(EntityType.AlgorandTealProgram, algorandTealProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandTealProgramView
+			selection={selection}
+			prefetched={algorandTealProgramFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -1,0 +1,111 @@
+import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { Network_Activity_DaySelector, OptimisticProviderResult } from '$/schema/Network_Activity_Day.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { getActivityDay } from '$/sources/SpaceAndTime/MakeInfinite/queries.ts'
+
+const millisecondsPerUtcDay = 86_400_000
+const binding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => candidate.source === Source.SpaceAndTime_MakeInfinite)
+
+if (binding == null)
+	throw new Error('SpaceAndTime_MakeInfinite: source binding is missing')
+
+export const resolveNetworkActivityDay = async ({
+	binding,
+	network,
+	dayStartTimestampMs,
+	nowMs = Date.now(),
+}: {
+	binding: SourceBinding
+	network: {
+		caip2: {
+			namespace: string
+			reference: string
+		}
+	}
+	dayStartTimestampMs: number
+	nowMs?: number
+}) => {
+	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== '1')
+		throw new Error(`SpaceAndTime_MakeInfinite: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`)
+	if (!Number.isSafeInteger(dayStartTimestampMs) || dayStartTimestampMs < 0 || dayStartTimestampMs % millisecondsPerUtcDay !== 0)
+		throw new Error(`SpaceAndTime_MakeInfinite: invalid UTC day ${dayStartTimestampMs}`)
+
+	const dayEndTimestampMs = dayStartTimestampMs + millisecondsPerUtcDay
+	if (dayEndTimestampMs > Math.floor(nowMs / millisecondsPerUtcDay) * millisecondsPerUtcDay)
+		throw new Error('SpaceAndTime_MakeInfinite: incomplete UTC day')
+
+	const aggregate = await getActivityDay({
+		binding,
+		dayStartTimestampMs,
+	})
+	if (aggregate == null)
+		return undefined
+	if (aggregate.indexedThroughTimestampMs < dayEndTimestampMs)
+		throw new Error('SpaceAndTime_MakeInfinite: stale indexed cursor')
+
+	return {
+		$network: network,
+		dayStartTimestampMs,
+		source: Source.SpaceAndTime_MakeInfinite,
+		...aggregate,
+		resolvedAtMs: nowMs,
+		trustModel: OptimisticProviderResult.OptimisticProviderResult,
+	}
+}
+
+export default {
+	source: Source.SpaceAndTime_MakeInfinite,
+
+	resolvers: [
+		defineResolver(Source.SpaceAndTime_MakeInfinite, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: {
+					resolve: async (network) => [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							dayStartTimestampMs: Math.floor(Date.now() / millisecondsPerUtcDay) * millisecondsPerUtcDay - millisecondsPerUtcDay,
+							source: Source.SpaceAndTime_MakeInfinite,
+						},
+					}],
+				},
+			},
+		})({
+			Evm: {
+				$$activityDays: (activityDays) => activityDays,
+			},
+		}),
+
+		defineResolver(Source.SpaceAndTime_MakeInfinite, {
+			entityType: EntityType.Network_Activity_Day,
+			resolve: {
+				[Network_Activity_DaySelector.NetworkDayStartTimestampMsSource]: {
+					resolve: async ({ $network, dayStartTimestampMs, source }) => {
+						if (source !== Source.SpaceAndTime_MakeInfinite)
+							throw new Error(`SpaceAndTime_MakeInfinite: unsupported source ${source}`)
+
+						return resolveNetworkActivityDay({
+							binding,
+							network: $network,
+							dayStartTimestampMs,
+						})
+					},
+				},
+			},
+		})({
+			blockCount: (activityDay) => activityDay?.blockCount,
+			transactionCount: (activityDay) => activityDay?.transactionCount,
+			endBlockNumber: (activityDay) => activityDay?.endBlockNumber,
+			indexedThroughTimestampMs: (activityDay) => activityDay?.indexedThroughTimestampMs,
+			resolvedAtMs: (activityDay) => activityDay?.resolvedAtMs,
+			trustModel: (activityDay) => activityDay?.trustModel,
+		}),
+	],
+}

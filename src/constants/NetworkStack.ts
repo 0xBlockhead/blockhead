@@ -22,6 +22,7 @@ export enum NetworkStackId {
 	Litecoin = 'Litecoin',
 	Dogecoin = 'Dogecoin',
 	BitcoinCash = 'BitcoinCash',
+	Cardano = 'Cardano',
 	Tron = 'Tron',
 	Tezos = 'Tezos',
 	ZeroG = 'ZeroG',
@@ -114,6 +115,10 @@ const networkStacks = [
 	{
 		networkStackId: NetworkStackId.BitcoinCash,
 		label: 'Bitcoin Cash',
+	},
+	{
+		networkStackId: NetworkStackId.Cardano,
+		label: 'Cardano',
 	},
 	{
 		networkStackId: NetworkStackId.Tron,

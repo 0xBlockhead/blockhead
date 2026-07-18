@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonJettonView from '$/views/TonJettonView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonJetton}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonJetton}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonJettons) => [...new Map(tonJettons.values.map((tonJetton) => [tonJetton[EntityMetaKey.SelectorKey], tonJetton])).values()]}
+	getKey={(tonJetton) => tonJetton[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON jettons yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonJettons)}
-			{@const uniqueTonJettons = [...new Map(tonJettons.values.map((tonJetton) => [tonJetton[EntityMetaKey.SelectorKey], tonJetton])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonJetton}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonJettons.totalCount}
-				getKey={(tonJetton) => tonJetton[EntityMetaKey.SelectorKey]}
-				items={uniqueTonJettons}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON jettons yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonJetton })}
-					{@const tonJettonFields = { ...tonJetton[EntityMetaKey.Selector], ...tonJetton }}
-					{@const selection = select(EntityType.TonJetton, tonJetton[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonJettonView
-						selection={selection}
-						prefetched={tonJettonFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonJetton}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonJetton })}
+		{@const tonJettonFields = { ...tonJetton[EntityMetaKey.Selector], ...tonJetton }}
+		{@const selection = select(EntityType.TonJetton, tonJetton[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonJettonView
+			selection={selection}
+			prefetched={tonJettonFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -1,0 +1,35 @@
+{
+	"ledger_hash": "EC02890710AAA2B71221D74DE9B3B7A4E67E7A3A77B47D342E82D0B3B1E69456",
+	"ledger_index": 93412781,
+	"state": [
+		{
+			"index": "ACCOUNT_ROOT_HASH",
+			"LedgerEntryType": "AccountRoot",
+			"Account": "rExampleAccount"
+		},
+		{
+			"index": "TRUSTLINE_HASH",
+			"LedgerEntryType": "RippleState",
+			"PreviousTxnID": "PREVIOUS_TRANSACTION_HASH",
+			"PreviousTxnLgrSeq": 93412780,
+			"fields": {
+				"Balance": "100"
+			}
+		},
+		{
+			"index": "AMM_HASH",
+			"LedgerEntryType": "AMM",
+			"Account": "rExampleAmm",
+			"Asset": {
+				"currency": "USD",
+				"issuer": "rExampleIssuer"
+			},
+			"Asset2": {
+				"currency": "XRP"
+			},
+			"LPTokenBalance": {
+				"currency": "03C4B0B8E8D5A5F0"
+			}
+		}
+	]
+}

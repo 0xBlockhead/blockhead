@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpToolCallView from '$/views/AcpToolCallView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					toolCallId: true,
-					toolName: true,
-					serverName: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpToolCall}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpToolCall}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				toolCallId: true,
+				toolName: true,
+				serverName: true,
+			},
+		})
+	}
+	getResourceItems={(acpToolCalls) => [...new Map(acpToolCalls.values.map((acpToolCall) => [acpToolCall[EntityMetaKey.SelectorKey], acpToolCall])).values()]}
+	getKey={(acpToolCall) => acpToolCall[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP tool calls yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpToolCalls)}
-			{@const uniqueAcpToolCalls = [...new Map(acpToolCalls.values.map((acpToolCall) => [acpToolCall[EntityMetaKey.SelectorKey], acpToolCall])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpToolCall}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpToolCalls.totalCount}
-				getKey={(acpToolCall) => acpToolCall[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpToolCalls}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP tool calls yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpToolCall })}
-					{@const acpToolCallFields = { ...acpToolCall[EntityMetaKey.Selector], ...acpToolCall }}
-					{@const selection = select(EntityType.AcpToolCall, acpToolCall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpToolCallView
-						selection={selection}
-						prefetched={acpToolCallFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpToolCall}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpToolCall })}
+		{@const acpToolCallFields = { ...acpToolCall[EntityMetaKey.Selector], ...acpToolCall }}
+		{@const selection = select(EntityType.AcpToolCall, acpToolCall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpToolCallView
+			selection={selection}
+			prefetched={acpToolCallFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

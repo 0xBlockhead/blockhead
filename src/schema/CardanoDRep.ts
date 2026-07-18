@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoDRepSelector {
@@ -32,18 +33,45 @@ export const CardanoDRep = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	anchorUrl: {
+		label: 'anchor URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	anchorHash: {
+		label: 'anchor hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoDRep_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$votes: {
 		label: 'votes',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

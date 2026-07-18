@@ -92,33 +92,35 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					const {
-						getBlock,
-					} = await import('$/sources/Esplora/Rest/queries.ts')
-					const block = await getBlock({
-						restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
-						blockHash: hash,
-					})
-					return {
-						hash: block.id,
-						...(block.previousblockhash != null && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: BigInt(block.height - 1),
-									hash: block.previousblockhash,
+				[UtxoBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, hash }) => {
+						const {
+							getBlock,
+						} = await import('$/sources/Esplora/Rest/queries.ts')
+						const block = await getBlock({
+							restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
+							blockHash: hash,
+						})
+						return {
+							hash: block.id,
+							...(block.previousblockhash != null && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(block.height - 1),
+										hash: block.previousblockhash,
+									},
 								},
-							},
-						}),
-						timestampMs: block.timestamp * 1000,
-						merkleRoot: block.merkle_root,
-						nonce: block.nonce,
-						difficulty: block.difficulty,
-						sizeBytes: block.size,
-						weightUnits: block.weight,
-						transactionCount: block.tx_count,
-					}
+							}),
+							timestampMs: block.timestamp * 1000,
+							merkleRoot: block.merkle_root,
+							nonce: block.nonce,
+							difficulty: block.difficulty,
+							sizeBytes: block.size,
+							weightUnits: block.weight,
+							transactionCount: block.tx_count,
+						}
+					},
 				}
 			},
 		})({
@@ -136,32 +138,34 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-					const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
-					const transaction = await getTransaction({
-						restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
-						txId: txId,
-					})
-					return {
-						...(transaction.status.block_height != null && transaction.status.block_hash != null && {
-							$block: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: BigInt(transaction.status.block_height),
-									hash: transaction.status.block_hash,
+				[UtxoTransactionSelector.NetworkTxId]: {
+					resolve: async ({ $network, txId }) => {
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const transaction = await getTransaction({
+							restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
+							txId: txId,
+						})
+						return {
+							...(transaction.status.block_height != null && transaction.status.block_hash != null && {
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(transaction.status.block_height),
+										hash: transaction.status.block_hash,
+									},
 								},
-							},
-						}),
-						version: transaction.version,
-						lockTime: transaction.locktime,
-						sizeBytes: transaction.size,
-						weightUnits: transaction.weight,
-						virtualSizeBytes: Math.ceil(transaction.weight / 4),
-						...(transaction.fee != null && {
-							feeSats: BigInt(transaction.fee),
-						}),
-						isCoinbase: transaction.vin.some((input) => input.is_coinbase),
-					}
+							}),
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							weightUnits: transaction.weight,
+							virtualSizeBytes: Math.ceil(transaction.weight / 4),
+							...(transaction.fee != null && {
+								feeSats: BigInt(transaction.fee),
+							}),
+							isCoinbase: transaction.vin.some((input) => input.is_coinbase),
+						}
+					},
 				}
 			},
 		})({
@@ -178,22 +182,24 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
-				[ElementsAssetSelector.ElementsNetworkAssetId]: async ({ $network, assetId }) => {
-					if (
-						!('slug' in $network)
-						|| $network.slug !== 'liquid'
-					)
-					throw new Error('Esplora_Rest: unsupported Elements network')
+				[ElementsAssetSelector.ElementsNetworkAssetId]: {
+					resolve: async ({ $network, assetId }) => {
+						if (
+							!('slug' in $network)
+							|| $network.slug !== 'liquid'
+						)
+						throw new Error('Esplora_Rest: unsupported Elements network')
 
-					const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
-					const asset = await getAsset({
-						restBaseUrl: await liquidEsploraRestBaseUrl(),
-						assetId: assetId,
-					})
-					if (asset.asset_id !== assetId)
-						throw new Error(`Esplora_Rest: asset id mismatch for ${assetId}`)
+						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
+						const asset = await getAsset({
+							restBaseUrl: await liquidEsploraRestBaseUrl(),
+							assetId: assetId,
+						})
+						if (asset.asset_id !== assetId)
+							throw new Error(`Esplora_Rest: asset id mismatch for ${assetId}`)
 
-					return elementsAssetFieldsFromWire(asset)
+						return elementsAssetFieldsFromWire(asset)
+					},
 				}
 			},
 		})({
@@ -208,15 +214,17 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
-				[ElementsAssetSelector.ElementsNetworkAssetId]: async (entitySelector) => [
-					{
-						[EntityMetaKey.Selector]: {
-							$asset: entitySelector,
-							timestampMs: Date.now(),
-							source: Source.Esplora_Rest,
+				[ElementsAssetSelector.ElementsNetworkAssetId]: {
+					resolve: async (entitySelector) => [
+						{
+							[EntityMetaKey.Selector]: {
+								$asset: entitySelector,
+								timestampMs: Date.now(),
+								source: Source.Esplora_Rest,
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		})({
 				$$timestamps: (snapshot) => snapshot,
@@ -225,24 +233,26 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset_Timestamp,
 			resolve: {
-				[ElementsAsset_TimestampSelector.AssetTimestampMsSource]: async ({ $asset }) => {
-					if (
-						!('$network' in $asset)
-						|| !('$network' in $asset.$network)
-						|| !('slug' in $asset.$network.$network)
-						|| $asset.$network.$network.slug !== 'liquid'
-					)
-						throw new Error('Esplora_Rest: unsupported Elements network')
+				[ElementsAsset_TimestampSelector.AssetTimestampMsSource]: {
+					resolve: async ({ $asset }) => {
+						if (
+							!('$network' in $asset)
+							|| !('$network' in $asset.$network)
+							|| !('slug' in $asset.$network.$network)
+							|| $asset.$network.$network.slug !== 'liquid'
+						)
+							throw new Error('Esplora_Rest: unsupported Elements network')
 
-					const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
-					const asset = await getAsset({
-						restBaseUrl: await liquidEsploraRestBaseUrl(),
-						assetId: $asset.assetId,
-					})
-					if (asset.asset_id !== $asset.assetId)
-						throw new Error(`Esplora_Rest: asset id mismatch for ${$asset.assetId}`)
+						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
+						const asset = await getAsset({
+							restBaseUrl: await liquidEsploraRestBaseUrl(),
+							assetId: $asset.assetId,
+						})
+						if (asset.asset_id !== $asset.assetId)
+							throw new Error(`Esplora_Rest: asset id mismatch for ${$asset.assetId}`)
 
-					return elementsAssetTimestampFieldsFromWire(asset)
+						return elementsAssetTimestampFieldsFromWire(asset)
+					},
 				},
 			},
 		})({
@@ -254,20 +264,22 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async ({ $network }) => {
-					if (
-						!('slug' in $network)
-						|| $network.slug !== 'liquid'
-					)
-						throw new Error('Esplora_Rest: unsupported Elements network')
+				[ElementsNetworkSelector.Network]: {
+					resolve: async ({ $network }) => {
+						if (
+							!('slug' in $network)
+							|| $network.slug !== 'liquid'
+						)
+							throw new Error('Esplora_Rest: unsupported Elements network')
 
-					const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
-					const asset = await getAsset({
-						restBaseUrl: await liquidEsploraRestBaseUrl(),
-						assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
-					})
+						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
+						const asset = await getAsset({
+							restBaseUrl: await liquidEsploraRestBaseUrl(),
+							assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
+						})
 
-					return elementsAssetRowFromWire(asset)
+						return elementsAssetRowFromWire(asset)
+					},
 				}
 			},
 		})({
@@ -279,19 +291,21 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async ({ $network }, context) => {
-					if (
-						!('slug' in $network)
-						|| $network.slug !== 'liquid'
-					)
-					throw new Error('Esplora_Rest: unsupported Elements network')
+				[ElementsNetworkSelector.Network]: {
+					resolve: async ({ $network }, context) => {
+						if (
+							!('slug' in $network)
+							|| $network.slug !== 'liquid'
+						)
+						throw new Error('Esplora_Rest: unsupported Elements network')
 
-					const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
-					return (await listRegistryAssets({
-						restBaseUrl: await liquidEsploraRestBaseUrl(),
-					}))
-						.slice(0, resolverContextRowLimit(context))
-						.map((asset) => elementsAssetRowFromWire(asset))
+						const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
+						return (await listRegistryAssets({
+							restBaseUrl: await liquidEsploraRestBaseUrl(),
+						}))
+							.slice(0, resolverContextRowLimit(context))
+							.map((asset) => elementsAssetRowFromWire(asset))
+					},
 				}
 			},
 		})({

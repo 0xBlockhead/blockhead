@@ -21,12 +21,12 @@
 		$route: {
 			fromChainId: Number(params.fromChainId),
 			toChainId: Number(params.toChainId),
-			fromToken: decodeURIComponent(params.fromToken),
-			toToken: decodeURIComponent(params.toToken),
+			fromToken: params.fromToken,
+			toToken: params.toToken,
 			fromAmount: BigInt(params.fromAmount),
-			fromAddress: decodeURIComponent(params.fromAddress),
+			fromAddress: params.fromAddress,
 			slippage: Number(params.slippage),
-			toAddress: decodeURIComponent(params.toAddress),
+			toAddress: params.toAddress,
 		},
 		indexInRoute: Number(params.stepIndex),
 	}, {

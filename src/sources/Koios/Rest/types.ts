@@ -1,3 +1,1 @@
-import type { CardanoKoiosJson } from '$/sources/CardanoKoios/Rest/types.ts'
-
-export type KoiosJson = CardanoKoiosJson
+export type { CardanoKoiosTip as KoiosTip } from '$/sources/CardanoKoios/Rest/types.ts'

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrRelayView from '$/views/NostrRelayView.svelte'
 </script>
@@ -63,85 +62,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					relayUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrRelay}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrRelay}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Constants_Internal,
+			],
+			fields: {
+				relayUrl: true,
+			},
+		})
+	}
+	getResourceItems={(nostrRelays) => [...new Map(nostrRelays.values.map((nostrRelay) => [nostrRelay[EntityMetaKey.SelectorKey], nostrRelay])).values()]}
+	getKey={(nostrRelay) => nostrRelay[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr relays yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrRelays)}
-			{@const uniqueNostrRelays = [...new Map(nostrRelays.values.map((nostrRelay) => [nostrRelay[EntityMetaKey.SelectorKey], nostrRelay])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrRelay}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrRelays.totalCount}
-				getKey={(nostrRelay) => nostrRelay[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrRelays}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr relays yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrRelay })}
-					{@const nostrRelayFields = { ...nostrRelay[EntityMetaKey.Selector], ...nostrRelay }}
-					{@const selection = select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const nostrRelayHrefFields = { ...nostrRelay, ...nostrRelay[EntityMetaKey.Selector] }}
-					<NostrRelayView
-						selection={selection}
-						prefetched={nostrRelayFields}
-						href={
-							(nostrRelayHrefFields.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
-								relayKey: String(nostrRelayHrefFields.relayUrl ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrRelay}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrRelay })}
+		{@const nostrRelayFields = { ...nostrRelay[EntityMetaKey.Selector], ...nostrRelay }}
+		{@const selection = select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const nostrRelayHrefFields = { ...nostrRelay, ...nostrRelay[EntityMetaKey.Selector] }}
+		<NostrRelayView
+			selection={selection}
+			prefetched={nostrRelayFields}
+			href={
+				(nostrRelayHrefFields.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
+					relayKey: encodeURIComponent(String(nostrRelayHrefFields.relayUrl ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

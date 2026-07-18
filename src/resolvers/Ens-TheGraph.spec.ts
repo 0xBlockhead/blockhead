@@ -6,14 +6,18 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 import { EnsNameSelector } from '$/schema/EnsName.ts'
+import { EnsName_TimestampSelector } from '$/schema/EnsName_Timestamp.ts'
 import { EnsRecordSelector } from '$/schema/EnsRecord.ts'
 import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
 import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
+import { _GlobalEnsNetwork_TimestampSelector } from '$/schema/_GlobalEnsNetwork_Timestamp.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const getName = vi.fn()
 const getDomainsByOwner = vi.fn()
 const getDomainsContaining = vi.fn()
+const getEnsSubgraphReachability = vi.fn()
 
 vi.mock('@tevm/voltaire/Ens', () => ({
 	normalize: (name: string) => name,
@@ -24,6 +28,7 @@ vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 	getName,
 	getDomainsByOwner,
 	getDomainsContaining,
+	getEnsSubgraphReachability,
 }))
 
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
@@ -31,6 +36,16 @@ const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph
 const ensNameResolver = ensTheGraphResolvers.resolvers.find((
 	resolver
 ) => resolver.entityType === EntityType.EnsName)
+
+const globalEnsNetworkTimestampResolver = ensTheGraphResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof ensTheGraphResolvers.resolvers[number],
+	{ entityType: EntityType._GlobalEnsNetwork_Timestamp }
+> => resolver.entityType === EntityType._GlobalEnsNetwork_Timestamp)
+
+if (globalEnsNetworkTimestampResolver == null)
+	throw new Error('Ens-TheGraph spec missing _GlobalEnsNetwork_Timestamp resolver')
 
 const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 	resolver
@@ -43,6 +58,16 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 
 if (ensNameResolver == null)
 	throw new Error('Ens-TheGraph spec missing EnsName resolver')
+
+const ensNameTimestampResolver = ensTheGraphResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof ensTheGraphResolvers.resolvers[number],
+	{ entityType: EntityType.EnsName_Timestamp }
+> => resolver.entityType === EntityType.EnsName_Timestamp)
+
+if (ensNameTimestampResolver == null)
+	throw new Error('Ens-TheGraph spec missing EnsName_Timestamp resolver')
 
 if (ensNamesOwnedResolver == null)
 	throw new Error('Ens-TheGraph spec missing EvmAccount $$ensNamesOwned resolver')
@@ -126,7 +151,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver).toBeDefined()
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
-		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
+		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName].resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext
 		)
@@ -201,7 +226,7 @@ describe('Ens-TheGraph entity resolver', () => {
 			owner: null,
 		}])
 
-		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
+		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName].resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext
 		)
@@ -213,10 +238,146 @@ describe('Ens-TheGraph entity resolver', () => {
 	})
 })
 
+describe('Ens-TheGraph global observation resolver', () => {
+	it('materializes a reachable observation from the typed subgraph operation', async () => {
+		getEnsSubgraphReachability.mockResolvedValueOnce(true)
+
+		await expect(
+			globalEnsNetworkTimestampResolver.resolve[
+				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+			].resolve(
+				{
+					$hub: {
+						scope: '_GlobalEnsNetwork',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				resolverContext
+			)
+		).resolves.toEqual({
+			$hub: {
+				[EntityMetaKey.Selector]: {
+					scope: '_GlobalEnsNetwork',
+				},
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.TheGraph_Graphql,
+			reachable: true,
+		})
+	})
+
+	it('records an unreachable observation when the provider operation fails', async () => {
+		getEnsSubgraphReachability.mockRejectedValueOnce(new Error('provider unavailable'))
+
+		await expect(
+			globalEnsNetworkTimestampResolver.resolve[
+				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+			].resolve(
+				{
+					$hub: {
+						scope: '_GlobalEnsNetwork',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				resolverContext
+			)
+		).resolves.toMatchObject({
+			reachable: false,
+		})
+	})
+
+	it('rejects foreign source selectors before provider access', async () => {
+		vi.clearAllMocks()
+
+		await expect(
+			globalEnsNetworkTimestampResolver.resolve[
+				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+			].resolve(
+				{
+					$hub: {
+						scope: '_GlobalEnsNetwork',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				resolverContext
+			)
+		).rejects.toThrow('source mismatch')
+
+		expect(getEnsSubgraphReachability).not.toHaveBeenCalled()
+	})
+})
+
+describe('Ens-TheGraph ENS name observation resolver', () => {
+	it('materializes source-backed observation fields under the requested selector identity', async () => {
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+
+		await expect(
+			ensNameTimestampResolver.resolve[
+				EnsName_TimestampSelector.NameTimestampMsSource
+			].resolve(
+				{
+					$name: {
+						name: 'vitalik.eth',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				resolverContext
+			)
+		).resolves.toMatchObject({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.TheGraph_Graphql,
+			$resolvedActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
+			},
+			$ownerActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0x000000000000000000000000000000000000dead',
+				},
+			},
+			subdomainCount: 1,
+			resolverTextKeys: ['url'],
+			resolverCoinTypes: ['60'],
+			ttl: 300n,
+			isMigrated: true,
+		})
+	})
+
+	it('rejects selectors owned by another source before querying the subgraph', async () => {
+		vi.clearAllMocks()
+
+		await expect(
+			ensNameTimestampResolver.resolve[
+				EnsName_TimestampSelector.NameTimestampMsSource
+			].resolve(
+				{
+					$name: {
+						name: 'vitalik.eth',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
+				resolverContext
+			)
+		).rejects.toThrow('selector source mismatch')
+		expect(getName).not.toHaveBeenCalled()
+	})
+})
+
 describe('Ens-TheGraph EnsRecord resolver', () => {
 	it('derives text and coin record display fields from record keys', () => {
 		expect(
-			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey](
+			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey].resolve(
 				{
 					$name: {
 						name: 'vitalik.eth',
@@ -230,7 +391,7 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 			recordKind: 'text',
 		})
 		expect(
-			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey](
+			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey].resolve(
 				{
 					$name: {
 						name: 'vitalik.eth',
@@ -261,7 +422,7 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-		const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress](
+		const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress].resolve(
 			{
 				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -292,7 +453,7 @@ describe('Ens-TheGraph BlockheadEnsNameSearch $$matchingNames field resolver', (
 			},
 		])
 
-		const resolvedEntity = await ensNameSearchResolver.resolve[BlockheadEnsNameSearchSelector.Query](
+		const resolvedEntity = await ensNameSearchResolver.resolve[BlockheadEnsNameSearchSelector.Query].resolve(
 			{ query: 'vitalik' },
 			{
 				...resolverContext,

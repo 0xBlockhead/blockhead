@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWakuNodeStateView from '$/views/BlockheadWakuNodeStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					connectionId: true,
-					endpoint: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWakuNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				connectionId: true,
+				endpoint: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWakuNodeStates) => [...new Map(blockheadWakuNodeStates.values.map((blockheadWakuNodeState) => [blockheadWakuNodeState[EntityMetaKey.SelectorKey], blockheadWakuNodeState])).values()]}
+	getKey={(blockheadWakuNodeState) => blockheadWakuNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead waku node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWakuNodeStates)}
-			{@const uniqueBlockheadWakuNodeStates = [...new Map(blockheadWakuNodeStates.values.map((blockheadWakuNodeState) => [blockheadWakuNodeState[EntityMetaKey.SelectorKey], blockheadWakuNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWakuNodeStates.totalCount}
-				getKey={(blockheadWakuNodeState) => blockheadWakuNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWakuNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead waku node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWakuNodeState })}
-					{@const blockheadWakuNodeStateFields = { ...blockheadWakuNodeState[EntityMetaKey.Selector], ...blockheadWakuNodeState }}
-					{@const selection = select(EntityType.BlockheadWakuNodeState, blockheadWakuNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWakuNodeStateView
-						selection={selection}
-						prefetched={blockheadWakuNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWakuNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWakuNodeState })}
+		{@const blockheadWakuNodeStateFields = { ...blockheadWakuNodeState[EntityMetaKey.Selector], ...blockheadWakuNodeState }}
+		{@const selection = select(EntityType.BlockheadWakuNodeState, blockheadWakuNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWakuNodeStateView
+			selection={selection}
+			prefetched={blockheadWakuNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

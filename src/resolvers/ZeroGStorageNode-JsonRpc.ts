@@ -51,21 +51,23 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
-				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({ $network, nodeId }) => {
-					assertZeroGMainnet($network)
-					const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-					const rpcUrl = await zeroGStorageNodeRpcUrl()
-					const status = await getStatus({ rpcUrl })
-					if (status.networkIdentity.flowAddress !== nodeId)
-						throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
-					return {
-						$operator: {
-							[EntityMetaKey.Selector]: {
-								address: status.networkIdentity.flowAddress,
+				[ZeroGStorageNodeSelector.NetworkNodeId]: {
+					resolve: async ({ $network, nodeId }) => {
+						assertZeroGMainnet($network)
+						const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const rpcUrl = await zeroGStorageNodeRpcUrl()
+						const status = await getStatus({ rpcUrl })
+						if (status.networkIdentity.flowAddress !== nodeId)
+							throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
+						return {
+							$operator: {
+								[EntityMetaKey.Selector]: {
+									address: status.networkIdentity.flowAddress,
+								},
 							},
-						},
-						endpoint: rpcUrl,
-					}
+							endpoint: rpcUrl,
+						}
+					},
 				}
 			},
 		})({
@@ -76,11 +78,13 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
-				[ZeroGDataBlobSelector.NetworkDataRoot]: async (entitySelector) => {
-					const fileInfo = await fileInfoForDataBlob(entitySelector)
-					return {
-						sizeBytes: BigInt(fileInfo.tx.size),
-					}
+				[ZeroGDataBlobSelector.NetworkDataRoot]: {
+					resolve: async (entitySelector) => {
+						const fileInfo = await fileInfoForDataBlob(entitySelector)
+						return {
+							sizeBytes: BigInt(fileInfo.tx.size),
+						}
+					},
 				}
 			},
 		})({
@@ -90,13 +94,15 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: {
-				[ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex]: async ({ $dataBlob, chunkIndex }) => {
-					const fileInfo = await fileInfoForDataBlob($dataBlob)
-					const chunkRoot = fileInfo.tx.streamIds.at(chunkIndex)
-					if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${$dataBlob.dataRoot}:${String(chunkIndex)}`)
-					return {
-						chunkRoot,
-					}
+				[ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex]: {
+					resolve: async ({ $dataBlob, chunkIndex }) => {
+						const fileInfo = await fileInfoForDataBlob($dataBlob)
+						const chunkRoot = fileInfo.tx.streamIds.at(chunkIndex)
+						if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${$dataBlob.dataRoot}:${String(chunkIndex)}`)
+						return {
+							chunkRoot,
+						}
+					},
 				}
 			},
 		})({

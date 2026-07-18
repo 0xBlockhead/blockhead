@@ -18,7 +18,7 @@
 
 	const pageSelection = $derived(select(EntityType.Currency_Timestamp, {
 		$currency: {
-			iso4217: decodeURIComponent(params.iso4217),
+			iso4217: params.iso4217,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

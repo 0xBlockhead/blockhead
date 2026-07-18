@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosTableItem_TimestampView from '$/views/AptosTableItem_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					ledgerVersion: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTableItem_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosTableItem_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				ledgerVersion: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(aptosTableItemTimestamps) => [...new Map(aptosTableItemTimestamps.values.map((aptosTableItemTimestamp) => [aptosTableItemTimestamp[EntityMetaKey.SelectorKey], aptosTableItemTimestamp])).values()]}
+	getKey={(aptosTableItemTimestamp) => aptosTableItemTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos table item observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosTableItemTimestamps)}
-			{@const uniqueAptosTableItemTimestamps = [...new Map(aptosTableItemTimestamps.values.map((aptosTableItemTimestamp) => [aptosTableItemTimestamp[EntityMetaKey.SelectorKey], aptosTableItemTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTableItem_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosTableItemTimestamps.totalCount}
-				getKey={(aptosTableItemTimestamp) => aptosTableItemTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosTableItemTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos table item observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosTableItemTimestamp })}
-					{@const aptosTableItemTimestampFields = { ...aptosTableItemTimestamp[EntityMetaKey.Selector], ...aptosTableItemTimestamp }}
-					{@const selection = select(EntityType.AptosTableItem_Timestamp, aptosTableItemTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosTableItem_TimestampView
-						selection={selection}
-						prefetched={aptosTableItemTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosTableItem_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosTableItemTimestamp })}
+		{@const aptosTableItemTimestampFields = { ...aptosTableItemTimestamp[EntityMetaKey.Selector], ...aptosTableItemTimestamp }}
+		{@const selection = select(EntityType.AptosTableItem_Timestamp, aptosTableItemTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosTableItem_TimestampView
+			selection={selection}
+			prefetched={aptosTableItemTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvalanchePChainTransactionView from '$/views/AvalanchePChainTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txId: true,
-					txType: true,
-					$block: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvalanchePChainTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txId: true,
+				txType: true,
+				$block: true,
+			},
+		})
+	}
+	getResourceItems={(avalanchePChainTransactions) => [...new Map(avalanchePChainTransactions.values.map((avalanchePChainTransaction) => [avalanchePChainTransaction[EntityMetaKey.SelectorKey], avalanchePChainTransaction])).values()]}
+	getKey={(avalanchePChainTransaction) => avalanchePChainTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avalanche p chain transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(avalanchePChainTransactions)}
-			{@const uniqueAvalanchePChainTransactions = [...new Map(avalanchePChainTransactions.values.map((avalanchePChainTransaction) => [avalanchePChainTransaction[EntityMetaKey.SelectorKey], avalanchePChainTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={avalanchePChainTransactions.totalCount}
-				getKey={(avalanchePChainTransaction) => avalanchePChainTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueAvalanchePChainTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avalanche p chain transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: avalanchePChainTransaction })}
-					{@const avalanchePChainTransactionFields = { ...avalanchePChainTransaction[EntityMetaKey.Selector], ...avalanchePChainTransaction }}
-					{@const selection = select(EntityType.AvalanchePChainTransaction, avalanchePChainTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvalanchePChainTransactionView
-						selection={selection}
-						prefetched={avalanchePChainTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvalanchePChainTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: avalanchePChainTransaction })}
+		{@const avalanchePChainTransactionFields = { ...avalanchePChainTransaction[EntityMetaKey.Selector], ...avalanchePChainTransaction }}
+		{@const selection = select(EntityType.AvalanchePChainTransaction, avalanchePChainTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvalanchePChainTransactionView
+			selection={selection}
+			prefetched={avalanchePChainTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

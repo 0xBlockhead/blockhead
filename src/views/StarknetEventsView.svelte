@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetEventView from '$/views/StarknetEventView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					eventIndex: true,
-					$transaction: true,
-					$fromContract: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetEvent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				eventIndex: true,
+				$transaction: true,
+				$fromContract: true,
+			},
+		})
+	}
+	getResourceItems={(starknetEvents) => [...new Map(starknetEvents.values.map((starknetEvent) => [starknetEvent[EntityMetaKey.SelectorKey], starknetEvent])).values()]}
+	getKey={(starknetEvent) => starknetEvent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet events yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetEvents)}
-			{@const uniqueStarknetEvents = [...new Map(starknetEvents.values.map((starknetEvent) => [starknetEvent[EntityMetaKey.SelectorKey], starknetEvent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetEvents.totalCount}
-				getKey={(starknetEvent) => starknetEvent[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetEvents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet events yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetEvent })}
-					{@const starknetEventFields = { ...starknetEvent[EntityMetaKey.Selector], ...starknetEvent }}
-					{@const selection = select(EntityType.StarknetEvent, starknetEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetEventView
-						selection={selection}
-						prefetched={starknetEventFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetEvent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetEvent })}
+		{@const starknetEventFields = { ...starknetEvent[EntityMetaKey.Selector], ...starknetEvent }}
+		{@const selection = select(EntityType.StarknetEvent, starknetEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetEventView
+			selection={selection}
+			prefetched={starknetEventFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

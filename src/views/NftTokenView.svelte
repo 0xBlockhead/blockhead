@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nftToken = $derived(selection({}))
+	const nftToken = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('NFT token')
 	const viewDomId = $derived('nft-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nftToken}>
-			{#snippet Pending()}
-				{title || 'NFT token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nftToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenKey = pendingEntity.tokenKey}
-							{#if tokenKey !== undefined && tokenKey !== null}
-								{String((tokenKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenKey = resolvedEntity.tokenKey}
@@ -123,24 +119,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenId = pendingEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
-						<div>
-							<dt>Token ID</dt>
-							<dd>
-								{String((tokenId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenId = resolvedEntity.tokenId}
@@ -160,8 +145,6 @@
 			<ResourceBoundary
 				resource={selection.$assetObject}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -182,8 +165,6 @@
 			<ResourceBoundary
 				resource={selection.$metadata}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tokenMetadataDocument)}
 					{#if tokenMetadataDocument != null && tokenMetadataDocument[EntityMetaKey.Selector] != null}
 						<div>

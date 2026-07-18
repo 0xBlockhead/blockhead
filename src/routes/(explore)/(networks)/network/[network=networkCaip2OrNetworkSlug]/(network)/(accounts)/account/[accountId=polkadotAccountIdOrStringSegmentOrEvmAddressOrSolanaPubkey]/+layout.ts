@@ -15,6 +15,7 @@ import { schema } from '$/schema/index.ts'
 import { PolkadotAccount as PolkadotAccountSchema } from '$/schema/PolkadotAccount.ts'
 import { SolanaAccount as SolanaAccountSchema } from '$/schema/SolanaAccount.ts'
 import { TonAccount as TonAccountSchema } from '$/schema/TonAccount.ts'
+import { XrplAccount as XrplAccountSchema } from '$/schema/XrplAccount.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -94,6 +95,19 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		)
 		if (!(tonAccountNetworkAddressSelector instanceof arktype.errors))
 			selectorMappings.push({ entityType: EntityType.TonAccount, selectorName: 'NetworkAddress', selector: tonAccountNetworkAddressSelector })
+	}
+
+	if ((projectionNetwork.namespace === 'Xrpl' && projectionNetwork.namespace === 'Xrpl') && matchStringSegment(params.accountId)) {
+		const xrplAccountNetworkAccountSelector = parseEntitySelector(
+			schema,
+			XrplAccountSchema,
+			{
+				$network: parentData.selector,
+				account: params.accountId,
+			}
+		)
+		if (!(xrplAccountNetworkAccountSelector instanceof arktype.errors))
+			selectorMappings.push({ entityType: EntityType.XrplAccount, selectorName: 'NetworkAccount', selector: xrplAccountNetworkAccountSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

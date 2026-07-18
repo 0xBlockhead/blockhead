@@ -45,9 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmUserOperation = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			successful: true,
 			timestampMs: true,
@@ -94,64 +92,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmUserOperation}>
-			{#snippet Pending()}
-				{@const hash0 = pendingEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hash0 = resolvedEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const hash0 = pendingEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmUserOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash0 = resolvedEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmUserOperation}>
-			{#snippet Pending()}
-				{@const hash0 = pendingEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hash0 = resolvedEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const hash0 = pendingEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmUserOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash0 = resolvedEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmUserOperation}>
-			{#snippet Pending()}
-				{@const successful0 = pendingEntity.successful}
-				{#if successful0 !== undefined && successful0 !== null}
-					<span data-text="muted">
-						{successful0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const successful0 = resolvedEntity.successful}
-				{#if successful0 !== undefined && successful0 !== null}
-					<span data-text="muted">
-						{successful0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const successful0 = pendingEntity.successful}
+			{#if successful0 !== undefined && successful0 !== null}
+				<span data-text="muted">
+					{successful0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmUserOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const successful0 = resolvedEntity.successful}
+					{#if successful0 !== undefined && successful0 !== null}
+						<span data-text="muted">
+							{successful0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,22 +178,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.Blockscout_Rest,
-								],
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -210,27 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Blockscout_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							successful: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const successful = pendingEntity.successful}
-					{#if successful !== undefined && successful !== null}
-						<div>
-							<dt>Successful</dt>
-							<dd>
-								{successful ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const successful = resolvedEntity.successful}
@@ -248,27 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Blockscout_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -288,27 +249,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Blockscout_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fee = pendingEntity.fee}
-					{#if fee !== undefined && fee !== null}
-						<div>
-							<dt>Fee</dt>
-							<dd>
-								{String((fee) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fee = resolvedEntity.fee}
@@ -326,27 +273,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Blockscout_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								<NumberValue value={Number(nonce)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonce = resolvedEntity.nonce}
@@ -354,7 +287,9 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								<NumberValue value={Number(nonce)} />
+								<NumberValue
+									value={nonce}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -365,27 +300,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Blockscout_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								entryPointVersion: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const entryPointVersion = pendingEntity.entryPointVersion}
-						{#if entryPointVersion !== undefined && entryPointVersion !== null}
-							<div>
-								<dt>Entry point version</dt>
-								<dd>
-									{String((entryPointVersion) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const entryPointVersion = resolvedEntity.entryPointVersion}
@@ -405,27 +326,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Blockscout_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								sponsorType: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const sponsorType = pendingEntity.sponsorType}
-						{#if sponsorType !== undefined && sponsorType !== null}
-							<div>
-								<dt>Sponsor type</dt>
-								<dd>
-									{String((sponsorType) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const sponsorType = resolvedEntity.sponsorType}
@@ -452,8 +359,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null && evmTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -489,8 +394,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -543,6 +446,7 @@
 				data-card
 			>
 				{#snippet SectionParticipants({ id, label })}
+					<article id={`${id}-participants-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
@@ -553,8 +457,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}{/snippet}
-
 							{#snippet children(erc4337SmartAccount)}
 								{#if erc4337SmartAccount != null && erc4337SmartAccount[EntityMetaKey.Selector] != null}
 									<div>
@@ -590,8 +492,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}{/snippet}
-
 							{#snippet children(erc4337Paymaster)}
 								{#if erc4337Paymaster != null && erc4337Paymaster[EntityMetaKey.Selector] != null}
 									<div>
@@ -627,8 +527,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}{/snippet}
-
 							{#snippet children(erc4337Bundler)}
 								{#if erc4337Bundler != null && erc4337Bundler[EntityMetaKey.Selector] != null}
 									<div>
@@ -664,8 +562,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}{/snippet}
-
 							{#snippet children(evmContract)}
 								{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 									<div>
@@ -692,9 +588,12 @@
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
+
+					</article>
 				{/snippet}
 
 				{#snippet SectionGasFees({ id, label })}
+					<article id={`${id}-gas-fees-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
@@ -708,18 +607,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const callGasLimit = pendingEntity.callGasLimit}
-								{#if callGasLimit !== undefined && callGasLimit !== null}
-									<div>
-										<dt>Call gas limit</dt>
-										<dd>
-											<NumberValue value={Number(callGasLimit)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const callGasLimit = resolvedEntity.callGasLimit}
@@ -727,7 +614,9 @@
 									<div>
 										<dt>Call gas limit</dt>
 										<dd>
-											<NumberValue value={Number(callGasLimit)} />
+											<NumberValue
+												value={callGasLimit}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -746,18 +635,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const verificationGasLimit = pendingEntity.verificationGasLimit}
-								{#if verificationGasLimit !== undefined && verificationGasLimit !== null}
-									<div>
-										<dt>Verification gas limit</dt>
-										<dd>
-											<NumberValue value={Number(verificationGasLimit)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const verificationGasLimit = resolvedEntity.verificationGasLimit}
@@ -765,7 +642,9 @@
 									<div>
 										<dt>Verification gas limit</dt>
 										<dd>
-											<NumberValue value={Number(verificationGasLimit)} />
+											<NumberValue
+												value={verificationGasLimit}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -784,18 +663,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const preVerificationGas = pendingEntity.preVerificationGas}
-								{#if preVerificationGas !== undefined && preVerificationGas !== null}
-									<div>
-										<dt>Pre-verification gas</dt>
-										<dd>
-											<NumberValue value={Number(preVerificationGas)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const preVerificationGas = resolvedEntity.preVerificationGas}
@@ -803,7 +670,9 @@
 									<div>
 										<dt>Pre-verification gas</dt>
 										<dd>
-											<NumberValue value={Number(preVerificationGas)} />
+											<NumberValue
+												value={preVerificationGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -822,18 +691,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const maxFeePerGas = pendingEntity.maxFeePerGas}
-								{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
-									<div>
-										<dt>Max fee per gas</dt>
-										<dd>
-											<NumberValue value={Number(maxFeePerGas)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const maxFeePerGas = resolvedEntity.maxFeePerGas}
@@ -841,7 +698,9 @@
 									<div>
 										<dt>Max fee per gas</dt>
 										<dd>
-											<NumberValue value={Number(maxFeePerGas)} />
+											<NumberValue
+												value={maxFeePerGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -860,18 +719,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const maxPriorityFeePerGas = pendingEntity.maxPriorityFeePerGas}
-								{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
-									<div>
-										<dt>Max priority fee per gas</dt>
-										<dd>
-											<NumberValue value={Number(maxPriorityFeePerGas)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const maxPriorityFeePerGas = resolvedEntity.maxPriorityFeePerGas}
@@ -879,7 +726,9 @@
 									<div>
 										<dt>Max priority fee per gas</dt>
 										<dd>
-											<NumberValue value={Number(maxPriorityFeePerGas)} />
+											<NumberValue
+												value={maxPriorityFeePerGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -898,18 +747,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const gas = pendingEntity.gas}
-								{#if gas !== undefined && gas !== null}
-									<div>
-										<dt>Gas</dt>
-										<dd>
-											<NumberValue value={Number(gas)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const gas = resolvedEntity.gas}
@@ -917,7 +754,9 @@
 									<div>
 										<dt>Gas</dt>
 										<dd>
-											<NumberValue value={Number(gas)} />
+											<NumberValue
+												value={gas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -936,18 +775,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const gasUsed = pendingEntity.gasUsed}
-								{#if gasUsed !== undefined && gasUsed !== null}
-									<div>
-										<dt>Gas used</dt>
-										<dd>
-											<NumberValue value={Number(gasUsed)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const gasUsed = resolvedEntity.gasUsed}
@@ -955,7 +782,9 @@
 									<div>
 										<dt>Gas used</dt>
 										<dd>
-											<NumberValue value={Number(gasUsed)} />
+											<NumberValue
+												value={gasUsed}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -974,18 +803,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const gasPrice = pendingEntity.gasPrice}
-								{#if gasPrice !== undefined && gasPrice !== null}
-									<div>
-										<dt>Gas price</dt>
-										<dd>
-											<NumberValue value={Number(gasPrice)} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const gasPrice = resolvedEntity.gasPrice}
@@ -993,16 +810,21 @@
 									<div>
 										<dt>Gas price</dt>
 										<dd>
-											<NumberValue value={Number(gasPrice)} />
+											<NumberValue
+												value={gasPrice}
+											/>
 										</dd>
 									</div>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
+
+					</article>
 				{/snippet}
 
 				{#snippet SectionPayloads({ id, label })}
+					<article id={`${id}-payloads-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
@@ -1016,18 +838,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const initCode = pendingEntity.initCode}
-								{#if initCode !== undefined && initCode !== null}
-									<div>
-										<dt>Init code</dt>
-										<dd>
-											<TruncatedValue value={String((initCode) ?? '')} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const initCode = resolvedEntity.initCode}
@@ -1054,18 +864,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const callData = pendingEntity.callData}
-								{#if callData !== undefined && callData !== null}
-									<div>
-										<dt>Call data</dt>
-										<dd>
-											<TruncatedValue value={String((callData) ?? '')} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const callData = resolvedEntity.callData}
@@ -1092,18 +890,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const paymasterAndData = pendingEntity.paymasterAndData}
-								{#if paymasterAndData !== undefined && paymasterAndData !== null}
-									<div>
-										<dt>Paymaster data</dt>
-										<dd>
-											<TruncatedValue value={String((paymasterAndData) ?? '')} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const paymasterAndData = resolvedEntity.paymasterAndData}
@@ -1130,18 +916,6 @@
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const signature = pendingEntity.signature}
-								{#if signature !== undefined && signature !== null}
-									<div>
-										<dt>Signature</dt>
-										<dd>
-											<TruncatedValue value={String((signature) ?? '')} />
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const signature = resolvedEntity.signature}
@@ -1156,6 +930,8 @@
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
+
+					</article>
 				{/snippet}
 			</CollapsibleTabs>
 		{/if}

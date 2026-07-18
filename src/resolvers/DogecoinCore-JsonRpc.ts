@@ -10,6 +10,9 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { DogecoinAuxPowMerkleBranchSelector } from '$/schema/DogecoinAuxPowMerkleBranch.ts'
+import { DogecoinAuxPowParentBlockHeaderSelector } from '$/schema/DogecoinAuxPowParentBlockHeader.ts'
+import { DogecoinBlockAuxPowSelector } from '$/schema/DogecoinBlockAuxPow.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 
@@ -35,58 +38,193 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.DogecoinCore_JsonRpc, {
-			entityType: EntityType.UtxoBlock,
+			entityType: EntityType.DogecoinBlockAuxPow,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					assertDogecoinMainnet($network)
-					const {
-						getBlock,
-					} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-					const block = await getBlock({
-						rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
-						blockHash: hash,
-					})
-					if (typeof block === 'string')
-						throw new Error('DogecoinCore_JsonRpc: expected verbose block')
-					return {
-						hash: block.hash,
-						...(block.previousblockhash != null && {
-							$parent: {
+				[DogecoinBlockAuxPowSelector.Block]: {
+					resolve: async ({ $block }) => {
+						assertDogecoinMainnet($block.$network)
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							blockHash: $block.hash,
+						})
+						if (block.auxpow == null)
+							throw new Error('DogecoinCore_JsonRpc: block does not contain AuxPoW')
+
+						return {
+							$parentBlockHeader: {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: BigInt(block.height - 1),
-									hash: block.previousblockhash,
+									$auxPow: {
+										$block,
+									},
 								},
 							},
-						}),
-						timestampMs: block.time * 1000,
-						merkleRoot: block.merkleroot,
-						nonce: block.nonce,
-						difficulty: block.difficulty,
-						...(block.size != null && {
-							sizeBytes: block.size,
-						}),
-						...(block.weight != null && {
-							weightUnits: block.weight,
-						}),
-						transactionCount: block.nTx,
-						$$transactions: block.tx.map((transaction) => (
-							typeof transaction === 'string' ?
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction,
+							$coinbaseBranch: {
+								[EntityMetaKey.Selector]: {
+									$auxPow: {
+										$block,
 									},
-								}
-							:
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction.txid,
+									branchKind: 'coinbase',
+								},
+							},
+							$chainBranch: {
+								[EntityMetaKey.Selector]: {
+									$auxPow: {
+										$block,
 									},
-								}
-						)),
-					}
+									branchKind: 'chain',
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			$parentBlockHeader: (auxPow) => auxPow.$parentBlockHeader,
+			$coinbaseBranch: (auxPow) => auxPow.$coinbaseBranch,
+			$chainBranch: (auxPow) => auxPow.$chainBranch,
+		}),
+
+		defineResolver(Source.DogecoinCore_JsonRpc, {
+			entityType: EntityType.DogecoinAuxPowMerkleBranch,
+			resolve: {
+				[DogecoinAuxPowMerkleBranchSelector.AuxPowBranchKind]: {
+					resolve: async ({ $auxPow, branchKind }) => {
+						assertDogecoinMainnet($auxPow.$block.$network)
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							blockHash: $auxPow.$block.hash,
+						})
+						if (block.auxpow == null)
+							throw new Error('DogecoinCore_JsonRpc: block does not contain AuxPoW')
+						if (branchKind !== 'coinbase' && branchKind !== 'chain')
+							throw new Error(`DogecoinCore_JsonRpc: unsupported AuxPoW branch kind ${branchKind}`)
+
+						return {
+							branchHashes: (
+								branchKind === 'coinbase' ?
+									block.auxpow.merklebranch
+								:
+									block.auxpow.chainmerklebranch
+							),
+							index: (
+								branchKind === 'coinbase' ?
+									block.auxpow.index
+								:
+									block.auxpow.chainindex
+							),
+						}
+					},
+				},
+			},
+		})({
+			branchHashes: (branch) => branch.branchHashes,
+			index: (branch) => branch.index,
+		}),
+
+		defineResolver(Source.DogecoinCore_JsonRpc, {
+			entityType: EntityType.DogecoinAuxPowParentBlockHeader,
+			resolve: {
+				[DogecoinAuxPowParentBlockHeaderSelector.AuxPow]: {
+					resolve: async ({ $auxPow }) => {
+						assertDogecoinMainnet($auxPow.$block.$network)
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							blockHash: $auxPow.$block.hash,
+						})
+						if (block.auxpow == null)
+							throw new Error('DogecoinCore_JsonRpc: block does not contain AuxPoW')
+						if (!/^[0-9a-fA-F]{160}$/.test(block.auxpow.parentblock))
+							throw new Error('DogecoinCore_JsonRpc: malformed AuxPoW parent block header')
+
+						return {
+							merkleRoot: (
+								Array.from(
+									{ length: 32 },
+									(_, byteIndex) => block.auxpow.parentblock.slice(
+										72 + (31 - byteIndex) * 2,
+										74 + (31 - byteIndex) * 2
+									)
+								).join('')
+							),
+							nonce: BigInt(
+								Number.parseInt(
+									Array.from(
+										{ length: 4 },
+										(_, byteIndex) => block.auxpow.parentblock.slice(
+											152 + (3 - byteIndex) * 2,
+											154 + (3 - byteIndex) * 2
+										)
+									).join(''),
+									16
+								)
+							),
+						}
+					},
+				},
+			},
+		})({
+			merkleRoot: (header) => header.merkleRoot,
+			nonce: (header) => header.nonce,
+		}),
+
+		defineResolver(Source.DogecoinCore_JsonRpc, {
+			entityType: EntityType.UtxoBlock,
+			resolve: {
+				[UtxoBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, hash }) => {
+						assertDogecoinMainnet($network)
+						const {
+							getBlock,
+						} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							blockHash: hash,
+						})
+						if (typeof block === 'string')
+							throw new Error('DogecoinCore_JsonRpc: expected verbose block')
+						return {
+							hash: block.hash,
+							...(block.previousblockhash != null && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(block.height - 1),
+										hash: block.previousblockhash,
+									},
+								},
+							}),
+							timestampMs: block.time * 1000,
+							merkleRoot: block.merkleroot,
+							nonce: block.nonce,
+							difficulty: block.difficulty,
+							...(block.size != null && {
+								sizeBytes: block.size,
+							}),
+							...(block.weight != null && {
+								weightUnits: block.weight,
+							}),
+							transactionCount: block.nTx,
+							$$transactions: block.tx.map((transaction) => (
+								typeof transaction === 'string' ?
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction,
+										},
+									}
+								:
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction.txid,
+										},
+									}
+							)),
+						}
+					},
 				}
 			},
 		})({
@@ -105,27 +243,29 @@ export default {
 		defineResolver(Source.DogecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-					assertDogecoinMainnet($network)
-					const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-					const transaction = await getRawTransaction({
-						rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
-						txId: txId,
-					})
-					if (typeof transaction === 'string')
-						throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							txId: transaction.txid,
-						},
-						version: transaction.version,
-						lockTime: transaction.locktime,
-						sizeBytes: transaction.size,
-						virtualSizeBytes: transaction.vsize,
-						weightUnits: transaction.weight,
-						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-					}
+				[UtxoTransactionSelector.NetworkTxId]: {
+					resolve: async ({ $network, txId }) => {
+						assertDogecoinMainnet($network)
+						const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const transaction = await getRawTransaction({
+							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							txId: txId,
+						})
+						if (typeof transaction === 'string')
+							throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								txId: transaction.txid,
+							},
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							virtualSizeBytes: transaction.vsize,
+							weightUnits: transaction.weight,
+							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+						}
+					},
 				}
 			},
 		})({

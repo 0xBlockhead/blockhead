@@ -20,6 +20,7 @@ import {
 import { getCoinpaprikaJson } from '$/sources/Coinpaprika/OpenApi/client.ts'
 import type {
 	CoinpaprikaCoin,
+	CoinpaprikaCurrency,
 	CoinpaprikaMarket,
 	CoinpaprikaOhlcv,
 	CoinpaprikaTicker,
@@ -242,6 +243,17 @@ export const getCoinById = async ({
 	await getCoinpaprikaJson<CoinpaprikaCoin>(
 		publicEnv,
 		`/coins/${coinpaprikaId}`
+	)
+)
+
+export const getCoins = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => (
+	await getCoinpaprikaJson<CoinpaprikaCurrency[]>(
+		publicEnv,
+		'/coins'
 	)
 )
 

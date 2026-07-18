@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZcashNoteStateView from '$/views/BlockheadZcashNoteStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					noteCommitment: true,
-					pool: true,
-					valueZatoshis: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashNoteState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZcashNoteState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				noteCommitment: true,
+				pool: true,
+				valueZatoshis: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZcashNoteStates) => [...new Map(blockheadZcashNoteStates.values.map((blockheadZcashNoteState) => [blockheadZcashNoteState[EntityMetaKey.SelectorKey], blockheadZcashNoteState])).values()]}
+	getKey={(blockheadZcashNoteState) => blockheadZcashNoteState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zcash note states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZcashNoteStates)}
-			{@const uniqueBlockheadZcashNoteStates = [...new Map(blockheadZcashNoteStates.values.map((blockheadZcashNoteState) => [blockheadZcashNoteState[EntityMetaKey.SelectorKey], blockheadZcashNoteState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashNoteState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZcashNoteStates.totalCount}
-				getKey={(blockheadZcashNoteState) => blockheadZcashNoteState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZcashNoteStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zcash note states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZcashNoteState })}
-					{@const blockheadZcashNoteStateFields = { ...blockheadZcashNoteState[EntityMetaKey.Selector], ...blockheadZcashNoteState }}
-					{@const selection = select(EntityType.BlockheadZcashNoteState, blockheadZcashNoteState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZcashNoteStateView
-						selection={selection}
-						prefetched={blockheadZcashNoteStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZcashNoteState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZcashNoteState })}
+		{@const blockheadZcashNoteStateFields = { ...blockheadZcashNoteState[EntityMetaKey.Selector], ...blockheadZcashNoteState }}
+		{@const selection = select(EntityType.BlockheadZcashNoteState, blockheadZcashNoteState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZcashNoteStateView
+			selection={selection}
+			prefetched={blockheadZcashNoteStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

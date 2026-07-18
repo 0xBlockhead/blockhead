@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					title: true,
-					fullname: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditLink}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RedditLink}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Constants_Internal,
+				Source.Reddit_PublicJson,
+			],
+			fields: {
+				title: true,
+				fullname: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(redditLinks) => [...new Map(redditLinks.values.map((redditLink) => [redditLink[EntityMetaKey.SelectorKey], redditLink])).values()]}
+	getKey={(redditLink) => redditLink[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Reddit submissions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(redditLinks)}
-			{@const uniqueRedditLinks = [...new Map(redditLinks.values.map((redditLink) => [redditLink[EntityMetaKey.SelectorKey], redditLink])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditLink}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditLinks.totalCount}
-				getKey={(redditLink) => redditLink[EntityMetaKey.SelectorKey]}
-				items={uniqueRedditLinks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Reddit submissions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: redditLink })}
-					{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
-					{@const selection = select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const redditLinkHrefFields = { ...redditLink, ...redditLink[EntityMetaKey.Selector] }}
-					<RedditLinkView
-						selection={selection}
-						prefetched={redditLinkFields}
-						href={
-							(redditLinkHrefFields.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
-								fullname: String(redditLinkHrefFields.fullname ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RedditLink}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: redditLink })}
+		{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
+		{@const selection = select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const redditLinkHrefFields = { ...redditLink, ...redditLink[EntityMetaKey.Selector] }}
+		<RedditLinkView
+			selection={selection}
+			prefetched={redditLinkFields}
+			href={
+				(redditLinkHrefFields.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
+					fullname: encodeURIComponent(String(redditLinkHrefFields.fullname ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

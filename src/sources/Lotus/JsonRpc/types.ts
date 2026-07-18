@@ -4,6 +4,8 @@ export type LotusTipset = {
 	Height: number
 }
 
+export type LotusTipsetKey = { '/': string }[]
+
 export type LotusVersion = {
 	Version: string
 	APIVersion: number
@@ -63,6 +65,13 @@ export type LotusMinerPower = {
 	MinerPower: LotusPowerClaim
 	TotalPower: LotusPowerClaim
 	HasMinPower: boolean
+}
+
+export type LotusMinerSectorCount = {
+	Live: number
+	Active: number
+	Faulty: number
+	Total: number
 }
 
 export type LotusMinerInfo = {

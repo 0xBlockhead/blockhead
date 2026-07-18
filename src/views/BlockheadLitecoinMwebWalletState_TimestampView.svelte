@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLitecoinMwebWalletStateTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			balanceLitoshis: true,
 		},
@@ -73,64 +70,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
-			{#snippet Pending()}
-				{@const balanceLitoshis0 = pendingEntity.balanceLitoshis}
-				{#if balanceLitoshis0 !== undefined && balanceLitoshis0 !== null}
-					<NumberValue value={Number(balanceLitoshis0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const balanceLitoshis0 = resolvedEntity.balanceLitoshis}
-				{#if balanceLitoshis0 !== undefined && balanceLitoshis0 !== null}
-					<NumberValue value={Number(balanceLitoshis0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const balanceLitoshis0 = pendingEntity.balanceLitoshis}
+					{#if balanceLitoshis0 !== undefined && balanceLitoshis0 !== null}
+						<NumberValue
+							value={balanceLitoshis0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const balanceLitoshis0 = resolvedEntity.balanceLitoshis}
+					{#if balanceLitoshis0 !== undefined && balanceLitoshis0 !== null}
+						<NumberValue
+							value={balanceLitoshis0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -182,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -209,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mwebAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mwebAddress = pendingEntity.mwebAddress}
-					{#if mwebAddress !== undefined && mwebAddress !== null}
-						<div>
-							<dt>MWEB address</dt>
-							<dd>
-								<TruncatedValue value={String((mwebAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mwebAddress = resolvedEntity.mwebAddress}
@@ -244,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transparentAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transparentAddress = pendingEntity.transparentAddress}
-					{#if transparentAddress !== undefined && transparentAddress !== null}
-						<div>
-							<dt>transparent address</dt>
-							<dd>
-								<TruncatedValue value={String((transparentAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transparentAddress = resolvedEntity.transparentAddress}
@@ -281,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							balanceLitoshis: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const balanceLitoshis = pendingEntity.balanceLitoshis}
-					{#if balanceLitoshis !== undefined && balanceLitoshis !== null}
-						<div>
-							<dt>balance litoshis</dt>
-							<dd>
-								<NumberValue value={Number(balanceLitoshis)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const balanceLitoshis = resolvedEntity.balanceLitoshis}
@@ -306,7 +262,9 @@
 						<div>
 							<dt>balance litoshis</dt>
 							<dd>
-								<NumberValue value={Number(balanceLitoshis)} />
+								<NumberValue
+									value={balanceLitoshis}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -316,24 +274,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mwebBalanceLitoshis: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mwebBalanceLitoshis = pendingEntity.mwebBalanceLitoshis}
-					{#if mwebBalanceLitoshis !== undefined && mwebBalanceLitoshis !== null}
-						<div>
-							<dt>MWEB balance litoshis</dt>
-							<dd>
-								<NumberValue value={Number(mwebBalanceLitoshis)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mwebBalanceLitoshis = resolvedEntity.mwebBalanceLitoshis}
@@ -341,7 +288,9 @@
 						<div>
 							<dt>MWEB balance litoshis</dt>
 							<dd>
-								<NumberValue value={Number(mwebBalanceLitoshis)} />
+								<NumberValue
+									value={mwebBalanceLitoshis}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -351,24 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transparentBalanceLitoshis: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transparentBalanceLitoshis = pendingEntity.transparentBalanceLitoshis}
-					{#if transparentBalanceLitoshis !== undefined && transparentBalanceLitoshis !== null}
-						<div>
-							<dt>transparent balance litoshis</dt>
-							<dd>
-								<NumberValue value={Number(transparentBalanceLitoshis)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transparentBalanceLitoshis = resolvedEntity.transparentBalanceLitoshis}
@@ -376,7 +314,9 @@
 						<div>
 							<dt>transparent balance litoshis</dt>
 							<dd>
-								<NumberValue value={Number(transparentBalanceLitoshis)} />
+								<NumberValue
+									value={transparentBalanceLitoshis}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -388,24 +328,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							unconfirmedBalanceLitoshis: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unconfirmedBalanceLitoshis = pendingEntity.unconfirmedBalanceLitoshis}
-					{#if unconfirmedBalanceLitoshis !== undefined && unconfirmedBalanceLitoshis !== null}
-						<div>
-							<dt>unconfirmed balance litoshis</dt>
-							<dd>
-								<NumberValue value={Number(unconfirmedBalanceLitoshis)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unconfirmedBalanceLitoshis = resolvedEntity.unconfirmedBalanceLitoshis}
@@ -413,7 +342,9 @@
 						<div>
 							<dt>unconfirmed balance litoshis</dt>
 							<dd>
-								<NumberValue value={Number(unconfirmedBalanceLitoshis)} />
+								<NumberValue
+									value={unconfirmedBalanceLitoshis}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -423,24 +354,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							immatureBalanceLitoshis: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const immatureBalanceLitoshis = pendingEntity.immatureBalanceLitoshis}
-					{#if immatureBalanceLitoshis !== undefined && immatureBalanceLitoshis !== null}
-						<div>
-							<dt>immature balance litoshis</dt>
-							<dd>
-								<NumberValue value={Number(immatureBalanceLitoshis)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const immatureBalanceLitoshis = resolvedEntity.immatureBalanceLitoshis}
@@ -448,7 +368,9 @@
 						<div>
 							<dt>immature balance litoshis</dt>
 							<dd>
-								<NumberValue value={Number(immatureBalanceLitoshis)} />
+								<NumberValue
+									value={immatureBalanceLitoshis}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -458,24 +380,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastScannedHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastScannedHeight = pendingEntity.lastScannedHeight}
-					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
-						<div>
-							<dt>last scanned height</dt>
-							<dd>
-								<NumberValue value={Number(lastScannedHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastScannedHeight = resolvedEntity.lastScannedHeight}
@@ -483,7 +394,9 @@
 						<div>
 							<dt>last scanned height</dt>
 							<dd>
-								<NumberValue value={Number(lastScannedHeight)} />
+								<NumberValue
+									value={lastScannedHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -493,24 +406,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSyncedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
-						<div>
-							<dt>last synced AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}

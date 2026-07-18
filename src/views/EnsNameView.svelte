@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ensName = $derived(selection({
-		sources: [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			normalizedName: true,
 			node: true,
@@ -80,7 +76,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-			ensName: String(pendingEntity.name ?? ''),
+			ensName: encodeURIComponent(String(pendingEntity.name ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -88,29 +84,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ensName}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ensName}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ensName}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ensName}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,19 +117,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -148,24 +138,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							normalizedName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const normalizedName = pendingEntity.normalizedName}
-					{#if normalizedName !== undefined && normalizedName !== null}
-						<div>
-							<dt>Normalized name</dt>
-							<dd>
-								{String((normalizedName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const normalizedName = resolvedEntity.normalizedName}
@@ -183,24 +162,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							node: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const node = pendingEntity.node}
-					{#if node !== undefined && node !== null}
-						<div>
-							<dt>Node</dt>
-							<dd>
-								{String((node) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const node = resolvedEntity.node}
@@ -218,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							labelName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const labelName = pendingEntity.labelName}
-					{#if labelName !== undefined && labelName !== null}
-						<div>
-							<dt>Label name</dt>
-							<dd>
-								{String((labelName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const labelName = resolvedEntity.labelName}
@@ -253,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							labelhash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const labelhash = pendingEntity.labelhash}
-					{#if labelhash !== undefined && labelhash !== null}
-						<div>
-							<dt>Label hash</dt>
-							<dd>
-								<TruncatedValue value={String((labelhash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const labelhash = resolvedEntity.labelhash}
@@ -290,8 +236,6 @@
 			<ResourceBoundary
 				resource={selection.$parent}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
 						<div>
@@ -302,7 +246,7 @@
 									prefetched={ensName}
 									href={
 										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-											ensName: String(ensName[EntityMetaKey.Selector].name ?? ''),
+											ensName: encodeURIComponent(String(ensName[EntityMetaKey.Selector].name ?? '')),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -317,8 +261,6 @@
 			<ResourceBoundary
 				resource={selection.$resolverContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -348,8 +290,6 @@
 			<ResourceBoundary
 				resource={selection.$subgraphResolvedActor}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -375,8 +315,6 @@
 			<ResourceBoundary
 				resource={selection.$ownerActor}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -420,11 +358,8 @@
 				}
 				data-card
 				class='network-view-collapsible-records'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Records and subdomains</HeadingComponent>
 					</header>
@@ -432,12 +367,12 @@
 
 				{#snippet SectionEnsNameSubdomains({ id, label, open })}
 					<EnsNamesView
-						selection={
-							selection.$$subdomains({
-								count: true,
-							})
-						}
+						selection={selection.$$subdomains}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No subdomains for this ENS name yet.'
 						open={open}
 						title={label}
@@ -447,12 +382,17 @@
 
 				{#snippet SectionEnsNameRecordList({ id, label, open })}
 					<EnsRecordsView
-						selection={
-							selection.$$records({
-								count: true,
-							})
+						selection={selection.$$records}
+						href={
+							(selection.entitySelector.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/records', {
+								ensName: encodeURIComponent(String(selection.entitySelector.name ?? '')),
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ENS records for this name yet.'
 						open={open}
 						title={label}
@@ -475,11 +415,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -487,12 +424,12 @@
 
 				{#snippet SectionEnsNameTimestamps({ id, label, open })}
 					<EnsName_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ENS name observations yet.'
 						open={open}
 						title={label}

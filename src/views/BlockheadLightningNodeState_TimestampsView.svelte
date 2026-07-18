@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLightningNodeState_TimestampView from '$/views/BlockheadLightningNodeState_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					syncedToChain: true,
-					syncedToGraph: true,
-					blockHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLightningNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				syncedToChain: true,
+				syncedToGraph: true,
+				blockHeight: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLightningNodeStateTimestamps) => [...new Map(blockheadLightningNodeStateTimestamps.values.map((blockheadLightningNodeStateTimestamp) => [blockheadLightningNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadLightningNodeStateTimestamp])).values()]}
+	getKey={(blockheadLightningNodeStateTimestamp) => blockheadLightningNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Lightning node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLightningNodeStateTimestamps)}
-			{@const uniqueBlockheadLightningNodeStateTimestamps = [...new Map(blockheadLightningNodeStateTimestamps.values.map((blockheadLightningNodeStateTimestamp) => [blockheadLightningNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadLightningNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLightningNodeStateTimestamps.totalCount}
-				getKey={(blockheadLightningNodeStateTimestamp) => blockheadLightningNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLightningNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Lightning node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLightningNodeStateTimestamp })}
-					{@const blockheadLightningNodeStateTimestampFields = { ...blockheadLightningNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadLightningNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadLightningNodeState_Timestamp, blockheadLightningNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLightningNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadLightningNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLightningNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLightningNodeStateTimestamp })}
+		{@const blockheadLightningNodeStateTimestampFields = { ...blockheadLightningNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadLightningNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadLightningNodeState_Timestamp, blockheadLightningNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLightningNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadLightningNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

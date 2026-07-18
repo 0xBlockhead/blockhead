@@ -40,7 +40,7 @@
 		selection={
 			select(EntityType.FarcasterFeed, {
 				variant: 'byChannel',
-				channelId: decodeURIComponent(params.channelId),
+				channelId: params.channelId,
 			}).$$entries({
 				sources: [
 					Source.Neynar_Rest,
@@ -51,5 +51,8 @@
 			})
 		}
 		id='entries'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandTealProgramTimestamp = $derived(selection({}))
+	const algorandTealProgramTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand teal program timestamp')
 	const viewDomId = $derived('algorand-teal-program-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandTealProgramTimestamp}>
-			{#snippet Pending()}
-				{title || 'algorand teal program timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTealProgramTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -126,19 +122,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -155,24 +145,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							bytecode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const bytecode = pendingEntity.bytecode}
-					{#if bytecode !== undefined && bytecode !== null}
-						<div>
-							<dt>bytecode</dt>
-							<dd>
-								{String((bytecode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const bytecode = resolvedEntity.bytecode}
@@ -190,24 +169,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							disassembly: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const disassembly = pendingEntity.disassembly}
-					{#if disassembly !== undefined && disassembly !== null}
-						<div>
-							<dt>disassembly</dt>
-							<dd>
-								{String((disassembly) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const disassembly = resolvedEntity.disassembly}
@@ -225,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							compileResultHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const compileResultHash = pendingEntity.compileResultHash}
-					{#if compileResultHash !== undefined && compileResultHash !== null}
-						<div>
-							<dt>compile result hash</dt>
-							<dd>
-								<TruncatedValue value={String((compileResultHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const compileResultHash = resolvedEntity.compileResultHash}

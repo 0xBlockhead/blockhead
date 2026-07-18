@@ -12,26 +12,28 @@ export default {
 		defineResolver(Source.Dune_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
-				const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
+				[_GlobalSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+					const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
 
-				const billingPeriod = ((usage) => (
-					usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
-				))(
-					await getUsage(
-						context.publicEnv,
-						{}
+					const billingPeriod = ((usage) => (
+						usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
+					))(
+						await getUsage(
+							context.publicEnv,
+							{}
+						)
 					)
-				)
-				if (
-					billingPeriod == null
-					|| (billingPeriod.credits_used == null && billingPeriod.credits_included == null)
-				) throw new Error('Dune_Rest: usage response missing billing credits')
-				return {
-					...(billingPeriod.credits_used != null && { duneCreditsUsed: billingPeriod.credits_used }),
-					...(billingPeriod.credits_included != null && { duneCreditsIncluded: billingPeriod.credits_included }),
+					if (
+						billingPeriod == null
+						|| (billingPeriod.credits_used == null && billingPeriod.credits_included == null)
+					) throw new Error('Dune_Rest: usage response missing billing credits')
+					return {
+						...(billingPeriod.credits_used != null && { duneCreditsUsed: billingPeriod.credits_used }),
+						...(billingPeriod.credits_included != null && { duneCreditsIncluded: billingPeriod.credits_included }),
+					}
+				},
 				}
-			}
 			}
 		})({
 			duneCreditsUsed: (snapshot) => snapshot.duneCreditsUsed,

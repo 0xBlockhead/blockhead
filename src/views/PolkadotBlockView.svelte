@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const polkadotBlock = $derived(selection({}))
+	const polkadotBlock = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.blockNumber) ?? '') ? 'Block #' + String((pendingEntity.blockNumber) ?? '') : '') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block')
 	const viewDomId = $derived('polkadot-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -111,26 +114,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotBlock}>
-			{#snippet Pending()}
-				{@const hash0 = pendingEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((hash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hash0 = resolvedEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((hash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const hash0 = pendingEntity.hash}
+			{#if hash0 !== undefined && hash0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((hash0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash0 = resolvedEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((hash0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockNumber = pendingEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								{String((blockNumber) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockNumber = resolvedEntity.blockNumber}
@@ -171,19 +168,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -198,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stateRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stateRoot = pendingEntity.stateRoot}
-					{#if stateRoot !== undefined && stateRoot !== null}
-						<div>
-							<dt>State root</dt>
-							<dd>
-								<TruncatedValue value={String((stateRoot) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stateRoot = resolvedEntity.stateRoot}
@@ -233,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							extrinsicsRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const extrinsicsRoot = pendingEntity.extrinsicsRoot}
-					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
-						<div>
-							<dt>Extrinsics root</dt>
-							<dd>
-								<TruncatedValue value={String((extrinsicsRoot) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const extrinsicsRoot = resolvedEntity.extrinsicsRoot}
@@ -270,8 +239,6 @@
 			<ResourceBoundary
 				resource={selection.$parent}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(polkadotBlock)}
 					{#if polkadotBlock != null && polkadotBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -331,6 +298,10 @@
 			<PolkadotExtrinsicsView
 				selection={
 						selection.$$extrinsics({
+							sources: [
+								Source.Polkadot_JsonRpc,
+								Source.SubstrateSidecar_Rest,
+							],
 							count: true,
 						})
 					}
@@ -342,6 +313,9 @@
 			<PolkadotEventsView
 				selection={
 						selection.$$events({
+							sources: [
+								Source.SubstrateSidecar_Rest,
+							],
 							count: true,
 						})
 					}

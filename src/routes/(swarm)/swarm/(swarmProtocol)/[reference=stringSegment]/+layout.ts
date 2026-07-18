@@ -16,7 +16,7 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		SwarmResourceSchema,
 		{
-			reference: swarmResourceReferenceFromRouteParam(decodeURIComponent(params.reference)),
+			reference: swarmResourceReferenceFromRouteParam(params.reference),
 			contentPath: '',
 		}
 	)

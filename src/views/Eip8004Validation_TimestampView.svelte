@@ -10,7 +10,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004ValidationTimestamp = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			response: true,
 			validatorAddress: true,
@@ -77,52 +73,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004ValidationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004ValidationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004ValidationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.response) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.response) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.response) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004ValidationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.response) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip8004ValidationTimestamp}>
-			{#snippet Pending()}
-				{@const validatorAddress0 = pendingEntity.validatorAddress}
-				{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((validatorAddress0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const validatorAddress0 = resolvedEntity.validatorAddress}
-				{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((validatorAddress0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const validatorAddress0 = pendingEntity.validatorAddress}
+			{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((validatorAddress0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004ValidationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const validatorAddress0 = resolvedEntity.validatorAddress}
+					{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((validatorAddress0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									requestHashAlgorithm: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const requestHashAlgorithm = pendingEntity.requestHashAlgorithm}
-							{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
-								<TruncatedValue value={String((requestHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const requestHashAlgorithm = resolvedEntity.requestHashAlgorithm}
@@ -163,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									requestHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const requestHash = pendingEntity.requestHash}
-							{#if requestHash !== undefined && requestHash !== null}
-								<TruncatedValue value={String((requestHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const requestHash = resolvedEntity.requestHash}
@@ -190,8 +174,6 @@
 			<ResourceBoundary
 				resource={selection.$registration}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
 						<div>
@@ -212,24 +194,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validatorAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validatorAddress = pendingEntity.validatorAddress}
-					{#if validatorAddress !== undefined && validatorAddress !== null}
-						<div>
-							<dt>Validator address</dt>
-							<dd>
-								<TruncatedValue value={String((validatorAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validatorAddress = resolvedEntity.validatorAddress}
@@ -247,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							response: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const response = pendingEntity.response}
-					{#if response !== undefined && response !== null}
-						<div>
-							<dt>Response</dt>
-							<dd>
-								<NumberValue value={Number(response)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const response = resolvedEntity.response}
@@ -272,7 +232,9 @@
 						<div>
 							<dt>Response</dt>
 							<dd>
-								<NumberValue value={Number(response)} />
+								<NumberValue
+									value={response}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -284,31 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							requestUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const requestUri = pendingEntity.requestUri}
-					{#if requestUri !== undefined && requestUri !== null}
-						<div>
-							<dt>Request URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(requestUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(requestUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const requestUri = resolvedEntity.requestUri}
@@ -333,31 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseUri = pendingEntity.responseUri}
-					{#if responseUri !== undefined && responseUri !== null}
-						<div>
-							<dt>Response URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(responseUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(responseUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseUri = resolvedEntity.responseUri}
@@ -382,24 +308,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseHashAlgorithm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseHashAlgorithm = pendingEntity.responseHashAlgorithm}
-					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
-						<div>
-							<dt>Response hash algorithm</dt>
-							<dd>
-								<TruncatedValue value={String((responseHashAlgorithm) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseHashAlgorithm = resolvedEntity.responseHashAlgorithm}
@@ -417,24 +332,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseHash = pendingEntity.responseHash}
-					{#if responseHash !== undefined && responseHash !== null}
-						<div>
-							<dt>Response hash</dt>
-							<dd>
-								<TruncatedValue value={String((responseHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseHash = resolvedEntity.responseHash}
@@ -454,24 +358,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tag: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tag = pendingEntity.tag}
-					{#if tag !== undefined && tag !== null}
-						<div>
-							<dt>Tag</dt>
-							<dd>
-								{String((tag) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tag = resolvedEntity.tag}
@@ -489,24 +382,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastUpdate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastUpdate = pendingEntity.lastUpdate}
-					{#if lastUpdate !== undefined && lastUpdate !== null}
-						<div>
-							<dt>Last update</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastUpdate)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastUpdate = resolvedEntity.lastUpdate}
@@ -524,24 +406,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue value={Number(blockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -549,7 +420,9 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -559,24 +432,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionHash = pendingEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
-						<div>
-							<dt>Transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionHash = resolvedEntity.transactionHash}

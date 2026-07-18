@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum PolkadotBlockSelector {
@@ -59,12 +60,19 @@ export const PolkadotBlock = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.PolkadotExtrinsic,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Polkadot_JsonRpc,
+			Source.SubstrateSidecar_Rest,
+		],
 	},
 	$$events: {
 		label: 'Events',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.PolkadotEvent,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SubstrateSidecar_Rest,
+		],
 	},
 })({
 	selectors: {

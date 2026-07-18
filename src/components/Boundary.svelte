@@ -11,14 +11,18 @@
 		children,
 		Pending,
 		Failed,
+		failure,
 		boundaryKey = 'Boundary',
 	}: {
 		children?: Snippet
 		Pending?: Snippet
 		Failed?: Snippet<[
 			error: QueryResourceError,
-			retry: () => void,
+			retry?: () => void,
 		]>
+		failure?: {
+			error: unknown
+		}
 		boundaryKey?: string
 	} = $props()
 
@@ -32,7 +36,9 @@
 		console.error('[blockhead:boundary:uncaught]', boundaryKey, normalizeBoundaryError(error))
 	}}
 >
-	{#if children}
+	{#if failure}
+		{@render failed(failure.error)}
+	{:else if children}
 		{@render children()}
 	{/if}
 
@@ -54,7 +60,7 @@
 
 	{#snippet failed(
 		error: unknown,
-		retry: () => void
+		retry?: () => void
 	)}
 		{@const normalizedError = normalizeBoundaryError(error)}
 		<div

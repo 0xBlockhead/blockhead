@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleSignedRef = $derived(selection({}))
+	const radicleSignedRef = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle signed ref')
 	const viewDomId = $derived('radicle-signed-ref-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radicleSignedRef}>
-			{#snippet Pending()}
-				{title || 'radicle signed ref'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radicleSignedRef}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nodeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nodeId = pendingEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nodeId = resolvedEntity.nodeId}
@@ -126,19 +122,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									refName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const refName = pendingEntity.refName}
-							{#if refName !== undefined && refName !== null}
-								{String((refName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const refName = resolvedEntity.refName}
@@ -156,19 +146,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									targetObjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const targetObjectId = pendingEntity.targetObjectId}
-							{#if targetObjectId !== undefined && targetObjectId !== null}
-								{String((targetObjectId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const targetObjectId = resolvedEntity.targetObjectId}
@@ -183,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signature = pendingEntity.signature}
-					{#if signature !== undefined && signature !== null}
-						<div>
-							<dt>signature</dt>
-							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signature = resolvedEntity.signature}
@@ -218,8 +191,6 @@
 			<ResourceBoundary
 				resource={selection.$gitRef}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitRef)}
 					{#if gitRef != null && gitRef[EntityMetaKey.Selector] != null}
 						<div>
@@ -240,8 +211,6 @@
 			<ResourceBoundary
 				resource={selection.$refObservation}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitRefObservationTimestamp)}
 					{#if gitRefObservationTimestamp != null && gitRefObservationTimestamp[EntityMetaKey.Selector] != null}
 						<div>

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MevRelayView from '$/views/MevRelayView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					host: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevRelay}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MevRelay}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				host: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(mevRelays) => [...new Map(mevRelays.values.map((mevRelay) => [mevRelay[EntityMetaKey.SelectorKey], mevRelay])).values()]}
+	getKey={(mevRelay) => mevRelay[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No MEV relays yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mevRelays)}
-			{@const uniqueMevRelays = [...new Map(mevRelays.values.map((mevRelay) => [mevRelay[EntityMetaKey.SelectorKey], mevRelay])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevRelay}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mevRelays.totalCount}
-				getKey={(mevRelay) => mevRelay[EntityMetaKey.SelectorKey]}
-				items={uniqueMevRelays}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No MEV relays yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mevRelay })}
-					{@const mevRelayFields = { ...mevRelay[EntityMetaKey.Selector], ...mevRelay }}
-					{@const selection = select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const mevRelayHrefFields = { ...mevRelay, ...mevRelay[EntityMetaKey.Selector] }}
-					<MevRelayView
-						selection={selection}
-						prefetched={mevRelayFields}
-						href={
-							(mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								host: String(mevRelayHrefFields.host ?? ''),
-								network: String(caip2StringFromValue(mevRelayHrefFields.$network.caip2) ?? ''),
-							}) : mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								host: String(mevRelayHrefFields.host ?? ''),
-								network: String(mevRelayHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MevRelay}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mevRelay })}
+		{@const mevRelayFields = { ...mevRelay[EntityMetaKey.Selector], ...mevRelay }}
+		{@const selection = select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const mevRelayHrefFields = { ...mevRelay, ...mevRelay[EntityMetaKey.Selector] }}
+		<MevRelayView
+			selection={selection}
+			prefetched={mevRelayFields}
+			href={
+				(mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+					host: String(mevRelayHrefFields.host ?? ''),
+					network: String(caip2StringFromValue(mevRelayHrefFields.$network.caip2) ?? ''),
+				}) : mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+					host: String(mevRelayHrefFields.host ?? ''),
+					network: String(mevRelayHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

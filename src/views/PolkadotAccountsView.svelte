@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotAccountView from '$/views/PolkadotAccountView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					accountId: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				accountId: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotAccounts) => [...new Map(polkadotAccounts.values.map((polkadotAccount) => [polkadotAccount[EntityMetaKey.SelectorKey], polkadotAccount])).values()]}
+	getKey={(polkadotAccount) => polkadotAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotAccounts)}
-			{@const uniquePolkadotAccounts = [...new Map(polkadotAccounts.values.map((polkadotAccount) => [polkadotAccount[EntityMetaKey.SelectorKey], polkadotAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAccounts.totalCount}
-				getKey={(polkadotAccount) => polkadotAccount[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotAccount })}
-					{@const polkadotAccountFields = { ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }}
-					{@const selection = select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const polkadotAccountHrefFields = { ...polkadotAccount, ...polkadotAccount[EntityMetaKey.Selector] }}
-					<PolkadotAccountView
-						selection={selection}
-						prefetched={polkadotAccountFields}
-						href={
-							(polkadotAccountHrefFields.accountId !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(polkadotAccountHrefFields.accountId ?? ''),
-								network: String(caip2StringFromValue(polkadotAccountHrefFields.$network.caip2) ?? ''),
-							}) : polkadotAccountHrefFields.accountId !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(polkadotAccountHrefFields.accountId ?? ''),
-								network: String(polkadotAccountHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotAccount })}
+		{@const polkadotAccountFields = { ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }}
+		{@const selection = select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const polkadotAccountHrefFields = { ...polkadotAccount, ...polkadotAccount[EntityMetaKey.Selector] }}
+		<PolkadotAccountView
+			selection={selection}
+			prefetched={polkadotAccountFields}
+			href={
+				(polkadotAccountHrefFields.accountId !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(polkadotAccountHrefFields.accountId ?? ''),
+					network: String(caip2StringFromValue(polkadotAccountHrefFields.$network.caip2) ?? ''),
+				}) : polkadotAccountHrefFields.accountId !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(polkadotAccountHrefFields.accountId ?? ''),
+					network: String(polkadotAccountHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

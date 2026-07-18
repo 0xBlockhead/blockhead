@@ -3,7 +3,6 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { type } from 'arktype'
 
 export enum ZcashShieldedPoolBlockStateSelector {
@@ -22,29 +21,29 @@ export const ZcashShieldedPoolBlockState = entity({
 		entityType: EntityType.UtxoBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
-	pool: {
+	$pool: {
 		label: 'pool',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ZcashShieldedPool,
 		cardinality: EntityFieldCardinality.One,
 	},
-	finalRoot: {
-		label: 'final root',
+	saplingTree: {
+		label: 'Sapling tree',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type({ 'finalRoot': type('string'), 'finalState': type('string') }),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	blockCommitments: {
-		label: 'block commitments',
+	orchardTree: {
+		label: 'Orchard tree',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type({ 'finalRoot': type('string'), 'finalState': type('string') }),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
 		BlockPool: [
 			'$block',
-			'pool',
+			'$pool',
 		],
 	},
 })

@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandTransactionProof = $derived(selection({}))
+	const algorandTransactionProof = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand transaction proof')
 	const viewDomId = $derived('algorand-transaction-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandTransactionProof}>
-			{#snippet Pending()}
-				{title || 'algorand transaction proof'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTransactionProof}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									round: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const round = pendingEntity.round}
-							{#if round !== undefined && round !== null}
-								{String((round) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const round = resolvedEntity.round}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hashType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hashType = pendingEntity.hashType}
-							{#if hashType !== undefined && hashType !== null}
-								<TruncatedValue value={String((hashType) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hashType = resolvedEntity.hashType}
@@ -155,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -184,24 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proofBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proofBytes = pendingEntity.proofBytes}
-					{#if proofBytes !== undefined && proofBytes !== null}
-						<div>
-							<dt>proof bytes</dt>
-							<dd>
-								{String((proofBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proofBytes = resolvedEntity.proofBytes}
@@ -219,24 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stibHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stibHash = pendingEntity.stibHash}
-					{#if stibHash !== undefined && stibHash !== null}
-						<div>
-							<dt>stib hash</dt>
-							<dd>
-								<TruncatedValue value={String((stibHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stibHash = resolvedEntity.stibHash}
@@ -254,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							treeDepth: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const treeDepth = pendingEntity.treeDepth}
-					{#if treeDepth !== undefined && treeDepth !== null}
-						<div>
-							<dt>tree depth</dt>
-							<dd>
-								{String((treeDepth) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const treeDepth = resolvedEntity.treeDepth}

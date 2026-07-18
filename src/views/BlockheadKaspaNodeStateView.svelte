@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadKaspaNodeState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			networkId: true,
 		},
@@ -73,60 +70,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadKaspaNodeState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead kaspa node state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadKaspaNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadKaspaNodeState}>
-			{#snippet Pending()}
-				<KaspaNetworkView
-					selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<KaspaNetworkView
-					selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<KaspaNetworkView
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadKaspaNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<KaspaNetworkView
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadKaspaNodeState}>
-			{#snippet Pending()}
-				{@const networkId0 = pendingEntity.networkId}
-				{#if networkId0 !== undefined && networkId0 !== null}
-					<span data-text="muted">
-						{String((networkId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const networkId0 = resolvedEntity.networkId}
-				{#if networkId0 !== undefined && networkId0 !== null}
-					<span data-text="muted">
-						{String((networkId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const networkId0 = pendingEntity.networkId}
+			{#if networkId0 !== undefined && networkId0 !== null}
+				<span data-text="muted">
+					{String((networkId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadKaspaNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const networkId0 = resolvedEntity.networkId}
+					{#if networkId0 !== undefined && networkId0 !== null}
+						<span data-text="muted">
+							{String((networkId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -175,31 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rpcUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rpcUrl = pendingEntity.rpcUrl}
-					{#if rpcUrl !== undefined && rpcUrl !== null}
-						<div>
-							<dt>RPC URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(rpcUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(rpcUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rpcUrl = resolvedEntity.rpcUrl}
@@ -224,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							encoding: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const encoding = pendingEntity.encoding}
-					{#if encoding !== undefined && encoding !== null}
-						<div>
-							<dt>encoding</dt>
-							<dd>
-								{String((encoding) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const encoding = resolvedEntity.encoding}
@@ -259,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							networkId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const networkId = pendingEntity.networkId}
-					{#if networkId !== undefined && networkId !== null}
-						<div>
-							<dt>network ID</dt>
-							<dd>
-								{String((networkId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const networkId = resolvedEntity.networkId}

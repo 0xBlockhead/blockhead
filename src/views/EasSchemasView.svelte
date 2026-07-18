@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EasSchemaView from '$/views/EasSchemaView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					schemaUid: true,
-					schema: true,
-					resolver: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EasSchema}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EasSchema}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				schemaUid: true,
+				schema: true,
+				resolver: true,
+			},
+		})
+	}
+	getResourceItems={(easSchemas) => [...new Map(easSchemas.values.map((easSchema) => [easSchema[EntityMetaKey.SelectorKey], easSchema])).values()]}
+	getKey={(easSchema) => easSchema[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EAS schemas yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(easSchemas)}
-			{@const uniqueEasSchemas = [...new Map(easSchemas.values.map((easSchema) => [easSchema[EntityMetaKey.SelectorKey], easSchema])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EasSchema}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={easSchemas.totalCount}
-				getKey={(easSchema) => easSchema[EntityMetaKey.SelectorKey]}
-				items={uniqueEasSchemas}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EAS schemas yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: easSchema })}
-					{@const easSchemaFields = { ...easSchema[EntityMetaKey.Selector], ...easSchema }}
-					{@const selection = select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EasSchemaView
-						selection={selection}
-						prefetched={easSchemaFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EasSchema}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: easSchema })}
+		{@const easSchemaFields = { ...easSchema[EntityMetaKey.Selector], ...easSchema }}
+		{@const selection = select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EasSchemaView
+			selection={selection}
+			prefetched={easSchemaFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

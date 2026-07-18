@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonAccount = $derived(selection({}))
+	const tonAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON account')
 	const viewDomId = $derived('ton-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -53,10 +56,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import TonTransactionsView from '$/views/TonTransactionsView.svelte'
-	import TonMessagesView from '$/views/TonMessagesView.svelte'
-	import TonNftItemsView from '$/views/TonNftItemsView.svelte'
-	import TonJettonBalance_TimestampsView from '$/views/TonJettonBalance_TimestampsView.svelte'
 	import TonAccount_TimestampsView from '$/views/TonAccount_TimestampsView.svelte'
 </script>
 
@@ -80,16 +79,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonAccount}>
-			{#snippet Pending()}
-				{title || 'TON account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -118,19 +117,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -145,24 +138,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							workchain: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const workchain = pendingEntity.workchain}
-					{#if workchain !== undefined && workchain !== null}
-						<div>
-							<dt>workchain</dt>
-							<dd>
-								{String((workchain) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const workchain = resolvedEntity.workchain}
@@ -180,24 +162,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							addressHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const addressHash = pendingEntity.addressHash}
-					{#if addressHash !== undefined && addressHash !== null}
-						<div>
-							<dt>address hash</dt>
-							<dd>
-								<TruncatedValue value={String((addressHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const addressHash = resolvedEntity.addressHash}
@@ -217,134 +188,41 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-ton-account-activity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'ton-account-transactions',
-							label: 'Transactions',
-						},
-						{
-							id: 'ton-account-messages',
-							label: 'Messages',
-						},
-						{
-							id: 'ton-account-nft-items',
-							label: 'Nft Items',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionTonAccountTransactions({ id, label, open })}
-					<TonTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No transactions.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionTonAccountMessages({ id, label, open })}
-					<TonMessagesView
-						selection={
-							selection.$$messages({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No messages.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionTonAccountNftItems({ id, label, open })}
-					<TonNftItemsView
-						selection={
-							selection.$$nftItems({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No nft items.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
 				id={viewDomId + '-carousel-ton-account-observations'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
 						{
-							id: 'ton-account-jetton-balance-timestamps',
-							label: 'Jetton Balance Timestamps',
-						},
-						{
 							id: 'ton-account-timestamps',
-							label: 'Timestamps',
+							label: 'Observations',
 						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
-				{/snippet}
-
-				{#snippet SectionTonAccountJettonBalanceTimestamps({ id, label, open })}
-					<TonJettonBalance_TimestampsView
-						selection={
-							selection.$$jettonBalanceTimestamps({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No jetton balance timestamps.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
 				{/snippet}
 
 				{#snippet SectionTonAccountTimestamps({ id, label, open })}
 					<TonAccount_TimestampsView
 						selection={
 							selection.$$timestamps({
-								count: true,
+								sources: [
+									Source.TonApi_Rest,
+								],
+								limit: 16,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
-						emptyText='No timestamps.'
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No observations.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

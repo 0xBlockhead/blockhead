@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidSpotPairView from '$/views/HyperliquidSpotPairView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotPair}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidSpotPair}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidSpotPairs) => [...new Map(hyperliquidSpotPairs.values.map((hyperliquidSpotPair) => [hyperliquidSpotPair[EntityMetaKey.SelectorKey], hyperliquidSpotPair])).values()]}
+	getKey={(hyperliquidSpotPair) => hyperliquidSpotPair[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid spot pairs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidSpotPairs)}
-			{@const uniqueHyperliquidSpotPairs = [...new Map(hyperliquidSpotPairs.values.map((hyperliquidSpotPair) => [hyperliquidSpotPair[EntityMetaKey.SelectorKey], hyperliquidSpotPair])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotPair}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidSpotPairs.totalCount}
-				getKey={(hyperliquidSpotPair) => hyperliquidSpotPair[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidSpotPairs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid spot pairs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidSpotPair })}
-					{@const hyperliquidSpotPairFields = { ...hyperliquidSpotPair[EntityMetaKey.Selector], ...hyperliquidSpotPair }}
-					{@const selection = select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidSpotPairView
-						selection={selection}
-						prefetched={hyperliquidSpotPairFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidSpotPair}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidSpotPair })}
+		{@const hyperliquidSpotPairFields = { ...hyperliquidSpotPair[EntityMetaKey.Selector], ...hyperliquidSpotPair }}
+		{@const selection = select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidSpotPairView
+			selection={selection}
+			prefetched={hyperliquidSpotPairFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

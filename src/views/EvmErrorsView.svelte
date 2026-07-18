@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmErrorView from '$/views/EvmErrorView.svelte'
 </script>
@@ -63,85 +62,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Openchain_Rest,
-				],
-				fields: {
-					hex: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmError}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmError}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Openchain_Rest,
+			],
+			fields: {
+				hex: true,
+			},
+		})
+	}
+	getResourceItems={(evmErrors) => [...new Map(evmErrors.values.map((evmError) => [evmError[EntityMetaKey.SelectorKey], evmError])).values()]}
+	getKey={(evmError) => evmError[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM errors yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmErrors)}
-			{@const uniqueEvmErrors = [...new Map(evmErrors.values.map((evmError) => [evmError[EntityMetaKey.SelectorKey], evmError])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmError}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmErrors.totalCount}
-				getKey={(evmError) => evmError[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmErrors}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM errors yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmError })}
-					{@const evmErrorFields = { ...evmError[EntityMetaKey.Selector], ...evmError }}
-					{@const selection = select(EntityType.EvmError, evmError[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmErrorHrefFields = { ...evmError, ...evmError[EntityMetaKey.Selector] }}
-					<EvmErrorView
-						selection={selection}
-						prefetched={evmErrorFields}
-						href={
-							(evmErrorHrefFields.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]', {
-								hex: String(evmErrorHrefFields.hex ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmError}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmError })}
+		{@const evmErrorFields = { ...evmError[EntityMetaKey.Selector], ...evmError }}
+		{@const selection = select(EntityType.EvmError, evmError[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmErrorHrefFields = { ...evmError, ...evmError[EntityMetaKey.Selector] }}
+		<EvmErrorView
+			selection={selection}
+			prefetched={evmErrorFields}
+			href={
+				(evmErrorHrefFields.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]', {
+					hex: String(evmErrorHrefFields.hex ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CelestiaNamespace_TimestampView from '$/views/CelestiaNamespace_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					height: true,
-					blobCount: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNamespace_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CelestiaNamespace_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				height: true,
+				blobCount: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(celestiaNamespaceTimestamps) => [...new Map(celestiaNamespaceTimestamps.values.map((celestiaNamespaceTimestamp) => [celestiaNamespaceTimestamp[EntityMetaKey.SelectorKey], celestiaNamespaceTimestamp])).values()]}
+	getKey={(celestiaNamespaceTimestamp) => celestiaNamespaceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Celestia namespace observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(celestiaNamespaceTimestamps)}
-			{@const uniqueCelestiaNamespaceTimestamps = [...new Map(celestiaNamespaceTimestamps.values.map((celestiaNamespaceTimestamp) => [celestiaNamespaceTimestamp[EntityMetaKey.SelectorKey], celestiaNamespaceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNamespace_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={celestiaNamespaceTimestamps.totalCount}
-				getKey={(celestiaNamespaceTimestamp) => celestiaNamespaceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCelestiaNamespaceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Celestia namespace observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: celestiaNamespaceTimestamp })}
-					{@const celestiaNamespaceTimestampFields = { ...celestiaNamespaceTimestamp[EntityMetaKey.Selector], ...celestiaNamespaceTimestamp }}
-					{@const selection = select(EntityType.CelestiaNamespace_Timestamp, celestiaNamespaceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CelestiaNamespace_TimestampView
-						selection={selection}
-						prefetched={celestiaNamespaceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CelestiaNamespace_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: celestiaNamespaceTimestamp })}
+		{@const celestiaNamespaceTimestampFields = { ...celestiaNamespaceTimestamp[EntityMetaKey.Selector], ...celestiaNamespaceTimestamp }}
+		{@const selection = select(EntityType.CelestiaNamespace_Timestamp, celestiaNamespaceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CelestiaNamespace_TimestampView
+			selection={selection}
+			prefetched={celestiaNamespaceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

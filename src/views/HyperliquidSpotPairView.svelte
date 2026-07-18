@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidSpotPair = $derived(selection({}))
+	const hyperliquidSpotPair = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid spot pair')
 	const viewDomId = $derived('hyperliquid-spot-pair-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidSpotPair}>
-			{#snippet Pending()}
-				{title || 'hyperliquid spot pair'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidSpotPair}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pairIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pairIndex = pendingEntity.pairIndex}
-							{#if pairIndex !== undefined && pairIndex !== null}
-								{String((pairIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pairIndex = resolvedEntity.pairIndex}
@@ -130,8 +126,6 @@
 			<ResourceBoundary
 				resource={selection.$baseAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidSpotAsset)}
 					{#if hyperliquidSpotAsset != null && hyperliquidSpotAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -152,8 +146,6 @@
 			<ResourceBoundary
 				resource={selection.$quoteAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidSpotAsset)}
 					{#if hyperliquidSpotAsset != null && hyperliquidSpotAsset[EntityMetaKey.Selector] != null}
 						<div>

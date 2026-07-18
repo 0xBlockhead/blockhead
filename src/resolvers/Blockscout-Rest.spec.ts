@@ -4,19 +4,27 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { CoinInstanceType, EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
 import { EvmLogSelector } from '$/schema/EvmLog.ts'
+import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getAddressDetails = vi.hoisted(() => vi.fn())
+const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
+const getStats = vi.hoisted(() => vi.fn())
 const getTransactionLogs = vi.hoisted(() => vi.fn())
 const getTransactionWireByHash = vi.hoisted(() => vi.fn())
+const getUserOperationsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Blockscout/Rest/queries.ts')>(),
 	getAddressDetails,
+	getErc4337SmartAccountList,
+	getStats,
 	getTransactionLogs,
 	getTransactionWireByHash,
+	getUserOperationsPage,
 }))
 
 const { default: blockscoutRest } = await import('$/resolvers/Blockscout-Rest.ts')
@@ -93,7 +101,7 @@ describe('Blockscout EVM coin instances', () => {
 		if (resolver == null)
 			throw new Error('Blockscout EvmCoinInstance resolver is not registered')
 
-		const resolved = await resolver.resolve[EvmCoinInstanceSelector.NetworkTypeContract]({
+		const resolved = await resolver.resolve[EvmCoinInstanceSelector.NetworkTypeContract].resolve({
 			$network: network,
 			type: CoinInstanceType.Erc20Token,
 			$contract: contract,
@@ -106,6 +114,79 @@ describe('Blockscout EVM coin instances', () => {
 		expect(resolver.projections).not.toHaveProperty('$contract')
 		expect(resolver.projections.Erc20Token?.name(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USD Coin')
 		expect(resolver.projections.Erc20Token?.symbol(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USDC')
+	})
+})
+
+describe('Blockscout Network account abstraction applicability', () => {
+	it.each([
+		'$$erc4337SmartAccounts',
+		'$$userOperations',
+	])('resolves %s empty without requesting an unsupported hosted chain', async (fieldName) => {
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& fieldName in candidate.projections.Evm
+		))
+		if (resolver == null)
+			throw new Error(`Blockscout ${fieldName} resolver is not registered`)
+
+		await expect(resolver.resolve[NetworkSelector.Caip2].resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '5',
+			},
+		}, context)).resolves.toEqual([])
+	})
+})
+
+describe('Blockscout gas estimate observation identity', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('reuses the selector observation clock when Blockscout omits its stats clock', async () => {
+		getStats.mockResolvedValue({
+			gas_prices: {
+				slow: 1,
+				average: 2,
+				fast: 3,
+			},
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetwork_GasEstimate_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Blockscout gas estimate resolver is not registered')
+
+		await expect(resolver.resolve[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource].resolve({
+			$network: network,
+			timestampMs: 1_784_221_554_477,
+			source: Source.Blockscout_Rest,
+		}, context)).resolves.toMatchObject({
+			slowGwei: 1,
+			averageGwei: 2,
+			fastGwei: 3,
+			transport: 'blockscout-stats',
+		})
+	})
+
+	it('keeps a provider-supplied stats clock strict', async () => {
+		getStats.mockResolvedValue({
+			gas_price_updated_at: '2026-07-16T09:30:43.020Z',
+			gas_prices: {
+				average: 2,
+			},
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetwork_GasEstimate_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Blockscout gas estimate resolver is not registered')
+
+		await expect(resolver.resolve[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource].resolve({
+			$network: network,
+			timestampMs: 1,
+			source: Source.Blockscout_Rest,
+		}, context)).rejects.toThrow('id does not match stats clock')
 	})
 })
 
@@ -136,7 +217,7 @@ describe('Blockscout EVM log identity', () => {
 		if (resolver == null)
 			throw new Error('Blockscout EvmTransaction receipt resolver is not registered')
 
-		const resolved = await resolver.resolve.EvmNetworkTxHash({
+		const resolved = await resolver.resolve.EvmNetworkTxHash.resolve({
 			$network: network,
 			txHash,
 		}, context)
@@ -157,7 +238,7 @@ describe('Blockscout EVM log identity', () => {
 		if (resolver == null)
 			throw new Error('Blockscout EvmLog resolver is not registered')
 
-		const resolved = await resolver.resolve[EvmLogSelector.TransactionIndexInTransaction]({
+		const resolved = await resolver.resolve[EvmLogSelector.TransactionIndexInTransaction].resolve({
 			$transaction: {
 				$network: network,
 				txHash,

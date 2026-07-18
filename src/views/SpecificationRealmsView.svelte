@@ -9,12 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { Source } from '$/sources/Source.ts'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import Heading from '$/components/Heading.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import SpecificationProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
-	import SpecificationRealmView from '$/views/SpecificationRealmView.svelte'
 
 
 	// Context
@@ -57,8 +51,8 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import SpecificationRealmView from '$/views/SpecificationRealmView.svelte'
 </script>
 
 
@@ -68,176 +62,50 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					realm: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SpecificationRealm}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
-
-		{#snippet children(specificationRealms)}
-			{@const uniqueSpecificationRealms = [...new Map(specificationRealms.values.map((specificationRealm) => [specificationRealm[EntityMetaKey.SelectorKey], specificationRealm])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SpecificationRealm}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={specificationRealms.totalCount}
-				getKey={(specificationRealm) => specificationRealm[EntityMetaKey.SelectorKey]}
-				items={uniqueSpecificationRealms}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Specification realms yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: specificationRealm })}
-					{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
-					{@const selection = select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
-					<SpecificationRealmView
-						selection={selection}
-						prefetched={specificationRealmFields}
-						href={
-							(specificationRealmHrefFields.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-								specificationRealmSlug: String(specificationRealmById[String(specificationRealmHrefFields.realm)].slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SpecificationRealm}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
-
-<ResourceBoundary
-	resource={selection({
-		limit: 512,
-		fields: {
-			label: true,
-		},
-	})}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SpecificationRealm}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				realm: true,
+			},
+		})
+	}
+	getResourceItems={(specificationRealms) => [...new Map(specificationRealms.values.map((specificationRealm) => [specificationRealm[EntityMetaKey.SelectorKey], specificationRealm])).values()]}
+	getKey={(specificationRealm) => specificationRealm[EntityMetaKey.SelectorKey]}
 	{placeholderText}
 >
-	{#snippet children(realms)}
-		{#if realms.values.length === 0}
+	{#snippet Empty()}
+		{#if emptyText != null}
 			<p data-text="muted">{emptyText}</p>
 		{:else}
-			<CollapsibleTabs
-				id={id}
-				{open}
-				sectionIdPrefix="proposal-realm"
-				sections={[
-					{ id: 'realms', label: title },
-				]}
-				data-card
-				scrollContainerProps={{
-					'data-scroll-container': 'block',
-				}}
-			>
-				{#snippet Summary()}
-					<div data-column="gap-1">
-						<header
-							data-row-item="flexible"
-							data-row="wrap gap-4"
-						>
-							<Heading>
-								{title}
-							</Heading>
-						</header>
-
-						<div data-row="wrap align-center gap-2">
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-									<p>
-										Realms are top-level stewards for specification catalogs. Open a realm for document families, then numbered drafts.
-									</p>
-								{/snippet}
-
-								<abbr
-									class="entity-heading-tip"
-									aria-label="How realms are grouped"
-								>i</abbr>
-							</Tooltip>
-						</div>
-					</div>
-				{/snippet}
-
-				{#snippet SectionRealms()}
-					<div data-column="gap-4 layout-flex">
-						{#each realms.values.toSorted((first, second) => (
-							String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
-						)) as realm (String(realm.entitySelector.realm))}
-							<section data-scroll-marker-label={String(realm.entitySelector.realm)}>
-								<SpecificationRealmView
-									selection={select(
-										EntityType.SpecificationRealm,
-										{ realm: realm.entitySelector.realm }
-									)}
-												href={resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-										specificationRealmSlug: String(specificationRealmById[String(realm.entitySelector.realm)].slug),
-									})}
-									layout={EntityLayout.Title}
-									open={false}
-									prefetched={realm}
-								/>
-
-								<SpecificationProposalKindsView
-									collapsible={false}
-									selection={select(
-										EntityType.SpecificationRealm,
-										{ realm: realm.entitySelector.realm }
-									).$$proposalKinds({
-										sources: [Source.Constants_Internal],
-									})}
-									id={`proposal-realm:${String(realm.entitySelector.realm)}:proposal-kinds`}
-									open
-									title={String(realm.entitySelector.realm)}
-								/>
-							</section>
-						{/each}
-					</div>
-				{/snippet}
-			</CollapsibleTabs>
+			<p data-text="muted">No Specification realms yet.</p>
 		{/if}
 	{/snippet}
-</ResourceBoundary>
+
+	{#snippet Item({ item: specificationRealm })}
+		{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
+		{@const selection = select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
+		<SpecificationRealmView
+			selection={selection}
+			prefetched={specificationRealmFields}
+			href={
+				(specificationRealmHrefFields.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+					specificationRealmSlug: String(specificationRealmById[String(specificationRealmHrefFields.realm)].slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

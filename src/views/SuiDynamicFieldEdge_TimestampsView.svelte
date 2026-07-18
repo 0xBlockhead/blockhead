@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiDynamicFieldEdge_TimestampView from '$/views/SuiDynamicFieldEdge_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiDynamicFieldEdgeTimestamps) => [...new Map(suiDynamicFieldEdgeTimestamps.values.map((suiDynamicFieldEdgeTimestamp) => [suiDynamicFieldEdgeTimestamp[EntityMetaKey.SelectorKey], suiDynamicFieldEdgeTimestamp])).values()]}
+	getKey={(suiDynamicFieldEdgeTimestamp) => suiDynamicFieldEdgeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui dynamic field edge observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiDynamicFieldEdgeTimestamps)}
-			{@const uniqueSuiDynamicFieldEdgeTimestamps = [...new Map(suiDynamicFieldEdgeTimestamps.values.map((suiDynamicFieldEdgeTimestamp) => [suiDynamicFieldEdgeTimestamp[EntityMetaKey.SelectorKey], suiDynamicFieldEdgeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiDynamicFieldEdgeTimestamps.totalCount}
-				getKey={(suiDynamicFieldEdgeTimestamp) => suiDynamicFieldEdgeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiDynamicFieldEdgeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui dynamic field edge observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiDynamicFieldEdgeTimestamp })}
-					{@const suiDynamicFieldEdgeTimestampFields = { ...suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], ...suiDynamicFieldEdgeTimestamp }}
-					{@const selection = select(EntityType.SuiDynamicFieldEdge_Timestamp, suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiDynamicFieldEdge_TimestampView
-						selection={selection}
-						prefetched={suiDynamicFieldEdgeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiDynamicFieldEdgeTimestamp })}
+		{@const suiDynamicFieldEdgeTimestampFields = { ...suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], ...suiDynamicFieldEdgeTimestamp }}
+		{@const selection = select(EntityType.SuiDynamicFieldEdge_Timestamp, suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiDynamicFieldEdge_TimestampView
+			selection={selection}
+			prefetched={suiDynamicFieldEdgeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

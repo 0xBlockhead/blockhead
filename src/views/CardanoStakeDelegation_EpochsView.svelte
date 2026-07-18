@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoStakeDelegation_EpochView from '$/views/CardanoStakeDelegation_EpochView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakeDelegation_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoStakeDelegation_Epoch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoStakeDelegationEpochs) => [...new Map(cardanoStakeDelegationEpochs.values.map((cardanoStakeDelegationEpoch) => [cardanoStakeDelegationEpoch[EntityMetaKey.SelectorKey], cardanoStakeDelegationEpoch])).values()]}
+	getKey={(cardanoStakeDelegationEpoch) => cardanoStakeDelegationEpoch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano stake delegation epochs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoStakeDelegationEpochs)}
-			{@const uniqueCardanoStakeDelegationEpochs = [...new Map(cardanoStakeDelegationEpochs.values.map((cardanoStakeDelegationEpoch) => [cardanoStakeDelegationEpoch[EntityMetaKey.SelectorKey], cardanoStakeDelegationEpoch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakeDelegation_Epoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoStakeDelegationEpochs.totalCount}
-				getKey={(cardanoStakeDelegationEpoch) => cardanoStakeDelegationEpoch[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoStakeDelegationEpochs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano stake delegation epochs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoStakeDelegationEpoch })}
-					{@const cardanoStakeDelegationEpochFields = { ...cardanoStakeDelegationEpoch[EntityMetaKey.Selector], ...cardanoStakeDelegationEpoch }}
-					{@const selection = select(EntityType.CardanoStakeDelegation_Epoch, cardanoStakeDelegationEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoStakeDelegation_EpochView
-						selection={selection}
-						prefetched={cardanoStakeDelegationEpochFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoStakeDelegation_Epoch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoStakeDelegationEpoch })}
+		{@const cardanoStakeDelegationEpochFields = { ...cardanoStakeDelegationEpoch[EntityMetaKey.Selector], ...cardanoStakeDelegationEpoch }}
+		{@const selection = select(EntityType.CardanoStakeDelegation_Epoch, cardanoStakeDelegationEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoStakeDelegation_EpochView
+			selection={selection}
+			prefetched={cardanoStakeDelegationEpochFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

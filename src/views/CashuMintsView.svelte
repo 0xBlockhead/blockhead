@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CashuMintView from '$/views/CashuMintView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					mintUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CashuMint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CashuMint}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				mintUrl: true,
+			},
+		})
+	}
+	getResourceItems={(cashuMints) => [...new Map(cashuMints.values.map((cashuMint) => [cashuMint[EntityMetaKey.SelectorKey], cashuMint])).values()]}
+	getKey={(cashuMint) => cashuMint[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cashu mints yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cashuMints)}
-			{@const uniqueCashuMints = [...new Map(cashuMints.values.map((cashuMint) => [cashuMint[EntityMetaKey.SelectorKey], cashuMint])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CashuMint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cashuMints.totalCount}
-				getKey={(cashuMint) => cashuMint[EntityMetaKey.SelectorKey]}
-				items={uniqueCashuMints}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cashu mints yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cashuMint })}
-					{@const cashuMintFields = { ...cashuMint[EntityMetaKey.Selector], ...cashuMint }}
-					{@const selection = select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CashuMintView
-						selection={selection}
-						prefetched={cashuMintFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CashuMint}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cashuMint })}
+		{@const cashuMintFields = { ...cashuMint[EntityMetaKey.Selector], ...cashuMint }}
+		{@const selection = select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CashuMintView
+			selection={selection}
+			prefetched={cashuMintFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConversationTurnView from '$/views/BlockheadAgentConversationTurnView.svelte'
 </script>
@@ -63,89 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Local_Internal,
-				],
-				fields: {
-					userPrompt: true,
-					createdAt: true,
-					id: true,
-					$conversation: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConversationTurn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentConversationTurn}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Local_Internal,
+			],
+			fields: {
+				userPrompt: true,
+				createdAt: true,
+				id: true,
+				$conversation: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentConversationTurns) => [...new Map(blockheadAgentConversationTurns.values.map((blockheadAgentConversationTurn) => [blockheadAgentConversationTurn[EntityMetaKey.SelectorKey], blockheadAgentConversationTurn])).values()]}
+	getKey={(blockheadAgentConversationTurn) => blockheadAgentConversationTurn[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Agent conversation turns yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentConversationTurns)}
-			{@const uniqueBlockheadAgentConversationTurns = [...new Map(blockheadAgentConversationTurns.values.map((blockheadAgentConversationTurn) => [blockheadAgentConversationTurn[EntityMetaKey.SelectorKey], blockheadAgentConversationTurn])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConversationTurn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentConversationTurns.totalCount}
-				getKey={(blockheadAgentConversationTurn) => blockheadAgentConversationTurn[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentConversationTurns}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Agent conversation turns yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentConversationTurn })}
-					{@const blockheadAgentConversationTurnFields = { ...blockheadAgentConversationTurn[EntityMetaKey.Selector], ...blockheadAgentConversationTurn }}
-					{@const selection = select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadAgentConversationTurnHrefFields = { ...blockheadAgentConversationTurn, ...blockheadAgentConversationTurn[EntityMetaKey.Selector] }}
-					<BlockheadAgentConversationTurnView
-						selection={selection}
-						prefetched={blockheadAgentConversationTurnFields}
-						href={
-							(blockheadAgentConversationTurnHrefFields.id !== undefined && blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
-								turnId: String(blockheadAgentConversationTurnHrefFields.id ?? ''),
-								conversationId: String(blockheadAgentConversationTurnHrefFields.$conversation.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentConversationTurn}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentConversationTurn })}
+		{@const blockheadAgentConversationTurnFields = { ...blockheadAgentConversationTurn[EntityMetaKey.Selector], ...blockheadAgentConversationTurn }}
+		{@const selection = select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadAgentConversationTurnHrefFields = { ...blockheadAgentConversationTurn, ...blockheadAgentConversationTurn[EntityMetaKey.Selector] }}
+		<BlockheadAgentConversationTurnView
+			selection={selection}
+			prefetched={blockheadAgentConversationTurnFields}
+			href={
+				(blockheadAgentConversationTurnHrefFields.id !== undefined && blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
+					turnId: String(blockheadAgentConversationTurnHrefFields.id ?? ''),
+					conversationId: String(blockheadAgentConversationTurnHrefFields.$conversation.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

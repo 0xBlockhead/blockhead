@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadZeroGStoredChunk = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			present: true,
 		},
@@ -75,58 +71,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-			{#snippet Pending()}
-				{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g stored chunk'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-			{#snippet Pending()}
-				{@const chunkIndex0 = pendingEntity.chunkIndex}
-				{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
-					<NumberValue value={Number(chunkIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const chunkIndex0 = resolvedEntity.chunkIndex}
-				{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
-					<NumberValue value={Number(chunkIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const chunkIndex0 = pendingEntity.chunkIndex}
+					{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
+						<NumberValue
+							value={chunkIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const chunkIndex0 = resolvedEntity.chunkIndex}
+					{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
+						<NumberValue
+							value={chunkIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-			{#snippet Pending()}
-				{@const present0 = pendingEntity.present}
-				{#if present0 !== undefined && present0 !== null}
-					<span data-text="muted">
-						{present0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const present0 = resolvedEntity.present}
-				{#if present0 !== undefined && present0 !== null}
-					<span data-text="muted">
-						{present0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const present0 = pendingEntity.present}
+			{#if present0 !== undefined && present0 !== null}
+				<span data-text="muted">
+					{present0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const present0 = resolvedEntity.present}
+					{#if present0 !== undefined && present0 !== null}
+						<span data-text="muted">
+							{present0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									dataRoot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const dataRoot = pendingEntity.dataRoot}
-							{#if dataRoot !== undefined && dataRoot !== null}
-								{String((dataRoot) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const dataRoot = resolvedEntity.dataRoot}
@@ -178,24 +172,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chunkIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chunkIndex = pendingEntity.chunkIndex}
-							{#if chunkIndex !== undefined && chunkIndex !== null}
-								<NumberValue value={Number(chunkIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chunkIndex = resolvedEntity.chunkIndex}
 							{#if chunkIndex !== undefined && chunkIndex !== null}
-								<NumberValue value={Number(chunkIndex)} />
+								<NumberValue
+									value={chunkIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -205,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -227,8 +215,6 @@
 			<ResourceBoundary
 				resource={selection.$publicChunk}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDataChunk)}
 					{#if zeroGDataChunk != null && zeroGDataChunk[EntityMetaKey.Selector] != null}
 						<div>
@@ -249,24 +235,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							chunkRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const chunkRoot = pendingEntity.chunkRoot}
-					{#if chunkRoot !== undefined && chunkRoot !== null}
-						<div>
-							<dt>chunk root</dt>
-							<dd>
-								{String((chunkRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const chunkRoot = resolvedEntity.chunkRoot}
@@ -286,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sizeBytes = pendingEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
-						<div>
-							<dt>size bytes</dt>
-							<dd>
-								<NumberValue value={Number(sizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sizeBytes = resolvedEntity.sizeBytes}
@@ -311,7 +275,9 @@
 						<div>
 							<dt>size bytes</dt>
 							<dd>
-								<NumberValue value={Number(sizeBytes)} />
+								<NumberValue
+									value={sizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -321,24 +287,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							filePath: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const filePath = pendingEntity.filePath}
-					{#if filePath !== undefined && filePath !== null}
-						<div>
-							<dt>file path</dt>
-							<dd>
-								{String((filePath) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const filePath = resolvedEntity.filePath}
@@ -359,19 +314,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									present: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const present = pendingEntity.present}
-							{#if present !== undefined && present !== null}
-								{present ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const present = resolvedEntity.present}
@@ -386,24 +335,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastCheckedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastCheckedAt = pendingEntity.lastCheckedAt}
-					{#if lastCheckedAt !== undefined && lastCheckedAt !== null}
-						<div>
-							<dt>last checked AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastCheckedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastCheckedAt = resolvedEntity.lastCheckedAt}

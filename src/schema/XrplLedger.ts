@@ -19,13 +19,13 @@ export const XrplLedger = entity({
 	$network: {
 		label: 'network',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.XrplNetwork,
+		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerIndex: {
 		label: 'ledger index',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerHash: {

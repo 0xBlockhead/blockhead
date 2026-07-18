@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCertifiedState = $derived(selection({}))
+	const icpCertifiedState = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP certified state')
 	const viewDomId = $derived('icp-certified-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpCertifiedState}>
-			{#snippet Pending()}
-				{title || 'ICP certified state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpCertifiedState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									certificateHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const certificateHash = pendingEntity.certificateHash}
-							{#if certificateHash !== undefined && certificateHash !== null}
-								<TruncatedValue value={String((certificateHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const certificateHash = resolvedEntity.certificateHash}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pathHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pathHash = pendingEntity.pathHash}
-							{#if pathHash !== undefined && pathHash !== null}
-								<TruncatedValue value={String((pathHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pathHash = resolvedEntity.pathHash}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							treeHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const treeHash = pendingEntity.treeHash}
-					{#if treeHash !== undefined && treeHash !== null}
-						<div>
-							<dt>tree hash</dt>
-							<dd>
-								<TruncatedValue value={String((treeHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const treeHash = resolvedEntity.treeHash}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							certifiedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const certifiedAtMs = pendingEntity.certifiedAtMs}
-					{#if certifiedAtMs !== undefined && certifiedAtMs !== null}
-						<div>
-							<dt>certified AT ms</dt>
-							<dd>
-								{String((certifiedAtMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const certifiedAtMs = resolvedEntity.certifiedAtMs}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetSignature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetSignature = pendingEntity.subnetSignature}
-					{#if subnetSignature !== undefined && subnetSignature !== null}
-						<div>
-							<dt>subnet signature</dt>
-							<dd>
-								<TruncatedValue value={String((subnetSignature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetSignature = resolvedEntity.subnetSignature}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verificationStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verificationStatus = pendingEntity.verificationStatus}
-					{#if verificationStatus !== undefined && verificationStatus !== null}
-						<div>
-							<dt>verification status</dt>
-							<dd>
-								{String((verificationStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verificationStatus = resolvedEntity.verificationStatus}

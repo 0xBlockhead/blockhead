@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWakuMessageObservation_TimestampView from '$/views/BlockheadWakuMessageObservation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					messageHash: true,
-					timestampMs: true,
-					contentTopic: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				messageHash: true,
+				timestampMs: true,
+				contentTopic: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWakuMessageObservationTimestamps) => [...new Map(blockheadWakuMessageObservationTimestamps.values.map((blockheadWakuMessageObservationTimestamp) => [blockheadWakuMessageObservationTimestamp[EntityMetaKey.SelectorKey], blockheadWakuMessageObservationTimestamp])).values()]}
+	getKey={(blockheadWakuMessageObservationTimestamp) => blockheadWakuMessageObservationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead waku message observation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWakuMessageObservationTimestamps)}
-			{@const uniqueBlockheadWakuMessageObservationTimestamps = [...new Map(blockheadWakuMessageObservationTimestamps.values.map((blockheadWakuMessageObservationTimestamp) => [blockheadWakuMessageObservationTimestamp[EntityMetaKey.SelectorKey], blockheadWakuMessageObservationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWakuMessageObservationTimestamps.totalCount}
-				getKey={(blockheadWakuMessageObservationTimestamp) => blockheadWakuMessageObservationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWakuMessageObservationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead waku message observation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWakuMessageObservationTimestamp })}
-					{@const blockheadWakuMessageObservationTimestampFields = { ...blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], ...blockheadWakuMessageObservationTimestamp }}
-					{@const selection = select(EntityType.BlockheadWakuMessageObservation_Timestamp, blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWakuMessageObservation_TimestampView
-						selection={selection}
-						prefetched={blockheadWakuMessageObservationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWakuMessageObservationTimestamp })}
+		{@const blockheadWakuMessageObservationTimestampFields = { ...blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], ...blockheadWakuMessageObservationTimestamp }}
+		{@const selection = select(EntityType.BlockheadWakuMessageObservation_Timestamp, blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWakuMessageObservation_TimestampView
+			selection={selection}
+			prefetched={blockheadWakuMessageObservationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

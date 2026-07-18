@@ -46,7 +46,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmCoinInstance = $derived(selection({}))
+	const evmCoinInstance = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('EVM coin instance')
 	const viewDomId = $derived('evm-coin-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -85,10 +87,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={evmCoinInstance}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				<IconComponent />
 			{/snippet}
@@ -96,14 +94,33 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={evmCoinInstance}>
-			{#snippet Pending()}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const symbol0 = pendingEntity.NativeCurrency?.fields.symbol}
+					{#if symbol0 !== undefined && symbol0 !== null}
+						{String((symbol0) ?? '')}
+					{/if}
+					{@const name1 = pendingEntity.NativeCurrency?.fields.name}
+					{#if name1 !== undefined && name1 !== null}
+						{String((name1) ?? '')}
+					{/if}
+					{@const symbol2 = pendingEntity.Erc20Token?.fields.symbol}
+					{#if symbol2 !== undefined && symbol2 !== null}
+						{String((symbol2) ?? '')}
+					{/if}
+					{@const name3 = pendingEntity.Erc20Token?.fields.name}
+					{#if name3 !== undefined && name3 !== null}
+						{String((name3) ?? '')}
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmCoinInstance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ProjectionBoundary
+						resource={selection.NativeCurrency}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.symbol({
 									sources: [
 										Source.Constants_Internal,
@@ -113,22 +130,22 @@
 									},
 								})
 							}
-						>
-							{#snippet children(symbol0)}
-								{#if symbol0 !== undefined && symbol0 !== null}
-									{String((symbol0) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
+							>
+								{#snippet children(symbol0)}
+									{#if symbol0 !== undefined && symbol0 !== null}
+										{String((symbol0) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
 
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+					<ProjectionBoundary
+						resource={selection.NativeCurrency}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.name({
 									sources: [
 										Source.Constants_Internal,
@@ -138,127 +155,22 @@
 									},
 								})
 							}
-						>
-							{#snippet children(name1)}
-								{#if name1 !== undefined && name1 !== null}
-									{String((name1) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
+							>
+								{#snippet children(name1)}
+									{#if name1 !== undefined && name1 !== null}
+										{String((name1) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
 
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.symbol({
-									sources: [
-										Source.Blockscout_Rest,
-										Source.Constants_Internal,
-									],
-									fields: {
-										symbol: true,
-									},
-								})
-							}
-						>
-							{#snippet children(symbol2)}
-								{#if symbol2 !== undefined && symbol2 !== null}
-									{String((symbol2) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.name({
-									sources: [
-										Source.Blockscout_Rest,
-										Source.Constants_Internal,
-									],
-									fields: {
-										name: true,
-									},
-								})
-							}
-						>
-							{#snippet children(name3)}
-								{#if name3 !== undefined && name3 !== null}
-									{String((name3) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.symbol({
-									sources: [
-										Source.Constants_Internal,
-									],
-									fields: {
-										symbol: true,
-									},
-								})
-							}
-						>
-							{#snippet children(symbol0)}
-								{#if symbol0 !== undefined && symbol0 !== null}
-									{String((symbol0) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.name({
-									sources: [
-										Source.Constants_Internal,
-									],
-									fields: {
-										name: true,
-									},
-								})
-							}
-						>
-							{#snippet children(name1)}
-								{#if name1 !== undefined && name1 !== null}
-									{String((name1) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+					<ProjectionBoundary
+						resource={selection.Erc20Token}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.symbol({
 									sources: [
 										Source.Blockscout_Rest,
@@ -269,22 +181,22 @@
 									},
 								})
 							}
-						>
-							{#snippet children(symbol2)}
-								{#if symbol2 !== undefined && symbol2 !== null}
-									{String((symbol2) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
+							>
+								{#snippet children(symbol2)}
+									{#if symbol2 !== undefined && symbol2 !== null}
+										{String((symbol2) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
 
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+					<ProjectionBoundary
+						resource={selection.Erc20Token}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.name({
 									sources: [
 										Source.Blockscout_Rest,
@@ -295,28 +207,40 @@
 									},
 								})
 							}
-						>
-							{#snippet children(name3)}
-								{#if name3 !== undefined && name3 !== null}
-									{String((name3) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/snippet}
-		</ResourceBoundary>
+							>
+								{#snippet children(name3)}
+									{#if name3 !== undefined && name3 !== null}
+										{String((name3) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmCoinInstance}>
-			{#snippet Pending()}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const symbol0 = pendingEntity.NativeCurrency?.fields.symbol}
+					{#if symbol0 !== undefined && symbol0 !== null}
+						{String((symbol0) ?? '')}
+					{/if}
+					{@const symbol1 = pendingEntity.Erc20Token?.fields.symbol}
+					{#if symbol1 !== undefined && symbol1 !== null}
+						{String((symbol1) ?? '')}
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmCoinInstance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ProjectionBoundary
+						resource={selection.NativeCurrency}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.symbol({
 									sources: [
 										Source.Constants_Internal,
@@ -326,22 +250,22 @@
 									},
 								})
 							}
-						>
-							{#snippet children(symbol0)}
-								{#if symbol0 !== undefined && symbol0 !== null}
-									{String((symbol0) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
+							>
+								{#snippet children(symbol0)}
+									{#if symbol0 !== undefined && symbol0 !== null}
+										{String((symbol0) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
 
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
+					<ProjectionBoundary
+						resource={selection.Erc20Token}
+					>
+						{#snippet Applicable(projection)}
+							<ResourceBoundary
+								resource={
 								projection.symbol({
 									sources: [
 										Source.Blockscout_Rest,
@@ -352,71 +276,18 @@
 									},
 								})
 							}
-						>
-							{#snippet children(symbol1)}
-								{#if symbol1 !== undefined && symbol1 !== null}
-									{String((symbol1) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.symbol({
-									sources: [
-										Source.Constants_Internal,
-									],
-									fields: {
-										symbol: true,
-									},
-								})
-							}
-						>
-							{#snippet children(symbol0)}
-								{#if symbol0 !== undefined && symbol0 !== null}
-									{String((symbol0) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={
-								projection.symbol({
-									sources: [
-										Source.Blockscout_Rest,
-										Source.Constants_Internal,
-									],
-									fields: {
-										symbol: true,
-									},
-								})
-							}
-						>
-							{#snippet children(symbol1)}
-								{#if symbol1 !== undefined && symbol1 !== null}
-									{String((symbol1) ?? '')}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/snippet}
-		</ResourceBoundary>
+							>
+								{#snippet children(symbol1)}
+									{#if symbol1 !== undefined && symbol1 !== null}
+										{String((symbol1) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ProjectionBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -427,19 +298,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									type: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const type = pendingEntity.type}
-							{#if type !== undefined && type !== null}
-								{String((type) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const type = resolvedEntity.type}
@@ -472,8 +337,6 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -515,13 +378,9 @@
 										sources: [
 											Source.Constants_Internal,
 										],
-										fields: {
-											symbol: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(symbol)}
 									{#if symbol !== undefined && symbol !== null}
 										{String((symbol) ?? '')}
@@ -537,13 +396,9 @@
 								sources: [
 									Source.Constants_Internal,
 								],
-								fields: {
-									name: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(name)}
 							{#if name !== undefined && name !== null}
 								<div>
@@ -565,13 +420,9 @@
 										sources: [
 											Source.Constants_Internal,
 										],
-										fields: {
-											coinId: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(coinId)}
 									{#if coinId !== undefined && coinId !== null}
 										{String((coinId) ?? '')}
@@ -598,13 +449,9 @@
 										sources: [
 											Source.Constants_Internal,
 										],
-										fields: {
-											decimals: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(decimals)}
 									{#if decimals !== undefined && decimals !== null}
 										{String((decimals) ?? '')}
@@ -620,13 +467,9 @@
 								sources: [
 									Source.Constants_Internal,
 								],
-								fields: {
-									caip19: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(caip19)}
 							{#if caip19 !== undefined && caip19 !== null}
 								<div>
@@ -646,13 +489,9 @@
 									Source.Constants_Internal,
 									Source.Coingecko_Rest,
 								],
-								fields: {
-									representation: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(representation)}
 							{#if representation !== undefined && representation !== null}
 								<div>
@@ -666,15 +505,8 @@
 					</ResourceBoundary>
 
 					<ResourceBoundary
-						resource={
-							projection.iconUrl({
-								fields: {
-									iconUrl: true,
-								},
-							})
-						}
+						resource={projection.iconUrl}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(iconUrl)}
 							{#if iconUrl !== undefined && iconUrl !== null}
 								<div>
@@ -711,8 +543,6 @@
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(evmCoinInstance)}
 							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 								<div>
@@ -742,8 +572,6 @@
 					<ResourceBoundary
 						resource={projection.$icon}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(media)}
 							{#if media != null && media[EntityMetaKey.Selector] != null}
 								<div>
@@ -754,7 +582,7 @@
 											prefetched={media}
 											href={
 												(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-													url: String(media[EntityMetaKey.Selector].url ?? ''),
+													url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
 												}) : undefined)
 											}
 											layout={EntityLayout.Value}
@@ -784,13 +612,9 @@
 											Source.Blockscout_Rest,
 											Source.Constants_Internal,
 										],
-										fields: {
-											symbol: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(symbol)}
 									{#if symbol !== undefined && symbol !== null}
 										{String((symbol) ?? '')}
@@ -807,13 +631,9 @@
 									Source.Blockscout_Rest,
 									Source.Constants_Internal,
 								],
-								fields: {
-									name: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(name)}
 							{#if name !== undefined && name !== null}
 								<div>
@@ -836,13 +656,9 @@
 											Source.Blockscout_Rest,
 											Source.Constants_Internal,
 										],
-										fields: {
-											coinId: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(coinId)}
 									{#if coinId !== undefined && coinId !== null}
 										{String((coinId) ?? '')}
@@ -870,13 +686,9 @@
 											Source.Blockscout_Rest,
 											Source.Constants_Internal,
 										],
-										fields: {
-											decimals: true,
-										},
 									})
 								}
 							>
-								{#snippet Pending()}{/snippet}
 								{#snippet children(decimals)}
 									{#if decimals !== undefined && decimals !== null}
 										{String((decimals) ?? '')}
@@ -893,13 +705,9 @@
 									Source.Constants_Internal,
 									Source.Coingecko_Rest,
 								],
-								fields: {
-									caip19: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(caip19)}
 							{#if caip19 !== undefined && caip19 !== null}
 								<div>
@@ -918,13 +726,9 @@
 								sources: [
 									Source.Coingecko_Rest,
 								],
-								fields: {
-									representation: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(representation)}
 							{#if representation !== undefined && representation !== null}
 								<div>
@@ -943,13 +747,9 @@
 								sources: [
 									Source.Blockscout_Rest,
 								],
-								fields: {
-									iconUrl: true,
-								},
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
 						{#snippet children(iconUrl)}
 							{#if iconUrl !== undefined && iconUrl !== null}
 								<div>
@@ -986,8 +786,6 @@
 							})
 						}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(evmCoinInstance)}
 							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 								<div>
@@ -1017,8 +815,6 @@
 					<ResourceBoundary
 						resource={projection.$icon}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(media)}
 							{#if media != null && media[EntityMetaKey.Selector] != null}
 								<div>
@@ -1029,7 +825,7 @@
 											prefetched={media}
 											href={
 												(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-													url: String(media[EntityMetaKey.Selector].url ?? ''),
+													url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
 												}) : undefined)
 											}
 											layout={EntityLayout.Value}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroStealthOutputView from '$/views/MoneroStealthOutputView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					outputIndex: true,
-					publicKey: true,
-					commitment: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroStealthOutput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoneroStealthOutput}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				outputIndex: true,
+				publicKey: true,
+				commitment: true,
+			},
+		})
+	}
+	getResourceItems={(moneroStealthOutputs) => [...new Map(moneroStealthOutputs.values.map((moneroStealthOutput) => [moneroStealthOutput[EntityMetaKey.SelectorKey], moneroStealthOutput])).values()]}
+	getKey={(moneroStealthOutput) => moneroStealthOutput[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Monero stealth outputs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moneroStealthOutputs)}
-			{@const uniqueMoneroStealthOutputs = [...new Map(moneroStealthOutputs.values.map((moneroStealthOutput) => [moneroStealthOutput[EntityMetaKey.SelectorKey], moneroStealthOutput])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroStealthOutput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moneroStealthOutputs.totalCount}
-				getKey={(moneroStealthOutput) => moneroStealthOutput[EntityMetaKey.SelectorKey]}
-				items={uniqueMoneroStealthOutputs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Monero stealth outputs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moneroStealthOutput })}
-					{@const moneroStealthOutputFields = { ...moneroStealthOutput[EntityMetaKey.Selector], ...moneroStealthOutput }}
-					{@const selection = select(EntityType.MoneroStealthOutput, moneroStealthOutput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoneroStealthOutputView
-						selection={selection}
-						prefetched={moneroStealthOutputFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoneroStealthOutput}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moneroStealthOutput })}
+		{@const moneroStealthOutputFields = { ...moneroStealthOutput[EntityMetaKey.Selector], ...moneroStealthOutput }}
+		{@const selection = select(EntityType.MoneroStealthOutput, moneroStealthOutput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoneroStealthOutputView
+			selection={selection}
+			prefetched={moneroStealthOutputFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

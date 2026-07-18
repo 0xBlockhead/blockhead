@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZcashWalletStateView from '$/views/BlockheadZcashWalletStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					walletId: true,
-					$network: true,
-					unifiedAddress: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashWalletState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZcashWalletState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				walletId: true,
+				$network: true,
+				unifiedAddress: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZcashWalletStates) => [...new Map(blockheadZcashWalletStates.values.map((blockheadZcashWalletState) => [blockheadZcashWalletState[EntityMetaKey.SelectorKey], blockheadZcashWalletState])).values()]}
+	getKey={(blockheadZcashWalletState) => blockheadZcashWalletState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zcash wallet states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZcashWalletStates)}
-			{@const uniqueBlockheadZcashWalletStates = [...new Map(blockheadZcashWalletStates.values.map((blockheadZcashWalletState) => [blockheadZcashWalletState[EntityMetaKey.SelectorKey], blockheadZcashWalletState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashWalletState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZcashWalletStates.totalCount}
-				getKey={(blockheadZcashWalletState) => blockheadZcashWalletState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZcashWalletStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zcash wallet states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZcashWalletState })}
-					{@const blockheadZcashWalletStateFields = { ...blockheadZcashWalletState[EntityMetaKey.Selector], ...blockheadZcashWalletState }}
-					{@const selection = select(EntityType.BlockheadZcashWalletState, blockheadZcashWalletState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZcashWalletStateView
-						selection={selection}
-						prefetched={blockheadZcashWalletStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZcashWalletState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZcashWalletState })}
+		{@const blockheadZcashWalletStateFields = { ...blockheadZcashWalletState[EntityMetaKey.Selector], ...blockheadZcashWalletState }}
+		{@const selection = select(EntityType.BlockheadZcashWalletState, blockheadZcashWalletState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZcashWalletStateView
+			selection={selection}
+			prefetched={blockheadZcashWalletStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

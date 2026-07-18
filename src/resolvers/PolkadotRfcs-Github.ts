@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
@@ -34,20 +38,28 @@ export default {
 		defineResolver(Source.PolkadotRfcs_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Polkadot || category !== ProposalCategory.Rfc) {
-					throw new Error('PolkadotRfcs_Github: proposal resolver only supports Polkadot Fellowship RFCs')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Polkadot,
+							category: OwnedProposalCategory.Rfc,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Polkadot || category !== ProposalCategory.Rfc) {
+						throw new Error('PolkadotRfcs_Github: proposal resolver only supports Polkadot Fellowship RFCs')
+					}
+					const { getMarkdownText } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
+					const text = await getMarkdownText({ number: number })
+					return {
+						documentCategory: 'RFC',
+						documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
+						documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim(),
+						documentBody: text,
+					}
+				},
 				}
-				const { getMarkdownText } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-				const text = await getMarkdownText({ number: number })
-				return {
-					documentCategory: 'RFC',
-					documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
-					documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim(),
-					documentBody: text,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -59,10 +71,12 @@ export default {
 		defineResolver(Source.PolkadotRfcs_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-				return polkadotRfcRows(await getContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
+					return polkadotRfcRows(await getContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

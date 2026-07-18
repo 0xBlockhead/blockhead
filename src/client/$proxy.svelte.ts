@@ -18,8 +18,9 @@ import {
 import {
 	EntityMetaKey,
 	ProjectionResolution,
+	evaluateEntityFacetConditionPlan,
 	type EntityBaseFieldName,
-	type EntityFacetCondition,
+	type EntityFacetConditionPlan,
 	type EntityFacetFieldDefinitionAtPath,
 	type EntityFacetFieldNameAtPath,
 	type EntityFacetName,
@@ -34,6 +35,7 @@ import {
 	type ProjectionValue,
 	type Schema,
 	entityFieldAddressKey,
+	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
@@ -453,38 +455,26 @@ export type EntityProxyResource<
 	}
 )
 
-type RegisteredEntityProxyDataByType = {
-	readonly [_EntityType in RegisteredEntityType]: EntityProxyData<
-		RegisteredSchema,
-		_EntityType
-	>
-}
-
-type RegisteredEntityProxyResourceByType = {
-	readonly [_EntityType in RegisteredEntityType]: EntityProxyResource<
-		RegisteredSchema,
-		_EntityType
-	>
-}
-
-type RegisteredEntityProxyEntitiesResourceByType = {
-	readonly [_EntityType in RegisteredEntityType]: EntityProxyEntitiesResource<
-		RegisteredSchema,
-		_EntityType
-	>
-}
-
 export type RegisteredEntityProxyData<
 	_EntityType extends RegisteredEntityType,
-> = RegisteredEntityProxyDataByType[_EntityType]
+> = EntityProxyData<
+	RegisteredSchema,
+	_EntityType
+>
 
 export type RegisteredEntityProxyResource<
 	_EntityType extends RegisteredEntityType,
-> = RegisteredEntityProxyResourceByType[_EntityType]
+> = EntityProxyResource<
+	RegisteredSchema,
+	_EntityType
+>
 
 export type RegisteredEntityProxyEntitiesResource<
 	_EntityType extends RegisteredEntityType,
-> = RegisteredEntityProxyEntitiesResourceByType[_EntityType]
+> = EntityProxyEntitiesResource<
+	RegisteredSchema,
+	_EntityType
+>
 
 const mergeSelection = <
 	const _Schema extends Schema,
@@ -543,25 +533,31 @@ const resourceProperty = <_Data>(
 	property: PropertyKey,
 	projectAsync: (data: _Data) => _Data | Promise<_Data> = project
 ) => {
-	if (property === 'then')
+	if (property === 'then') {
+		const then = getResource().then
 		return (
 			onfulfilled?: Parameters<Promise<_Data>['then']>[0],
 			onrejected?: Parameters<Promise<_Data>['then']>[1]
-		) => getResource().then(
+		) => then(
 			onfulfilled == null ?
 				undefined
 			:
 				(data) => Promise.resolve(projectAsync(data)).then(onfulfilled),
 			onrejected
 		)
-		if (property === 'catch')
-			return (
-				onrejected?: Parameters<Promise<_Data>['catch']>[0]
-			) => getResource().then(projectAsync).catch(onrejected)
-		if (property === 'finally')
-			return (
-				onfinally?: Parameters<Promise<_Data>['finally']>[0]
-			) => getResource().then(projectAsync).finally(onfinally)
+	}
+	if (property === 'catch') {
+		const then = getResource().then
+		return (
+			onrejected?: Parameters<Promise<_Data>['catch']>[0]
+		) => then(projectAsync).catch(onrejected)
+	}
+	if (property === 'finally') {
+		const then = getResource().then
+		return (
+			onfinally?: Parameters<Promise<_Data>['finally']>[0]
+		) => then(projectAsync).finally(onfinally)
+	}
 	if (property === 'current') {
 		const current = getResource().current
 		return current === undefined ? undefined : project(current)
@@ -609,20 +605,25 @@ const projectResource = <_Input, _Output>(
 	get [Symbol.toStringTag]() {
 		return resource[Symbol.toStringTag]
 	},
-	then(onfulfilled, onrejected) {
-		return resource.then(
-			onfulfilled == null ?
-				undefined
-			:
-				(data) => onfulfilled(project(data)),
-			onrejected
+	get then(): Promise<_Output>['then'] {
+		const then = resource.then
+		return (onfulfilled, onrejected) => (
+			then(
+				onfulfilled == null ?
+					undefined
+				:
+					(data) => onfulfilled(project(data)),
+				onrejected
+			)
 		)
 	},
-	catch(onrejected) {
-		return resource.then(project).catch(onrejected)
+	get catch(): Promise<_Output>['catch'] {
+		const then = resource.then
+		return (onrejected) => then(project).catch(onrejected)
 	},
-	finally(onfinally) {
-		return resource.then(project).finally(onfinally)
+	get finally(): Promise<_Output>['finally'] {
+		const then = resource.then
+		return (onfinally) => then(project).finally(onfinally)
 	},
 })
 
@@ -688,118 +689,32 @@ const entityDataFieldValue = (
 }
 
 const projectionConditionResolution = (
-	context: ClientContext,
-	entityType: EntityType<Schema>,
 	data: EntityResourceData<Schema, EntityType<Schema>>,
-	condition: EntityFacetCondition | undefined,
+	conditionPlan: EntityFacetConditionPlan,
 	value: Record<PropertyKey, never>,
-	facetPath: EntityFacetPath = []
 ): ProjectionValue<Record<PropertyKey, never>> | undefined => {
-	if (facetPath.length > 0) {
-		const parentFacetPath = facetPath.slice(0, -1)
-		const parentCondition = context.projectionDefinitionByEntityTypeAndPath[
-			entityFieldAddressKey(entityType, parentFacetPath, '')
-		]?.condition
-		const parentResolution = projectionConditionResolution(
-			context,
-			entityType,
-			data,
-			parentCondition,
-			value,
-			parentFacetPath
-		)
-		if (parentResolution != null && parentResolution.resolution !== ProjectionResolution.Applicable)
-			return parentResolution
-	}
-
-	if (condition == null)
-		return {
-			resolution: ProjectionResolution.Applicable,
-			value,
-		}
-
-	if ('all' in condition) {
-		const childResolutions = condition.all.map((child) => projectionConditionResolution(
-			context,
-			entityType,
-			data,
-			child,
-			value,
-			facetPath
-		))
-		const blockedDependencies = childResolutions.flatMap((resolution) => (
-			resolution?.resolution === ProjectionResolution.Blocked ?
-				resolution.dependencies
-			:
-				[]
-		))
-		return (
-			blockedDependencies.length > 0 ?
-				{
-					resolution: ProjectionResolution.Blocked,
-					dependencies: blockedDependencies,
-				}
-			: childResolutions.every((resolution) => resolution?.resolution === ProjectionResolution.Applicable) ?
-				{
-					resolution: ProjectionResolution.Applicable,
-					value,
-				}
-			:
-				{
-					resolution: ProjectionResolution.NotApplicable,
-				}
-		)
-	}
-
-	const indexedItem = condition.path.at(-1)
-	const fieldName = condition.path.at(typeof indexedItem === 'number' ? -2 : -1)
-	const conditionFacetPath = condition.path.slice(
-		0,
-		typeof indexedItem === 'number' ? -2 : -1
-	).filter((segment): segment is string => typeof segment === 'string')
-	if (typeof fieldName !== 'string')
-		return {
-			resolution: ProjectionResolution.Unsupported,
-		}
-
-	const fieldValue = entityDataFieldValue(data, fieldName, conditionFacetPath)
-	if (fieldValue === undefined)
-		return {
-			resolution: ProjectionResolution.Blocked,
-		dependencies: [
-				{
-					entityType,
-					facetPath: conditionFacetPath,
-					fieldName,
-				},
-			],
-		}
-
-	const conditionValue = (
-		typeof indexedItem === 'number' && Array.isArray(fieldValue) ?
-			fieldValue[indexedItem]
-		:
-			fieldValue
-	)
-	const predicateApplies = (
-		'is' in condition ?
-			conditionValue === condition.is
-		: 'isOneOf' in condition ?
-			condition.isOneOf.some((value) => value === conditionValue)
-		: Array.isArray(conditionValue) ?
-			conditionValue.some((value) => value === condition.includes)
-		:
-			false
-	)
+	const dependencyValues = conditionPlan.dependencies.map((dependency) => (
+		entityDataFieldValue(data, dependency.fieldName, dependency.facetPath)
+	))
+	const resolution = evaluateEntityFacetConditionPlan(conditionPlan, dependencyValues)
 	return (
-		predicateApplies ?
+		resolution === ProjectionResolution.Applicable ?
 			{
 				resolution: ProjectionResolution.Applicable,
 				value,
 			}
-		:
+		: resolution === ProjectionResolution.Blocked ?
+			{
+				resolution: ProjectionResolution.Blocked,
+				dependencies: conditionPlan.dependencies.filter((_, index) => dependencyValues[index] === undefined),
+			}
+		: resolution === ProjectionResolution.NotApplicable ?
 			{
 				resolution: ProjectionResolution.NotApplicable,
+			}
+		:
+			{
+				resolution: ProjectionResolution.Unsupported,
 			}
 	)
 }
@@ -878,7 +793,11 @@ export function createEntityFieldProxy(
 		)?.value
 		if (referenceSelector === undefined)
 			return undefined
-		const referenceSelectorKey = JSON.stringify(referenceSelector)
+		const referenceSelectorKey = entitySelectorKey(
+			context.schema,
+			context.entityDefinitionByType[resolvedFieldDefinition.entityType],
+			referenceSelector
+		)
 		if (!referenceResourceBySelector.has(referenceSelectorKey))
 			referenceResourceBySelector.set(
 				referenceSelectorKey,
@@ -1081,12 +1000,12 @@ const createEntityProjectionProxy = (
 					}
 				),
 				(data) => projectionConditionResolution(
-					context,
-					entityType,
 					data,
-					projectionDefinition?.condition,
-					projectionProxy,
-					facetPath
+					projectionDefinition?.conditionPlan ?? {
+						dependencies: [],
+						predicates: [],
+					},
+					projectionProxy
 				) ?? {
 					resolution: ProjectionResolution.Unsupported,
 				}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetEligibilityView from '$/views/AssetEligibilityView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					canHold: true,
-					canSend: true,
-					canReceive: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetEligibility}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AssetEligibility}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				canHold: true,
+				canSend: true,
+				canReceive: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(assetEligibilities) => [...new Map(assetEligibilities.values.map((assetEligibility) => [assetEligibility[EntityMetaKey.SelectorKey], assetEligibility])).values()]}
+	getKey={(assetEligibility) => assetEligibility[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Asset eligibilities yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(assetEligibilities)}
-			{@const uniqueAssetEligibilities = [...new Map(assetEligibilities.values.map((assetEligibility) => [assetEligibility[EntityMetaKey.SelectorKey], assetEligibility])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetEligibility}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetEligibilities.totalCount}
-				getKey={(assetEligibility) => assetEligibility[EntityMetaKey.SelectorKey]}
-				items={uniqueAssetEligibilities}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Asset eligibilities yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: assetEligibility })}
-					{@const assetEligibilityFields = { ...assetEligibility[EntityMetaKey.Selector], ...assetEligibility }}
-					{@const selection = select(EntityType.AssetEligibility, assetEligibility[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AssetEligibilityView
-						selection={selection}
-						prefetched={assetEligibilityFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AssetEligibility}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: assetEligibility })}
+		{@const assetEligibilityFields = { ...assetEligibility[EntityMetaKey.Selector], ...assetEligibility }}
+		{@const selection = select(EntityType.AssetEligibility, assetEligibility[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AssetEligibilityView
+			selection={selection}
+			prefetched={assetEligibilityFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

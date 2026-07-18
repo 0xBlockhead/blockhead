@@ -18,18 +18,18 @@
 
 	const pageSelection = $derived(select(EntityType.Coin_Timestamp, {
 		$coin: {
-			coinId: decodeURIComponent(params.coinId),
+			coinId: params.coinId,
 		},
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
 		sources: [({
-		$coin: {
-			coinId: decodeURIComponent(params.coinId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$coin: {
+				coinId: params.coinId,
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			marketCap: true,
 			marketCapUsd: true,

@@ -66,6 +66,26 @@ export const NostrArticle = entity({
 			Source.NostrBand_Rest,
 		],
 	},
+	sensitive: {
+		label: 'Sensitive',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
+	contentWarning: {
+		label: 'Content warning',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
 	publishedAt: {
 		label: 'Published',
 		type: EntityFieldType.Primitive,

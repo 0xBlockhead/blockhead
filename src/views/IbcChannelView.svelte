@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ibcChannel = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			state: true,
 			counterpartyChainId: true,
@@ -70,64 +71,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ibcChannel}>
-			{#snippet Pending()}
-				{[String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || title || 'IBC channel'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ibcChannel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ibcChannel}>
-			{#snippet Pending()}
-				{[String((pendingEntity.state) ?? ''), String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || title || 'IBC channel'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.state) ?? ''), String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.state) ?? ''), String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ibcChannel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.state) ?? ''), String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.channelId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={ibcChannel}>
-			{#snippet Pending()}
-				{@const portId0 = pendingEntity.portId}
-				{#if portId0 !== undefined && portId0 !== null}
-					<span data-text="muted">
-						{String((portId0) ?? '')}
-					</span>
-				{/if}
-				{@const counterpartyChainId1 = pendingEntity.counterpartyChainId}
-				{#if counterpartyChainId1 !== undefined && counterpartyChainId1 !== null}
-					<span data-text="muted">
-						{String((counterpartyChainId1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const portId0 = resolvedEntity.portId}
-				{#if portId0 !== undefined && portId0 !== null}
-					<span data-text="muted">
-						{String((portId0) ?? '')}
-					</span>
-				{/if}
-				{@const counterpartyChainId1 = resolvedEntity.counterpartyChainId}
-				{#if counterpartyChainId1 !== undefined && counterpartyChainId1 !== null}
-					<span data-text="muted">
-						{String((counterpartyChainId1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const portId0 = pendingEntity.portId}
+			{#if portId0 !== undefined && portId0 !== null}
+				<span data-text="muted">
+					{String((portId0) ?? '')}
+				</span>
+			{/if}
+			{@const counterpartyChainId1 = pendingEntity.counterpartyChainId}
+			{#if counterpartyChainId1 !== undefined && counterpartyChainId1 !== null}
+				<span data-text="muted">
+					{String((counterpartyChainId1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={ibcChannel}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const portId0 = resolvedEntity.portId}
+					{#if portId0 !== undefined && portId0 !== null}
+						<span data-text="muted">
+							{String((portId0) ?? '')}
+						</span>
+					{/if}
+					{@const counterpartyChainId1 = resolvedEntity.counterpartyChainId}
+					{#if counterpartyChainId1 !== undefined && counterpartyChainId1 !== null}
+						<span data-text="muted">
+							{String((counterpartyChainId1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									portId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const portId = pendingEntity.portId}
-							{#if portId !== undefined && portId !== null}
-								{String((portId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const portId = resolvedEntity.portId}
@@ -168,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									channelId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const channelId = pendingEntity.channelId}
-							{#if channelId !== undefined && channelId !== null}
-								{String((channelId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const channelId = resolvedEntity.channelId}
@@ -195,24 +184,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							state: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const state = pendingEntity.state}
-					{#if state !== undefined && state !== null}
-						<div>
-							<dt>State</dt>
-							<dd>
-								{String((state) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const state = resolvedEntity.state}
@@ -230,24 +208,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ordering: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ordering = pendingEntity.ordering}
-					{#if ordering !== undefined && ordering !== null}
-						<div>
-							<dt>Ordering</dt>
-							<dd>
-								{String((ordering) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ordering = resolvedEntity.ordering}
@@ -265,24 +232,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -302,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							counterpartyChainId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const counterpartyChainId = pendingEntity.counterpartyChainId}
-					{#if counterpartyChainId !== undefined && counterpartyChainId !== null}
-						<div>
-							<dt>Counterparty chain ID</dt>
-							<dd>
-								{String((counterpartyChainId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const counterpartyChainId = resolvedEntity.counterpartyChainId}
@@ -337,24 +282,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							counterpartyPortId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const counterpartyPortId = pendingEntity.counterpartyPortId}
-					{#if counterpartyPortId !== undefined && counterpartyPortId !== null}
-						<div>
-							<dt>Counterparty port ID</dt>
-							<dd>
-								{String((counterpartyPortId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const counterpartyPortId = resolvedEntity.counterpartyPortId}
@@ -372,24 +306,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							counterpartyChannelId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const counterpartyChannelId = pendingEntity.counterpartyChannelId}
-					{#if counterpartyChannelId !== undefined && counterpartyChannelId !== null}
-						<div>
-							<dt>Counterparty channel ID</dt>
-							<dd>
-								{String((counterpartyChannelId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const counterpartyChannelId = resolvedEntity.counterpartyChannelId}
@@ -409,24 +332,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextSequenceSend: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextSequenceSend = pendingEntity.nextSequenceSend}
-					{#if nextSequenceSend !== undefined && nextSequenceSend !== null}
-						<div>
-							<dt>Next sequence send</dt>
-							<dd>
-								{String((nextSequenceSend) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextSequenceSend = resolvedEntity.nextSequenceSend}
@@ -444,24 +356,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nextSequenceReceive: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nextSequenceReceive = pendingEntity.nextSequenceReceive}
-					{#if nextSequenceReceive !== undefined && nextSequenceReceive !== null}
-						<div>
-							<dt>Next sequence receive</dt>
-							<dd>
-								{String((nextSequenceReceive) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nextSequenceReceive = resolvedEntity.nextSequenceReceive}

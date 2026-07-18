@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadQuilibriumNodeStateView from '$/views/BlockheadQuilibriumNodeStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					connectionId: true,
-					$network: true,
-					endpoint: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadQuilibriumNodeState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				connectionId: true,
+				$network: true,
+				endpoint: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadQuilibriumNodeStates) => [...new Map(blockheadQuilibriumNodeStates.values.map((blockheadQuilibriumNodeState) => [blockheadQuilibriumNodeState[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeState])).values()]}
+	getKey={(blockheadQuilibriumNodeState) => blockheadQuilibriumNodeState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead quilibrium node states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadQuilibriumNodeStates)}
-			{@const uniqueBlockheadQuilibriumNodeStates = [...new Map(blockheadQuilibriumNodeStates.values.map((blockheadQuilibriumNodeState) => [blockheadQuilibriumNodeState[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumNodeState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadQuilibriumNodeStates.totalCount}
-				getKey={(blockheadQuilibriumNodeState) => blockheadQuilibriumNodeState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadQuilibriumNodeStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead quilibrium node states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadQuilibriumNodeState })}
-					{@const blockheadQuilibriumNodeStateFields = { ...blockheadQuilibriumNodeState[EntityMetaKey.Selector], ...blockheadQuilibriumNodeState }}
-					{@const selection = select(EntityType.BlockheadQuilibriumNodeState, blockheadQuilibriumNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadQuilibriumNodeStateView
-						selection={selection}
-						prefetched={blockheadQuilibriumNodeStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadQuilibriumNodeState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadQuilibriumNodeState })}
+		{@const blockheadQuilibriumNodeStateFields = { ...blockheadQuilibriumNodeState[EntityMetaKey.Selector], ...blockheadQuilibriumNodeState }}
+		{@const selection = select(EntityType.BlockheadQuilibriumNodeState, blockheadQuilibriumNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadQuilibriumNodeStateView
+			selection={selection}
+			prefetched={blockheadQuilibriumNodeStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

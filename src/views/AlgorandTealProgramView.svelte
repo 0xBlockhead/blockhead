@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const algorandTealProgram = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			programKind: true,
 			tealVersion: true,
@@ -74,52 +75,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandTealProgram}>
-			{#snippet Pending()}
-				{[String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTealProgram}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={algorandTealProgram}>
-			{#snippet Pending()}
-				{[String((pendingEntity.programKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.programKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.programHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.programKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTealProgram}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.programKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.programHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={algorandTealProgram}>
-			{#snippet Pending()}
-				{@const tealVersion0 = pendingEntity.tealVersion}
-				{#if tealVersion0 !== undefined && tealVersion0 !== null}
-					<span data-text="muted">
-						{String((tealVersion0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tealVersion0 = resolvedEntity.tealVersion}
-				{#if tealVersion0 !== undefined && tealVersion0 !== null}
-					<span data-text="muted">
-						{String((tealVersion0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const tealVersion0 = pendingEntity.tealVersion}
+			{#if tealVersion0 !== undefined && tealVersion0 !== null}
+				<span data-text="muted">
+					{String((tealVersion0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={algorandTealProgram}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tealVersion0 = resolvedEntity.tealVersion}
+					{#if tealVersion0 !== undefined && tealVersion0 !== null}
+						<span data-text="muted">
+							{String((tealVersion0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									programHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const programHash = pendingEntity.programHash}
-							{#if programHash !== undefined && programHash !== null}
-								<TruncatedValue value={String((programHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const programHash = resolvedEntity.programHash}
@@ -168,24 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							programKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const programKind = pendingEntity.programKind}
-					{#if programKind !== undefined && programKind !== null}
-						<div>
-							<dt>program kind</dt>
-							<dd>
-								{String((programKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const programKind = resolvedEntity.programKind}
@@ -203,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tealVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tealVersion = pendingEntity.tealVersion}
-					{#if tealVersion !== undefined && tealVersion !== null}
-						<div>
-							<dt>teal version</dt>
-							<dd>
-								{String((tealVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tealVersion = resolvedEntity.tealVersion}
@@ -256,11 +229,8 @@
 				}
 				data-card
 				class='network-view-collapsible-usage'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Usage</HeadingComponent>
 					</header>
@@ -268,12 +238,12 @@
 
 				{#snippet SectionAlgorandTealApplications({ id, label, open })}
 					<AlgorandApplicationsView
-						selection={
-							selection.$$applications({
-								count: true,
-							})
-						}
+						selection={selection.$$applications}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand applications.'
 						open={open}
 						title={label}
@@ -283,12 +253,12 @@
 
 				{#snippet SectionAlgorandTealTransactions({ id, label, open })}
 					<AlgorandTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand transactions.'
 						open={open}
 						title={label}
@@ -311,11 +281,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -323,12 +290,12 @@
 
 				{#snippet SectionAlgorandTealTimestamps({ id, label, open })}
 					<AlgorandTealProgram_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand TEAL program observations.'
 						open={open}
 						title={label}

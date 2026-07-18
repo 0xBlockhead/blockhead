@@ -10,7 +10,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadZeroGStorageNodeState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state')
 	const viewDomId = $derived('blockhead-zero-gstorage-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -76,60 +72,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g storage node state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
-			{#snippet Pending()}
-				<ZeroGNetworkView
-					selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ZeroGNetworkView
-					selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ZeroGNetworkView
+						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ZeroGNetworkView
+						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
-			{#snippet Pending()}
-				{@const connectionId0 = pendingEntity.connectionId}
-				{#if connectionId0 !== undefined && connectionId0 !== null}
-					<span data-text="muted">
-						{String((connectionId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const connectionId0 = resolvedEntity.connectionId}
-				{#if connectionId0 !== undefined && connectionId0 !== null}
-					<span data-text="muted">
-						{String((connectionId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const connectionId0 = pendingEntity.connectionId}
+			{#if connectionId0 !== undefined && connectionId0 !== null}
+				<span data-text="muted">
+					{String((connectionId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const connectionId0 = resolvedEntity.connectionId}
+					{#if connectionId0 !== undefined && connectionId0 !== null}
+						<span data-text="muted">
+							{String((connectionId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -181,19 +171,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nodeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nodeId = pendingEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nodeId = resolvedEntity.nodeId}
@@ -208,31 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endpoint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endpoint = pendingEntity.endpoint}
-					{#if endpoint !== undefined && endpoint !== null}
-						<div>
-							<dt>endpoint</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(endpoint)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpoint)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endpoint = resolvedEntity.endpoint}
@@ -257,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							storagePath: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const storagePath = pendingEntity.storagePath}
-					{#if storagePath !== undefined && storagePath !== null}
-						<div>
-							<dt>storage path</dt>
-							<dd>
-								{String((storagePath) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const storagePath = resolvedEntity.storagePath}
@@ -310,11 +265,8 @@
 				}
 				data-card
 				class='network-view-collapsible-local-storage'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Local storage</HeadingComponent>
 					</header>
@@ -322,12 +274,12 @@
 
 				{#snippet SectionZerogLocalChunks({ id, label, open })}
 					<BlockheadZeroGStoredChunksView
-						selection={
-							selection.$$localChunks({
-								count: true,
-							})
-						}
+						selection={selection.$$localChunks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No local chunks.'
 						open={open}
 						title={label}
@@ -337,12 +289,12 @@
 
 				{#snippet SectionZerogLocalProofs({ id, label, open })}
 					<BlockheadZeroGStorageProofsView
-						selection={
-							selection.$$localProofs({
-								count: true,
-							})
-						}
+						selection={selection.$$localProofs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No local proofs.'
 						open={open}
 						title={label}
@@ -365,11 +317,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -377,12 +326,12 @@
 
 				{#snippet SectionZerogStorageTimestamps({ id, label, open })}
 					<BlockheadZeroGStorageNodeState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G storage-node observations.'
 						open={open}
 						title={label}

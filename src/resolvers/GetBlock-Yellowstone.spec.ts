@@ -236,7 +236,7 @@ describe('GetBlock Yellowstone account source', () => {
 		expect(received).toEqual([accountUpdate])
 		expect(new TextDecoder().decode(concatBytes(server.requestBody))).toContain(accountUpdate.account)
 
-		const resolved = await getBlockYellowstone.resolvers[0].resolve[SolanaAccount_TimestampSelector.AccountSlotSource]({
+		const resolved = await getBlockYellowstone.resolvers[0].resolve[SolanaAccount_TimestampSelector.AccountSlotSource].resolve({
 			$account: {
 				$network: network,
 				pubkey: accountUpdate.account,

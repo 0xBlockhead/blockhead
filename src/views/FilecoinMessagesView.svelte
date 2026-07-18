@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinMessageView from '$/views/FilecoinMessageView.svelte'
 </script>
@@ -62,82 +61,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					cid: true,
-					$from: true,
-					$to: true,
-					valueAttoFil: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinMessage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Filfox_Rest,
+			],
+			fields: {
+				cid: true,
+				$from: true,
+				$to: true,
+				valueAttoFil: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinMessages) => [...new Map(filecoinMessages.values.map((filecoinMessage) => [filecoinMessage[EntityMetaKey.SelectorKey], filecoinMessage])).values()]}
+	getKey={(filecoinMessage) => filecoinMessage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin messages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinMessages)}
-			{@const uniqueFilecoinMessages = [...new Map(filecoinMessages.values.map((filecoinMessage) => [filecoinMessage[EntityMetaKey.SelectorKey], filecoinMessage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinMessages.totalCount}
-				getKey={(filecoinMessage) => filecoinMessage[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinMessages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin messages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinMessage })}
-					{@const filecoinMessageFields = { ...filecoinMessage[EntityMetaKey.Selector], ...filecoinMessage }}
-					{@const selection = select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinMessageView
-						selection={selection}
-						prefetched={filecoinMessageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinMessage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinMessage })}
+		{@const filecoinMessageFields = { ...filecoinMessage[EntityMetaKey.Selector], ...filecoinMessage }}
+		{@const selection = select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinMessageView
+			selection={selection}
+			prefetched={filecoinMessageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

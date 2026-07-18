@@ -15,7 +15,7 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		RedditSubredditSchema,
 		{
-			name: params.name,
+			name: decodeURIComponent(params.name),
 		}
 	)
 	if (redditSubredditNameSelector instanceof arktype.errors) error(404, 'Invalid RedditSubreddit selector')

@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotAssetBalanceTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			freeBalancePlancks: true,
 			status: true,
@@ -73,66 +74,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-			{#snippet Pending()}
-				<PolkadotAssetView
-					selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<PolkadotAssetView
-					selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<PolkadotAssetView
+						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<PolkadotAssetView
+						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-			{#snippet Pending()}
-				{@const freeBalancePlancks0 = pendingEntity.freeBalancePlancks}
-				{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
-					<NumberValue value={Number(freeBalancePlancks0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const freeBalancePlancks0 = resolvedEntity.freeBalancePlancks}
-				{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
-					<NumberValue value={Number(freeBalancePlancks0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const freeBalancePlancks0 = pendingEntity.freeBalancePlancks}
+					{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
+						<NumberValue
+							value={freeBalancePlancks0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const freeBalancePlancks0 = resolvedEntity.freeBalancePlancks}
+					{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
+						<NumberValue
+							value={freeBalancePlancks0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-			{#snippet Pending()}
-				{@const status0 = pendingEntity.status}
-				{#if status0 !== undefined && status0 !== null}
-					<span data-text="muted">
-						{String((status0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const status0 = resolvedEntity.status}
-				{#if status0 !== undefined && status0 !== null}
-					<span data-text="muted">
-						{String((status0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const status0 = pendingEntity.status}
+			{#if status0 !== undefined && status0 !== null}
+				<span data-text="muted">
+					{String((status0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status0 = resolvedEntity.status}
+					{#if status0 !== undefined && status0 !== null}
+						<span data-text="muted">
+							{String((status0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -174,19 +179,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -204,19 +203,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -231,24 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue value={Number(blockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -256,7 +238,9 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -266,24 +250,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockHash = pendingEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
-						<div>
-							<dt>Block hash</dt>
-							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockHash = resolvedEntity.blockHash}
@@ -303,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							freeBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const freeBalancePlancks = pendingEntity.freeBalancePlancks}
-					{#if freeBalancePlancks !== undefined && freeBalancePlancks !== null}
-						<div>
-							<dt>Free balance plancks</dt>
-							<dd>
-								<NumberValue value={Number(freeBalancePlancks)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const freeBalancePlancks = resolvedEntity.freeBalancePlancks}
@@ -328,7 +290,9 @@
 						<div>
 							<dt>Free balance plancks</dt>
 							<dd>
-								<NumberValue value={Number(freeBalancePlancks)} />
+								<NumberValue
+									value={freeBalancePlancks}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -338,24 +302,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reservedBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reservedBalancePlancks = pendingEntity.reservedBalancePlancks}
-					{#if reservedBalancePlancks !== undefined && reservedBalancePlancks !== null}
-						<div>
-							<dt>Reserved balance plancks</dt>
-							<dd>
-								<NumberValue value={Number(reservedBalancePlancks)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reservedBalancePlancks = resolvedEntity.reservedBalancePlancks}
@@ -363,7 +316,9 @@
 						<div>
 							<dt>Reserved balance plancks</dt>
 							<dd>
-								<NumberValue value={Number(reservedBalancePlancks)} />
+								<NumberValue
+									value={reservedBalancePlancks}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -373,24 +328,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							frozenBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const frozenBalancePlancks = pendingEntity.frozenBalancePlancks}
-					{#if frozenBalancePlancks !== undefined && frozenBalancePlancks !== null}
-						<div>
-							<dt>Frozen balance plancks</dt>
-							<dd>
-								<NumberValue value={Number(frozenBalancePlancks)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const frozenBalancePlancks = resolvedEntity.frozenBalancePlancks}
@@ -398,7 +342,9 @@
 						<div>
 							<dt>Frozen balance plancks</dt>
 							<dd>
-								<NumberValue value={Number(frozenBalancePlancks)} />
+								<NumberValue
+									value={frozenBalancePlancks}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -410,24 +356,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transferableBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transferableBalancePlancks = pendingEntity.transferableBalancePlancks}
-					{#if transferableBalancePlancks !== undefined && transferableBalancePlancks !== null}
-						<div>
-							<dt>Transferable balance plancks</dt>
-							<dd>
-								<NumberValue value={Number(transferableBalancePlancks)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transferableBalancePlancks = resolvedEntity.transferableBalancePlancks}
@@ -435,7 +370,9 @@
 						<div>
 							<dt>Transferable balance plancks</dt>
 							<dd>
-								<NumberValue value={Number(transferableBalancePlancks)} />
+								<NumberValue
+									value={transferableBalancePlancks}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -445,24 +382,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lockedBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lockedBalancePlancks = pendingEntity.lockedBalancePlancks}
-					{#if lockedBalancePlancks !== undefined && lockedBalancePlancks !== null}
-						<div>
-							<dt>Locked balance plancks</dt>
-							<dd>
-								<NumberValue value={Number(lockedBalancePlancks)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lockedBalancePlancks = resolvedEntity.lockedBalancePlancks}
@@ -470,7 +396,9 @@
 						<div>
 							<dt>Locked balance plancks</dt>
 							<dd>
-								<NumberValue value={Number(lockedBalancePlancks)} />
+								<NumberValue
+									value={lockedBalancePlancks}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -480,24 +408,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>Status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -515,24 +432,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reason: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reason = pendingEntity.reason}
-					{#if reason !== undefined && reason !== null}
-						<div>
-							<dt>Reason</dt>
-							<dd>
-								{String((reason) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reason = resolvedEntity.reason}

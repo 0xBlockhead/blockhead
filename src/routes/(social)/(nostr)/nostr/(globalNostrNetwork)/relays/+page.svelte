@@ -38,5 +38,8 @@
 			})
 		}
 		id='observed-relays'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

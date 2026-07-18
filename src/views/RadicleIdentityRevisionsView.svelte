@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadicleIdentityRevisionView from '$/views/RadicleIdentityRevisionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIdentityRevision}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadicleIdentityRevision}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radicleIdentityRevisions) => [...new Map(radicleIdentityRevisions.values.map((radicleIdentityRevision) => [radicleIdentityRevision[EntityMetaKey.SelectorKey], radicleIdentityRevision])).values()]}
+	getKey={(radicleIdentityRevision) => radicleIdentityRevision[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle identity revisions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radicleIdentityRevisions)}
-			{@const uniqueRadicleIdentityRevisions = [...new Map(radicleIdentityRevisions.values.map((radicleIdentityRevision) => [radicleIdentityRevision[EntityMetaKey.SelectorKey], radicleIdentityRevision])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIdentityRevision}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radicleIdentityRevisions.totalCount}
-				getKey={(radicleIdentityRevision) => radicleIdentityRevision[EntityMetaKey.SelectorKey]}
-				items={uniqueRadicleIdentityRevisions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle identity revisions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radicleIdentityRevision })}
-					{@const radicleIdentityRevisionFields = { ...radicleIdentityRevision[EntityMetaKey.Selector], ...radicleIdentityRevision }}
-					{@const selection = select(EntityType.RadicleIdentityRevision, radicleIdentityRevision[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadicleIdentityRevisionView
-						selection={selection}
-						prefetched={radicleIdentityRevisionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadicleIdentityRevision}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radicleIdentityRevision })}
+		{@const radicleIdentityRevisionFields = { ...radicleIdentityRevision[EntityMetaKey.Selector], ...radicleIdentityRevision }}
+		{@const selection = select(EntityType.RadicleIdentityRevision, radicleIdentityRevision[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadicleIdentityRevisionView
+			selection={selection}
+			prefetched={radicleIdentityRevisionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

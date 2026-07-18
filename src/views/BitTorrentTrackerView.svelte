@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitTorrentTracker = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			trackerKind: true,
 		},
@@ -64,29 +65,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitTorrentTracker}>
-			{#snippet Pending()}
-				{[String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitTorrentTracker}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitTorrentTracker}>
-			{#snippet Pending()}
-				{[String((pendingEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitTorrentTracker}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,26 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									trackerUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const trackerUrl = pendingEntity.trackerUrl}
-							{#if trackerUrl !== undefined && trackerUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(trackerUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(trackerUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const trackerUrl = resolvedEntity.trackerUrl}
@@ -141,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									trackerKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const trackerKind = pendingEntity.trackerKind}
-							{#if trackerKind !== undefined && trackerKind !== null}
-								{String((trackerKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const trackerKind = resolvedEntity.trackerKind}

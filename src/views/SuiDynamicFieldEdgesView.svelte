@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiDynamicFieldEdgeView from '$/views/SuiDynamicFieldEdgeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiDynamicFieldEdge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiDynamicFieldEdge}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiDynamicFieldEdges) => [...new Map(suiDynamicFieldEdges.values.map((suiDynamicFieldEdge) => [suiDynamicFieldEdge[EntityMetaKey.SelectorKey], suiDynamicFieldEdge])).values()]}
+	getKey={(suiDynamicFieldEdge) => suiDynamicFieldEdge[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui dynamic field edges yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiDynamicFieldEdges)}
-			{@const uniqueSuiDynamicFieldEdges = [...new Map(suiDynamicFieldEdges.values.map((suiDynamicFieldEdge) => [suiDynamicFieldEdge[EntityMetaKey.SelectorKey], suiDynamicFieldEdge])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiDynamicFieldEdge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiDynamicFieldEdges.totalCount}
-				getKey={(suiDynamicFieldEdge) => suiDynamicFieldEdge[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiDynamicFieldEdges}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui dynamic field edges yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiDynamicFieldEdge })}
-					{@const suiDynamicFieldEdgeFields = { ...suiDynamicFieldEdge[EntityMetaKey.Selector], ...suiDynamicFieldEdge }}
-					{@const selection = select(EntityType.SuiDynamicFieldEdge, suiDynamicFieldEdge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiDynamicFieldEdgeView
-						selection={selection}
-						prefetched={suiDynamicFieldEdgeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiDynamicFieldEdge}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiDynamicFieldEdge })}
+		{@const suiDynamicFieldEdgeFields = { ...suiDynamicFieldEdge[EntityMetaKey.Selector], ...suiDynamicFieldEdge }}
+		{@const selection = select(EntityType.SuiDynamicFieldEdge, suiDynamicFieldEdge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiDynamicFieldEdgeView
+			selection={selection}
+			prefetched={suiDynamicFieldEdgeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

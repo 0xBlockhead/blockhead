@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,7 +34,10 @@
 		{@const DetailView = GlobalRedditNetworkView}
 
 		<DetailView
-			selection={select(EntityType._GlobalRedditNetwork, data.selector)}
+			selection={select(EntityType._GlobalRedditNetwork, data.selector, { sources: [
+	Source.Constants_Internal,
+	Source.Reddit_PublicJson,
+] })}
 			href={resolve('/reddit')}
 			layout={EntityLayout.SummaryInline}
 		/>

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaSchedule = $derived(selection({}))
+	const hederaSchedule = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera schedule')
 	const viewDomId = $derived('hedera-schedule-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaSchedule}>
-			{#snippet Pending()}
-				{title || 'hedera schedule'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaSchedule}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scheduleId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scheduleId = pendingEntity.scheduleId}
-							{#if scheduleId !== undefined && scheduleId !== null}
-								{String((scheduleId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scheduleId = resolvedEntity.scheduleId}
@@ -130,24 +126,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							creatorAccountId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const creatorAccountId = pendingEntity.creatorAccountId}
-					{#if creatorAccountId !== undefined && creatorAccountId !== null}
-						<div>
-							<dt>creator account ID</dt>
-							<dd>
-								<TruncatedValue value={String((creatorAccountId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const creatorAccountId = resolvedEntity.creatorAccountId}
@@ -165,24 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payerAccountId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payerAccountId = pendingEntity.payerAccountId}
-					{#if payerAccountId !== undefined && payerAccountId !== null}
-						<div>
-							<dt>payer account ID</dt>
-							<dd>
-								<TruncatedValue value={String((payerAccountId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payerAccountId = resolvedEntity.payerAccountId}

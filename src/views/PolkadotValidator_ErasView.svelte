@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotValidator_EraView from '$/views/PolkadotValidator_EraView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					eraIndex: true,
-					active: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotValidator_Era}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotValidator_Era}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				eraIndex: true,
+				active: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotValidatorEras) => [...new Map(polkadotValidatorEras.values.map((polkadotValidatorEra) => [polkadotValidatorEra[EntityMetaKey.SelectorKey], polkadotValidatorEra])).values()]}
+	getKey={(polkadotValidatorEra) => polkadotValidatorEra[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot validator eras yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotValidatorEras)}
-			{@const uniquePolkadotValidatorEras = [...new Map(polkadotValidatorEras.values.map((polkadotValidatorEra) => [polkadotValidatorEra[EntityMetaKey.SelectorKey], polkadotValidatorEra])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotValidator_Era}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotValidatorEras.totalCount}
-				getKey={(polkadotValidatorEra) => polkadotValidatorEra[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotValidatorEras}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot validator eras yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotValidatorEra })}
-					{@const polkadotValidatorEraFields = { ...polkadotValidatorEra[EntityMetaKey.Selector], ...polkadotValidatorEra }}
-					{@const selection = select(EntityType.PolkadotValidator_Era, polkadotValidatorEra[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PolkadotValidator_EraView
-						selection={selection}
-						prefetched={polkadotValidatorEraFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotValidator_Era}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotValidatorEra })}
+		{@const polkadotValidatorEraFields = { ...polkadotValidatorEra[EntityMetaKey.Selector], ...polkadotValidatorEra }}
+		{@const selection = select(EntityType.PolkadotValidator_Era, polkadotValidatorEra[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PolkadotValidator_EraView
+			selection={selection}
+			prefetched={polkadotValidatorEraFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

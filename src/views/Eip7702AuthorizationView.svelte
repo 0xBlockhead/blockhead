@@ -44,6 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip7702Authorization = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			delegationAddress: true,
 			authority: true,
@@ -74,52 +75,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip7702Authorization}>
-			{#snippet Pending()}
-				{[String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip7702Authorization}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip7702Authorization}>
-			{#snippet Pending()}
-				{[String((pendingEntity.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip7702Authorization}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip7702Authorization}>
-			{#snippet Pending()}
-				{@const authority0 = pendingEntity.authority}
-				{#if authority0 !== undefined && authority0 !== null}
-					<span data-text="muted">
-						{String((authority0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const authority0 = resolvedEntity.authority}
-				{#if authority0 !== undefined && authority0 !== null}
-					<span data-text="muted">
-						{String((authority0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const authority0 = pendingEntity.authority}
+			{#if authority0 !== undefined && authority0 !== null}
+				<span data-text="muted">
+					{String((authority0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip7702Authorization}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const authority0 = resolvedEntity.authority}
+					{#if authority0 !== undefined && authority0 !== null}
+						<span data-text="muted">
+							{String((authority0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									authorizationIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const authorizationIndex = pendingEntity.authorizationIndex}
-							{#if authorizationIndex !== undefined && authorizationIndex !== null}
-								{String((authorizationIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const authorizationIndex = resolvedEntity.authorizationIndex}
@@ -180,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chainId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chainId = pendingEntity.chainId}
-							{#if chainId !== undefined && chainId !== null}
-								{String((chainId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chainId = resolvedEntity.chainId}
@@ -212,19 +201,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									delegationAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const delegationAddress = pendingEntity.delegationAddress}
-							{#if delegationAddress !== undefined && delegationAddress !== null}
-								<TruncatedValue value={String((delegationAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const delegationAddress = resolvedEntity.delegationAddress}
@@ -239,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authority: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authority = pendingEntity.authority}
-					{#if authority !== undefined && authority !== null}
-						<div>
-							<dt>authority</dt>
-							<dd>
-								{String((authority) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authority = resolvedEntity.authority}
@@ -277,19 +249,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									nonce: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const nonce = pendingEntity.nonce}
-							{#if nonce !== undefined && nonce !== null}
-								{String((nonce) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const nonce = resolvedEntity.nonce}
@@ -307,19 +273,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									yParity: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const yParity = pendingEntity.yParity}
-							{#if yParity !== undefined && yParity !== null}
-								{String((yParity) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const yParity = resolvedEntity.yParity}
@@ -339,19 +299,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									r: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const r = pendingEntity.r}
-							{#if r !== undefined && r !== null}
-								{String((r) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const r = resolvedEntity.r}
@@ -369,19 +323,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									s: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const s = pendingEntity.s}
-							{#if s !== undefined && s !== null}
-								{String((s) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const s = resolvedEntity.s}
@@ -396,24 +344,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verificationStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verificationStatus = pendingEntity.verificationStatus}
-					{#if verificationStatus !== undefined && verificationStatus !== null}
-						<div>
-							<dt>verification status</dt>
-							<dd>
-								{String((verificationStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verificationStatus = resolvedEntity.verificationStatus}
@@ -431,24 +368,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifiedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
-					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
-						<div>
-							<dt>verified AT ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(verifiedAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifiedAtMs = resolvedEntity.verifiedAtMs}
@@ -468,8 +394,6 @@
 			<ResourceBoundary
 				resource={selection.$authorityAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -499,8 +423,6 @@
 			<ResourceBoundary
 				resource={selection.$delegationContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>

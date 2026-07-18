@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalEnsNetworkView from '$/views/_GlobalEnsNetworkView.svelte'
 </script>
@@ -62,78 +61,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEnsNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalEnsNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(globalEnsNetworks) => [...new Map(globalEnsNetworks.values.map((globalEnsNetwork) => [globalEnsNetwork[EntityMetaKey.SelectorKey], globalEnsNetwork])).values()]}
+	getKey={(globalEnsNetwork) => globalEnsNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ENS yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalEnsNetworks)}
-			{@const uniqueGlobalEnsNetworks = [...new Map(globalEnsNetworks.values.map((globalEnsNetwork) => [globalEnsNetwork[EntityMetaKey.SelectorKey], globalEnsNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEnsNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalEnsNetworks.totalCount}
-				getKey={(globalEnsNetwork) => globalEnsNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalEnsNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ENS yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalEnsNetwork })}
-					{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
-					{@const selection = select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
-					<GlobalEnsNetworkView
-						selection={selection}
-						prefetched={globalEnsNetworkFields}
-						href={(globalEnsNetwork[EntityMetaKey.Selector].scope === '_GlobalEnsNetwork' ? resolve('/ens') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalEnsNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalEnsNetwork })}
+		{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
+		{@const selection = select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
+		<GlobalEnsNetworkView
+			selection={selection}
+			prefetched={globalEnsNetworkFields}
+			href={(globalEnsNetwork[EntityMetaKey.Selector].scope === '_GlobalEnsNetwork' ? resolve('/ens') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

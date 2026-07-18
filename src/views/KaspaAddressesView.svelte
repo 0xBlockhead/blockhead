@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaAddressView from '$/views/KaspaAddressView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaAddress}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(kaspaAddresses) => [...new Map(kaspaAddresses.values.map((kaspaAddress) => [kaspaAddress[EntityMetaKey.SelectorKey], kaspaAddress])).values()]}
+	getKey={(kaspaAddress) => kaspaAddress[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa addresses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaAddresses)}
-			{@const uniqueKaspaAddresses = [...new Map(kaspaAddresses.values.map((kaspaAddress) => [kaspaAddress[EntityMetaKey.SelectorKey], kaspaAddress])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaAddresses.totalCount}
-				getKey={(kaspaAddress) => kaspaAddress[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaAddresses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa addresses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaAddress })}
-					{@const kaspaAddressFields = { ...kaspaAddress[EntityMetaKey.Selector], ...kaspaAddress }}
-					{@const selection = select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaAddressView
-						selection={selection}
-						prefetched={kaspaAddressFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaAddress}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaAddress })}
+		{@const kaspaAddressFields = { ...kaspaAddress[EntityMetaKey.Selector], ...kaspaAddress }}
+		{@const selection = select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaAddressView
+			selection={selection}
+			prefetched={kaspaAddressFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

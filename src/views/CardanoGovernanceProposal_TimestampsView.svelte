@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoGovernanceProposal_TimestampView from '$/views/CardanoGovernanceProposal_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoGovernanceProposal_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoGovernanceProposal_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoGovernanceProposalTimestamps) => [...new Map(cardanoGovernanceProposalTimestamps.values.map((cardanoGovernanceProposalTimestamp) => [cardanoGovernanceProposalTimestamp[EntityMetaKey.SelectorKey], cardanoGovernanceProposalTimestamp])).values()]}
+	getKey={(cardanoGovernanceProposalTimestamp) => cardanoGovernanceProposalTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano governance proposal observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoGovernanceProposalTimestamps)}
-			{@const uniqueCardanoGovernanceProposalTimestamps = [...new Map(cardanoGovernanceProposalTimestamps.values.map((cardanoGovernanceProposalTimestamp) => [cardanoGovernanceProposalTimestamp[EntityMetaKey.SelectorKey], cardanoGovernanceProposalTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoGovernanceProposal_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoGovernanceProposalTimestamps.totalCount}
-				getKey={(cardanoGovernanceProposalTimestamp) => cardanoGovernanceProposalTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoGovernanceProposalTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano governance proposal observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoGovernanceProposalTimestamp })}
-					{@const cardanoGovernanceProposalTimestampFields = { ...cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cardanoGovernanceProposalTimestamp }}
-					{@const selection = select(EntityType.CardanoGovernanceProposal_Timestamp, cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoGovernanceProposal_TimestampView
-						selection={selection}
-						prefetched={cardanoGovernanceProposalTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoGovernanceProposal_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoGovernanceProposalTimestamp })}
+		{@const cardanoGovernanceProposalTimestampFields = { ...cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cardanoGovernanceProposalTimestamp }}
+		{@const selection = select(EntityType.CardanoGovernanceProposal_Timestamp, cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoGovernanceProposal_TimestampView
+			selection={selection}
+			prefetched={cardanoGovernanceProposalTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

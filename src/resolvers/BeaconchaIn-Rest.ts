@@ -12,33 +12,35 @@ export default {
 		defineResolver(Source.BeaconchaIn_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
-				[BeaconEpochSelector.EvmNetworkEpoch]: async ({ $network, epoch: epochSelector }, context) => {
-				const {
-					beaconchaInApiBaseByExecutionChainId,
-				} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
-				const {
-					getEpoch,
-				} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
-				const epoch = await getEpoch(
-					context.publicEnv,
-					{
-						apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
-						epoch: epochSelector,
+				[BeaconEpochSelector.EvmNetworkEpoch]: {
+					resolve: async ({ $network, epoch: epochSelector }, context) => {
+					const {
+						beaconchaInApiBaseByExecutionChainId,
+					} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
+					const {
+						getEpoch,
+					} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+					const epoch = await getEpoch(
+						context.publicEnv,
+						{
+							apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
+							epoch: epochSelector,
+						}
+					)
+					if (epoch == null) {
+						throw new Error(`BeaconchaIn_Rest: epoch ${String(epoch)} not found`)
 					}
-				)
-				if (epoch == null) {
-					throw new Error(`BeaconchaIn_Rest: epoch ${String(epoch)} not found`)
+					return {
+						...(epoch.finalized != null && { finalized: epoch.finalized }),
+						...(epoch.globalparticipationrate != null && { globalParticipationRate: epoch.globalparticipationrate }),
+						...(epoch.validatorscount != null && { validatorsCount: epoch.validatorscount }),
+						...(epoch.attestationscount != null && { attestationsCount: epoch.attestationscount }),
+						...(epoch.attesterslashingscount != null && { attesterSlashingsCount: epoch.attesterslashingscount }),
+						...(epoch.proposerslashingscount != null && { proposerSlashingsCount: epoch.proposerslashingscount }),
+						...(epoch.withdrawalcount != null && { withdrawalsCount: epoch.withdrawalcount }),
+					}
+				},
 				}
-				return {
-					...(epoch.finalized != null && { finalized: epoch.finalized }),
-					...(epoch.globalparticipationrate != null && { globalParticipationRate: epoch.globalparticipationrate }),
-					...(epoch.validatorscount != null && { validatorsCount: epoch.validatorscount }),
-					...(epoch.attestationscount != null && { attestationsCount: epoch.attestationscount }),
-					...(epoch.attesterslashingscount != null && { attesterSlashingsCount: epoch.attesterslashingscount }),
-					...(epoch.proposerslashingscount != null && { proposerSlashingsCount: epoch.proposerslashingscount }),
-					...(epoch.withdrawalcount != null && { withdrawalsCount: epoch.withdrawalcount }),
-				}
-			}
 			}
 		})({
 			finalized: (snapshot) => snapshot.finalized,

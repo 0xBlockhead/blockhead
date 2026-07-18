@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,9 @@
 			{@const DetailView = BlockheadAgentConversationView}
 
 			<DetailView
-				selection={select(EntityType.BlockheadAgentConversation, data.selector)}
+				selection={select(EntityType.BlockheadAgentConversation, data.selector, { sources: [
+		Source.Local_Internal,
+	] })}
 				href={
 					resolve('/~/agents/conversation/[conversationId=stringSegment]', {
 						conversationId: params.conversationId,

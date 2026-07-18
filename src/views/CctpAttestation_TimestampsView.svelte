@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CctpAttestation_TimestampView from '$/views/CctpAttestation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpAttestation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CctpAttestation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(cctpAttestationTimestamps) => [...new Map(cctpAttestationTimestamps.values.map((cctpAttestationTimestamp) => [cctpAttestationTimestamp[EntityMetaKey.SelectorKey], cctpAttestationTimestamp])).values()]}
+	getKey={(cctpAttestationTimestamp) => cctpAttestationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No CCTP attestation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cctpAttestationTimestamps)}
-			{@const uniqueCctpAttestationTimestamps = [...new Map(cctpAttestationTimestamps.values.map((cctpAttestationTimestamp) => [cctpAttestationTimestamp[EntityMetaKey.SelectorKey], cctpAttestationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpAttestation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cctpAttestationTimestamps.totalCount}
-				getKey={(cctpAttestationTimestamp) => cctpAttestationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCctpAttestationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No CCTP attestation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cctpAttestationTimestamp })}
-					{@const cctpAttestationTimestampFields = { ...cctpAttestationTimestamp[EntityMetaKey.Selector], ...cctpAttestationTimestamp }}
-					{@const selection = select(EntityType.CctpAttestation_Timestamp, cctpAttestationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CctpAttestation_TimestampView
-						selection={selection}
-						prefetched={cctpAttestationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CctpAttestation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cctpAttestationTimestamp })}
+		{@const cctpAttestationTimestampFields = { ...cctpAttestationTimestamp[EntityMetaKey.Selector], ...cctpAttestationTimestamp }}
+		{@const selection = select(EntityType.CctpAttestation_Timestamp, cctpAttestationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CctpAttestation_TimestampView
+			selection={selection}
+			prefetched={cctpAttestationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

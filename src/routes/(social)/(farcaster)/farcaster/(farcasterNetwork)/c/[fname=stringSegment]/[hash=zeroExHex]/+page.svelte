@@ -24,8 +24,6 @@
 	}, {
 		sources: [
 			Source.Snapchain_Rest,
-			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
 		],
 		fields: {
 			text: true,
@@ -34,6 +32,7 @@
 			$channel: true,
 			$parentCast: true,
 			parentUrl: true,
+			rootParentUrl: true,
 			threadHash: true,
 		},
 	}))

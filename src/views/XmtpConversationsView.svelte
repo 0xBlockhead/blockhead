@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XmtpConversationView from '$/views/XmtpConversationView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					topic: true,
-					peerInboxId: true,
-					id: true,
-					createdAtMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XmtpConversation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XmtpConversation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				topic: true,
+				peerInboxId: true,
+				id: true,
+				createdAtMs: true,
+			},
+		})
+	}
+	getResourceItems={(xmtpConversations) => [...new Map(xmtpConversations.values.map((xmtpConversation) => [xmtpConversation[EntityMetaKey.SelectorKey], xmtpConversation])).values()]}
+	getKey={(xmtpConversation) => xmtpConversation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No XMTP conversations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xmtpConversations)}
-			{@const uniqueXmtpConversations = [...new Map(xmtpConversations.values.map((xmtpConversation) => [xmtpConversation[EntityMetaKey.SelectorKey], xmtpConversation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XmtpConversation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xmtpConversations.totalCount}
-				getKey={(xmtpConversation) => xmtpConversation[EntityMetaKey.SelectorKey]}
-				items={uniqueXmtpConversations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No XMTP conversations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xmtpConversation })}
-					{@const xmtpConversationFields = { ...xmtpConversation[EntityMetaKey.Selector], ...xmtpConversation }}
-					{@const selection = select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const xmtpConversationHrefFields = { ...xmtpConversation, ...xmtpConversation[EntityMetaKey.Selector] }}
-					<XmtpConversationView
-						selection={selection}
-						prefetched={xmtpConversationFields}
-						href={
-							(xmtpConversationHrefFields.id !== undefined ? resolve('/xmtp/conversation/[conversationId=stringSegment]', {
-								conversationId: String(xmtpConversationHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XmtpConversation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xmtpConversation })}
+		{@const xmtpConversationFields = { ...xmtpConversation[EntityMetaKey.Selector], ...xmtpConversation }}
+		{@const selection = select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const xmtpConversationHrefFields = { ...xmtpConversation, ...xmtpConversation[EntityMetaKey.Selector] }}
+		<XmtpConversationView
+			selection={selection}
+			prefetched={xmtpConversationFields}
+			href={
+				(xmtpConversationHrefFields.id !== undefined ? resolve('/xmtp/conversation/[conversationId=stringSegment]', {
+					conversationId: String(xmtpConversationHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

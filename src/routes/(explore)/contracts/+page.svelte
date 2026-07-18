@@ -48,6 +48,9 @@
 					})
 				}
 				id='contracts'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

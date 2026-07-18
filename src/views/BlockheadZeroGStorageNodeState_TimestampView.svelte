@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadZeroGStorageNodeStateTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			localChunkCount: true,
 		},
@@ -73,66 +69,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
-			{#snippet Pending()}
-				<BlockheadZeroGStorageNodeStateView
-					selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BlockheadZeroGStorageNodeStateView
-					selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<BlockheadZeroGStorageNodeStateView
+						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<BlockheadZeroGStorageNodeStateView
+						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const localChunkCount0 = pendingEntity.localChunkCount}
-				{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(localChunkCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const localChunkCount0 = resolvedEntity.localChunkCount}
-				{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(localChunkCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const localChunkCount0 = pendingEntity.localChunkCount}
+			{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={localChunkCount0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const localChunkCount0 = resolvedEntity.localChunkCount}
+					{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={localChunkCount0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,19 +154,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -184,19 +178,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -211,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							syncedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const syncedAt = pendingEntity.syncedAt}
-					{#if syncedAt !== undefined && syncedAt !== null}
-						<div>
-							<dt>synced AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(syncedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const syncedAt = resolvedEntity.syncedAt}
@@ -248,24 +225,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							localFileCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const localFileCount = pendingEntity.localFileCount}
-					{#if localFileCount !== undefined && localFileCount !== null}
-						<div>
-							<dt>local file count</dt>
-							<dd>
-								<NumberValue value={Number(localFileCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const localFileCount = resolvedEntity.localFileCount}
@@ -273,7 +239,9 @@
 						<div>
 							<dt>local file count</dt>
 							<dd>
-								<NumberValue value={Number(localFileCount)} />
+								<NumberValue
+									value={localFileCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -283,24 +251,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							localChunkCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const localChunkCount = pendingEntity.localChunkCount}
-					{#if localChunkCount !== undefined && localChunkCount !== null}
-						<div>
-							<dt>local chunk count</dt>
-							<dd>
-								<NumberValue value={Number(localChunkCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const localChunkCount = resolvedEntity.localChunkCount}
@@ -308,7 +265,9 @@
 						<div>
 							<dt>local chunk count</dt>
 							<dd>
-								<NumberValue value={Number(localChunkCount)} />
+								<NumberValue
+									value={localChunkCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -318,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							localProofCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const localProofCount = pendingEntity.localProofCount}
-					{#if localProofCount !== undefined && localProofCount !== null}
-						<div>
-							<dt>local proof count</dt>
-							<dd>
-								<NumberValue value={Number(localProofCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const localProofCount = resolvedEntity.localProofCount}
@@ -343,7 +291,9 @@
 						<div>
 							<dt>local proof count</dt>
 							<dd>
-								<NumberValue value={Number(localProofCount)} />
+								<NumberValue
+									value={localProofCount}
+								/>
 							</dd>
 						</div>
 					{/if}

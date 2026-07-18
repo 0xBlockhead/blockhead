@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitPackedObjectView from '$/views/GitPackedObjectView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					storedKind: true,
-					$packfile: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitPackedObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitPackedObject}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				storedKind: true,
+				$packfile: true,
+			},
+		})
+	}
+	getResourceItems={(gitPackedObjects) => [...new Map(gitPackedObjects.values.map((gitPackedObject) => [gitPackedObject[EntityMetaKey.SelectorKey], gitPackedObject])).values()]}
+	getKey={(gitPackedObject) => gitPackedObject[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git packed objects yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitPackedObjects)}
-			{@const uniqueGitPackedObjects = [...new Map(gitPackedObjects.values.map((gitPackedObject) => [gitPackedObject[EntityMetaKey.SelectorKey], gitPackedObject])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitPackedObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitPackedObjects.totalCount}
-				getKey={(gitPackedObject) => gitPackedObject[EntityMetaKey.SelectorKey]}
-				items={uniqueGitPackedObjects}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git packed objects yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitPackedObject })}
-					{@const gitPackedObjectFields = { ...gitPackedObject[EntityMetaKey.Selector], ...gitPackedObject }}
-					{@const selection = select(EntityType.GitPackedObject, gitPackedObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitPackedObjectView
-						selection={selection}
-						prefetched={gitPackedObjectFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitPackedObject}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitPackedObject })}
+		{@const gitPackedObjectFields = { ...gitPackedObject[EntityMetaKey.Selector], ...gitPackedObject }}
+		{@const selection = select(EntityType.GitPackedObject, gitPackedObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitPackedObjectView
+			selection={selection}
+			prefetched={gitPackedObjectFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

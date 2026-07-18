@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoRepoCommitView from '$/views/AtprotoRepoCommitView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					rev: true,
-					commitCid: true,
-					repoDid: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoRepoCommit}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AtprotoRepoCommit}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				rev: true,
+				commitCid: true,
+				repoDid: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(atprotoRepoCommits) => [...new Map(atprotoRepoCommits.values.map((atprotoRepoCommit) => [atprotoRepoCommit[EntityMetaKey.SelectorKey], atprotoRepoCommit])).values()]}
+	getKey={(atprotoRepoCommit) => atprotoRepoCommit[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol repo commits yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(atprotoRepoCommits)}
-			{@const uniqueAtprotoRepoCommits = [...new Map(atprotoRepoCommits.values.map((atprotoRepoCommit) => [atprotoRepoCommit[EntityMetaKey.SelectorKey], atprotoRepoCommit])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoRepoCommit}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoRepoCommits.totalCount}
-				getKey={(atprotoRepoCommit) => atprotoRepoCommit[EntityMetaKey.SelectorKey]}
-				items={uniqueAtprotoRepoCommits}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol repo commits yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: atprotoRepoCommit })}
-					{@const atprotoRepoCommitFields = { ...atprotoRepoCommit[EntityMetaKey.Selector], ...atprotoRepoCommit }}
-					{@const selection = select(EntityType.AtprotoRepoCommit, atprotoRepoCommit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AtprotoRepoCommitView
-						selection={selection}
-						prefetched={atprotoRepoCommitFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AtprotoRepoCommit}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: atprotoRepoCommit })}
+		{@const atprotoRepoCommitFields = { ...atprotoRepoCommit[EntityMetaKey.Selector], ...atprotoRepoCommit }}
+		{@const selection = select(EntityType.AtprotoRepoCommit, atprotoRepoCommit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AtprotoRepoCommitView
+			selection={selection}
+			prefetched={atprotoRepoCommitFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

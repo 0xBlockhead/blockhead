@@ -119,7 +119,7 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		const resolved = await getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash]({
+		const resolved = await getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		}, context)
@@ -171,7 +171,7 @@ describe('GetBlock RPC transaction source', () => {
 				id: 2,
 				result: null,
 			})))
-		await expect(getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash]({
+		await expect(getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		}, context)).resolves.toMatchObject({

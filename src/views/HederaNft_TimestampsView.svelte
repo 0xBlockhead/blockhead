@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaNft_TimestampView from '$/views/HederaNft_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNft_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaNft_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaNftTimestamps) => [...new Map(hederaNftTimestamps.values.map((hederaNftTimestamp) => [hederaNftTimestamp[EntityMetaKey.SelectorKey], hederaNftTimestamp])).values()]}
+	getKey={(hederaNftTimestamp) => hederaNftTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera NFT observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaNftTimestamps)}
-			{@const uniqueHederaNftTimestamps = [...new Map(hederaNftTimestamps.values.map((hederaNftTimestamp) => [hederaNftTimestamp[EntityMetaKey.SelectorKey], hederaNftTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNft_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaNftTimestamps.totalCount}
-				getKey={(hederaNftTimestamp) => hederaNftTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaNftTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera NFT observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaNftTimestamp })}
-					{@const hederaNftTimestampFields = { ...hederaNftTimestamp[EntityMetaKey.Selector], ...hederaNftTimestamp }}
-					{@const selection = select(EntityType.HederaNft_Timestamp, hederaNftTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaNft_TimestampView
-						selection={selection}
-						prefetched={hederaNftTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaNft_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaNftTimestamp })}
+		{@const hederaNftTimestampFields = { ...hederaNftTimestamp[EntityMetaKey.Selector], ...hederaNftTimestamp }}
+		{@const selection = select(EntityType.HederaNft_Timestamp, hederaNftTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaNft_TimestampView
+			selection={selection}
+			prefetched={hederaNftTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

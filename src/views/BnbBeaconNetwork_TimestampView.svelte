@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbBeaconNetworkTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			latestArchivedHeight: true,
 			archiveCoverageStatus: true,
@@ -69,58 +70,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.latestArchivedHeight) ?? ''), String((pendingEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.latestArchivedHeight) ?? ''), String((resolvedEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.latestArchivedHeight) ?? ''), String((pendingEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.latestArchivedHeight) ?? ''), String((resolvedEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -172,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -199,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							archiveCoverageStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const archiveCoverageStatus = pendingEntity.archiveCoverageStatus}
-					{#if archiveCoverageStatus !== undefined && archiveCoverageStatus !== null}
-						<div>
-							<dt>archive coverage status</dt>
-							<dd>
-								{String((archiveCoverageStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const archiveCoverageStatus = resolvedEntity.archiveCoverageStatus}
@@ -236,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestArchivedHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestArchivedHeight = pendingEntity.latestArchivedHeight}
-					{#if latestArchivedHeight !== undefined && latestArchivedHeight !== null}
-						<div>
-							<dt>latest archived height</dt>
-							<dd>
-								<NumberValue value={Number(latestArchivedHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestArchivedHeight = resolvedEntity.latestArchivedHeight}
@@ -261,7 +228,9 @@
 						<div>
 							<dt>latest archived height</dt>
 							<dd>
-								<NumberValue value={Number(latestArchivedHeight)} />
+								<NumberValue
+									value={latestArchivedHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -271,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestArchivedBlockTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestArchivedBlockTimeMs = pendingEntity.latestArchivedBlockTimeMs}
-					{#if latestArchivedBlockTimeMs !== undefined && latestArchivedBlockTimeMs !== null}
-						<div>
-							<dt>latest archived block time ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(latestArchivedBlockTimeMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestArchivedBlockTimeMs = resolvedEntity.latestArchivedBlockTimeMs}
@@ -308,24 +266,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validatorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validatorCount = pendingEntity.validatorCount}
-					{#if validatorCount !== undefined && validatorCount !== null}
-						<div>
-							<dt>validator count</dt>
-							<dd>
-								<NumberValue value={Number(validatorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validatorCount = resolvedEntity.validatorCount}
@@ -333,7 +280,9 @@
 						<div>
 							<dt>validator count</dt>
 							<dd>
-								<NumberValue value={Number(validatorCount)} />
+								<NumberValue
+									value={validatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -343,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenCount = pendingEntity.tokenCount}
-					{#if tokenCount !== undefined && tokenCount !== null}
-						<div>
-							<dt>token count</dt>
-							<dd>
-								<NumberValue value={Number(tokenCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenCount = resolvedEntity.tokenCount}
@@ -368,7 +306,9 @@
 						<div>
 							<dt>token count</dt>
 							<dd>
-								<NumberValue value={Number(tokenCount)} />
+								<NumberValue
+									value={tokenCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -378,24 +318,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							migrationRecordCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const migrationRecordCount = pendingEntity.migrationRecordCount}
-					{#if migrationRecordCount !== undefined && migrationRecordCount !== null}
-						<div>
-							<dt>migration record count</dt>
-							<dd>
-								<NumberValue value={Number(migrationRecordCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const migrationRecordCount = resolvedEntity.migrationRecordCount}
@@ -403,7 +332,9 @@
 						<div>
 							<dt>migration record count</dt>
 							<dd>
-								<NumberValue value={Number(migrationRecordCount)} />
+								<NumberValue
+									value={migrationRecordCount}
+								/>
 							</dd>
 						</div>
 					{/if}

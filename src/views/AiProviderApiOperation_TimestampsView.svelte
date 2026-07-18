@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiProviderApiOperation_TimestampView from '$/views/AiProviderApiOperation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$operation: true,
-					availabilityStatus: true,
-					error: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiProviderApiOperation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiProviderApiOperation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$operation: true,
+				availabilityStatus: true,
+				error: true,
+			},
+		})
+	}
+	getResourceItems={(aiProviderApiOperationTimestamps) => [...new Map(aiProviderApiOperationTimestamps.values.map((aiProviderApiOperationTimestamp) => [aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey], aiProviderApiOperationTimestamp])).values()]}
+	getKey={(aiProviderApiOperationTimestamp) => aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI provider API operation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiProviderApiOperationTimestamps)}
-			{@const uniqueAiProviderApiOperationTimestamps = [...new Map(aiProviderApiOperationTimestamps.values.map((aiProviderApiOperationTimestamp) => [aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey], aiProviderApiOperationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiProviderApiOperation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiProviderApiOperationTimestamps.totalCount}
-				getKey={(aiProviderApiOperationTimestamp) => aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAiProviderApiOperationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI provider API operation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiProviderApiOperationTimestamp })}
-					{@const aiProviderApiOperationTimestampFields = { ...aiProviderApiOperationTimestamp[EntityMetaKey.Selector], ...aiProviderApiOperationTimestamp }}
-					{@const selection = select(EntityType.AiProviderApiOperation_Timestamp, aiProviderApiOperationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiProviderApiOperation_TimestampView
-						selection={selection}
-						prefetched={aiProviderApiOperationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiProviderApiOperation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiProviderApiOperationTimestamp })}
+		{@const aiProviderApiOperationTimestampFields = { ...aiProviderApiOperationTimestamp[EntityMetaKey.Selector], ...aiProviderApiOperationTimestamp }}
+		{@const selection = select(EntityType.AiProviderApiOperation_Timestamp, aiProviderApiOperationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiProviderApiOperation_TimestampView
+			selection={selection}
+			prefetched={aiProviderApiOperationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

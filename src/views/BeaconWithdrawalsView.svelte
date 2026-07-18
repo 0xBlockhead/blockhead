@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconWithdrawalView from '$/views/BeaconWithdrawalView.svelte'
 </script>
@@ -63,91 +62,58 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInSlot: true,
-					amountGwei: true,
-					slot: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconWithdrawal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BeaconWithdrawal}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				indexInSlot: true,
+				amountGwei: true,
+				slot: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(beaconWithdrawals) => [...new Map(beaconWithdrawals.values.map((beaconWithdrawal) => [beaconWithdrawal[EntityMetaKey.SelectorKey], beaconWithdrawal])).values()]}
+	getKey={(beaconWithdrawal) => beaconWithdrawal[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Beacon withdrawals yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(beaconWithdrawals)}
-			{@const uniqueBeaconWithdrawals = [...new Map(beaconWithdrawals.values.map((beaconWithdrawal) => [beaconWithdrawal[EntityMetaKey.SelectorKey], beaconWithdrawal])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconWithdrawal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconWithdrawals.totalCount}
-				getKey={(beaconWithdrawal) => beaconWithdrawal[EntityMetaKey.SelectorKey]}
-				items={uniqueBeaconWithdrawals}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Beacon withdrawals yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: beaconWithdrawal })}
-					{@const beaconWithdrawalFields = { ...beaconWithdrawal[EntityMetaKey.Selector], ...beaconWithdrawal }}
-					{@const selection = select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const beaconWithdrawalHrefFields = { ...beaconWithdrawal, ...beaconWithdrawal[EntityMetaKey.Selector] }}
-					<BeaconWithdrawalView
-						selection={selection}
-						prefetched={beaconWithdrawalFields}
-						href={
-							(beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
-								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
-								network: String(caip2StringFromValue(beaconWithdrawalHrefFields.$network.caip2) ?? ''),
-							}) : beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
-								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
-								network: String(beaconWithdrawalHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BeaconWithdrawal}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: beaconWithdrawal })}
+		{@const beaconWithdrawalFields = { ...beaconWithdrawal[EntityMetaKey.Selector], ...beaconWithdrawal }}
+		{@const selection = select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const beaconWithdrawalHrefFields = { ...beaconWithdrawal, ...beaconWithdrawal[EntityMetaKey.Selector] }}
+		<BeaconWithdrawalView
+			selection={selection}
+			prefetched={beaconWithdrawalFields}
+			href={
+				(beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+					slot: String(beaconWithdrawalHrefFields.slot ?? ''),
+					index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
+					network: String(caip2StringFromValue(beaconWithdrawalHrefFields.$network.caip2) ?? ''),
+				}) : beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+					slot: String(beaconWithdrawalHrefFields.slot ?? ''),
+					index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
+					network: String(beaconWithdrawalHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

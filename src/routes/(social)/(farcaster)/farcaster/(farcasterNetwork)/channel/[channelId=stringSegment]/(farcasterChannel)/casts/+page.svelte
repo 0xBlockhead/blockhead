@@ -39,7 +39,7 @@
 		title='Farcaster channel casts'
 		selection={
 			select(EntityType.FarcasterChannel, {
-				id: decodeURIComponent(params.channelId),
+				id: params.channelId,
 			}).$$casts({
 				sources: [
 					Source.Farcaster_Rest,
@@ -50,5 +50,8 @@
 			})
 		}
 		id='casts'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

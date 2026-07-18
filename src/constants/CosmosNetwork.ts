@@ -8,7 +8,7 @@ export const cosmosNetworks = [
 		slug: 'cosmos',
 		caip2: networkBySlug.cosmos.caip2,
 		cometBftRestBaseUrl: 'https://cosmos-rpc.publicnode.com',
-		cosmosSdkRestBaseUrl: 'https://cosmos-rest.publicnode.com',
+		cosmosSdkRestBaseUrl: 'https://rest.cosmos.directory/cosmoshub',
 	},
 ] as const satisfies readonly {
 	slug: keyof Pick<typeof networkBySlug, 'cosmos'>

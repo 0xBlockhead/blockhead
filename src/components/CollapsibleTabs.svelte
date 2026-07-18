@@ -87,7 +87,6 @@
 		open?: boolean
 		ontoggle?: (e: Event) => void
 		onclose?: (id?: string) => void
-		scrollContainerProps?: SvelteHTMLElements['div']
 	}
 
 
@@ -107,7 +106,6 @@
 		open,
 		ontoggle,
 		onclose,
-		scrollContainerProps,
 
 		...collapsibleTabsSectionSnippets
 	}: CollapsibleTabsOwnProps<Sections> & CollapsibleTabsForwardedProps = $props()
@@ -116,7 +114,6 @@
 	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string>(
 		selectedSectionId ?? initialSection ?? sections[0].id,
 	)
-	let loadedSectionIds = $state<CollapsibleTabsSectionIds<Sections>[]>([])
 
 
 	// Functions
@@ -146,7 +143,6 @@
 	{open}
 	{ontoggle}
 	{onclose}
-	{scrollContainerProps}
 	{Summary}
 	{Toolbar}
 	{Annotation}
@@ -160,25 +156,27 @@
 					{/snippet}
 
 					<a
+						id={`${sectionAnchorId(section.id)}:marker`}
+						aria-controls={sectionAnchorId(section.id)}
+						aria-current={section.id === activeSectionId ? 'location' : undefined}
 						data-scroll-marker-label={section.label}
 						data-active={section.id === activeSectionId}
 						href={`#${sectionAnchorId(section.id)}`}
 						onclick={() => {
 							selectedSectionId = section.id
-							if (!loadedSectionIds.includes(section.id))
-								loadedSectionIds.push(section.id)
 						}}
 					>{section.label}</a>
 				</Tooltip>
 			{:else}
 				<a
+					id={`${sectionAnchorId(section.id)}:marker`}
+					aria-controls={sectionAnchorId(section.id)}
+					aria-current={section.id === activeSectionId ? 'location' : undefined}
 					data-scroll-marker-label={section.label}
 					data-active={section.id === activeSectionId}
 					href={`#${sectionAnchorId(section.id)}`}
 					onclick={() => {
 						selectedSectionId = section.id
-						if (!loadedSectionIds.includes(section.id))
-							loadedSectionIds.push(section.id)
 					}}
 				>{section.label}</a>
 			{/if}
@@ -190,14 +188,18 @@
 			{@const Section = sectionSnippetForSection(section)}
 			<section
 				id={sectionAnchorId(section.id)}
+				aria-labelledby={`${sectionAnchorId(section.id)}:marker`}
+				data-scroll-marker-label={section.label}
+				data-column-item="flexible"
+				data-column
 				data-active={section.id === activeSectionId}
 			>
-				{#if Section && (section.id === activeSectionId || loadedSectionIds.includes(section.id))}
+				{#if Section}
 					{@render Section(
 						{
 							id: sectionAnchorId(section.id),
 							label: section.label,
-							open: section.id === activeSectionId,
+							open: true,
 						},
 					)}
 				{/if}

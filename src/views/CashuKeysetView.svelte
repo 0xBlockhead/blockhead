@@ -42,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cashuKeyset = $derived(selection({
-		sources: [
-			Source.CashuMint_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			unit: true,
 		},
@@ -74,60 +72,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cashuKeyset}>
-			{#snippet Pending()}
-				{@const keysetId0 = pendingEntity.keysetId}
-				{#if keysetId0 !== undefined && keysetId0 !== null}
-					<TruncatedValue value={String((keysetId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const keysetId0 = resolvedEntity.keysetId}
-				{#if keysetId0 !== undefined && keysetId0 !== null}
-					<TruncatedValue value={String((keysetId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const keysetId0 = pendingEntity.keysetId}
+					{#if keysetId0 !== undefined && keysetId0 !== null}
+						<TruncatedValue value={String((keysetId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cashuKeyset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const keysetId0 = resolvedEntity.keysetId}
+					{#if keysetId0 !== undefined && keysetId0 !== null}
+						<TruncatedValue value={String((keysetId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cashuKeyset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cashuKeyset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cashuKeyset}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<CashuMintView
-						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<CashuMintView
-						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<CashuMintView
+					selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={cashuKeyset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<CashuMintView
+							selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									keysetId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const keysetId = pendingEntity.keysetId}
-							{#if keysetId !== undefined && keysetId !== null}
-								<TruncatedValue value={String((keysetId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keysetId = resolvedEntity.keysetId}
@@ -176,27 +168,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							unit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unit = pendingEntity.unit}
-					{#if unit !== undefined && unit !== null}
-						<div>
-							<dt>unit</dt>
-							<dd>
-								{String((unit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unit = resolvedEntity.unit}
@@ -216,27 +194,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							keysByAmountJson: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const keysByAmountJson = pendingEntity.keysByAmountJson}
-					{#if keysByAmountJson !== undefined && keysByAmountJson !== null}
-						<div>
-							<dt>keys by amount JSON</dt>
-							<dd>
-								{String((keysByAmountJson) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const keysByAmountJson = resolvedEntity.keysByAmountJson}
@@ -268,11 +232,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -285,10 +246,13 @@
 								sources: [
 									Source.CashuMint_Rest,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No keyset observations.'
 						open={open}
 						title={label}

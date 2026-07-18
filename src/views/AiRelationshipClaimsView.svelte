@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiRelationshipClaimView from '$/views/AiRelationshipClaimView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					relationshipKind: true,
-					subjectKind: true,
-					objectKind: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiRelationshipClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiRelationshipClaim}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				relationshipKind: true,
+				subjectKind: true,
+				objectKind: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(aiRelationshipClaims) => [...new Map(aiRelationshipClaims.values.map((aiRelationshipClaim) => [aiRelationshipClaim[EntityMetaKey.SelectorKey], aiRelationshipClaim])).values()]}
+	getKey={(aiRelationshipClaim) => aiRelationshipClaim[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI relationship claims yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiRelationshipClaims)}
-			{@const uniqueAiRelationshipClaims = [...new Map(aiRelationshipClaims.values.map((aiRelationshipClaim) => [aiRelationshipClaim[EntityMetaKey.SelectorKey], aiRelationshipClaim])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiRelationshipClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiRelationshipClaims.totalCount}
-				getKey={(aiRelationshipClaim) => aiRelationshipClaim[EntityMetaKey.SelectorKey]}
-				items={uniqueAiRelationshipClaims}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI relationship claims yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiRelationshipClaim })}
-					{@const aiRelationshipClaimFields = { ...aiRelationshipClaim[EntityMetaKey.Selector], ...aiRelationshipClaim }}
-					{@const selection = select(EntityType.AiRelationshipClaim, aiRelationshipClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiRelationshipClaimView
-						selection={selection}
-						prefetched={aiRelationshipClaimFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiRelationshipClaim}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiRelationshipClaim })}
+		{@const aiRelationshipClaimFields = { ...aiRelationshipClaim[EntityMetaKey.Selector], ...aiRelationshipClaim }}
+		{@const selection = select(EntityType.AiRelationshipClaim, aiRelationshipClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiRelationshipClaimView
+			selection={selection}
+			prefetched={aiRelationshipClaimFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

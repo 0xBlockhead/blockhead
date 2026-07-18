@@ -25,12 +25,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$hub: {
-			scope: '_GlobalEnsNetwork',
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$hub: {
+				scope: '_GlobalEnsNetwork',
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			observedNameCount: true,
 			observedRecordCount: true,

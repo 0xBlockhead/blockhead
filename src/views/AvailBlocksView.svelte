@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvailBlockView from '$/views/AvailBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					blockNumber: true,
-					timestampMs: true,
-					blockHash: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvailBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				blockNumber: true,
+				timestampMs: true,
+				blockHash: true,
+			},
+		})
+	}
+	getResourceItems={(availBlocks) => [...new Map(availBlocks.values.map((availBlock) => [availBlock[EntityMetaKey.SelectorKey], availBlock])).values()]}
+	getKey={(availBlock) => availBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avail blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(availBlocks)}
-			{@const uniqueAvailBlocks = [...new Map(availBlocks.values.map((availBlock) => [availBlock[EntityMetaKey.SelectorKey], availBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={availBlocks.totalCount}
-				getKey={(availBlock) => availBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueAvailBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avail blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: availBlock })}
-					{@const availBlockFields = { ...availBlock[EntityMetaKey.Selector], ...availBlock }}
-					{@const selection = select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvailBlockView
-						selection={selection}
-						prefetched={availBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvailBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: availBlock })}
+		{@const availBlockFields = { ...availBlock[EntityMetaKey.Selector], ...availBlock }}
+		{@const selection = select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvailBlockView
+			selection={selection}
+			prefetched={availBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

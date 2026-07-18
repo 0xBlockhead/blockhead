@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentPieceView from '$/views/BitTorrentPieceView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					pieceIndex: true,
-					length: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentPiece}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentPiece}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				pieceIndex: true,
+				length: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentPieces) => [...new Map(bitTorrentPieces.values.map((bitTorrentPiece) => [bitTorrentPiece[EntityMetaKey.SelectorKey], bitTorrentPiece])).values()]}
+	getKey={(bitTorrentPiece) => bitTorrentPiece[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent pieces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentPieces)}
-			{@const uniqueBitTorrentPieces = [...new Map(bitTorrentPieces.values.map((bitTorrentPiece) => [bitTorrentPiece[EntityMetaKey.SelectorKey], bitTorrentPiece])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentPiece}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentPieces.totalCount}
-				getKey={(bitTorrentPiece) => bitTorrentPiece[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentPieces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent pieces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentPiece })}
-					{@const bitTorrentPieceFields = { ...bitTorrentPiece[EntityMetaKey.Selector], ...bitTorrentPiece }}
-					{@const selection = select(EntityType.BitTorrentPiece, bitTorrentPiece[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentPieceView
-						selection={selection}
-						prefetched={bitTorrentPieceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentPiece}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentPiece })}
+		{@const bitTorrentPieceFields = { ...bitTorrentPiece[EntityMetaKey.Selector], ...bitTorrentPiece }}
+		{@const selection = select(EntityType.BitTorrentPiece, bitTorrentPiece[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentPieceView
+			selection={selection}
+			prefetched={bitTorrentPieceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

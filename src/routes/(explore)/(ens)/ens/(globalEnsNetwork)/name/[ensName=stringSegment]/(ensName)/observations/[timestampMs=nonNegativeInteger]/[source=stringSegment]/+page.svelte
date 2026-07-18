@@ -25,12 +25,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$name: {
-			name: decodeURIComponent(params.ensName),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$name: {
+				name: decodeURIComponent(params.ensName),
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			$resolvedActor: true,
 			$resolverContract: true,

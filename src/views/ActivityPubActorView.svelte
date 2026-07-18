@@ -43,14 +43,13 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const activityPubActor = $derived(selection({
-		sources: [
-			Source.Mastodon_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			username: true,
 			profileUrl: true,
 			createdAt: true,
+			note: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
@@ -58,7 +57,7 @@
 
 
 	// Components
-	import IconComponent from '$/components/Icon.svelte'
+	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -75,7 +74,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-			instanceOrigin: String(pendingEntity.instanceOrigin ?? ''),
+			instanceOrigin: encodeURIComponent(String(pendingEntity.instanceOrigin ?? '')),
 			localAccountId: String(pendingEntity.localAccountId ?? ''),
 		}) : undefined)
 	}
@@ -86,10 +85,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={activityPubActor}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -105,29 +100,29 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={activityPubActor}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={activityPubActor}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={activityPubActor}>
-			{#snippet Pending()}
-				{[String((pendingEntity.acct) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.acct) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.acct) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={activityPubActor}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.acct) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,19 +133,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									acct: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const acct = pendingEntity.acct}
-							{#if acct !== undefined && acct !== null}
-								{String((acct) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const acct = resolvedEntity.acct}
@@ -167,24 +156,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							username: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const username = pendingEntity.username}
-					{#if username !== undefined && username !== null}
-						<div>
-							<dt>Username</dt>
-							<dd>
-								{String((username) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const username = resolvedEntity.username}
@@ -204,31 +182,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							profileUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const profileUrl = pendingEntity.profileUrl}
-					{#if profileUrl !== undefined && profileUrl !== null}
-						<div>
-							<dt>Profile URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(profileUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(profileUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const profileUrl = resolvedEntity.profileUrl}
@@ -258,26 +218,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									activityStreamsUri: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const activityStreamsUri = pendingEntity.activityStreamsUri}
-							{#if activityStreamsUri !== undefined && activityStreamsUri !== null}
-								<svelte:element
-									this={'a'}
-									href={String(activityStreamsUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(activityStreamsUri)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const activityStreamsUri = resolvedEntity.activityStreamsUri}
@@ -301,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -333,24 +269,62 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources,
+					fields: {
+						note: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const note = resolvedEntity.note}
+				{#if note !== undefined && note !== null && note !== ''}
+					<Markdown content={String(note)} mode="syndication" />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<ActivityPubNotesView
-				selection={
-						selection.$$notes({
-							sources: [
-								Source.Mastodon_Rest,
-							],
-							count: true,
+			<ResourceBoundary
+				resource={
+						selection({
+							fields: {
+								instanceOrigin: true,
+								localAccountId: true,
+							},
 						})
 					}
-				title='Notes'
-				href={resolve('/activitypub/notes')}
-				emptyText='No ActivityPub notes for this actor.'
-				id='ActivityPubNotesView-notes'
-			/>
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ActivityPubNotesView
+						selection={
+								selection.$$notes({
+									sources: [
+										Source.Mastodon_Rest,
+									],
+									count: true,
+								})
+							}
+						title='Notes'
+						href={
+								(entity.instanceOrigin !== undefined && entity.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/notes', {
+									instanceOrigin: encodeURIComponent(String(entity.instanceOrigin ?? '')),
+									localAccountId: entity.localAccountId,
+								}) : undefined)
+							}
+						emptyText='No ActivityPub notes for this actor.'
+						id='ActivityPubNotesView-notes'
+					/>
+				{/snippet}
+			</ResourceBoundary>
 
 			<ActivityPubActor_TimestampsView
 				selection={

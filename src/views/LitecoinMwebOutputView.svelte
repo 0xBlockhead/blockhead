@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const litecoinMwebOutput = $derived(selection({
-		sources: [
-			Source.LitecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			commitment: true,
 		},
@@ -71,35 +68,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={litecoinMwebOutput}>
-			{#snippet Pending()}
-				{[String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB output'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebOutput}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={litecoinMwebOutput}>
-			{#snippet Pending()}
-				{@const outputIndex0 = pendingEntity.outputIndex}
-				{#if outputIndex0 !== undefined && outputIndex0 !== null}
-					<NumberValue value={Number(outputIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const outputIndex0 = resolvedEntity.outputIndex}
-				{#if outputIndex0 !== undefined && outputIndex0 !== null}
-					<NumberValue value={Number(outputIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const outputIndex0 = pendingEntity.outputIndex}
+					{#if outputIndex0 !== undefined && outputIndex0 !== null}
+						<NumberValue
+							value={outputIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebOutput}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const outputIndex0 = resolvedEntity.outputIndex}
+					{#if outputIndex0 !== undefined && outputIndex0 !== null}
+						<NumberValue
+							value={outputIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,24 +122,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									outputIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const outputIndex = pendingEntity.outputIndex}
-							{#if outputIndex !== undefined && outputIndex !== null}
-								<NumberValue value={Number(outputIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const outputIndex = resolvedEntity.outputIndex}
 							{#if outputIndex !== undefined && outputIndex !== null}
-								<NumberValue value={Number(outputIndex)} />
+								<NumberValue
+									value={outputIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -148,24 +145,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							commitment: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const commitment = pendingEntity.commitment}
-					{#if commitment !== undefined && commitment !== null}
-						<div>
-							<dt>commitment</dt>
-							<dd>
-								{String((commitment) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const commitment = resolvedEntity.commitment}
@@ -183,24 +169,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							senderPubkey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const senderPubkey = pendingEntity.senderPubkey}
-					{#if senderPubkey !== undefined && senderPubkey !== null}
-						<div>
-							<dt>sender public key</dt>
-							<dd>
-								{String((senderPubkey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const senderPubkey = resolvedEntity.senderPubkey}

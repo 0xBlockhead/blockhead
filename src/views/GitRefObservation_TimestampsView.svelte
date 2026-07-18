@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitRefObservation_TimestampView from '$/views/GitRefObservation_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					source: true,
-					targetObjectId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitRefObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitRefObservation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				source: true,
+				targetObjectId: true,
+			},
+		})
+	}
+	getResourceItems={(gitRefObservationTimestamps) => [...new Map(gitRefObservationTimestamps.values.map((gitRefObservationTimestamp) => [gitRefObservationTimestamp[EntityMetaKey.SelectorKey], gitRefObservationTimestamp])).values()]}
+	getKey={(gitRefObservationTimestamp) => gitRefObservationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git ref observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitRefObservationTimestamps)}
-			{@const uniqueGitRefObservationTimestamps = [...new Map(gitRefObservationTimestamps.values.map((gitRefObservationTimestamp) => [gitRefObservationTimestamp[EntityMetaKey.SelectorKey], gitRefObservationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitRefObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitRefObservationTimestamps.totalCount}
-				getKey={(gitRefObservationTimestamp) => gitRefObservationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGitRefObservationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git ref observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitRefObservationTimestamp })}
-					{@const gitRefObservationTimestampFields = { ...gitRefObservationTimestamp[EntityMetaKey.Selector], ...gitRefObservationTimestamp }}
-					{@const selection = select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitRefObservation_TimestampView
-						selection={selection}
-						prefetched={gitRefObservationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitRefObservation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitRefObservationTimestamp })}
+		{@const gitRefObservationTimestampFields = { ...gitRefObservationTimestamp[EntityMetaKey.Selector], ...gitRefObservationTimestamp }}
+		{@const selection = select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitRefObservation_TimestampView
+			selection={selection}
+			prefetched={gitRefObservationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

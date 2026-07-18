@@ -7,7 +7,7 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum FilecoinMiner_TimestampSelector {
-	MinerTimestampMsSource = 'MinerTimestampMsSource',
+	MinerHeightTipsetKeySource = 'MinerHeightTipsetKeySource',
 }
 export const FilecoinMiner_Timestamp = entity({
 	entityType: EntityType.FilecoinMiner_Timestamp,
@@ -40,20 +40,23 @@ export const FilecoinMiner_Timestamp = entity({
 		label: 'Height',
 		description: 'The block height.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {
 		label: 'Tipset key',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
 		label: 'Tipset',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinTipset,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	$owner: {
 		label: 'Owner',
@@ -118,6 +121,15 @@ export const FilecoinMiner_Timestamp = entity({
 			Source.Lotus_JsonRpc,
 		],
 	},
+	activeSectorCount: {
+		label: 'Active sectors',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
+	},
 	liveSectorCount: {
 		label: 'Live sectors',
 		type: EntityFieldType.Primitive,
@@ -132,12 +144,16 @@ export const FilecoinMiner_Timestamp = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 })({
 	selectors: {
-		MinerTimestampMsSource: [
+		MinerHeightTipsetKeySource: [
 			'$miner',
-			'timestampMs',
+			'height',
+			'tipsetKey',
 			'source',
 		],
 	},

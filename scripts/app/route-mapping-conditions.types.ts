@@ -81,6 +81,7 @@ const mapping = {
 } as const
 
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {
@@ -114,8 +115,39 @@ defineRoutes(routeConditionSchema)({
 	},
 })
 
+// @ts-expect-error Route outcomes may only name selectors captured from the schema.
+defineRoutes(routeConditionSchema)({
+	outcomes: {
+		[EntityType.Network]: {
+			Missing: {
+				kind: 'Research',
+				decision: 'Invalid selector control',
+				evidence: 'scripts/app/route-mapping-conditions.types.ts',
+			},
+		},
+	},
+	children: {},
+})
+
+// @ts-expect-error Route outcome targets may only name selectors captured from the schema.
+defineRoutes(routeConditionSchema)({
+	outcomes: {
+		[EntityType.Network]: {
+			Id: {
+				kind: 'Alias',
+				target: {
+					entityType: EntityType.Network,
+					selectorName: 'Missing',
+				},
+			},
+		},
+	},
+	children: {},
+})
+
 // @ts-expect-error Conditions must reference declared fields.
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {
@@ -135,6 +167,7 @@ defineRoutes(routeConditionSchema)({
 
 // @ts-expect-error Scalar fields do not support includes.
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {
@@ -154,6 +187,7 @@ defineRoutes(routeConditionSchema)({
 
 // @ts-expect-error Many-valued fields require includes or an item index.
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {
@@ -173,6 +207,7 @@ defineRoutes(routeConditionSchema)({
 
 // @ts-expect-error Facet paths must name a declared projection field.
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {
@@ -192,6 +227,7 @@ defineRoutes(routeConditionSchema)({
 
 // @ts-expect-error Entity references cannot discriminate route applicability.
 defineRoutes(routeConditionSchema)({
+	outcomes: {},
 	children: {
 		'[id]': {
 			selectors: {

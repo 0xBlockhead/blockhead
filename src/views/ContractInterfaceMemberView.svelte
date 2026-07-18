@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const contractInterfaceMember = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			name: true,
 			canonicalSignature: true,
@@ -64,52 +65,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={contractInterfaceMember}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.canonicalSignature) ?? ''), String((resolvedEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={contractInterfaceMember}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.canonicalSignature) ?? ''), String((resolvedEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={contractInterfaceMember}>
-			{#snippet Pending()}
-				{[String((pendingEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.canonicalSignature) ?? ''), String((resolvedEntity.memberKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={contractInterfaceMember}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.canonicalSignature) ?? ''), String((resolvedEntity.memberKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={contractInterfaceMember}>
-			{#snippet Pending()}
-				{@const interfaceId0 = pendingEntity.interfaceId}
-				{#if interfaceId0 !== undefined && interfaceId0 !== null}
-					<span data-text="muted">
-						{String((interfaceId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const interfaceId0 = resolvedEntity.interfaceId}
-				{#if interfaceId0 !== undefined && interfaceId0 !== null}
-					<span data-text="muted">
-						{String((interfaceId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const interfaceId0 = pendingEntity.interfaceId}
+			{#if interfaceId0 !== undefined && interfaceId0 !== null}
+				<span data-text="muted">
+					{String((interfaceId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={contractInterfaceMember}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const interfaceId0 = resolvedEntity.interfaceId}
+					{#if interfaceId0 !== undefined && interfaceId0 !== null}
+						<span data-text="muted">
+							{String((interfaceId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									interfaceId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const interfaceId = pendingEntity.interfaceId}
-							{#if interfaceId !== undefined && interfaceId !== null}
-								{String((interfaceId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const interfaceId = resolvedEntity.interfaceId}
@@ -150,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									memberKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const memberKey = pendingEntity.memberKey}
-							{#if memberKey !== undefined && memberKey !== null}
-								{String((memberKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const memberKey = resolvedEntity.memberKey}
@@ -180,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									memberKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const memberKind = pendingEntity.memberKind}
-							{#if memberKind !== undefined && memberKind !== null}
-								{String((memberKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const memberKind = resolvedEntity.memberKind}
@@ -207,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -244,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							canonicalSignature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const canonicalSignature = pendingEntity.canonicalSignature}
-					{#if canonicalSignature !== undefined && canonicalSignature !== null}
-						<div>
-							<dt>Canonical signature</dt>
-							<dd>
-								<TruncatedValue value={String((canonicalSignature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const canonicalSignature = resolvedEntity.canonicalSignature}
@@ -279,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							selector: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const selector = pendingEntity.selector}
-					{#if selector !== undefined && selector !== null}
-						<div>
-							<dt>Selector</dt>
-							<dd>
-								{String((selector) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const selector = resolvedEntity.selector}
@@ -314,24 +264,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stateMutability: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stateMutability = pendingEntity.stateMutability}
-					{#if stateMutability !== undefined && stateMutability !== null}
-						<div>
-							<dt>State mutability</dt>
-							<dd>
-								{String((stateMutability) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stateMutability = resolvedEntity.stateMutability}

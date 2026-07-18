@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonBlock = $derived(selection({}))
+	const tonBlock = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON block')
 	const viewDomId = $derived('ton-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonBlock}>
-			{#snippet Pending()}
-				{title || 'TON block'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									workchain: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const workchain = pendingEntity.workchain}
-							{#if workchain !== undefined && workchain !== null}
-								{String((workchain) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const workchain = resolvedEntity.workchain}
@@ -133,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									shardPrefix: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const shardPrefix = pendingEntity.shardPrefix}
-							{#if shardPrefix !== undefined && shardPrefix !== null}
-								{String((shardPrefix) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const shardPrefix = resolvedEntity.shardPrefix}
@@ -163,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									seqno: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const seqno = pendingEntity.seqno}
-							{#if seqno !== undefined && seqno !== null}
-								{String((seqno) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const seqno = resolvedEntity.seqno}
@@ -193,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rootHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rootHash = pendingEntity.rootHash}
-							{#if rootHash !== undefined && rootHash !== null}
-								<TruncatedValue value={String((rootHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rootHash = resolvedEntity.rootHash}
@@ -223,19 +201,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fileHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fileHash = pendingEntity.fileHash}
-							{#if fileHash !== undefined && fileHash !== null}
-								<TruncatedValue value={String((fileHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fileHash = resolvedEntity.fileHash}
@@ -250,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							genUtimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const genUtimeMs = pendingEntity.genUtimeMs}
-					{#if genUtimeMs !== undefined && genUtimeMs !== null}
-						<div>
-							<dt>gen utime ms</dt>
-							<dd>
-								{String((genUtimeMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const genUtimeMs = resolvedEntity.genUtimeMs}
@@ -285,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							startLt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const startLt = pendingEntity.startLt}
-					{#if startLt !== undefined && startLt !== null}
-						<div>
-							<dt>start lt</dt>
-							<dd>
-								{String((startLt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const startLt = resolvedEntity.startLt}
@@ -320,24 +270,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endLt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endLt = pendingEntity.endLt}
-					{#if endLt !== undefined && endLt !== null}
-						<div>
-							<dt>end lt</dt>
-							<dd>
-								{String((endLt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endLt = resolvedEntity.endLt}
@@ -355,24 +294,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							minRefMcSeqno: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const minRefMcSeqno = pendingEntity.minRefMcSeqno}
-					{#if minRefMcSeqno !== undefined && minRefMcSeqno !== null}
-						<div>
-							<dt>min ref mc seqno</dt>
-							<dd>
-								{String((minRefMcSeqno) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const minRefMcSeqno = resolvedEntity.minRefMcSeqno}

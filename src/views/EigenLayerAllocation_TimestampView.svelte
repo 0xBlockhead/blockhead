@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerAllocationTimestamp = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('eigen layer allocation timestamp')
 	const viewDomId = $derived('eigen-layer-allocation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -75,70 +68,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet Pending()}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet Pending()}
-				<EigenLayerAvsView
-					selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EigenLayerAvsView
-					selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EigenLayerAvsView
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EigenLayerAvsView
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<EigenLayerStrategyView
+					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<EigenLayerStrategyView
+							selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -182,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -212,19 +199,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -239,24 +220,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							allocationMagnitude: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allocationMagnitude = pendingEntity.allocationMagnitude}
-					{#if allocationMagnitude !== undefined && allocationMagnitude !== null}
-						<div>
-							<dt>allocation magnitude</dt>
-							<dd>
-								<NumberValue value={Number(allocationMagnitude)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allocationMagnitude = resolvedEntity.allocationMagnitude}
@@ -264,7 +234,9 @@
 						<div>
 							<dt>allocation magnitude</dt>
 							<dd>
-								<NumberValue value={Number(allocationMagnitude)} />
+								<NumberValue
+									value={allocationMagnitude}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -274,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							allocatedShares: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allocatedShares = pendingEntity.allocatedShares}
-					{#if allocatedShares !== undefined && allocatedShares !== null}
-						<div>
-							<dt>allocated shares</dt>
-							<dd>
-								<NumberValue value={Number(allocatedShares)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allocatedShares = resolvedEntity.allocatedShares}
@@ -299,7 +260,9 @@
 						<div>
 							<dt>allocated shares</dt>
 							<dd>
-								<NumberValue value={Number(allocatedShares)} />
+								<NumberValue
+									value={allocatedShares}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -314,19 +277,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									quorumNumbers: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const quorumNumbers = pendingEntity.quorumNumbers}
-							{#if quorumNumbers !== undefined && quorumNumbers !== null}
-								{quorumNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const quorumNumbers = resolvedEntity.quorumNumbers}
@@ -341,24 +298,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registrationStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registrationStatus = pendingEntity.registrationStatus}
-					{#if registrationStatus !== undefined && registrationStatus !== null}
-						<div>
-							<dt>registration status</dt>
-							<dd>
-								{String((registrationStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registrationStatus = resolvedEntity.registrationStatus}
@@ -376,24 +322,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slashableUntilMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slashableUntilMs = pendingEntity.slashableUntilMs}
-					{#if slashableUntilMs !== undefined && slashableUntilMs !== null}
-						<div>
-							<dt>slashable until ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(slashableUntilMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slashableUntilMs = resolvedEntity.slashableUntilMs}
@@ -411,24 +346,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							operatorSetId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const operatorSetId = pendingEntity.operatorSetId}
-					{#if operatorSetId !== undefined && operatorSetId !== null}
-						<div>
-							<dt>operator set ID</dt>
-							<dd>
-								{String((operatorSetId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const operatorSetId = resolvedEntity.operatorSetId}

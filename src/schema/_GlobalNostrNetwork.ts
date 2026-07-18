@@ -114,6 +114,10 @@ export const _GlobalNostrNetwork = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
 	},
 	$$observedArticles: {
 		label: 'Articles',

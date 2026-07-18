@@ -172,3 +172,13 @@ export type NearRpcAccessKeyList = {
 		access_key: NearRpcAccessKey
 	}[]
 }
+
+export type NearRpcViewState = {
+	block_hash: string
+	block_height: number
+	values: {
+		key: string
+		value: string
+	}[]
+	proof: JsonValue[]
+}

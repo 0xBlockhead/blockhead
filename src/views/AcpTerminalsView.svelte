@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpTerminalView from '$/views/AcpTerminalView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					terminalId: true,
-					command: true,
-					cwd: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpTerminal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpTerminal}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				terminalId: true,
+				command: true,
+				cwd: true,
+			},
+		})
+	}
+	getResourceItems={(acpTerminals) => [...new Map(acpTerminals.values.map((acpTerminal) => [acpTerminal[EntityMetaKey.SelectorKey], acpTerminal])).values()]}
+	getKey={(acpTerminal) => acpTerminal[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP terminals yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpTerminals)}
-			{@const uniqueAcpTerminals = [...new Map(acpTerminals.values.map((acpTerminal) => [acpTerminal[EntityMetaKey.SelectorKey], acpTerminal])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpTerminal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpTerminals.totalCount}
-				getKey={(acpTerminal) => acpTerminal[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpTerminals}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP terminals yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpTerminal })}
-					{@const acpTerminalFields = { ...acpTerminal[EntityMetaKey.Selector], ...acpTerminal }}
-					{@const selection = select(EntityType.AcpTerminal, acpTerminal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpTerminalView
-						selection={selection}
-						prefetched={acpTerminalFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpTerminal}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpTerminal })}
+		{@const acpTerminalFields = { ...acpTerminal[EntityMetaKey.Selector], ...acpTerminal }}
+		{@const selection = select(EntityType.AcpTerminal, acpTerminal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpTerminalView
+			selection={selection}
+			prefetched={acpTerminalFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

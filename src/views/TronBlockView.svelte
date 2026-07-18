@@ -43,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronBlock = $derived(selection({}))
+	const tronBlock = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tron block')
 	const viewDomId = $derived('tron-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -68,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tronBlock}>
-			{#snippet Pending()}
-				{title || 'tron block'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tronBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -106,19 +108,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									height: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const height = pendingEntity.height}
-							{#if height !== undefined && height !== null}
-								{String((height) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const height = resolvedEntity.height}
@@ -136,19 +132,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -173,8 +163,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tronBlock)}
 					{#if tronBlock != null && tronBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -195,29 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							parentHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parentHash = pendingEntity.parentHash}
-					{#if parentHash !== undefined && parentHash !== null}
-						<div>
-							<dt>Parent hash</dt>
-							<dd>
-								<TruncatedValue value={String((parentHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parentHash = resolvedEntity.parentHash}
@@ -235,31 +207,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-							Source.ThreeXpl_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -283,8 +237,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tronWitness)}
 					{#if tronWitness != null && tronWitness[EntityMetaKey.Selector] != null}
 						<div>
@@ -305,27 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronGrid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							txTrieRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const txTrieRoot = pendingEntity.txTrieRoot}
-					{#if txTrieRoot !== undefined && txTrieRoot !== null}
-						<div>
-							<dt>Transaction trie root</dt>
-							<dd>
-								{String((txTrieRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const txTrieRoot = resolvedEntity.txTrieRoot}
@@ -343,27 +281,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronGrid_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -381,28 +305,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>Transaction count</dt>
-							<dd>
-								{String((transactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}

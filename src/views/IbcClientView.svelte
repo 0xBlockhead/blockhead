@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ibcClient = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			clientType: true,
 			counterpartyChainId: true,
@@ -71,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ibcClient}>
-			{#snippet Pending()}
-				{[String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || 'IBC client'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ibcClient}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ibcClient}>
-			{#snippet Pending()}
-				{[String((pendingEntity.clientType) ?? ''), String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || 'IBC client'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.clientType) ?? ''), String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.clientType) ?? ''), String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ibcClient}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.clientType) ?? ''), String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={ibcClient}>
-			{#snippet Pending()}
-				{@const counterpartyChainId0 = pendingEntity.counterpartyChainId}
-				{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
-					<span data-text="muted">
-						{String((counterpartyChainId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const counterpartyChainId0 = resolvedEntity.counterpartyChainId}
-				{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
-					<span data-text="muted">
-						{String((counterpartyChainId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const counterpartyChainId0 = pendingEntity.counterpartyChainId}
+			{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
+				<span data-text="muted">
+					{String((counterpartyChainId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={ibcClient}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const counterpartyChainId0 = resolvedEntity.counterpartyChainId}
+					{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
+						<span data-text="muted">
+							{String((counterpartyChainId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									clientId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const clientId = pendingEntity.clientId}
-							{#if clientId !== undefined && clientId !== null}
-								{String((clientId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const clientId = resolvedEntity.clientId}
@@ -154,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clientType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clientType = pendingEntity.clientType}
-					{#if clientType !== undefined && clientType !== null}
-						<div>
-							<dt>Client type</dt>
-							<dd>
-								{String((clientType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clientType = resolvedEntity.clientType}
@@ -189,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							trustLevel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const trustLevel = pendingEntity.trustLevel}
-					{#if trustLevel !== undefined && trustLevel !== null}
-						<div>
-							<dt>Trust level</dt>
-							<dd>
-								{String((trustLevel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const trustLevel = resolvedEntity.trustLevel}
@@ -224,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							counterpartyChainId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const counterpartyChainId = pendingEntity.counterpartyChainId}
-					{#if counterpartyChainId !== undefined && counterpartyChainId !== null}
-						<div>
-							<dt>Counterparty chain ID</dt>
-							<dd>
-								{String((counterpartyChainId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const counterpartyChainId = resolvedEntity.counterpartyChainId}
@@ -261,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							trustingPeriodNs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const trustingPeriodNs = pendingEntity.trustingPeriodNs}
-					{#if trustingPeriodNs !== undefined && trustingPeriodNs !== null}
-						<div>
-							<dt>Trusting period ns</dt>
-							<dd>
-								{String((trustingPeriodNs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const trustingPeriodNs = resolvedEntity.trustingPeriodNs}
@@ -296,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							unbondingPeriodNs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unbondingPeriodNs = pendingEntity.unbondingPeriodNs}
-					{#if unbondingPeriodNs !== undefined && unbondingPeriodNs !== null}
-						<div>
-							<dt>Unbonding period ns</dt>
-							<dd>
-								{String((unbondingPeriodNs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unbondingPeriodNs = resolvedEntity.unbondingPeriodNs}
@@ -331,24 +271,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxClockDriftNs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxClockDriftNs = pendingEntity.maxClockDriftNs}
-					{#if maxClockDriftNs !== undefined && maxClockDriftNs !== null}
-						<div>
-							<dt>Max clock drift ns</dt>
-							<dd>
-								{String((maxClockDriftNs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxClockDriftNs = resolvedEntity.maxClockDriftNs}

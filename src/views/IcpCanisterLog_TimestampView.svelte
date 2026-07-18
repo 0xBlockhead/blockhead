@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCanisterLogTimestamp = $derived(selection({}))
+	const icpCanisterLogTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP canister log timestamp')
 	const viewDomId = $derived('icp-canister-log-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpCanisterLogTimestamp}>
-			{#snippet Pending()}
-				{title || 'ICP canister log timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpCanisterLogTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -150,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastAnalyzedMessageTimeNs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastAnalyzedMessageTimeNs = pendingEntity.lastAnalyzedMessageTimeNs}
-					{#if lastAnalyzedMessageTimeNs !== undefined && lastAnalyzedMessageTimeNs !== null}
-						<div>
-							<dt>last analyzed message time ns</dt>
-							<dd>
-								{String((lastAnalyzedMessageTimeNs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastAnalyzedMessageTimeNs = resolvedEntity.lastAnalyzedMessageTimeNs}
@@ -185,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageCount = pendingEntity.messageCount}
-					{#if messageCount !== undefined && messageCount !== null}
-						<div>
-							<dt>message count</dt>
-							<dd>
-								{String((messageCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageCount = resolvedEntity.messageCount}
@@ -220,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							logVisibility: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const logVisibility = pendingEntity.logVisibility}
-					{#if logVisibility !== undefined && logVisibility !== null}
-						<div>
-							<dt>log visibility</dt>
-							<dd>
-								{String((logVisibility) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const logVisibility = resolvedEntity.logVisibility}

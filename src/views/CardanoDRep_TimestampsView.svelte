@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoDRep_TimestampView from '$/views/CardanoDRep_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoDRep_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoDRep_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoDRepTimestamps) => [...new Map(cardanoDRepTimestamps.values.map((cardanoDRepTimestamp) => [cardanoDRepTimestamp[EntityMetaKey.SelectorKey], cardanoDRepTimestamp])).values()]}
+	getKey={(cardanoDRepTimestamp) => cardanoDRepTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano DRep observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoDRepTimestamps)}
-			{@const uniqueCardanoDRepTimestamps = [...new Map(cardanoDRepTimestamps.values.map((cardanoDRepTimestamp) => [cardanoDRepTimestamp[EntityMetaKey.SelectorKey], cardanoDRepTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoDRep_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoDRepTimestamps.totalCount}
-				getKey={(cardanoDRepTimestamp) => cardanoDRepTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoDRepTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano DRep observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoDRepTimestamp })}
-					{@const cardanoDRepTimestampFields = { ...cardanoDRepTimestamp[EntityMetaKey.Selector], ...cardanoDRepTimestamp }}
-					{@const selection = select(EntityType.CardanoDRep_Timestamp, cardanoDRepTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoDRep_TimestampView
-						selection={selection}
-						prefetched={cardanoDRepTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoDRep_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoDRepTimestamp })}
+		{@const cardanoDRepTimestampFields = { ...cardanoDRepTimestamp[EntityMetaKey.Selector], ...cardanoDRepTimestamp }}
+		{@const selection = select(EntityType.CardanoDRep_Timestamp, cardanoDRepTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoDRep_TimestampView
+			selection={selection}
+			prefetched={cardanoDRepTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

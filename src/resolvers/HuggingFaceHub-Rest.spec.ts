@@ -28,7 +28,7 @@ describe('HuggingFace resolver mappings', () => {
 			}],
 		})
 		const { huggingFaceHubResolvers } = await import('$/resolvers/HuggingFaceHub-Rest.ts')
-		const model = await huggingFaceHubResolvers[0].resolve.ProviderModelId({
+		const model = await huggingFaceHubResolvers[0].resolve.ProviderModelId.resolve({
 			$provider: {
 				providerId: 'huggingface',
 			},
@@ -54,7 +54,7 @@ describe('HuggingFace resolver mappings', () => {
 			},
 		}])
 
-		const artifact = await huggingFaceHubResolvers[2].resolve.ProviderArtifactId({
+		const artifact = await huggingFaceHubResolvers[2].resolve.ProviderArtifactId.resolve({
 			$provider: {
 				providerId: 'huggingface',
 			},
@@ -73,7 +73,7 @@ describe('HuggingFace resolver mappings', () => {
 
 	it('rejects a model selector owned by another provider', async () => {
 		const { huggingFaceHubResolvers } = await import('$/resolvers/HuggingFaceHub-Rest.ts')
-		await expect(huggingFaceHubResolvers[0].resolve.ProviderModelId({
+		await expect(huggingFaceHubResolvers[0].resolve.ProviderModelId.resolve({
 			$provider: {
 				providerId: 'mlflow',
 			},

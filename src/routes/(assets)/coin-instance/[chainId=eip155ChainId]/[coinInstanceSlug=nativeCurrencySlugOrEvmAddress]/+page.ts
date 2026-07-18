@@ -26,7 +26,7 @@ export const load: PageLoad = ({ params }) => {
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.chainId,
+						reference: Number(params.chainId),
 					},
 				},
 				type: 'NativeCurrency',
@@ -44,7 +44,7 @@ export const load: PageLoad = ({ params }) => {
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.chainId,
+						reference: Number(params.chainId),
 					},
 				},
 				type: 'Erc20Token',
@@ -52,7 +52,7 @@ export const load: PageLoad = ({ params }) => {
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: params.chainId,
+							reference: Number(params.chainId),
 						},
 					},
 					address: params.coinInstanceSlug,

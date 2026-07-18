@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainSubaccountView from '$/views/DydxChainSubaccountView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$account: true,
-					subaccountNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainSubaccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainSubaccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$account: true,
+				subaccountNumber: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainSubaccounts) => [...new Map(dydxChainSubaccounts.values.map((dydxChainSubaccount) => [dydxChainSubaccount[EntityMetaKey.SelectorKey], dydxChainSubaccount])).values()]}
+	getKey={(dydxChainSubaccount) => dydxChainSubaccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain subaccounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainSubaccounts)}
-			{@const uniqueDydxChainSubaccounts = [...new Map(dydxChainSubaccounts.values.map((dydxChainSubaccount) => [dydxChainSubaccount[EntityMetaKey.SelectorKey], dydxChainSubaccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainSubaccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainSubaccounts.totalCount}
-				getKey={(dydxChainSubaccount) => dydxChainSubaccount[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainSubaccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain subaccounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainSubaccount })}
-					{@const dydxChainSubaccountFields = { ...dydxChainSubaccount[EntityMetaKey.Selector], ...dydxChainSubaccount }}
-					{@const selection = select(EntityType.DydxChainSubaccount, dydxChainSubaccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainSubaccountView
-						selection={selection}
-						prefetched={dydxChainSubaccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainSubaccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainSubaccount })}
+		{@const dydxChainSubaccountFields = { ...dydxChainSubaccount[EntityMetaKey.Selector], ...dydxChainSubaccount }}
+		{@const selection = select(EntityType.DydxChainSubaccount, dydxChainSubaccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainSubaccountView
+			selection={selection}
+			prefetched={dydxChainSubaccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

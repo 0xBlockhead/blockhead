@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosTransaction = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			transactionKind: true,
 			sender: true,
@@ -74,58 +75,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aptosTransaction}>
-			{#snippet Pending()}
-				{@const hash0 = pendingEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hash0 = resolvedEntity.hash}
-				{#if hash0 !== undefined && hash0 !== null}
-					<TruncatedValue value={String((hash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const hash0 = pendingEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={aptosTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash0 = resolvedEntity.hash}
+					{#if hash0 !== undefined && hash0 !== null}
+						<TruncatedValue value={String((hash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aptosTransaction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aptosTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aptosTransaction}>
-			{#snippet Pending()}
-				{@const sender0 = pendingEntity.sender}
-				{#if sender0 !== undefined && sender0 !== null}
-					<span data-text="muted">
-						{String((sender0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sender0 = resolvedEntity.sender}
-				{#if sender0 !== undefined && sender0 !== null}
-					<span data-text="muted">
-						{String((sender0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const sender0 = pendingEntity.sender}
+			{#if sender0 !== undefined && sender0 !== null}
+				<span data-text="muted">
+					{String((sender0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aptosTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sender0 = resolvedEntity.sender}
+					{#if sender0 !== undefined && sender0 !== null}
+						<span data-text="muted">
+							{String((sender0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,24 +148,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									version: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const version = pendingEntity.version}
-							{#if version !== undefined && version !== null}
-								<NumberValue value={Number(version)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const version = resolvedEntity.version}
 							{#if version !== undefined && version !== null}
-								<NumberValue value={Number(version)} />
+								<NumberValue
+									value={version}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -177,19 +174,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -206,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionKind = pendingEntity.transactionKind}
-					{#if transactionKind !== undefined && transactionKind !== null}
-						<div>
-							<dt>transaction kind</dt>
-							<dd>
-								{String((transactionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionKind = resolvedEntity.transactionKind}
@@ -241,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sender: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sender = pendingEntity.sender}
-					{#if sender !== undefined && sender !== null}
-						<div>
-							<dt>sender</dt>
-							<dd>
-								{String((sender) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sender = resolvedEntity.sender}
@@ -294,11 +263,8 @@
 				}
 				data-card
 				class='network-view-collapsible-effects'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Effects</HeadingComponent>
 					</header>
@@ -306,12 +272,12 @@
 
 				{#snippet SectionAptosTxStateChanges({ id, label, open })}
 					<AptosStateChangesView
-						selection={
-							selection.$$stateChanges({
-								count: true,
-							})
-						}
+						selection={selection.$$stateChanges}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No state changes found.'
 						open={open}
 						title={label}
@@ -321,12 +287,12 @@
 
 				{#snippet SectionAptosTxEvents({ id, label, open })}
 					<AptosEventsView
-						selection={
-							selection.$$events({
-								count: true,
-							})
-						}
+						selection={selection.$$events}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No events found.'
 						open={open}
 						title={label}
@@ -349,11 +315,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -361,12 +324,12 @@
 
 				{#snippet SectionAptosTxTimestamps({ id, label, open })}
 					<AptosTransaction_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No observations yet.'
 						open={open}
 						title={label}

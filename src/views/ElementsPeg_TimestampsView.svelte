@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ElementsPeg_TimestampView from '$/views/ElementsPeg_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					confirmations: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsPeg_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ElementsPeg_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				confirmations: true,
+			},
+		})
+	}
+	getResourceItems={(elementsPegTimestamps) => [...new Map(elementsPegTimestamps.values.map((elementsPegTimestamp) => [elementsPegTimestamp[EntityMetaKey.SelectorKey], elementsPegTimestamp])).values()]}
+	getKey={(elementsPegTimestamp) => elementsPegTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Elements peg observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(elementsPegTimestamps)}
-			{@const uniqueElementsPegTimestamps = [...new Map(elementsPegTimestamps.values.map((elementsPegTimestamp) => [elementsPegTimestamp[EntityMetaKey.SelectorKey], elementsPegTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsPeg_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={elementsPegTimestamps.totalCount}
-				getKey={(elementsPegTimestamp) => elementsPegTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueElementsPegTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Elements peg observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: elementsPegTimestamp })}
-					{@const elementsPegTimestampFields = { ...elementsPegTimestamp[EntityMetaKey.Selector], ...elementsPegTimestamp }}
-					{@const selection = select(EntityType.ElementsPeg_Timestamp, elementsPegTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ElementsPeg_TimestampView
-						selection={selection}
-						prefetched={elementsPegTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ElementsPeg_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: elementsPegTimestamp })}
+		{@const elementsPegTimestampFields = { ...elementsPegTimestamp[EntityMetaKey.Selector], ...elementsPegTimestamp }}
+		{@const selection = select(EntityType.ElementsPeg_Timestamp, elementsPegTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ElementsPeg_TimestampView
+			selection={selection}
+			prefetched={elementsPegTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

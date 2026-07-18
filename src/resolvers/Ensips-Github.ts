@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
@@ -47,28 +51,36 @@ export default {
 		defineResolver(Source.Ensips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					const {
-						getProposalMarkdownText,
-					} = await import('$/sources/Ensips/Github/queries.ts')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Ens,
+							category: OwnedProposalCategory.Ensip,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+						const {
+							getProposalMarkdownText,
+						} = await import('$/sources/Ensips/Github/queries.ts')
 
-					if (realm !== SpecificationRealm.Ens || category !== ProposalCategory.Ensip) {
-						throw new Error('Ensips_Github: proposal resolver only supports ENSIPs')
-					}
-					const text = await getProposalMarkdownText({ number: number })
-					const body = stripFrontmatter(text)
-					const fm = parseFrontmatter(text)
-					return {
-						documentCategory: fm.category.trim() || undefined,
-						documentTitle: (
-							fm.title.trim()
-							|| body.match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
-							|| fm.description.trim()
-						),
-						documentStatus: fm.status.trim() || undefined,
-						documentBody: body.length > 0 ? body : undefined,
-					}
+						if (realm !== SpecificationRealm.Ens || category !== ProposalCategory.Ensip) {
+							throw new Error('Ensips_Github: proposal resolver only supports ENSIPs')
+						}
+						const text = await getProposalMarkdownText({ number: number })
+						const body = stripFrontmatter(text)
+						const fm = parseFrontmatter(text)
+						return {
+							documentCategory: fm.category.trim() || undefined,
+							documentTitle: (
+								fm.title.trim()
+								|| body.match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
+								|| fm.description.trim()
+							),
+							documentStatus: fm.status.trim() || undefined,
+							documentBody: body.length > 0 ? body : undefined,
+						}
+					},
 				},
 			},
 		})({
@@ -81,9 +93,11 @@ export default {
 		defineResolver(Source.Ensips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-					const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
-					return githubEnsipProposalIndexRows(await getContents())
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+						const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
+						return githubEnsipProposalIndexRows(await getContents())
+					},
 				},
 			},
 		})({

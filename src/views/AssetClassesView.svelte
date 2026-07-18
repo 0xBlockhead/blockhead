@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetClassView from '$/views/AssetClassView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					classKey: true,
-					classKind: true,
-					$assetInstance: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetClass}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AssetClass}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				classKey: true,
+				classKind: true,
+				$assetInstance: true,
+			},
+		})
+	}
+	getResourceItems={(assetClasses) => [...new Map(assetClasses.values.map((assetClass) => [assetClass[EntityMetaKey.SelectorKey], assetClass])).values()]}
+	getKey={(assetClass) => assetClass[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Asset classes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(assetClasses)}
-			{@const uniqueAssetClasses = [...new Map(assetClasses.values.map((assetClass) => [assetClass[EntityMetaKey.SelectorKey], assetClass])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetClass}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetClasses.totalCount}
-				getKey={(assetClass) => assetClass[EntityMetaKey.SelectorKey]}
-				items={uniqueAssetClasses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Asset classes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: assetClass })}
-					{@const assetClassFields = { ...assetClass[EntityMetaKey.Selector], ...assetClass }}
-					{@const selection = select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AssetClassView
-						selection={selection}
-						prefetched={assetClassFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AssetClass}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: assetClass })}
+		{@const assetClassFields = { ...assetClass[EntityMetaKey.Selector], ...assetClass }}
+		{@const selection = select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AssetClassView
+			selection={selection}
+			prefetched={assetClassFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBigMapDiffView from '$/views/TezosBigMapDiffView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMapDiff}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBigMapDiff}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBigMapDiffs) => [...new Map(tezosBigMapDiffs.values.map((tezosBigMapDiff) => [tezosBigMapDiff[EntityMetaKey.SelectorKey], tezosBigMapDiff])).values()]}
+	getKey={(tezosBigMapDiff) => tezosBigMapDiff[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos big map diffs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBigMapDiffs)}
-			{@const uniqueTezosBigMapDiffs = [...new Map(tezosBigMapDiffs.values.map((tezosBigMapDiff) => [tezosBigMapDiff[EntityMetaKey.SelectorKey], tezosBigMapDiff])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMapDiff}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBigMapDiffs.totalCount}
-				getKey={(tezosBigMapDiff) => tezosBigMapDiff[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBigMapDiffs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos big map diffs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBigMapDiff })}
-					{@const tezosBigMapDiffFields = { ...tezosBigMapDiff[EntityMetaKey.Selector], ...tezosBigMapDiff }}
-					{@const selection = select(EntityType.TezosBigMapDiff, tezosBigMapDiff[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBigMapDiffView
-						selection={selection}
-						prefetched={tezosBigMapDiffFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBigMapDiff}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBigMapDiff })}
+		{@const tezosBigMapDiffFields = { ...tezosBigMapDiff[EntityMetaKey.Selector], ...tezosBigMapDiff }}
+		{@const selection = select(EntityType.TezosBigMapDiff, tezosBigMapDiff[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBigMapDiffView
+			selection={selection}
+			prefetched={tezosBigMapDiffFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

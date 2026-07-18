@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleRepository = $derived(selection({}))
+	const radicleRepository = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle repository')
 	const viewDomId = $derived('radicle-repository-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -69,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radicleRepository}>
-			{#snippet Pending()}
-				{title || 'radicle repository'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radicleRepository}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,19 +91,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rid = pendingEntity.rid}
-							{#if rid !== undefined && rid !== null}
-								{String((rid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rid = resolvedEntity.rid}
@@ -136,24 +132,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -171,24 +156,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}
@@ -209,19 +183,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									visibility: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const visibility = pendingEntity.visibility}
-							{#if visibility !== undefined && visibility !== null}
-								{String((visibility) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const visibility = resolvedEntity.visibility}
@@ -236,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							defaultBranch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const defaultBranch = pendingEntity.defaultBranch}
-					{#if defaultBranch !== undefined && defaultBranch !== null}
-						<div>
-							<dt>default branch</dt>
-							<dd>
-								{String((defaultBranch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const defaultBranch = resolvedEntity.defaultBranch}
@@ -289,11 +246,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -301,12 +255,12 @@
 
 				{#snippet SectionRadicleRepositoryDelegates({ id, label, open })}
 					<RadicleDelegatesView
-						selection={
-							selection.$$delegates({
-								count: true,
-							})
-						}
+						selection={selection.$$delegates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No delegates.'
 						open={open}
 						title={label}
@@ -316,12 +270,12 @@
 
 				{#snippet SectionRadicleRepositorySignedRefs({ id, label, open })}
 					<RadicleSignedRefsView
-						selection={
-							selection.$$signedRefs({
-								count: true,
-							})
-						}
+						selection={selection.$$signedRefs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No signed refs.'
 						open={open}
 						title={label}
@@ -348,11 +302,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -360,12 +311,12 @@
 
 				{#snippet SectionRadicleRepositoryIssues({ id, label, open })}
 					<RadicleIssuesView
-						selection={
-							selection.$$issues({
-								count: true,
-							})
-						}
+						selection={selection.$$issues}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No issues.'
 						open={open}
 						title={label}
@@ -375,12 +326,12 @@
 
 				{#snippet SectionRadicleRepositoryPatches({ id, label, open })}
 					<RadiclePatchesView
-						selection={
-							selection.$$patches({
-								count: true,
-							})
-						}
+						selection={selection.$$patches}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No patches.'
 						open={open}
 						title={label}
@@ -403,11 +354,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -415,12 +363,12 @@
 
 				{#snippet SectionRadicleRepositorySeedObservations({ id, label, open })}
 					<BlockheadRadicleSeedObservation_TimestampsView
-						selection={
-							selection.$$seedObservations({
-								count: true,
-							})
-						}
+						selection={selection.$$seedObservations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No seed observations.'
 						open={open}
 						title={label}

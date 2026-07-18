@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BridgeTransferView from '$/views/BridgeTransferView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					transferId: true,
-					source: true,
-					railId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BridgeTransfer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				transferId: true,
+				source: true,
+				railId: true,
+			},
+		})
+	}
+	getResourceItems={(bridgeTransfers) => [...new Map(bridgeTransfers.values.map((bridgeTransfer) => [bridgeTransfer[EntityMetaKey.SelectorKey], bridgeTransfer])).values()]}
+	getKey={(bridgeTransfer) => bridgeTransfer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bridge transfers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bridgeTransfers)}
-			{@const uniqueBridgeTransfers = [...new Map(bridgeTransfers.values.map((bridgeTransfer) => [bridgeTransfer[EntityMetaKey.SelectorKey], bridgeTransfer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bridgeTransfers.totalCount}
-				getKey={(bridgeTransfer) => bridgeTransfer[EntityMetaKey.SelectorKey]}
-				items={uniqueBridgeTransfers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bridge transfers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bridgeTransfer })}
-					{@const bridgeTransferFields = { ...bridgeTransfer[EntityMetaKey.Selector], ...bridgeTransfer }}
-					{@const selection = select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BridgeTransferView
-						selection={selection}
-						prefetched={bridgeTransferFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BridgeTransfer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bridgeTransfer })}
+		{@const bridgeTransferFields = { ...bridgeTransfer[EntityMetaKey.Selector], ...bridgeTransfer }}
+		{@const selection = select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BridgeTransferView
+			selection={selection}
+			prefetched={bridgeTransferFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

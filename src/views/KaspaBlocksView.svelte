@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaBlockView from '$/views/KaspaBlockView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(kaspaBlocks) => [...new Map(kaspaBlocks.values.map((kaspaBlock) => [kaspaBlock[EntityMetaKey.SelectorKey], kaspaBlock])).values()]}
+	getKey={(kaspaBlock) => kaspaBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaBlocks)}
-			{@const uniqueKaspaBlocks = [...new Map(kaspaBlocks.values.map((kaspaBlock) => [kaspaBlock[EntityMetaKey.SelectorKey], kaspaBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaBlocks.totalCount}
-				getKey={(kaspaBlock) => kaspaBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaBlock })}
-					{@const kaspaBlockFields = { ...kaspaBlock[EntityMetaKey.Selector], ...kaspaBlock }}
-					{@const selection = select(EntityType.KaspaBlock, kaspaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaBlockView
-						selection={selection}
-						prefetched={kaspaBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaBlock })}
+		{@const kaspaBlockFields = { ...kaspaBlock[EntityMetaKey.Selector], ...kaspaBlock }}
+		{@const selection = select(EntityType.KaspaBlock, kaspaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaBlockView
+			selection={selection}
+			prefetched={kaspaBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

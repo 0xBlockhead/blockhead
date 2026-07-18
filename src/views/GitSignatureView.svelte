@@ -39,6 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitSignature = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			verificationStatus: true,
 			signatureKind: true,
@@ -66,29 +67,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitSignature}>
-			{#snippet Pending()}
-				{[String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitSignature}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitSignature}>
-			{#snippet Pending()}
-				{[String((pendingEntity.verificationStatus) ?? ''), String((pendingEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.verificationStatus) ?? ''), String((resolvedEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.signatureId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.verificationStatus) ?? ''), String((pendingEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitSignature}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.verificationStatus) ?? ''), String((resolvedEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.signatureId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -99,19 +100,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signatureId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signatureId = pendingEntity.signatureId}
-							{#if signatureId !== undefined && signatureId !== null}
-								<TruncatedValue value={String((signatureId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signatureId = resolvedEntity.signatureId}
@@ -129,19 +124,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									subjectObjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const subjectObjectId = pendingEntity.subjectObjectId}
-							{#if subjectObjectId !== undefined && subjectObjectId !== null}
-								{String((subjectObjectId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subjectObjectId = resolvedEntity.subjectObjectId}
@@ -159,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signatureKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signatureKind = pendingEntity.signatureKind}
-							{#if signatureKind !== undefined && signatureKind !== null}
-								<TruncatedValue value={String((signatureKind) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signatureKind = resolvedEntity.signatureKind}
@@ -189,19 +172,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									verificationStatus: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const verificationStatus = pendingEntity.verificationStatus}
-							{#if verificationStatus !== undefined && verificationStatus !== null}
-								{String((verificationStatus) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const verificationStatus = resolvedEntity.verificationStatus}
@@ -216,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifier: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifier = pendingEntity.verifier}
-					{#if verifier !== undefined && verifier !== null}
-						<div>
-							<dt>verifier</dt>
-							<dd>
-								{String((verifier) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifier = resolvedEntity.verifier}
@@ -253,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payloadHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payloadHash = pendingEntity.payloadHash}
-					{#if payloadHash !== undefined && payloadHash !== null}
-						<div>
-							<dt>payload hash</dt>
-							<dd>
-								<TruncatedValue value={String((payloadHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payloadHash = resolvedEntity.payloadHash}
@@ -288,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signature = pendingEntity.signature}
-					{#if signature !== undefined && signature !== null}
-						<div>
-							<dt>signature</dt>
-							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signature = resolvedEntity.signature}
@@ -323,24 +267,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verifiedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
-					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
-						<div>
-							<dt>verified AT ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(verifiedAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verifiedAtMs = resolvedEntity.verifiedAtMs}
@@ -358,31 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							evidenceUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const evidenceUrl = pendingEntity.evidenceUrl}
-					{#if evidenceUrl !== undefined && evidenceUrl !== null}
-						<div>
-							<dt>evidence URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(evidenceUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(evidenceUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const evidenceUrl = resolvedEntity.evidenceUrl}

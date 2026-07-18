@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoStakeCredentialView from '$/views/CardanoStakeCredentialView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakeCredential}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoStakeCredential}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoStakeCredentials) => [...new Map(cardanoStakeCredentials.values.map((cardanoStakeCredential) => [cardanoStakeCredential[EntityMetaKey.SelectorKey], cardanoStakeCredential])).values()]}
+	getKey={(cardanoStakeCredential) => cardanoStakeCredential[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano stake credentials yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoStakeCredentials)}
-			{@const uniqueCardanoStakeCredentials = [...new Map(cardanoStakeCredentials.values.map((cardanoStakeCredential) => [cardanoStakeCredential[EntityMetaKey.SelectorKey], cardanoStakeCredential])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakeCredential}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoStakeCredentials.totalCount}
-				getKey={(cardanoStakeCredential) => cardanoStakeCredential[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoStakeCredentials}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano stake credentials yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoStakeCredential })}
-					{@const cardanoStakeCredentialFields = { ...cardanoStakeCredential[EntityMetaKey.Selector], ...cardanoStakeCredential }}
-					{@const selection = select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoStakeCredentialView
-						selection={selection}
-						prefetched={cardanoStakeCredentialFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoStakeCredential}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoStakeCredential })}
+		{@const cardanoStakeCredentialFields = { ...cardanoStakeCredential[EntityMetaKey.Selector], ...cardanoStakeCredential }}
+		{@const selection = select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoStakeCredentialView
+			selection={selection}
+			prefetched={cardanoStakeCredentialFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

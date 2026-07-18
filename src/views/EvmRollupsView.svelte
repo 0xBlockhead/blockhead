@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					projectId: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmRollup}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmRollup}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				projectId: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(evmRollups) => [...new Map(evmRollups.values.map((evmRollup) => [evmRollup[EntityMetaKey.SelectorKey], evmRollup])).values()]}
+	getKey={(evmRollup) => evmRollup[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM rollups yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmRollups)}
-			{@const uniqueEvmRollups = [...new Map(evmRollups.values.map((evmRollup) => [evmRollup[EntityMetaKey.SelectorKey], evmRollup])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmRollup}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmRollups.totalCount}
-				getKey={(evmRollup) => evmRollup[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmRollups}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM rollups yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmRollup })}
-					{@const evmRollupFields = { ...evmRollup[EntityMetaKey.Selector], ...evmRollup }}
-					{@const selection = select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmRollupHrefFields = { ...evmRollup, ...evmRollup[EntityMetaKey.Selector] }}
-					<EvmRollupView
-						selection={selection}
-						prefetched={evmRollupFields}
-						href={
-							(evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(evmRollupHrefFields.projectId ?? ''),
-								network: String(caip2StringFromValue(evmRollupHrefFields.$network.caip2) ?? ''),
-							}) : evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(evmRollupHrefFields.projectId ?? ''),
-								network: String(evmRollupHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmRollup}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmRollup })}
+		{@const evmRollupFields = { ...evmRollup[EntityMetaKey.Selector], ...evmRollup }}
+		{@const selection = select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmRollupHrefFields = { ...evmRollup, ...evmRollup[EntityMetaKey.Selector] }}
+		<EvmRollupView
+			selection={selection}
+			prefetched={evmRollupFields}
+			href={
+				(evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+					projectId: String(evmRollupHrefFields.projectId ?? ''),
+					network: String(caip2StringFromValue(evmRollupHrefFields.$network.caip2) ?? ''),
+				}) : evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+					projectId: String(evmRollupHrefFields.projectId ?? ''),
+					network: String(evmRollupHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

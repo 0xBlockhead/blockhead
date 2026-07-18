@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearTransactionView from '$/views/NearTransactionView.svelte'
 </script>
@@ -62,83 +61,49 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.NearRpc_JsonRpc,
-					Source.NearBlocks_Rest,
-				],
-				fields: {
-					hash: true,
-					$signer: true,
-					signerAccountId: true,
-					$receiver: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.NearRpc_JsonRpc,
+				Source.NearBlocks_Rest,
+			],
+			fields: {
+				hash: true,
+				$signer: true,
+				signerAccountId: true,
+				$receiver: true,
+			},
+		})
+	}
+	getResourceItems={(nearTransactions) => [...new Map(nearTransactions.values.map((nearTransaction) => [nearTransaction[EntityMetaKey.SelectorKey], nearTransaction])).values()]}
+	getKey={(nearTransaction) => nearTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearTransactions)}
-			{@const uniqueNearTransactions = [...new Map(nearTransactions.values.map((nearTransaction) => [nearTransaction[EntityMetaKey.SelectorKey], nearTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearTransactions.totalCount}
-				getKey={(nearTransaction) => nearTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueNearTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearTransaction })}
-					{@const nearTransactionFields = { ...nearTransaction[EntityMetaKey.Selector], ...nearTransaction }}
-					{@const selection = select(EntityType.NearTransaction, nearTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearTransactionView
-						selection={selection}
-						prefetched={nearTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearTransaction })}
+		{@const nearTransactionFields = { ...nearTransaction[EntityMetaKey.Selector], ...nearTransaction }}
+		{@const selection = select(EntityType.NearTransaction, nearTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearTransactionView
+			selection={selection}
+			prefetched={nearTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

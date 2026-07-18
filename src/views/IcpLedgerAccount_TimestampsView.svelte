@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpLedgerAccount_TimestampView from '$/views/IcpLedgerAccount_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpLedgerAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpLedgerAccountTimestamps) => [...new Map(icpLedgerAccountTimestamps.values.map((icpLedgerAccountTimestamp) => [icpLedgerAccountTimestamp[EntityMetaKey.SelectorKey], icpLedgerAccountTimestamp])).values()]}
+	getKey={(icpLedgerAccountTimestamp) => icpLedgerAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP ledger account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpLedgerAccountTimestamps)}
-			{@const uniqueIcpLedgerAccountTimestamps = [...new Map(icpLedgerAccountTimestamps.values.map((icpLedgerAccountTimestamp) => [icpLedgerAccountTimestamp[EntityMetaKey.SelectorKey], icpLedgerAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpLedgerAccountTimestamps.totalCount}
-				getKey={(icpLedgerAccountTimestamp) => icpLedgerAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpLedgerAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP ledger account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpLedgerAccountTimestamp })}
-					{@const icpLedgerAccountTimestampFields = { ...icpLedgerAccountTimestamp[EntityMetaKey.Selector], ...icpLedgerAccountTimestamp }}
-					{@const selection = select(EntityType.IcpLedgerAccount_Timestamp, icpLedgerAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpLedgerAccount_TimestampView
-						selection={selection}
-						prefetched={icpLedgerAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpLedgerAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpLedgerAccountTimestamp })}
+		{@const icpLedgerAccountTimestampFields = { ...icpLedgerAccountTimestamp[EntityMetaKey.Selector], ...icpLedgerAccountTimestamp }}
+		{@const selection = select(EntityType.IcpLedgerAccount_Timestamp, icpLedgerAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpLedgerAccount_TimestampView
+			selection={selection}
+			prefetched={icpLedgerAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

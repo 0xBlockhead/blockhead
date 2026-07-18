@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					assetId: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidSpotAsset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				assetId: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(hyperliquidSpotAssets) => [...new Map(hyperliquidSpotAssets.values.map((hyperliquidSpotAsset) => [hyperliquidSpotAsset[EntityMetaKey.SelectorKey], hyperliquidSpotAsset])).values()]}
+	getKey={(hyperliquidSpotAsset) => hyperliquidSpotAsset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid spot assets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidSpotAssets)}
-			{@const uniqueHyperliquidSpotAssets = [...new Map(hyperliquidSpotAssets.values.map((hyperliquidSpotAsset) => [hyperliquidSpotAsset[EntityMetaKey.SelectorKey], hyperliquidSpotAsset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidSpotAssets.totalCount}
-				getKey={(hyperliquidSpotAsset) => hyperliquidSpotAsset[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidSpotAssets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid spot assets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidSpotAsset })}
-					{@const hyperliquidSpotAssetFields = { ...hyperliquidSpotAsset[EntityMetaKey.Selector], ...hyperliquidSpotAsset }}
-					{@const selection = select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidSpotAssetView
-						selection={selection}
-						prefetched={hyperliquidSpotAssetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidSpotAsset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidSpotAsset })}
+		{@const hyperliquidSpotAssetFields = { ...hyperliquidSpotAsset[EntityMetaKey.Selector], ...hyperliquidSpotAsset }}
+		{@const selection = select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidSpotAssetView
+			selection={selection}
+			prefetched={hyperliquidSpotAssetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

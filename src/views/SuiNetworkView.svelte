@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiNetwork = $derived(selection({}))
+	const suiNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui network')
 	const viewDomId = $derived('sui-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -74,51 +76,51 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={suiNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={suiNetwork}>
-			{#snippet Pending()}
-				{[pendingEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || title || 'Sui network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[resolvedEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[pendingEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[resolvedEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,11 +168,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -178,12 +177,12 @@
 
 				{#snippet SectionSuiChainObservations({ id, label, open })}
 					<SuiNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui network observations.'
 						open={open}
 						title={label}
@@ -193,12 +192,12 @@
 
 				{#snippet SectionSuiChainCheckpoints({ id, label, open })}
 					<SuiCheckpointsView
-						selection={
-							selection.$$checkpoints({
-								count: true,
-							})
-						}
+						selection={selection.$$checkpoints}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui checkpoints.'
 						open={open}
 						title={label}
@@ -208,12 +207,12 @@
 
 				{#snippet SectionSuiChainTransactions({ id, label, open })}
 					<SuiTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui transactions.'
 						open={open}
 						title={label}
@@ -240,11 +239,8 @@
 				}
 				data-card
 				class='network-view-collapsible-objects-packages'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Objects and packages</HeadingComponent>
 					</header>
@@ -252,12 +248,12 @@
 
 				{#snippet SectionSuiObjects({ id, label, open })}
 					<SuiObjectsView
-						selection={
-							selection.$$objects({
-								count: true,
-							})
-						}
+						selection={selection.$$objects}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui objects.'
 						open={open}
 						title={label}
@@ -267,12 +263,12 @@
 
 				{#snippet SectionSuiPackages({ id, label, open })}
 					<SuiPackagesView
-						selection={
-							selection.$$packages({
-								count: true,
-							})
-						}
+						selection={selection.$$packages}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui packages.'
 						open={open}
 						title={label}
@@ -303,11 +299,8 @@
 				}
 				data-card
 				class='network-view-collapsible-accounts-coins'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Accounts and coins</HeadingComponent>
 					</header>
@@ -315,12 +308,12 @@
 
 				{#snippet SectionSuiAccounts({ id, label, open })}
 					<SuiAccountsView
-						selection={
-							selection.$$accounts({
-								count: true,
-							})
-						}
+						selection={selection.$$accounts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui accounts.'
 						open={open}
 						title={label}
@@ -330,12 +323,12 @@
 
 				{#snippet SectionSuiCoinTypes({ id, label, open })}
 					<SuiCoinTypesView
-						selection={
-							selection.$$coinTypes({
-								count: true,
-							})
-						}
+						selection={selection.$$coinTypes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui coin types.'
 						open={open}
 						title={label}
@@ -345,12 +338,12 @@
 
 				{#snippet SectionSuiCoinBalances({ id, label, open })}
 					<SuiCoinBalance_TimestampsView
-						selection={
-							selection.$$coinBalanceTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$coinBalanceTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Sui coin balance observations.'
 						open={open}
 						title={label}

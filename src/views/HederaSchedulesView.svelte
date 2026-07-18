@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaScheduleView from '$/views/HederaScheduleView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaSchedule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaSchedule}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaSchedules) => [...new Map(hederaSchedules.values.map((hederaSchedule) => [hederaSchedule[EntityMetaKey.SelectorKey], hederaSchedule])).values()]}
+	getKey={(hederaSchedule) => hederaSchedule[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera schedules yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaSchedules)}
-			{@const uniqueHederaSchedules = [...new Map(hederaSchedules.values.map((hederaSchedule) => [hederaSchedule[EntityMetaKey.SelectorKey], hederaSchedule])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaSchedule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaSchedules.totalCount}
-				getKey={(hederaSchedule) => hederaSchedule[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaSchedules}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera schedules yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaSchedule })}
-					{@const hederaScheduleFields = { ...hederaSchedule[EntityMetaKey.Selector], ...hederaSchedule }}
-					{@const selection = select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaScheduleView
-						selection={selection}
-						prefetched={hederaScheduleFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaSchedule}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaSchedule })}
+		{@const hederaScheduleFields = { ...hederaSchedule[EntityMetaKey.Selector], ...hederaSchedule }}
+		{@const selection = select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaScheduleView
+			selection={selection}
+			prefetched={hederaScheduleFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

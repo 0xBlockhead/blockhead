@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadicleIssueView from '$/views/RadicleIssueView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIssue}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadicleIssue}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radicleIssues) => [...new Map(radicleIssues.values.map((radicleIssue) => [radicleIssue[EntityMetaKey.SelectorKey], radicleIssue])).values()]}
+	getKey={(radicleIssue) => radicleIssue[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle issues yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radicleIssues)}
-			{@const uniqueRadicleIssues = [...new Map(radicleIssues.values.map((radicleIssue) => [radicleIssue[EntityMetaKey.SelectorKey], radicleIssue])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIssue}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radicleIssues.totalCount}
-				getKey={(radicleIssue) => radicleIssue[EntityMetaKey.SelectorKey]}
-				items={uniqueRadicleIssues}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle issues yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radicleIssue })}
-					{@const radicleIssueFields = { ...radicleIssue[EntityMetaKey.Selector], ...radicleIssue }}
-					{@const selection = select(EntityType.RadicleIssue, radicleIssue[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadicleIssueView
-						selection={selection}
-						prefetched={radicleIssueFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadicleIssue}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radicleIssue })}
+		{@const radicleIssueFields = { ...radicleIssue[EntityMetaKey.Selector], ...radicleIssue }}
+		{@const selection = select(EntityType.RadicleIssue, radicleIssue[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadicleIssueView
+			selection={selection}
+			prefetched={radicleIssueFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

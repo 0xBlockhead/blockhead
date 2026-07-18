@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidAccountTimestamp = $derived(selection({}))
+	const hyperliquidAccountTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid account timestamp')
 	const viewDomId = $derived('hyperliquid-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidAccountTimestamp}>
-			{#snippet Pending()}
-				{title || 'hyperliquid account timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							accountValue: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const accountValue = pendingEntity.accountValue}
-					{#if accountValue !== undefined && accountValue !== null}
-						<div>
-							<dt>account value</dt>
-							<dd>
-								<TruncatedValue value={String((accountValue) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const accountValue = resolvedEntity.accountValue}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalNtlPos: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalNtlPos = pendingEntity.totalNtlPos}
-					{#if totalNtlPos !== undefined && totalNtlPos !== null}
-						<div>
-							<dt>total ntl pos</dt>
-							<dd>
-								{String((totalNtlPos) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalNtlPos = resolvedEntity.totalNtlPos}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalRawUsd: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalRawUsd = pendingEntity.totalRawUsd}
-					{#if totalRawUsd !== undefined && totalRawUsd !== null}
-						<div>
-							<dt>total raw usd</dt>
-							<dd>
-								{String((totalRawUsd) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalRawUsd = resolvedEntity.totalRawUsd}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							totalMarginUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const totalMarginUsed = pendingEntity.totalMarginUsed}
-					{#if totalMarginUsed !== undefined && totalMarginUsed !== null}
-						<div>
-							<dt>total margin used</dt>
-							<dd>
-								{String((totalMarginUsed) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const totalMarginUsed = resolvedEntity.totalMarginUsed}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							withdrawable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const withdrawable = pendingEntity.withdrawable}
-					{#if withdrawable !== undefined && withdrawable !== null}
-						<div>
-							<dt>withdrawable</dt>
-							<dd>
-								{String((withdrawable) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const withdrawable = resolvedEntity.withdrawable}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							crossMaintenanceMarginUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const crossMaintenanceMarginUsed = pendingEntity.crossMaintenanceMarginUsed}
-					{#if crossMaintenanceMarginUsed !== undefined && crossMaintenanceMarginUsed !== null}
-						<div>
-							<dt>cross maintenance margin used</dt>
-							<dd>
-								{String((crossMaintenanceMarginUsed) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const crossMaintenanceMarginUsed = resolvedEntity.crossMaintenanceMarginUsed}

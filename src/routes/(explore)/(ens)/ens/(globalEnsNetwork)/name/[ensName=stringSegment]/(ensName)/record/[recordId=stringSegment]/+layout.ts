@@ -18,7 +18,7 @@ export const load: LayoutLoad = ({ params }) => {
 			$name: {
 				name: decodeURIComponent(params.ensName),
 			},
-			recordKey: params.recordId,
+			recordKey: decodeURIComponent(params.recordId),
 		}
 	)
 	if (ensRecordNameRecordKeySelector instanceof arktype.errors) error(404, 'Invalid EnsRecord selector')

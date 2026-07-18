@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadQuilibriumPendingTransactionView from '$/views/BlockheadQuilibriumPendingTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					transactionAddress: true,
-					amount: true,
-					deliveryType: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumPendingTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadQuilibriumPendingTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				transactionAddress: true,
+				amount: true,
+				deliveryType: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadQuilibriumPendingTransactions) => [...new Map(blockheadQuilibriumPendingTransactions.values.map((blockheadQuilibriumPendingTransaction) => [blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey], blockheadQuilibriumPendingTransaction])).values()]}
+	getKey={(blockheadQuilibriumPendingTransaction) => blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead quilibrium pending transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadQuilibriumPendingTransactions)}
-			{@const uniqueBlockheadQuilibriumPendingTransactions = [...new Map(blockheadQuilibriumPendingTransactions.values.map((blockheadQuilibriumPendingTransaction) => [blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey], blockheadQuilibriumPendingTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumPendingTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadQuilibriumPendingTransactions.totalCount}
-				getKey={(blockheadQuilibriumPendingTransaction) => blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadQuilibriumPendingTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead quilibrium pending transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadQuilibriumPendingTransaction })}
-					{@const blockheadQuilibriumPendingTransactionFields = { ...blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], ...blockheadQuilibriumPendingTransaction }}
-					{@const selection = select(EntityType.BlockheadQuilibriumPendingTransaction, blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadQuilibriumPendingTransactionView
-						selection={selection}
-						prefetched={blockheadQuilibriumPendingTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadQuilibriumPendingTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadQuilibriumPendingTransaction })}
+		{@const blockheadQuilibriumPendingTransactionFields = { ...blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], ...blockheadQuilibriumPendingTransaction }}
+		{@const selection = select(EntityType.BlockheadQuilibriumPendingTransaction, blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadQuilibriumPendingTransactionView
+			selection={selection}
+			prefetched={blockheadQuilibriumPendingTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

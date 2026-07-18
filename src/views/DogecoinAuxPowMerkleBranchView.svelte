@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dogecoinAuxPowMerkleBranch = $derived(selection({
-		sources: [
-			Source.DogecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.branchKind) ?? '')].filter(Boolean).join(' ') || 'dogecoin aux pow merkle branch')
 	const viewDomId = $derived('dogecoin-aux-pow-merkle-branch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -69,37 +66,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dogecoinAuxPowMerkleBranch}>
-			{#snippet Pending()}
-				{[String((pendingEntity.branchKind) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow merkle branch'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.branchKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.branchKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dogecoinAuxPowMerkleBranch}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.branchKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dogecoinAuxPowMerkleBranch}>
-			{#snippet Pending()}
-				<DogecoinBlockAuxPowView
-					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<DogecoinBlockAuxPowView
-					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<DogecoinBlockAuxPowView
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={dogecoinAuxPowMerkleBranch}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<DogecoinBlockAuxPowView
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,19 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									branchKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const branchKind = pendingEntity.branchKind}
-							{#if branchKind !== undefined && branchKind !== null}
-								{String((branchKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const branchKind = resolvedEntity.branchKind}
@@ -151,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									branchHashes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const branchHashes = pendingEntity.branchHashes}
-							{#if branchHashes !== undefined && branchHashes !== null}
-								<TruncatedValue value={branchHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const branchHashes = resolvedEntity.branchHashes}
@@ -178,24 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							index: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const index = pendingEntity.index}
-					{#if index !== undefined && index !== null}
-						<div>
-							<dt>Index</dt>
-							<dd>
-								<NumberValue value={Number(index)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const index = resolvedEntity.index}
@@ -203,7 +177,9 @@
 						<div>
 							<dt>Index</dt>
 							<dd>
-								<NumberValue value={Number(index)} />
+								<NumberValue
+									value={index}
+								/>
 							</dd>
 						</div>
 					{/if}

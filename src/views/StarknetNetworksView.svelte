@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetNetworkView from '$/views/StarknetNetworkView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-					chainId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+				chainId: true,
+			},
+		})
+	}
+	getResourceItems={(starknetNetworks) => [...new Map(starknetNetworks.values.map((starknetNetwork) => [starknetNetwork[EntityMetaKey.SelectorKey], starknetNetwork])).values()]}
+	getKey={(starknetNetwork) => starknetNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetNetworks)}
-			{@const uniqueStarknetNetworks = [...new Map(starknetNetworks.values.map((starknetNetwork) => [starknetNetwork[EntityMetaKey.SelectorKey], starknetNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetNetworks.totalCount}
-				getKey={(starknetNetwork) => starknetNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetNetwork })}
-					{@const starknetNetworkFields = { ...starknetNetwork[EntityMetaKey.Selector], ...starknetNetwork }}
-					{@const selection = select(EntityType.StarknetNetwork, starknetNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetNetworkView
-						selection={selection}
-						prefetched={starknetNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetNetwork })}
+		{@const starknetNetworkFields = { ...starknetNetwork[EntityMetaKey.Selector], ...starknetNetwork }}
+		{@const selection = select(EntityType.StarknetNetwork, starknetNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetNetworkView
+			selection={selection}
+			prefetched={starknetNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

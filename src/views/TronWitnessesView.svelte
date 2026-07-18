@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TronWitnessView from '$/views/TronWitnessView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronWitness}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TronWitness}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tronWitnesses) => [...new Map(tronWitnesses.values.map((tronWitness) => [tronWitness[EntityMetaKey.SelectorKey], tronWitness])).values()]}
+	getKey={(tronWitness) => tronWitness[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tron witnesses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tronWitnesses)}
-			{@const uniqueTronWitnesses = [...new Map(tronWitnesses.values.map((tronWitness) => [tronWitness[EntityMetaKey.SelectorKey], tronWitness])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronWitness}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tronWitnesses.totalCount}
-				getKey={(tronWitness) => tronWitness[EntityMetaKey.SelectorKey]}
-				items={uniqueTronWitnesses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tron witnesses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tronWitness })}
-					{@const tronWitnessFields = { ...tronWitness[EntityMetaKey.Selector], ...tronWitness }}
-					{@const selection = select(EntityType.TronWitness, tronWitness[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TronWitnessView
-						selection={selection}
-						prefetched={tronWitnessFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TronWitness}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tronWitness })}
+		{@const tronWitnessFields = { ...tronWitness[EntityMetaKey.Selector], ...tronWitness }}
+		{@const selection = select(EntityType.TronWitness, tronWitness[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TronWitnessView
+			selection={selection}
+			prefetched={tronWitnessFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

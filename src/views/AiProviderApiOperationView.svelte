@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiProviderApiOperation = $derived(selection({
-		sources: [
-			Source.Anthropic_Rest,
-			Source.OpenAI_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			label: true,
 			operationKind: true,
@@ -76,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiProviderApiOperation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiProviderApiOperation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiProviderApiOperation}>
-			{#snippet Pending()}
-				{@const pathTemplate0 = pendingEntity.pathTemplate}
-				{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
-					<span data-text="muted">
-						{String((pathTemplate0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const pathTemplate0 = resolvedEntity.pathTemplate}
-				{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
-					<span data-text="muted">
-						{String((pathTemplate0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const pathTemplate0 = pendingEntity.pathTemplate}
+			{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
+				<span data-text="muted">
+					{String((pathTemplate0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const pathTemplate0 = resolvedEntity.pathTemplate}
+					{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
+						<span data-text="muted">
+							{String((pathTemplate0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									operationId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const operationId = pendingEntity.operationId}
-							{#if operationId !== undefined && operationId !== null}
-								{String((operationId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operationId = resolvedEntity.operationId}
@@ -170,24 +160,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -205,24 +184,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							operationKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const operationKind = pendingEntity.operationKind}
-					{#if operationKind !== undefined && operationKind !== null}
-						<div>
-							<dt>operation kind</dt>
-							<dd>
-								{String((operationKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const operationKind = resolvedEntity.operationKind}
@@ -242,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							httpMethod: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const httpMethod = pendingEntity.httpMethod}
-					{#if httpMethod !== undefined && httpMethod !== null}
-						<div>
-							<dt>HTTP method</dt>
-							<dd>
-								{String((httpMethod) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const httpMethod = resolvedEntity.httpMethod}
@@ -277,24 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pathTemplate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pathTemplate = pendingEntity.pathTemplate}
-					{#if pathTemplate !== undefined && pathTemplate !== null}
-						<div>
-							<dt>path template</dt>
-							<dd>
-								{String((pathTemplate) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pathTemplate = resolvedEntity.pathTemplate}
@@ -312,31 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							documentUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const documentUrl = pendingEntity.documentUrl}
-					{#if documentUrl !== undefined && documentUrl !== null}
-						<div>
-							<dt>document URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(documentUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(documentUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const documentUrl = resolvedEntity.documentUrl}

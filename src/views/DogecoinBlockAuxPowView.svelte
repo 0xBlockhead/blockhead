@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dogecoinBlockAuxPow = $derived(selection({
-		sources: [
-			Source.DogecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('dogecoin block aux pow')
 	const viewDomId = $derived('dogecoin-block-aux-pow-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -71,11 +68,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dogecoinBlockAuxPow}>
-			{#snippet Pending()}
-				<UtxoBlockView
-					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<UtxoBlockView
+						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
+						href={
 						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
@@ -86,16 +82,16 @@
 							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<UtxoBlockView
-					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={dogecoinBlockAuxPow}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<UtxoBlockView
+						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
+						href={
 						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
@@ -106,50 +102,55 @@
 							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dogecoinBlockAuxPow}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$parentBlockHeader}
-				>
-					{#snippet children(dogecoinAuxPowParentBlockHeader)}
-						{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
-							<DogecoinAuxPowParentBlockHeaderView
-								selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
-								prefetched={dogecoinAuxPowParentBlockHeader}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$parentBlockHeader}
-				>
-					{#snippet children(dogecoinAuxPowParentBlockHeader)}
-						{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
-							<DogecoinAuxPowParentBlockHeaderView
-								selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
-								prefetched={dogecoinAuxPowParentBlockHeader}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$parentBlockHeader}
+					>
+						{#snippet children(dogecoinAuxPowParentBlockHeader)}
+							{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
+								<DogecoinAuxPowParentBlockHeaderView
+									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
+									prefetched={dogecoinAuxPowParentBlockHeader}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={dogecoinBlockAuxPow}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$parentBlockHeader}
+					>
+						{#snippet children(dogecoinAuxPowParentBlockHeader)}
+							{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
+								<DogecoinAuxPowParentBlockHeaderView
+									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
+									prefetched={dogecoinAuxPowParentBlockHeader}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -179,8 +180,6 @@
 			<ResourceBoundary
 				resource={selection.$parentBlockHeader}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(dogecoinAuxPowParentBlockHeader)}
 					{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
 						<div>
@@ -201,8 +200,6 @@
 			<ResourceBoundary
 				resource={selection.$coinbaseBranch}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}
 						<div>
@@ -223,8 +220,6 @@
 			<ResourceBoundary
 				resource={selection.$chainBranch}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}
 						<div>

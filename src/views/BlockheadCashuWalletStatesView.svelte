@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCashuWalletStateView from '$/views/BlockheadCashuWalletStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					walletId: true,
-					unit: true,
-					$mint: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuWalletState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCashuWalletState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				walletId: true,
+				unit: true,
+				$mint: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCashuWalletStates) => [...new Map(blockheadCashuWalletStates.values.map((blockheadCashuWalletState) => [blockheadCashuWalletState[EntityMetaKey.SelectorKey], blockheadCashuWalletState])).values()]}
+	getKey={(blockheadCashuWalletState) => blockheadCashuWalletState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Cashu wallet states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCashuWalletStates)}
-			{@const uniqueBlockheadCashuWalletStates = [...new Map(blockheadCashuWalletStates.values.map((blockheadCashuWalletState) => [blockheadCashuWalletState[EntityMetaKey.SelectorKey], blockheadCashuWalletState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuWalletState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCashuWalletStates.totalCount}
-				getKey={(blockheadCashuWalletState) => blockheadCashuWalletState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCashuWalletStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Cashu wallet states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCashuWalletState })}
-					{@const blockheadCashuWalletStateFields = { ...blockheadCashuWalletState[EntityMetaKey.Selector], ...blockheadCashuWalletState }}
-					{@const selection = select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCashuWalletStateView
-						selection={selection}
-						prefetched={blockheadCashuWalletStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCashuWalletState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCashuWalletState })}
+		{@const blockheadCashuWalletStateFields = { ...blockheadCashuWalletState[EntityMetaKey.Selector], ...blockheadCashuWalletState }}
+		{@const selection = select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCashuWalletStateView
+			selection={selection}
+			prefetched={blockheadCashuWalletStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

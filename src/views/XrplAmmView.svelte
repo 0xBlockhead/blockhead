@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -40,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAmm = $derived(selection({}))
+	const xrplAmm = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('XRPL AMM')
 	const viewDomId = $derived('xrpl-amm-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -48,7 +52,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import XrplNetworkView from '$/views/XrplNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -57,22 +61,30 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.ammAccount !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
+			ammAccount: String(pendingEntity.ammAccount ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.ammAccount !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
+			ammAccount: String(pendingEntity.ammAccount ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xrplAmm}>
-			{#snippet Pending()}
-				{title || 'XRPL AMM'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={xrplAmm}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -80,8 +92,15 @@
 			<div>
 				<dt>network</dt>
 				<dd>
-					<XrplNetworkView
-						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network, {})}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,19 +113,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ammAccount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ammAccount = pendingEntity.ammAccount}
-							{#if ammAccount !== undefined && ammAccount !== null}
-								<TruncatedValue value={String((ammAccount) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ammAccount = resolvedEntity.ammAccount}
@@ -124,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetCurrency: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetCurrency = pendingEntity.assetCurrency}
-							{#if assetCurrency !== undefined && assetCurrency !== null}
-								{String((assetCurrency) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetCurrency = resolvedEntity.assetCurrency}
@@ -151,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetIssuer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetIssuer = pendingEntity.assetIssuer}
-					{#if assetIssuer !== undefined && assetIssuer !== null}
-						<div>
-							<dt>asset issuer</dt>
-							<dd>
-								<TruncatedValue value={String((assetIssuer) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetIssuer = resolvedEntity.assetIssuer}
@@ -189,19 +185,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									asset2Currency: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const asset2Currency = pendingEntity.asset2Currency}
-							{#if asset2Currency !== undefined && asset2Currency !== null}
-								{String((asset2Currency) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const asset2Currency = resolvedEntity.asset2Currency}
@@ -216,24 +206,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							asset2Issuer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const asset2Issuer = pendingEntity.asset2Issuer}
-					{#if asset2Issuer !== undefined && asset2Issuer !== null}
-						<div>
-							<dt>asset2 issuer</dt>
-							<dd>
-								<TruncatedValue value={String((asset2Issuer) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const asset2Issuer = resolvedEntity.asset2Issuer}
@@ -251,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lpTokenCurrency: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lpTokenCurrency = pendingEntity.lpTokenCurrency}
-					{#if lpTokenCurrency !== undefined && lpTokenCurrency !== null}
-						<div>
-							<dt>LP token currency</dt>
-							<dd>
-								{String((lpTokenCurrency) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lpTokenCurrency = resolvedEntity.lpTokenCurrency}

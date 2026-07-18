@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoCommittee_EpochSelector {
@@ -12,7 +13,7 @@ export const CardanoCommittee_Epoch = entity({
 	entityType: EntityType.CardanoCommittee_Epoch,
 	labels: {
 		singular: 'cardano committee epoch',
-		plural: 'cardano committee epoches',
+		plural: 'cardano committee epochs',
 	},
 })({
 	$network: {
@@ -24,7 +25,7 @@ export const CardanoCommittee_Epoch = entity({
 	epoch: {
 		label: 'epoch',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -40,35 +41,83 @@ export const CardanoCommittee_Epoch = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	govActionId: {
+		label: 'governance action ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	$seatingProposal: {
+		label: 'seating proposal',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.CardanoGovernanceProposal,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	dissolved: {
+		label: 'dissolved',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
 	quorumNumerator: {
 		label: 'quorum numerator',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	quorumDenominator: {
 		label: 'quorum denominator',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	memberCount: {
 		label: 'member count',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	members: {
 		label: 'members',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: type({ 'cc_cold_id': type('string'), 'cc_cold_hex': type('string'), 'cc_cold_has_script': type('boolean'), 'cc_hot_id': type('unknown'), 'cc_hot_hex': type('unknown'), 'cc_hot_has_script': type('unknown'), 'status': type('string'), 'expiration_epoch': type('number') }),
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	threshold: {
 		label: 'threshold',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$votes: {
+		label: 'votes',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.CardanoGovernanceVote,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

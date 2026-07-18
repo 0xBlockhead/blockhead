@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CosmosValidatorSelector {
@@ -68,6 +69,9 @@ export const CosmosValidator = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CosmosValidator_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CosmosSdk_Rest,
+		],
 	},
 })({
 	selectors: {

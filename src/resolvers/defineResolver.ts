@@ -8,6 +8,7 @@ import type {
 	ResolveLivePublishers,
 	ResolverComparable,
 	ResolverContext,
+	ResolverSelectorPattern,
 	ResolverValue,
 } from '$/resolvers/$resolvers.ts'
 
@@ -19,10 +20,17 @@ export type SourceResolverContext<
 
 type ResolverSnapshotCandidate = ResolverComparable | object
 
-type ResolverSnapshotValue<_Resolve> = Awaited<ReturnType<Extract<_Resolve[keyof _Resolve], (...parameters: never[]) => Promise<ResolverSnapshotCandidate>>>>
+type ResolverResolveFunction<_Resolve> = Extract<
+	NonNullable<_Resolve[keyof _Resolve]>,
+	{
+		readonly resolve: (...parameters: never[]) => Promise<ResolverSnapshotCandidate>
+	}
+>['resolve']
+
+type ResolverSnapshotValue<_Resolve> = Awaited<ReturnType<ResolverResolveFunction<_Resolve>>>
 
 type ResolverSnapshot<_Resolve> = (
-	[Extract<_Resolve[keyof _Resolve], (...parameters: never[]) => Promise<ResolverSnapshotCandidate>>] extends [never] ?
+	[ResolverResolveFunction<_Resolve>] extends [never] ?
 		ResolverValue
 	:
 		ResolverSnapshotValue<_Resolve>
@@ -32,14 +40,25 @@ type ResolveShape<
 	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
 > = Partial<{
-	readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: (
-		entitySelector: EntitySelectorForSelectorName<
+	readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: {
+		readonly appliesTo?: readonly [ResolverSelectorPattern<EntitySelectorForSelectorName<
 			typeof schema,
 			_EntityType,
 			Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
-		>,
-		context: SourceResolverContext<_Source>
+		>>, ...ResolverSelectorPattern<EntitySelectorForSelectorName<
+			typeof schema,
+			_EntityType,
+			Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
+		>>[]]
+		readonly resolve: (
+			entitySelector: EntitySelectorForSelectorName<
+				typeof schema,
+				_EntityType,
+				Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
+			>,
+			context: SourceResolverContext<_Source>
 		) => Promise<ResolverSnapshotCandidate>
+	}
 }>
 
 type ResolverFields<

@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoGovernanceProposalSelector {
@@ -30,7 +31,7 @@ export const CardanoGovernanceProposal = entity({
 	proposalIndex: {
 		label: 'proposal index',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	proposalKind: {
@@ -38,36 +39,54 @@ export const CardanoGovernanceProposal = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$transaction: {
 		label: 'transaction',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	depositLovelace: {
 		label: 'deposit lovelace',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	returnAddress: {
 		label: 'return address',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	anchorUrl: {
 		label: 'anchor URL',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	anchorHash: {
 		label: 'anchor hash',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	proposalPayload: {
 		label: 'proposal payload',
@@ -80,12 +99,18 @@ export const CardanoGovernanceProposal = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceProposal_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$votes: {
 		label: 'votes',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

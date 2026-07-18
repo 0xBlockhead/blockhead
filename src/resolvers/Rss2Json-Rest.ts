@@ -21,30 +21,32 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }, context) => {
-				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-				const response = await getFeed(
-					feedUrl,
-					1,
-					context.publicEnv
-				)
-				const feed = response.feed
-				if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
-				const title = optionalNonemptyString(feed.title)
-				const description = optionalNonemptyString(feed.description)
-				const link = optionalNonemptyString(feed.link)
-				const siteUrl = optionalNonemptyString(feed.url)
-				const imageUrl = optionalNonemptyString(feed.image)
-				return {
-					...(title != null && { title }),
-					...(description != null && { description }),
-					...(link != null && { link }),
-					...(siteUrl != null && { siteUrl }),
-					...(imageUrl != null && { imageUrl }),
+				[RssFeedSelector.FeedUrl]: {
+					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
+					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
+					const response = await getFeed(
+						feedUrl,
+						1,
+						context.publicEnv
+					)
+					const feed = response.feed
+					if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
+					const title = optionalNonemptyString(feed.title)
+					const description = optionalNonemptyString(feed.description)
+					const link = optionalNonemptyString(feed.link)
+					const siteUrl = optionalNonemptyString(feed.url)
+					const imageUrl = optionalNonemptyString(feed.image)
+					return {
+						...(title != null && { title }),
+						...(description != null && { description }),
+						...(link != null && { link }),
+						...(siteUrl != null && { siteUrl }),
+						...(imageUrl != null && { imageUrl }),
+					}
+				},
 				}
-			}
 			}
 		})({
 			title: (snapshot) => snapshot.title,
@@ -57,53 +59,55 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
-				[RssItemSelector.FeedIdentity]: async ({
-					$feed,
-					itemIdentityKind,
-					itemIdentity,
-				}, context) => {
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-					rssPublishedAtMs,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-				const feedItem = (
-					(await getFeed(feedUrl, 50, context.publicEnv)).items ?? []
-				).find((candidate) => (
-					((identity) => (
-						identity?.itemIdentityKind === itemIdentityKind
-						&& identity.itemIdentity === itemIdentity
-					))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-				))
-				if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
-				const title = optionalNonemptyString(feedItem.title)
-				const link = optionalNonemptyString(feedItem.link)
-				const description = optionalNonemptyString(feedItem.description)
-				const content = optionalNonemptyString(feedItem.content)
-				const author = optionalNonemptyString(feedItem.author)
-				const publishedAt = rssPublishedAtMs(feedItem.pubDate)
-				const enclosureUrl = optionalNonemptyString(feedItem.enclosure?.[0]?.url)
-				return {
-					itemIdentityKind,
-					itemIdentity,
-					...(feedItem.guid != null && { guid: feedItem.guid }),
-					...(title != null && { title }),
-					...(link != null && { link }),
-					...(description != null && { description }),
-					...(content != null && { content }),
-					...(author != null && { author }),
-					...(publishedAt != null && { publishedAt }),
-					...(feedItem.categories != null && feedItem.categories.length > 0 && {
-						categories: feedItem.categories,
-					}),
-					...(enclosureUrl != null && { enclosureUrl }),
-					$feed: {
-						[EntityMetaKey.Selector]: { feedUrl },
-					},
+				[RssItemSelector.FeedIdentity]: {
+					resolve: async ({
+						$feed,
+						itemIdentityKind,
+						itemIdentity,
+					}, context) => {
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+						rssPublishedAtMs,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
+					const feedItem = (
+						(await getFeed(feedUrl, 50, context.publicEnv)).items ?? []
+					).find((candidate) => (
+						((identity) => (
+							identity?.itemIdentityKind === itemIdentityKind
+							&& identity.itemIdentity === itemIdentity
+						))(rssItemIdentityFromParts(candidate.guid, candidate.link))
+					))
+					if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
+					const title = optionalNonemptyString(feedItem.title)
+					const link = optionalNonemptyString(feedItem.link)
+					const description = optionalNonemptyString(feedItem.description)
+					const content = optionalNonemptyString(feedItem.content)
+					const author = optionalNonemptyString(feedItem.author)
+					const publishedAt = rssPublishedAtMs(feedItem.pubDate)
+					const enclosureUrl = optionalNonemptyString(feedItem.enclosure?.[0]?.url)
+					return {
+						itemIdentityKind,
+						itemIdentity,
+						...(feedItem.guid != null && { guid: feedItem.guid }),
+						...(title != null && { title }),
+						...(link != null && { link }),
+						...(description != null && { description }),
+						...(content != null && { content }),
+						...(author != null && { author }),
+						...(publishedAt != null && { publishedAt }),
+						...(feedItem.categories != null && feedItem.categories.length > 0 && {
+							categories: feedItem.categories,
+						}),
+						...(enclosureUrl != null && { enclosureUrl }),
+						$feed: {
+							[EntityMetaKey.Selector]: { feedUrl },
+						},
+					}
+				},
 				}
-			}
 			}
 		})({
 			itemIdentityKind: (snapshot) => snapshot.itemIdentityKind,
@@ -123,27 +127,29 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }, context) => {
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-				const limit = resolverContextRowLimit(context)
-				return (
-					((await getFeed(feedUrl, limit, context.publicEnv)).items ?? [])
-						.flatMap((feedItem) => {
-							const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
-							return identity == null ? [] : [{
-								[EntityMetaKey.Selector]: {
-									$feed: { feedUrl },
-									...identity,
-								},
-							}]
-						})
-				)
-			}
+				[RssFeedSelector.FeedUrl]: {
+					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
+					const limit = resolverContextRowLimit(context)
+					return (
+						((await getFeed(feedUrl, limit, context.publicEnv)).items ?? [])
+							.flatMap((feedItem) => {
+								const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
+								return identity == null ? [] : [{
+									[EntityMetaKey.Selector]: {
+										$feed: { feedUrl },
+										...identity,
+									},
+								}]
+							})
+					)
+				},
+				}
 			}
 		})({
 			$$items: (snapshot) => snapshot,
@@ -152,41 +158,43 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed_Timestamp,
 			resolve: {
-				[RssFeed_TimestampSelector.FeedTimestampMsSource]: async ({
-					$feed,
-					timestampMs,
-					source,
-				}, context) => {
-					if (source !== Source.Rss2Json_Rest)
-						throw new Error(`Rss2Json_Rest: unsupported source ${source}`)
+				[RssFeed_TimestampSelector.FeedTimestampMsSource]: {
+					resolve: async ({
+						$feed,
+						timestampMs,
+						source,
+					}, context) => {
+						if (source !== Source.Rss2Json_Rest)
+							throw new Error(`Rss2Json_Rest: unsupported source ${source}`)
 
-					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
-					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-					const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-					try {
-						return {
-							$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-							timestampMs,
-							source,
-							reachable: true,
-							observedItemCount: (await getFeed(
-								feedUrl,
-								50,
-								context.publicEnv
-							)).items?.length ?? 0,
-							fetchWindowKind: 'Feed',
+						const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+						const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+						const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
+						try {
+							return {
+								$feed: { [EntityMetaKey.Selector]: { feedUrl } },
+								timestampMs,
+								source,
+								reachable: true,
+								observedItemCount: (await getFeed(
+									feedUrl,
+									50,
+									context.publicEnv
+								)).items?.length ?? 0,
+								fetchWindowKind: 'Feed',
+							}
+						} catch (error) {
+							return {
+								$feed: { [EntityMetaKey.Selector]: { feedUrl } },
+								timestampMs,
+								source,
+								reachable: false,
+								observedItemCount: 0,
+								fetchWindowKind: 'Feed',
+								error: error instanceof Error ? error.message : String(error),
+							}
 						}
-					} catch (error) {
-						return {
-							$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-							timestampMs,
-							source,
-							reachable: false,
-							observedItemCount: 0,
-							fetchWindowKind: 'Feed',
-							error: error instanceof Error ? error.message : String(error),
-						}
-					}
+					},
 				},
 			},
 		})({
@@ -202,52 +210,54 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem_Timestamp,
 			resolve: {
-				[RssItem_TimestampSelector.ItemTimestampMsSource]: async ({
-					$item,
-					timestampMs,
-					source,
-				}, context) => {
-				if (source !== Source.Rss2Json_Rest)
-					throw new Error(`Rss2Json_Rest: unsupported source ${source}`)
+				[RssItem_TimestampSelector.ItemTimestampMsSource]: {
+					resolve: async ({
+						$item,
+						timestampMs,
+						source,
+					}, context) => {
+					if (source !== Source.Rss2Json_Rest)
+						throw new Error(`Rss2Json_Rest: unsupported source ${source}`)
 
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				try {
-					const feedItem = (
-						(await getFeed(
-							normalizeRssFeedUrl($item.$feed.feedUrl),
-							50,
-							context.publicEnv
-						)).items ?? []
-					).find((candidate) => (
-						((identity) => (
-							identity?.itemIdentityKind === $item.itemIdentityKind
-							&& identity.itemIdentity === $item.itemIdentity
-						))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-					))
-					return {
-						$item: { [EntityMetaKey.Selector]: $item },
-						timestampMs,
-						source,
-						observed: feedItem != null,
-						reachable: true,
-						fetchWindowKind: 'Feed',
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+					try {
+						const feedItem = (
+							(await getFeed(
+								normalizeRssFeedUrl($item.$feed.feedUrl),
+								50,
+								context.publicEnv
+							)).items ?? []
+						).find((candidate) => (
+							((identity) => (
+								identity?.itemIdentityKind === $item.itemIdentityKind
+								&& identity.itemIdentity === $item.itemIdentity
+							))(rssItemIdentityFromParts(candidate.guid, candidate.link))
+						))
+						return {
+							$item: { [EntityMetaKey.Selector]: $item },
+							timestampMs,
+							source,
+							observed: feedItem != null,
+							reachable: true,
+							fetchWindowKind: 'Feed',
+						}
+					} catch (error) {
+						return {
+							$item: { [EntityMetaKey.Selector]: $item },
+							timestampMs,
+							source,
+							observed: false,
+							reachable: false,
+							fetchWindowKind: 'Feed',
+							error: error instanceof Error ? error.message : String(error),
+						}
 					}
-				} catch (error) {
-					return {
-						$item: { [EntityMetaKey.Selector]: $item },
-						timestampMs,
-						source,
-						observed: false,
-						reachable: false,
-						fetchWindowKind: 'Feed',
-						error: error instanceof Error ? error.message : String(error),
-					}
+				},
 				}
-			}
 			}
 		})({
 			$item: (snapshot) => snapshot.$item,

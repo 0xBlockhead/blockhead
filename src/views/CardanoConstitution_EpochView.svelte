@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoConstitutionEpoch = $derived(selection({}))
+	const cardanoConstitutionEpoch = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano constitution epoch')
 	const viewDomId = $derived('cardano-constitution-epoch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoConstitutionEpoch}>
-			{#snippet Pending()}
-				{title || 'Cardano constitution epoch'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoConstitutionEpoch}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									epoch: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const epoch = pendingEntity.epoch}
-							{#if epoch !== undefined && epoch !== null}
-								{String((epoch) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const epoch = resolvedEntity.epoch}
@@ -133,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -160,24 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slot = pendingEntity.slot}
-					{#if slot !== undefined && slot !== null}
-						<div>
-							<dt>slot</dt>
-							<dd>
-								{String((slot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slot = resolvedEntity.slot}
@@ -195,31 +174,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							anchorUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const anchorUrl = pendingEntity.anchorUrl}
-					{#if anchorUrl !== undefined && anchorUrl !== null}
-						<div>
-							<dt>anchor URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(anchorUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(anchorUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const anchorUrl = resolvedEntity.anchorUrl}
@@ -244,24 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							anchorHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const anchorHash = pendingEntity.anchorHash}
-					{#if anchorHash !== undefined && anchorHash !== null}
-						<div>
-							<dt>anchor hash</dt>
-							<dd>
-								<TruncatedValue value={String((anchorHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const anchorHash = resolvedEntity.anchorHash}
@@ -279,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptHash = pendingEntity.scriptHash}
-					{#if scriptHash !== undefined && scriptHash !== null}
-						<div>
-							<dt>script hash</dt>
-							<dd>
-								<TruncatedValue value={String((scriptHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptHash = resolvedEntity.scriptHash}
@@ -314,31 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previousAnchorUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previousAnchorUrl = pendingEntity.previousAnchorUrl}
-					{#if previousAnchorUrl !== undefined && previousAnchorUrl !== null}
-						<div>
-							<dt>previous anchor URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(previousAnchorUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(previousAnchorUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previousAnchorUrl = resolvedEntity.previousAnchorUrl}
@@ -363,24 +284,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previousAnchorHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previousAnchorHash = pendingEntity.previousAnchorHash}
-					{#if previousAnchorHash !== undefined && previousAnchorHash !== null}
-						<div>
-							<dt>previous anchor hash</dt>
-							<dd>
-								<TruncatedValue value={String((previousAnchorHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previousAnchorHash = resolvedEntity.previousAnchorHash}

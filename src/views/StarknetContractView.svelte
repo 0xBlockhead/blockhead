@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const starknetContract = $derived(selection({
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract')
 	const viewDomId = $derived('starknet-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -78,37 +71,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetContract}>
-			{#snippet Pending()}
-				{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'starknet contract'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={starknetContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetContract}>
-			{#snippet Pending()}
-				<StarknetNetworkView
-					selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<StarknetNetworkView
-					selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<StarknetNetworkView
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={starknetContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<StarknetNetworkView
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,19 +123,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -175,11 +162,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -187,12 +171,12 @@
 
 				{#snippet SectionStarknetContractAccountStates({ id, label, open })}
 					<StarknetAccount_TimestampsView
-						selection={
-							selection.$$accountStates({
-								count: true,
-							})
-						}
+						selection={selection.$$accountStates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No account states.'
 						open={open}
 						title={label}
@@ -202,12 +186,12 @@
 
 				{#snippet SectionStarknetContractEvents({ id, label, open })}
 					<StarknetEventsView
-						selection={
-							selection.$$events({
-								count: true,
-							})
-						}
+						selection={selection.$$events}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No events.'
 						open={open}
 						title={label}
@@ -234,11 +218,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -246,12 +227,12 @@
 
 				{#snippet SectionStarknetContractStorage({ id, label, open })}
 					<StarknetStorageEntriesView
-						selection={
-							selection.$$storage({
-								count: true,
-							})
-						}
+						selection={selection.$$storage}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No storage.'
 						open={open}
 						title={label}
@@ -261,12 +242,12 @@
 
 				{#snippet SectionStarknetContractTransactions({ id, label, open })}
 					<StarknetTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions.'
 						open={open}
 						title={label}

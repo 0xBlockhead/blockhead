@@ -87,7 +87,6 @@ export const YoutubeComment = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Youtube_Rest,
-			Source.Piped_Rest,
 		],
 	},
 })({

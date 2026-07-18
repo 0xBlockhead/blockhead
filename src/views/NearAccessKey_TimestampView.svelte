@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearAccessKeyTimestamp = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			permission: true,
 			blockHeight: true,
@@ -74,58 +71,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearAccessKeyTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearAccessKeyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearAccessKeyTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'near access key timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearAccessKeyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearAccessKeyTimestamp}>
-			{#snippet Pending()}
-				{@const blockHeight0 = pendingEntity.blockHeight}
-				{#if blockHeight0 !== undefined && blockHeight0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(blockHeight0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const blockHeight0 = resolvedEntity.blockHeight}
-				{#if blockHeight0 !== undefined && blockHeight0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(blockHeight0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const blockHeight0 = pendingEntity.blockHeight}
+			{#if blockHeight0 !== undefined && blockHeight0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={blockHeight0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nearAccessKeyTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blockHeight0 = resolvedEntity.blockHeight}
+					{#if blockHeight0 !== undefined && blockHeight0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={blockHeight0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -177,19 +172,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -204,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockHeight = pendingEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
-						<div>
-							<dt>Block height</dt>
-							<dd>
-								<NumberValue value={Number(blockHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockHeight = resolvedEntity.blockHeight}
@@ -229,7 +207,9 @@
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								<NumberValue value={Number(blockHeight)} />
+								<NumberValue
+									value={blockHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -239,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockHash = pendingEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
-						<div>
-							<dt>Block hash</dt>
-							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockHash = resolvedEntity.blockHash}
@@ -274,27 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								<NumberValue value={Number(nonce)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonce = resolvedEntity.nonce}
@@ -302,7 +257,9 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								<NumberValue value={Number(nonce)} />
+								<NumberValue
+									value={nonce}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -312,27 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							permission: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const permission = pendingEntity.permission}
-					{#if permission !== undefined && permission !== null}
-						<div>
-							<dt>Permission</dt>
-							<dd>
-								{String((permission) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const permission = resolvedEntity.permission}
@@ -350,27 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							allowanceYoctoNear: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allowanceYoctoNear = pendingEntity.allowanceYoctoNear}
-					{#if allowanceYoctoNear !== undefined && allowanceYoctoNear !== null}
-						<div>
-							<dt>Allowance yocto near</dt>
-							<dd>
-								<NumberValue value={Number(allowanceYoctoNear)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allowanceYoctoNear = resolvedEntity.allowanceYoctoNear}
@@ -378,7 +307,9 @@
 						<div>
 							<dt>Allowance yocto near</dt>
 							<dd>
-								<NumberValue value={Number(allowanceYoctoNear)} />
+								<NumberValue
+									value={allowanceYoctoNear}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -388,27 +319,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							receiverId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const receiverId = pendingEntity.receiverId}
-					{#if receiverId !== undefined && receiverId !== null}
-						<div>
-							<dt>Receiver ID</dt>
-							<dd>
-								{String((receiverId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const receiverId = resolvedEntity.receiverId}
@@ -429,22 +346,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.NearRpc_JsonRpc,
-								],
+								sources: selection.sources,
 								fields: {
 									methodNames: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const methodNames = pendingEntity.methodNames}
-							{#if methodNames !== undefined && methodNames !== null}
-								{methodNames.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const methodNames = resolvedEntity.methodNames}

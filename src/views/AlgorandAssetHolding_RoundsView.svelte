@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandAssetHolding_RoundView from '$/views/AlgorandAssetHolding_RoundView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAssetHolding_Round}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandAssetHolding_Round}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandAssetHoldingRounds) => [...new Map(algorandAssetHoldingRounds.values.map((algorandAssetHoldingRound) => [algorandAssetHoldingRound[EntityMetaKey.SelectorKey], algorandAssetHoldingRound])).values()]}
+	getKey={(algorandAssetHoldingRound) => algorandAssetHoldingRound[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand asset holding rounds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandAssetHoldingRounds)}
-			{@const uniqueAlgorandAssetHoldingRounds = [...new Map(algorandAssetHoldingRounds.values.map((algorandAssetHoldingRound) => [algorandAssetHoldingRound[EntityMetaKey.SelectorKey], algorandAssetHoldingRound])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAssetHolding_Round}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandAssetHoldingRounds.totalCount}
-				getKey={(algorandAssetHoldingRound) => algorandAssetHoldingRound[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandAssetHoldingRounds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand asset holding rounds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandAssetHoldingRound })}
-					{@const algorandAssetHoldingRoundFields = { ...algorandAssetHoldingRound[EntityMetaKey.Selector], ...algorandAssetHoldingRound }}
-					{@const selection = select(EntityType.AlgorandAssetHolding_Round, algorandAssetHoldingRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandAssetHolding_RoundView
-						selection={selection}
-						prefetched={algorandAssetHoldingRoundFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandAssetHolding_Round}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandAssetHoldingRound })}
+		{@const algorandAssetHoldingRoundFields = { ...algorandAssetHoldingRound[EntityMetaKey.Selector], ...algorandAssetHoldingRound }}
+		{@const selection = select(EntityType.AlgorandAssetHolding_Round, algorandAssetHoldingRound[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandAssetHolding_RoundView
+			selection={selection}
+			prefetched={algorandAssetHoldingRoundFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

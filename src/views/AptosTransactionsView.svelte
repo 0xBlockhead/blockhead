@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosTransactionView from '$/views/AptosTransactionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					hash: true,
-					transactionKind: true,
-					version: true,
-					sender: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				hash: true,
+				transactionKind: true,
+				version: true,
+				sender: true,
+			},
+		})
+	}
+	getResourceItems={(aptosTransactions) => [...new Map(aptosTransactions.values.map((aptosTransaction) => [aptosTransaction[EntityMetaKey.SelectorKey], aptosTransaction])).values()]}
+	getKey={(aptosTransaction) => aptosTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosTransactions)}
-			{@const uniqueAptosTransactions = [...new Map(aptosTransactions.values.map((aptosTransaction) => [aptosTransaction[EntityMetaKey.SelectorKey], aptosTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosTransactions.totalCount}
-				getKey={(aptosTransaction) => aptosTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosTransaction })}
-					{@const aptosTransactionFields = { ...aptosTransaction[EntityMetaKey.Selector], ...aptosTransaction }}
-					{@const selection = select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosTransactionView
-						selection={selection}
-						prefetched={aptosTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosTransaction })}
+		{@const aptosTransactionFields = { ...aptosTransaction[EntityMetaKey.Selector], ...aptosTransaction }}
+		{@const selection = select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosTransactionView
+			selection={selection}
+			prefetched={aptosTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

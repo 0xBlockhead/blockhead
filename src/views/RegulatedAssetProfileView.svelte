@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const regulatedAssetProfile = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			standard: true,
 		},
@@ -77,24 +78,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={regulatedAssetProfile}>
-			{#snippet Pending()}
-				{[String((pendingEntity.standard) ?? '')].filter(Boolean).join(' ') || title || 'regulated asset profile'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.standard) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.standard) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={regulatedAssetProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.standard) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={regulatedAssetProfile}>
-			{#snippet Pending()}
-				<AssetInstanceView
-					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AssetInstanceView
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
+						href={
 						(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
@@ -105,16 +105,16 @@
 							network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AssetInstanceView
-					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={regulatedAssetProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AssetInstanceView
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
+						href={
 						(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
@@ -125,11 +125,12 @@
 							network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									standard: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const standard = pendingEntity.standard}
-							{#if standard !== undefined && standard !== null}
-								{String((standard) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const standard = resolvedEntity.standard}
@@ -211,11 +206,8 @@
 				}
 				data-card
 				class='network-view-collapsible-compliance'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Compliance</HeadingComponent>
 					</header>
@@ -223,12 +215,12 @@
 
 				{#snippet SectionRegulatedAssetClaimRequirements({ id, label, open })}
 					<ClaimTopicRequirementsView
-						selection={
-							selection.$$claimRequirements({
-								count: true,
-							})
-						}
+						selection={selection.$$claimRequirements}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No claim topic requirements.'
 						open={open}
 						title={label}
@@ -238,12 +230,12 @@
 
 				{#snippet SectionRegulatedAssetTrustedIssuers({ id, label, open })}
 					<TrustedIssuersView
-						selection={
-							selection.$$trustedIssuers({
-								count: true,
-							})
-						}
+						selection={selection.$$trustedIssuers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trusted issuers.'
 						open={open}
 						title={label}
@@ -253,12 +245,12 @@
 
 				{#snippet SectionRegulatedAssetComplianceModules({ id, label, open })}
 					<ComplianceModulesView
-						selection={
-							selection.$$complianceModules({
-								count: true,
-							})
-						}
+						selection={selection.$$complianceModules}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No compliance modules.'
 						open={open}
 						title={label}
@@ -285,11 +277,8 @@
 				}
 				data-card
 				class='network-view-collapsible-controls'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Controls</HeadingComponent>
 					</header>
@@ -297,12 +286,12 @@
 
 				{#snippet SectionRegulatedAssetIssuerPowers({ id, label, open })}
 					<IssuerPowersView
-						selection={
-							selection.$$issuerPowers({
-								count: true,
-							})
-						}
+						selection={selection.$$issuerPowers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No issuer powers.'
 						open={open}
 						title={label}
@@ -312,12 +301,12 @@
 
 				{#snippet SectionRegulatedAssetRestrictions({ id, label, open })}
 					<TransferRestrictionsView
-						selection={
-							selection.$$restrictions({
-								count: true,
-							})
-						}
+						selection={selection.$$restrictions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transfer restrictions.'
 						open={open}
 						title={label}
@@ -340,11 +329,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -352,12 +338,12 @@
 
 				{#snippet SectionRegulatedAssetTimestamps({ id, label, open })}
 					<RegulatedAssetProfile_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No regulated asset profile observations.'
 						open={open}
 						title={label}

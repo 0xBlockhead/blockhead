@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinMessageReceiptView from '$/views/FilecoinMessageReceiptView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					tipsetKey: true,
-					exitCode: true,
-					gasUsed: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinMessageReceipt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinMessageReceipt}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				tipsetKey: true,
+				exitCode: true,
+				gasUsed: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinMessageReceipts) => [...new Map(filecoinMessageReceipts.values.map((filecoinMessageReceipt) => [filecoinMessageReceipt[EntityMetaKey.SelectorKey], filecoinMessageReceipt])).values()]}
+	getKey={(filecoinMessageReceipt) => filecoinMessageReceipt[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin message receipts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinMessageReceipts)}
-			{@const uniqueFilecoinMessageReceipts = [...new Map(filecoinMessageReceipts.values.map((filecoinMessageReceipt) => [filecoinMessageReceipt[EntityMetaKey.SelectorKey], filecoinMessageReceipt])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinMessageReceipt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinMessageReceipts.totalCount}
-				getKey={(filecoinMessageReceipt) => filecoinMessageReceipt[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinMessageReceipts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin message receipts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinMessageReceipt })}
-					{@const filecoinMessageReceiptFields = { ...filecoinMessageReceipt[EntityMetaKey.Selector], ...filecoinMessageReceipt }}
-					{@const selection = select(EntityType.FilecoinMessageReceipt, filecoinMessageReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinMessageReceiptView
-						selection={selection}
-						prefetched={filecoinMessageReceiptFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinMessageReceipt}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinMessageReceipt })}
+		{@const filecoinMessageReceiptFields = { ...filecoinMessageReceipt[EntityMetaKey.Selector], ...filecoinMessageReceipt }}
+		{@const selection = select(EntityType.FilecoinMessageReceipt, filecoinMessageReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinMessageReceiptView
+			selection={selection}
+			prefetched={filecoinMessageReceiptFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

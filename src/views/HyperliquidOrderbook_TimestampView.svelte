@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidOrderbookTimestamp = $derived(selection({}))
+	const hyperliquidOrderbookTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid orderbook timestamp')
 	const viewDomId = $derived('hyperliquid-orderbook-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidOrderbookTimestamp}>
-			{#snippet Pending()}
-				{title || 'hyperliquid orderbook timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidOrderbookTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									bookKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const bookKey = pendingEntity.bookKey}
-							{#if bookKey !== undefined && bookKey !== null}
-								{String((bookKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const bookKey = resolvedEntity.bookKey}
@@ -134,19 +130,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -164,19 +154,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -191,8 +175,6 @@
 			<ResourceBoundary
 				resource={selection.$perpMarket}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidPerpMarket)}
 					{#if hyperliquidPerpMarket != null && hyperliquidPerpMarket[EntityMetaKey.Selector] != null}
 						<div>
@@ -213,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$spotPair}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidSpotPair)}
 					{#if hyperliquidSpotPair != null && hyperliquidSpotPair[EntityMetaKey.Selector] != null}
 						<div>
@@ -235,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nSigFigs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nSigFigs = pendingEntity.nSigFigs}
-					{#if nSigFigs !== undefined && nSigFigs !== null}
-						<div>
-							<dt>n sig figs</dt>
-							<dd>
-								{String((nSigFigs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nSigFigs = resolvedEntity.nSigFigs}
@@ -270,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mantissa: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mantissa = pendingEntity.mantissa}
-					{#if mantissa !== undefined && mantissa !== null}
-						<div>
-							<dt>mantissa</dt>
-							<dd>
-								{String((mantissa) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mantissa = resolvedEntity.mantissa}
@@ -305,24 +263,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							depthLimit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const depthLimit = pendingEntity.depthLimit}
-					{#if depthLimit !== undefined && depthLimit !== null}
-						<div>
-							<dt>depth limit</dt>
-							<dd>
-								{String((depthLimit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const depthLimit = resolvedEntity.depthLimit}

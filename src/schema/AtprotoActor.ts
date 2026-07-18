@@ -30,37 +30,6 @@ export const AtprotoActor = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	displayName: {
-		label: 'Display name',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	description: {
-		label: 'Description',
-		description: 'The profile description from the current appview profile record.',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	indexedAt: {
-		label: 'Indexed',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$icon: {
-		label: 'Avatar',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$banner: {
-		label: 'Banner',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	$$timestamps: {
 		label: 'Metric observations',
 		type: EntityFieldType.EntitiesReference,

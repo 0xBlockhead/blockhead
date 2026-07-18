@@ -55,12 +55,6 @@ export const CosmosBlock = entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$transactions: {
-		label: 'Transactions',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.CosmosTransaction,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		NetworkHeight: [

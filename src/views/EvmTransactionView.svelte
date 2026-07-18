@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import Projection from '$/components/Projection.svelte'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -13,7 +14,6 @@
 	import { EvmTransactionEnvelopeType, EvmTransactionExecutionStatus, EvmTransactionKind } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -47,13 +47,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmTransaction = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-			Source.EnvioHyperRpc_JsonRpc,
-			Source.GetBlockRpc_JsonRpc,
-			Source.GoldRushFoundational_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			kind: true,
 			value: true,
@@ -103,41 +97,41 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmTransaction}>
-			{#snippet Pending()}
-				{@const txHash0 = pendingEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txHash0 = resolvedEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const txHash0 = pendingEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const txHash0 = resolvedEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmTransaction}>
-			{#snippet Pending()}
-				{@const txHash0 = pendingEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txHash0 = resolvedEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const txHash0 = pendingEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const txHash0 = resolvedEntity.txHash}
+					{#if txHash0 !== undefined && txHash0 !== null}
+						<TruncatedValue value={String((txHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -151,8 +145,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -207,8 +199,6 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -238,8 +228,6 @@
 					<ResourceBoundary
 						resource={projection.$contract}
 					>
-						{#snippet Pending()}{/snippet}
-
 						{#snippet children(evmContract)}
 							{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 								<div>
@@ -276,19 +264,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									kind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const kind = pendingEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const kind = resolvedEntity.kind}
@@ -306,24 +288,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									value: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const value = pendingEntity.value}
-							{#if value !== undefined && value !== null}
-								<NumberValue value={Number(value)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const value = resolvedEntity.value}
 							{#if value !== undefined && value !== null}
-								<NumberValue value={Number(value)} />
+								<NumberValue
+									value={value}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -333,24 +311,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							executionStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const executionStatus = pendingEntity.executionStatus}
-					{#if executionStatus !== undefined && executionStatus !== null}
-						<div>
-							<dt>Status</dt>
-							<dd>
-								{String((executionStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const executionStatus = resolvedEntity.executionStatus}
@@ -368,24 +335,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>Gas used</dt>
-							<dd>
-								<NumberValue value={Number(gasUsed)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -393,7 +349,9 @@
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								<NumberValue value={Number(gasUsed)} />
+								<NumberValue
+									value={gasUsed}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -404,24 +362,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								gas: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const gas = pendingEntity.gas}
-						{#if gas !== undefined && gas !== null}
-							<div>
-								<dt>Gas limit</dt>
-								<dd>
-									<NumberValue value={Number(gas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const gas = resolvedEntity.gas}
@@ -429,7 +376,9 @@
 							<div>
 								<dt>Gas limit</dt>
 								<dd>
-									<NumberValue value={Number(gas)} />
+									<NumberValue
+										value={gas}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -441,24 +390,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								gasPrice: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const gasPrice = pendingEntity.gasPrice}
-						{#if gasPrice !== undefined && gasPrice !== null}
-							<div>
-								<dt>Gas price</dt>
-								<dd>
-									<NumberValue value={Number(gasPrice)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const gasPrice = resolvedEntity.gasPrice}
@@ -466,7 +404,9 @@
 							<div>
 								<dt>Gas price</dt>
 								<dd>
-									<NumberValue value={Number(gasPrice)} />
+									<NumberValue
+										value={gasPrice}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -478,24 +418,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								effectiveGasPrice: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const effectiveGasPrice = pendingEntity.effectiveGasPrice}
-						{#if effectiveGasPrice !== undefined && effectiveGasPrice !== null}
-							<div>
-								<dt>Effective gas price</dt>
-								<dd>
-									<NumberValue value={Number(effectiveGasPrice)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const effectiveGasPrice = resolvedEntity.effectiveGasPrice}
@@ -503,7 +432,9 @@
 							<div>
 								<dt>Effective gas price</dt>
 								<dd>
-									<NumberValue value={Number(effectiveGasPrice)} />
+									<NumberValue
+										value={effectiveGasPrice}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -517,21 +448,16 @@
 				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
-							resource={
-								projection.maxFeePerGas({
-									fields: {
-										maxFeePerGas: true,
-									},
-								})
-							}
+							resource={projection.maxFeePerGas}
 						>
-							{#snippet Pending()}{/snippet}
 							{#snippet children(maxFeePerGas)}
 								{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
 									<div>
 										<dt>Max fee</dt>
 										<dd>
-											<NumberValue value={Number(maxFeePerGas)} />
+											<NumberValue
+												value={maxFeePerGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -541,21 +467,16 @@
 
 					{#if contentOpen}
 						<ResourceBoundary
-							resource={
-								projection.maxPriorityFeePerGas({
-									fields: {
-										maxPriorityFeePerGas: true,
-									},
-								})
-							}
+							resource={projection.maxPriorityFeePerGas}
 						>
-							{#snippet Pending()}{/snippet}
 							{#snippet children(maxPriorityFeePerGas)}
 								{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
 									<div>
 										<dt>Priority fee</dt>
 										<dd>
-											<NumberValue value={Number(maxPriorityFeePerGas)} />
+											<NumberValue
+												value={maxPriorityFeePerGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -569,24 +490,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								cumulativeGasUsed: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const cumulativeGasUsed = pendingEntity.cumulativeGasUsed}
-						{#if cumulativeGasUsed !== undefined && cumulativeGasUsed !== null}
-							<div>
-								<dt>Cumulative gas used</dt>
-								<dd>
-									<NumberValue value={Number(cumulativeGasUsed)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const cumulativeGasUsed = resolvedEntity.cumulativeGasUsed}
@@ -594,7 +504,9 @@
 							<div>
 								<dt>Cumulative gas used</dt>
 								<dd>
-									<NumberValue value={Number(cumulativeGasUsed)} />
+									<NumberValue
+										value={cumulativeGasUsed}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -609,19 +521,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
+									sources: selection.sources,
 									fields: {
 										envelopeType: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const envelopeType = pendingEntity.envelopeType}
-								{#if envelopeType !== undefined && envelopeType !== null}
-									{String((envelopeType) ?? '')}
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const envelopeType = resolvedEntity.envelopeType}
@@ -638,24 +544,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								nonce: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const nonce = pendingEntity.nonce}
-						{#if nonce !== undefined && nonce !== null}
-							<div>
-								<dt>Nonce</dt>
-								<dd>
-									{String((nonce) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const nonce = resolvedEntity.nonce}
@@ -675,24 +570,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								indexInBlock: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const indexInBlock = pendingEntity.indexInBlock}
-						{#if indexInBlock !== undefined && indexInBlock !== null}
-							<div>
-								<dt>Index in block</dt>
-								<dd>
-									{String((indexInBlock) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const indexInBlock = resolvedEntity.indexInBlock}
@@ -714,24 +598,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								input: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const input = pendingEntity.input}
-						{#if input !== undefined && input !== null}
-							<div>
-								<dt>Input data</dt>
-								<dd>
-									<TruncatedValue value={String((input) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const input = resolvedEntity.input}
@@ -751,24 +624,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								r: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const r = pendingEntity.r}
-						{#if r !== undefined && r !== null}
-							<div>
-								<dt>Signature r</dt>
-								<dd>
-									<TruncatedValue value={String((r) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const r = resolvedEntity.r}
@@ -788,24 +650,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								s: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const s = pendingEntity.s}
-						{#if s !== undefined && s !== null}
-							<div>
-								<dt>Signature s</dt>
-								<dd>
-									<TruncatedValue value={String((s) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const s = resolvedEntity.s}
@@ -825,24 +676,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								v: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const v = pendingEntity.v}
-						{#if v !== undefined && v !== null}
-							<div>
-								<dt>Signature v</dt>
-								<dd>
-									{String((v) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const v = resolvedEntity.v}
@@ -864,21 +704,16 @@
 				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
-							resource={
-								projection.blobGasUsed({
-									fields: {
-										blobGasUsed: true,
-									},
-								})
-							}
+							resource={projection.blobGasUsed}
 						>
-							{#snippet Pending()}{/snippet}
 							{#snippet children(blobGasUsed)}
 								{#if blobGasUsed !== undefined && blobGasUsed !== null}
 									<div>
 										<dt>Blob gas used</dt>
 										<dd>
-											<NumberValue value={Number(blobGasUsed)} />
+											<NumberValue
+												value={blobGasUsed}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -888,21 +723,16 @@
 
 					{#if contentOpen}
 						<ResourceBoundary
-							resource={
-								projection.maxFeePerBlobGas({
-									fields: {
-										maxFeePerBlobGas: true,
-									},
-								})
-							}
+							resource={projection.maxFeePerBlobGas}
 						>
-							{#snippet Pending()}{/snippet}
 							{#snippet children(maxFeePerBlobGas)}
 								{#if maxFeePerBlobGas !== undefined && maxFeePerBlobGas !== null}
 									<div>
 										<dt>Max fee per blob gas</dt>
 										<dd>
-											<NumberValue value={Number(maxFeePerBlobGas)} />
+											<NumberValue
+												value={maxFeePerBlobGas}
+											/>
 										</dd>
 									</div>
 								{/if}
@@ -933,11 +763,8 @@
 				}
 				data-card
 				class='network-view-collapsible-transfers'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Transfers</HeadingComponent>
 					</header>
@@ -945,12 +772,12 @@
 
 				{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
 					<EvmTokenTransfersView
-						selection={
-							selection.$$tokenTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$tokenTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No token transfers.'
 						open={open}
 						title={label}
@@ -960,12 +787,12 @@
 
 				{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
 					<EvmInternalTransfersView
-						selection={
-							selection.$$internalTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$internalTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No internal transfers.'
 						open={open}
 						title={label}
@@ -996,11 +823,8 @@
 				}
 				data-card
 				class='network-view-collapsible-execution'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Execution</HeadingComponent>
 					</header>
@@ -1008,12 +832,12 @@
 
 				{#snippet SectionEvmTxLogs({ id, label, open })}
 					<EvmLogsView
-						selection={
-							selection.$$logs({
-								count: true,
-							})
-						}
+						selection={selection.$$logs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No logs.'
 						open={open}
 						title={label}
@@ -1023,12 +847,12 @@
 
 				{#snippet SectionEvmTxTraces({ id, label, open })}
 					<EvmTracesView
-						selection={
-							selection.$$traces({
-								count: true,
-							})
-						}
+						selection={selection.$$traces}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No traces.'
 						open={open}
 						title={label}
@@ -1037,24 +861,28 @@
 				{/snippet}
 
 				{#snippet SectionEvmTxBlobs({ id, label, open })}
-					<ProjectionBoundary
+					<ResourceBoundary
 						resource={selection.Blob}
 					>
-						{#snippet Applicable(projection)}
-							<EvmBlobsView
-								selection={
-									projection.$$blobs({
-										count: true,
-									})
-								}
-								CollapsibleProps={{ canToggle: false }}
-								emptyText='No blobs.'
-								open={open}
-								title={label}
-								id={`${id}-list`}
-							/>
+						{#snippet children(projectionValue)}
+							<Projection projection={projectionValue}>
+								{#snippet Applicable(projection)}
+									<EvmBlobsView
+										selection={projection.$$blobs}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										emptyText='No blobs.'
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/snippet}
+							</Projection>
 						{/snippet}
-					</ProjectionBoundary>
+					</ResourceBoundary>
 				{/snippet}
 
 			</CollapsibleTabs>
@@ -1076,11 +904,8 @@
 				}
 				data-card
 				class='network-view-collapsible-account-abstraction'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Account abstraction</HeadingComponent>
 					</header>
@@ -1088,12 +913,12 @@
 
 				{#snippet SectionEvmTxUserOperations({ id, label, open })}
 					<EvmUserOperationsView
-						selection={
-							selection.$$userOperations({
-								count: true,
-							})
-						}
+						selection={selection.$$userOperations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No user operations.'
 						open={open}
 						title={label}
@@ -1102,24 +927,28 @@
 				{/snippet}
 
 				{#snippet SectionEvmTxAuthorizations({ id, label, open })}
-					<ProjectionBoundary
+					<ResourceBoundary
 						resource={selection.SetCode}
 					>
-						{#snippet Applicable(projection)}
-							<Eip7702AuthorizationsView
-								selection={
-									projection.$$authorizations({
-										count: true,
-									})
-								}
-								CollapsibleProps={{ canToggle: false }}
-								emptyText='No authorizations.'
-								open={open}
-								title={label}
-								id={`${id}-list`}
-							/>
+						{#snippet children(projectionValue)}
+							<Projection projection={projectionValue}>
+								{#snippet Applicable(projection)}
+									<Eip7702AuthorizationsView
+										selection={projection.$$authorizations}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										emptyText='No authorizations.'
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/snippet}
+							</Projection>
 						{/snippet}
-					</ProjectionBoundary>
+					</ResourceBoundary>
 				{/snippet}
 
 			</CollapsibleTabs>

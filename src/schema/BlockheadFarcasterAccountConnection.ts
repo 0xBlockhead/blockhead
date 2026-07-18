@@ -10,7 +10,7 @@ export enum BlockheadFarcasterConnectionAuthMethod {
 	AuthAddress = 'authAddress',
 }
 export enum BlockheadFarcasterAccountConnectionSelector {
-	Fid = 'Fid',
+	ConnectionId = 'ConnectionId',
 }
 export const BlockheadFarcasterAccountConnection = entity({
 	entityType: EntityType.BlockheadFarcasterAccountConnection,
@@ -19,53 +19,23 @@ export const BlockheadFarcasterAccountConnection = entity({
 		plural: 'Blockhead Farcaster account connections',
 	},
 })({
-	fid: {
-		label: 'FID',
+	connectionId: {
+		label: 'Connection ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	username: {
-		label: 'Username',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	displayName: {
-		label: 'Display name',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	iconUrl: {
-		label: 'Icon URL',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$icon: {
-		label: 'Icon',
+	$user: {
+		label: 'Farcaster user',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		entityType: EntityType.FarcasterUser,
+		cardinality: EntityFieldCardinality.One,
 	},
-	bio: {
-		label: 'Bio',
+	signerAddress: {
+		label: 'Verified signer',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	verifications: {
-		label: 'Verifications',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string').array(),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	custody: {
-		label: 'Custody',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	authMethod: {
 		label: 'Auth method',
@@ -73,16 +43,34 @@ export const BlockheadFarcasterAccountConnection = entity({
 		primitiveType: type.enumerated(...Object.values(BlockheadFarcasterConnectionAuthMethod)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	signedAt: {
-		label: 'Signed',
+	verifiedAt: {
+		label: 'Verified',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
+	},
+	expiresAt: {
+		label: 'Expires',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	associationFingerprint: {
+		label: 'Association fingerprint',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	selected: {
+		label: 'Selected viewer',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
 	},
 })({
 	selectors: {
-		Fid: [
-			'fid',
+		ConnectionId: [
+			'connectionId',
 		],
 	},
 })

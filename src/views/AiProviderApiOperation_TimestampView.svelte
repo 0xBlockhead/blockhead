@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiProviderApiOperationTimestamp = $derived(selection({
-		sources: [
-			Source.Anthropic_Rest,
-			Source.OpenAI_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			availabilityStatus: true,
 			error: true,
@@ -73,60 +69,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
-			{#snippet Pending()}
-				<AiProviderApiOperationView
-					selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AiProviderApiOperationView
-					selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AiProviderApiOperationView
+						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AiProviderApiOperationView
+						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || title || 'AI provider API operation timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
-			{#snippet Pending()}
-				{@const error0 = pendingEntity.error}
-				{#if error0 !== undefined && error0 !== null}
-					<span data-text="muted">
-						{String((error0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const error0 = resolvedEntity.error}
-				{#if error0 !== undefined && error0 !== null}
-					<span data-text="muted">
-						{String((error0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const error0 = pendingEntity.error}
+			{#if error0 !== undefined && error0 !== null}
+				<span data-text="muted">
+					{String((error0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const error0 = resolvedEntity.error}
+					{#if error0 !== undefined && error0 !== null}
+						<span data-text="muted">
+							{String((error0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -178,19 +168,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -207,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							availabilityStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const availabilityStatus = pendingEntity.availabilityStatus}
-					{#if availabilityStatus !== undefined && availabilityStatus !== null}
-						<div>
-							<dt>availability status</dt>
-							<dd>
-								{String((availabilityStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const availabilityStatus = resolvedEntity.availabilityStatus}
@@ -242,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supportedStreaming: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supportedStreaming = pendingEntity.supportedStreaming}
-					{#if supportedStreaming !== undefined && supportedStreaming !== null}
-						<div>
-							<dt>supported streaming</dt>
-							<dd>
-								{supportedStreaming ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supportedStreaming = resolvedEntity.supportedStreaming}
@@ -277,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supportedToolUse: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supportedToolUse = pendingEntity.supportedToolUse}
-					{#if supportedToolUse !== undefined && supportedToolUse !== null}
-						<div>
-							<dt>supported tool use</dt>
-							<dd>
-								{supportedToolUse ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supportedToolUse = resolvedEntity.supportedToolUse}
@@ -312,24 +263,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supportedStructuredOutput: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supportedStructuredOutput = pendingEntity.supportedStructuredOutput}
-					{#if supportedStructuredOutput !== undefined && supportedStructuredOutput !== null}
-						<div>
-							<dt>supported structured output</dt>
-							<dd>
-								{supportedStructuredOutput ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supportedStructuredOutput = resolvedEntity.supportedStructuredOutput}
@@ -347,24 +287,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supportedJsonMode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supportedJsonMode = pendingEntity.supportedJsonMode}
-					{#if supportedJsonMode !== undefined && supportedJsonMode !== null}
-						<div>
-							<dt>supported JSON mode</dt>
-							<dd>
-								{supportedJsonMode ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supportedJsonMode = resolvedEntity.supportedJsonMode}
@@ -382,24 +311,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

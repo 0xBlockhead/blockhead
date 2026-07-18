@@ -52,7 +52,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmLogView from '$/views/EvmLogView.svelte'
 </script>
@@ -74,93 +73,59 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				fields: {
-					indexInTransaction: true,
-					data: true,
-					$transaction: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmLog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmLog}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			sources: [
+				Source.Blockscout_Rest,
+			],
+			fields: {
+				indexInTransaction: true,
+				data: true,
+				$transaction: true,
+			},
+		})
+	}
+	getResourceItems={(evmLogs) => [...new Map(evmLogs.values.map((evmLog) => [evmLog[EntityMetaKey.SelectorKey], evmLog])).values()]}
+	getKey={(evmLog) => evmLog[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM logs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmLogs)}
-			{@const uniqueEvmLogs = [...new Map(evmLogs.values.map((evmLog) => [evmLog[EntityMetaKey.SelectorKey], evmLog])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmLog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmLogs.totalCount}
-				getKey={(evmLog) => evmLog[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmLogs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM logs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmLog })}
-					{@const evmLogFields = { ...evmLog[EntityMetaKey.Selector], ...evmLog }}
-					{@const selection = select(EntityType.EvmLog, evmLog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmLogHrefFields = { ...evmLog, ...evmLog[EntityMetaKey.Selector] }}
-					<EvmLogView
-						selection={selection}
-						prefetched={evmLogFields}
-						href={
-							(evmLogHrefFields.indexInTransaction !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
-								indexInTransaction: String(evmLogHrefFields.indexInTransaction ?? ''),
-								transactionId: String(evmLogHrefFields.$transaction.txHash ?? ''),
-								network: String(caip2StringFromValue(evmLogHrefFields.$transaction.$network.caip2) ?? ''),
-							}) : evmLogHrefFields.indexInTransaction !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
-								indexInTransaction: String(evmLogHrefFields.indexInTransaction ?? ''),
-								transactionId: String(evmLogHrefFields.$transaction.txHash ?? ''),
-								network: String(evmLogHrefFields.$transaction.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmLog}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: evmLog })}
+		{@const evmLogFields = { ...evmLog[EntityMetaKey.Selector], ...evmLog }}
+		{@const selection = select(EntityType.EvmLog, evmLog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmLogHrefFields = { ...evmLog, ...evmLog[EntityMetaKey.Selector] }}
+		<EvmLogView
+			selection={selection}
+			prefetched={evmLogFields}
+			href={
+				(evmLogHrefFields.indexInTransaction !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
+					indexInTransaction: String(evmLogHrefFields.indexInTransaction ?? ''),
+					transactionId: String(evmLogHrefFields.$transaction.txHash ?? ''),
+					network: String(caip2StringFromValue(evmLogHrefFields.$transaction.$network.caip2) ?? ''),
+				}) : evmLogHrefFields.indexInTransaction !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
+					indexInTransaction: String(evmLogHrefFields.indexInTransaction ?? ''),
+					transactionId: String(evmLogHrefFields.$transaction.txHash ?? ''),
+					network: String(evmLogHrefFields.$transaction.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

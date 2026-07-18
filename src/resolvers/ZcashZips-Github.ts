@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
@@ -51,21 +55,29 @@ export default {
 		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const { getProposalRstText } = await import('$/sources/ZcashZips/Github/queries.ts')
-				if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip) {
-					throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Zcash,
+							category: OwnedProposalCategory.Zip,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					const { getProposalRstText } = await import('$/sources/ZcashZips/Github/queries.ts')
+					if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip) {
+						throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
+					}
+					const text = await getProposalRstText({ number: number })
+					if (text.trim() === '') throw new Error('ZcashZips_Github: empty proposal text')
+					return {
+						documentCategory: zipMetadataValue(text, 'Category'),
+						documentTitle: zipMetadataValue(text, 'Title'),
+						documentStatus: zipMetadataValue(text, 'Status'),
+						documentBody: text,
+					}
+				},
 				}
-				const text = await getProposalRstText({ number: number })
-				if (text.trim() === '') throw new Error('ZcashZips_Github: empty proposal text')
-				return {
-					documentCategory: zipMetadataValue(text, 'Category'),
-					documentTitle: zipMetadataValue(text, 'Title'),
-					documentStatus: zipMetadataValue(text, 'Status'),
-					documentBody: text,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -77,10 +89,12 @@ export default {
 		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
-				return githubZipProposalIndexRows(await getContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
+					return githubZipProposalIndexRows(await getContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

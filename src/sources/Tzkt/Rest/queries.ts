@@ -1,4 +1,5 @@
 import { getJson } from '$/lib/http.ts'
+import { type as arktype, type Type } from 'arktype'
 import type {
 	TzktBigMap,
 	TzktBigMapKey,
@@ -7,6 +8,12 @@ import type {
 	TzktContract,
 	TzktOperation,
 } from '$/sources/Tzkt/Rest/types.ts'
+
+const tzktBlock = arktype({
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	hash: 'string',
+}) satisfies Type<TzktBlock>
 
 export const tzktRestEndpoints = [
 	{
@@ -165,10 +172,10 @@ export const getBlock = ({
 	restBaseUrl: string
 	level: bigint | number
 }) => (
-	getJson<TzktBlock>(
+	getJson<unknown>(
 		`${base(restBaseUrl)}/v1/blocks/${String(level)}`,
 		{ origins: tzktOrigins }
-	)
+	).then((wire) => tzktBlock.assert(wire))
 )
 
 export const listOperationsByHash = ({

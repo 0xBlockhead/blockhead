@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionActionView from '$/views/BlockheadSessionActionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					actionType: true,
-					selectedProtocol: true,
-					indexInSequence: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSessionAction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				actionType: true,
+				selectedProtocol: true,
+				indexInSequence: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSessionActions) => [...new Map(blockheadSessionActions.values.map((blockheadSessionAction) => [blockheadSessionAction[EntityMetaKey.SelectorKey], blockheadSessionAction])).values()]}
+	getKey={(blockheadSessionAction) => blockheadSessionAction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead session actions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSessionActions)}
-			{@const uniqueBlockheadSessionActions = [...new Map(blockheadSessionActions.values.map((blockheadSessionAction) => [blockheadSessionAction[EntityMetaKey.SelectorKey], blockheadSessionAction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSessionActions.totalCount}
-				getKey={(blockheadSessionAction) => blockheadSessionAction[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSessionActions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead session actions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSessionAction })}
-					{@const blockheadSessionActionFields = { ...blockheadSessionAction[EntityMetaKey.Selector], ...blockheadSessionAction }}
-					{@const selection = select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSessionActionView
-						selection={selection}
-						prefetched={blockheadSessionActionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSessionAction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSessionAction })}
+		{@const blockheadSessionActionFields = { ...blockheadSessionAction[EntityMetaKey.Selector], ...blockheadSessionAction }}
+		{@const selection = select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSessionActionView
+			selection={selection}
+			prefetched={blockheadSessionActionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

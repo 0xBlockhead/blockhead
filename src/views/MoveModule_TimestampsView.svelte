@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoveModule_TimestampView from '$/views/MoveModule_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					ledgerVersion: true,
-					packageVersion: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveModule_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoveModule_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				ledgerVersion: true,
+				packageVersion: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(moveModuleTimestamps) => [...new Map(moveModuleTimestamps.values.map((moveModuleTimestamp) => [moveModuleTimestamp[EntityMetaKey.SelectorKey], moveModuleTimestamp])).values()]}
+	getKey={(moveModuleTimestamp) => moveModuleTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Move module observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moveModuleTimestamps)}
-			{@const uniqueMoveModuleTimestamps = [...new Map(moveModuleTimestamps.values.map((moveModuleTimestamp) => [moveModuleTimestamp[EntityMetaKey.SelectorKey], moveModuleTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveModule_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moveModuleTimestamps.totalCount}
-				getKey={(moveModuleTimestamp) => moveModuleTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMoveModuleTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Move module observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moveModuleTimestamp })}
-					{@const moveModuleTimestampFields = { ...moveModuleTimestamp[EntityMetaKey.Selector], ...moveModuleTimestamp }}
-					{@const selection = select(EntityType.MoveModule_Timestamp, moveModuleTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoveModule_TimestampView
-						selection={selection}
-						prefetched={moveModuleTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoveModule_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moveModuleTimestamp })}
+		{@const moveModuleTimestampFields = { ...moveModuleTimestamp[EntityMetaKey.Selector], ...moveModuleTimestamp }}
+		{@const selection = select(EntityType.MoveModule_Timestamp, moveModuleTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoveModule_TimestampView
+			selection={selection}
+			prefetched={moveModuleTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

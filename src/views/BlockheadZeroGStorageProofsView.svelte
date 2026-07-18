@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZeroGStorageProofView from '$/views/BlockheadZeroGStorageProofView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					proofId: true,
-					verified: true,
-					proofKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZeroGStorageProof}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				proofId: true,
+				verified: true,
+				proofKind: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZeroGStorageProofs) => [...new Map(blockheadZeroGStorageProofs.values.map((blockheadZeroGStorageProof) => [blockheadZeroGStorageProof[EntityMetaKey.SelectorKey], blockheadZeroGStorageProof])).values()]}
+	getKey={(blockheadZeroGStorageProof) => blockheadZeroGStorageProof[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zero g storage proofs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZeroGStorageProofs)}
-			{@const uniqueBlockheadZeroGStorageProofs = [...new Map(blockheadZeroGStorageProofs.values.map((blockheadZeroGStorageProof) => [blockheadZeroGStorageProof[EntityMetaKey.SelectorKey], blockheadZeroGStorageProof])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZeroGStorageProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZeroGStorageProofs.totalCount}
-				getKey={(blockheadZeroGStorageProof) => blockheadZeroGStorageProof[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZeroGStorageProofs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zero g storage proofs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZeroGStorageProof })}
-					{@const blockheadZeroGStorageProofFields = { ...blockheadZeroGStorageProof[EntityMetaKey.Selector], ...blockheadZeroGStorageProof }}
-					{@const selection = select(EntityType.BlockheadZeroGStorageProof, blockheadZeroGStorageProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZeroGStorageProofView
-						selection={selection}
-						prefetched={blockheadZeroGStorageProofFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZeroGStorageProof}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZeroGStorageProof })}
+		{@const blockheadZeroGStorageProofFields = { ...blockheadZeroGStorageProof[EntityMetaKey.Selector], ...blockheadZeroGStorageProof }}
+		{@const selection = select(EntityType.BlockheadZeroGStorageProof, blockheadZeroGStorageProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZeroGStorageProofView
+			selection={selection}
+			prefetched={blockheadZeroGStorageProofFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

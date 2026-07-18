@@ -4,7 +4,9 @@
 
 import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import {
+	CoinInstanceType,
+} from '$/schema/EvmCoinInstance.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -15,7 +17,42 @@ import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 
-type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
+type EvmNetworkEntitySelector = Extract<
+	EntitySelector<typeof schema, EntityType.Network>,
+	{ readonly caip2: unknown }
+>
+
+export type CoinInstanceEntitySelector =
+	| (
+		Omit<
+			Exclude<
+				EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
+				{ readonly $contract: unknown }
+			>,
+			'$network' | 'type'
+		>
+		& {
+			readonly $network: EvmNetworkEntitySelector
+			readonly type: CoinInstanceType.NativeCurrency
+		}
+	)
+	| (
+		Omit<
+			Extract<
+				EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
+				{ readonly $contract: unknown }
+			>,
+			'$contract' | '$network' | 'type'
+		>
+		& {
+			readonly $contract: Extract<
+				EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
+				{ readonly $contract: unknown }
+			>['$contract']
+			readonly $network: EvmNetworkEntitySelector
+			readonly type: CoinInstanceType.Erc20Token
+		}
+	)
 
 export type CoinInstanceStub = {
 	[EntityMetaKey.Selector]: CoinInstanceEntitySelector

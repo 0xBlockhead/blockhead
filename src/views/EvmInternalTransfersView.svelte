@@ -52,7 +52,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmInternalTransferView from '$/views/EvmInternalTransferView.svelte'
 </script>
@@ -70,95 +69,61 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				fields: {
-					indexInTransaction: true,
-					callType: true,
-					value: true,
-					success: true,
-					$transaction: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmInternalTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmInternalTransfer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			sources: [
+				Source.Blockscout_Rest,
+			],
+			fields: {
+				indexInTransaction: true,
+				callType: true,
+				value: true,
+				success: true,
+				$transaction: true,
+			},
+		})
+	}
+	getResourceItems={(evmInternalTransfers) => [...new Map(evmInternalTransfers.values.map((evmInternalTransfer) => [evmInternalTransfer[EntityMetaKey.SelectorKey], evmInternalTransfer])).values()]}
+	getKey={(evmInternalTransfer) => evmInternalTransfer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM internal transfers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmInternalTransfers)}
-			{@const uniqueEvmInternalTransfers = [...new Map(evmInternalTransfers.values.map((evmInternalTransfer) => [evmInternalTransfer[EntityMetaKey.SelectorKey], evmInternalTransfer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmInternalTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmInternalTransfers.totalCount}
-				getKey={(evmInternalTransfer) => evmInternalTransfer[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmInternalTransfers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM internal transfers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmInternalTransfer })}
-					{@const evmInternalTransferFields = { ...evmInternalTransfer[EntityMetaKey.Selector], ...evmInternalTransfer }}
-					{@const selection = select(EntityType.EvmInternalTransfer, evmInternalTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmInternalTransferHrefFields = { ...evmInternalTransfer, ...evmInternalTransfer[EntityMetaKey.Selector] }}
-					<EvmInternalTransferView
-						selection={selection}
-						prefetched={evmInternalTransferFields}
-						href={
-							(evmInternalTransferHrefFields.indexInTransaction !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.txHash !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-								indexInTransaction: String(evmInternalTransferHrefFields.indexInTransaction ?? ''),
-								transactionId: String(evmInternalTransferHrefFields.$transaction.txHash ?? ''),
-								network: String(caip2StringFromValue(evmInternalTransferHrefFields.$transaction.$network.caip2) ?? ''),
-							}) : evmInternalTransferHrefFields.indexInTransaction !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.txHash !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-								indexInTransaction: String(evmInternalTransferHrefFields.indexInTransaction ?? ''),
-								transactionId: String(evmInternalTransferHrefFields.$transaction.txHash ?? ''),
-								network: String(evmInternalTransferHrefFields.$transaction.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmInternalTransfer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: evmInternalTransfer })}
+		{@const evmInternalTransferFields = { ...evmInternalTransfer[EntityMetaKey.Selector], ...evmInternalTransfer }}
+		{@const selection = select(EntityType.EvmInternalTransfer, evmInternalTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmInternalTransferHrefFields = { ...evmInternalTransfer, ...evmInternalTransfer[EntityMetaKey.Selector] }}
+		<EvmInternalTransferView
+			selection={selection}
+			prefetched={evmInternalTransferFields}
+			href={
+				(evmInternalTransferHrefFields.indexInTransaction !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.txHash !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
+					indexInTransaction: String(evmInternalTransferHrefFields.indexInTransaction ?? ''),
+					transactionId: String(evmInternalTransferHrefFields.$transaction.txHash ?? ''),
+					network: String(caip2StringFromValue(evmInternalTransferHrefFields.$transaction.$network.caip2) ?? ''),
+				}) : evmInternalTransferHrefFields.indexInTransaction !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.txHash !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
+					indexInTransaction: String(evmInternalTransferHrefFields.indexInTransaction ?? ''),
+					transactionId: String(evmInternalTransferHrefFields.$transaction.txHash ?? ''),
+					network: String(evmInternalTransferHrefFields.$transaction.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

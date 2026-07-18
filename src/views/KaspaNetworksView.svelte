@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(kaspaNetworks) => [...new Map(kaspaNetworks.values.map((kaspaNetwork) => [kaspaNetwork[EntityMetaKey.SelectorKey], kaspaNetwork])).values()]}
+	getKey={(kaspaNetwork) => kaspaNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaNetworks)}
-			{@const uniqueKaspaNetworks = [...new Map(kaspaNetworks.values.map((kaspaNetwork) => [kaspaNetwork[EntityMetaKey.SelectorKey], kaspaNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaNetworks.totalCount}
-				getKey={(kaspaNetwork) => kaspaNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaNetwork })}
-					{@const kaspaNetworkFields = { ...kaspaNetwork[EntityMetaKey.Selector], ...kaspaNetwork }}
-					{@const selection = select(EntityType.KaspaNetwork, kaspaNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaNetworkView
-						selection={selection}
-						prefetched={kaspaNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaNetwork })}
+		{@const kaspaNetworkFields = { ...kaspaNetwork[EntityMetaKey.Selector], ...kaspaNetwork }}
+		{@const selection = select(EntityType.KaspaNetwork, kaspaNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaNetworkView
+			selection={selection}
+			prefetched={kaspaNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

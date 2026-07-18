@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonNftCollection_TimestampView from '$/views/TonNftCollection_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNftCollection_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonNftCollection_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonNftCollectionTimestamps) => [...new Map(tonNftCollectionTimestamps.values.map((tonNftCollectionTimestamp) => [tonNftCollectionTimestamp[EntityMetaKey.SelectorKey], tonNftCollectionTimestamp])).values()]}
+	getKey={(tonNftCollectionTimestamp) => tonNftCollectionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON NFT collection observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonNftCollectionTimestamps)}
-			{@const uniqueTonNftCollectionTimestamps = [...new Map(tonNftCollectionTimestamps.values.map((tonNftCollectionTimestamp) => [tonNftCollectionTimestamp[EntityMetaKey.SelectorKey], tonNftCollectionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNftCollection_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonNftCollectionTimestamps.totalCount}
-				getKey={(tonNftCollectionTimestamp) => tonNftCollectionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonNftCollectionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON NFT collection observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonNftCollectionTimestamp })}
-					{@const tonNftCollectionTimestampFields = { ...tonNftCollectionTimestamp[EntityMetaKey.Selector], ...tonNftCollectionTimestamp }}
-					{@const selection = select(EntityType.TonNftCollection_Timestamp, tonNftCollectionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonNftCollection_TimestampView
-						selection={selection}
-						prefetched={tonNftCollectionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonNftCollection_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonNftCollectionTimestamp })}
+		{@const tonNftCollectionTimestampFields = { ...tonNftCollectionTimestamp[EntityMetaKey.Selector], ...tonNftCollectionTimestamp }}
+		{@const selection = select(EntityType.TonNftCollection_Timestamp, tonNftCollectionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonNftCollection_TimestampView
+			selection={selection}
+			prefetched={tonNftCollectionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

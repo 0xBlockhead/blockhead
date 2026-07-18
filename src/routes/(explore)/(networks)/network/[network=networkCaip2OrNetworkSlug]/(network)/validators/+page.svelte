@@ -53,6 +53,9 @@
 					})
 				}
 				id='beacon-validators'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>
@@ -70,10 +73,16 @@
 				title='Solana validators'
 				selection={
 					projection.$$validators({
+						sources: [
+							Source.Solana_JsonRpc,
+						],
 						count: true,
 					})
 				}
 				id='validators'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

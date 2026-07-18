@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const redditSubredditTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			subscriberCount: true,
 			activeUserCount: true,
@@ -68,7 +69,7 @@
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$subreddit !== undefined && pendingEntity.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
-			name: String(pendingEntity.$subreddit.name ?? ''),
+			name: encodeURIComponent(String(pendingEntity.$subreddit.name ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -76,80 +77,88 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={redditSubredditTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={redditSubredditTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={redditSubredditTimestamp}>
-			{#snippet Pending()}
-				{@const subscriberCount0 = pendingEntity.subscriberCount}
-				{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
-					<NumberValue value={Number(subscriberCount0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const subscriberCount0 = resolvedEntity.subscriberCount}
-				{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
-					<NumberValue value={Number(subscriberCount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const subscriberCount0 = pendingEntity.subscriberCount}
+					{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
+						<NumberValue
+							value={subscriberCount0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={redditSubredditTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const subscriberCount0 = resolvedEntity.subscriberCount}
+					{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
+						<NumberValue
+							value={subscriberCount0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={redditSubredditTimestamp}>
-			{#snippet Pending()}
-				{@const source0 = pendingEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-				{@const activeUserCount1 = pendingEntity.activeUserCount}
-				{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(activeUserCount1)} />
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+			{@const activeUserCount1 = pendingEntity.activeUserCount}
+			{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={activeUserCount1}
+					/>
 
-						<span> active</span>
-					</span>
-				{/if}
-			{/snippet}
+					<span> active</span>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={redditSubredditTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+					{@const activeUserCount1 = resolvedEntity.activeUserCount}
+					{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={activeUserCount1}
+							/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-				{@const activeUserCount1 = resolvedEntity.activeUserCount}
-				{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(activeUserCount1)} />
-
-						<span> active</span>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+							<span> active</span>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -190,19 +193,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -217,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subscriberCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subscriberCount = pendingEntity.subscriberCount}
-					{#if subscriberCount !== undefined && subscriberCount !== null}
-						<div>
-							<dt>Subscribers</dt>
-							<dd>
-								<NumberValue value={Number(subscriberCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subscriberCount = resolvedEntity.subscriberCount}
@@ -242,7 +228,9 @@
 						<div>
 							<dt>Subscribers</dt>
 							<dd>
-								<NumberValue value={Number(subscriberCount)} />
+								<NumberValue
+									value={subscriberCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -252,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							activeUserCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activeUserCount = pendingEntity.activeUserCount}
-					{#if activeUserCount !== undefined && activeUserCount !== null}
-						<div>
-							<dt>Active users</dt>
-							<dd>
-								<NumberValue value={Number(activeUserCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activeUserCount = resolvedEntity.activeUserCount}
@@ -277,7 +254,9 @@
 						<div>
 							<dt>Active users</dt>
 							<dd>
-								<NumberValue value={Number(activeUserCount)} />
+								<NumberValue
+									value={activeUserCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -293,7 +272,7 @@
 						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit, {})}
 						href={
 							(selection.entitySelector.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
-								name: String(selection.entitySelector.$subreddit.name ?? ''),
+								name: encodeURIComponent(String(selection.entitySelector.$subreddit.name ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

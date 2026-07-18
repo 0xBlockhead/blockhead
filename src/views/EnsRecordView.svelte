@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ensRecord = $derived(selection({
-		sources: [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')
 	const viewDomId = $derived('ens-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -67,8 +63,8 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.recordKey !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-			recordId: String(pendingEntity.recordKey ?? ''),
-			ensName: String(pendingEntity.$name.name ?? ''),
+			recordId: encodeURIComponent(String(pendingEntity.recordKey ?? '')),
+			ensName: encodeURIComponent(String(pendingEntity.$name.name ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -76,47 +72,47 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ensRecord}>
-			{#snippet Pending()}
-				{[String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || 'ENS record'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ensRecord}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ensRecord}>
-			{#snippet Pending()}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={ensRecord}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,7 +124,7 @@
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
 							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-								ensName: String(selection.entitySelector.$name.name ?? ''),
+								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -145,19 +141,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									recordKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const recordKey = pendingEntity.recordKey}
-							{#if recordKey !== undefined && recordKey !== null}
-								{String((recordKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const recordKey = resolvedEntity.recordKey}
@@ -177,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									recordKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const recordKind = pendingEntity.recordKind}
-							{#if recordKind !== undefined && recordKind !== null}
-								{String((recordKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const recordKind = resolvedEntity.recordKind}
@@ -206,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							coinType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const coinType = pendingEntity.coinType}
-					{#if coinType !== undefined && coinType !== null}
-						<div>
-							<dt>Coin type</dt>
-							<dd>
-								<NumberValue value={Number(coinType)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const coinType = resolvedEntity.coinType}
@@ -231,7 +204,9 @@
 						<div>
 							<dt>Coin type</dt>
 							<dd>
-								<NumberValue value={Number(coinType)} />
+								<NumberValue
+									value={coinType}
+								/>
 							</dd>
 						</div>
 					{/if}

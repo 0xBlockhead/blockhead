@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosOperationGroup = $derived(selection({}))
+	const tezosOperationGroup = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos operation group')
 	const viewDomId = $derived('tezos-operation-group-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosOperationGroup}>
-			{#snippet Pending()}
-				{title || 'tezos operation group'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosOperationGroup}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									operationHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const operationHash = pendingEntity.operationHash}
-							{#if operationHash !== undefined && operationHash !== null}
-								<TruncatedValue value={String((operationHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operationHash = resolvedEntity.operationHash}
@@ -122,8 +118,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosBlock)}
 					{#if tezosBlock != null && tezosBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -144,24 +138,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							branch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const branch = pendingEntity.branch}
-					{#if branch !== undefined && branch !== null}
-						<div>
-							<dt>branch</dt>
-							<dd>
-								{String((branch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const branch = resolvedEntity.branch}
@@ -179,24 +162,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signature = pendingEntity.signature}
-					{#if signature !== undefined && signature !== null}
-						<div>
-							<dt>signature</dt>
-							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signature = resolvedEntity.signature}
@@ -214,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validationPass: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validationPass = pendingEntity.validationPass}
-					{#if validationPass !== undefined && validationPass !== null}
-						<div>
-							<dt>validation pass</dt>
-							<dd>
-								{String((validationPass) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validationPass = resolvedEntity.validationPass}
@@ -249,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							operationCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const operationCount = pendingEntity.operationCount}
-					{#if operationCount !== undefined && operationCount !== null}
-						<div>
-							<dt>operation count</dt>
-							<dd>
-								{String((operationCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const operationCount = resolvedEntity.operationCount}

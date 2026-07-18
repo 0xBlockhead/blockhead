@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosToken = $derived(selection({}))
+	const tezosToken = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos token')
 	const viewDomId = $derived('tezos-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -69,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosToken}>
-			{#snippet Pending()}
-				{title || 'tezos token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,19 +102,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									contractAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const contractAddress = pendingEntity.contractAddress}
-							{#if contractAddress !== undefined && contractAddress !== null}
-								<TruncatedValue value={String((contractAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const contractAddress = resolvedEntity.contractAddress}
@@ -130,19 +126,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenId = pendingEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenId = resolvedEntity.tokenId}
@@ -157,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							standard: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const standard = pendingEntity.standard}
-					{#if standard !== undefined && standard !== null}
-						<div>
-							<dt>standard</dt>
-							<dd>
-								{String((standard) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const standard = resolvedEntity.standard}
@@ -192,8 +171,6 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosContract)}
 					{#if tezosContract != null && tezosContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -228,11 +205,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -240,12 +214,12 @@
 
 				{#snippet SectionTezosTokenTransfers({ id, label, open })}
 					<TezosTokenTransfersView
-						selection={
-							selection.$$transfers({
-								count: true,
-							})
-						}
+						selection={selection.$$transfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transfers.'
 						open={open}
 						title={label}
@@ -272,11 +246,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -284,12 +255,12 @@
 
 				{#snippet SectionTezosTokenTimestamps({ id, label, open })}
 					<TezosToken_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}
@@ -299,12 +270,12 @@
 
 				{#snippet SectionTezosTokenBalanceTimestamps({ id, label, open })}
 					<TezosTokenBalance_TimestampsView
-						selection={
-							selection.$$balanceTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$balanceTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No balance timestamps.'
 						open={open}
 						title={label}

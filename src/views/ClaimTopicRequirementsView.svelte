@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ClaimTopicRequirementView from '$/views/ClaimTopicRequirementView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ClaimTopicRequirement}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ClaimTopicRequirement}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(claimTopicRequirements) => [...new Map(claimTopicRequirements.values.map((claimTopicRequirement) => [claimTopicRequirement[EntityMetaKey.SelectorKey], claimTopicRequirement])).values()]}
+	getKey={(claimTopicRequirement) => claimTopicRequirement[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Claim topic requirements yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(claimTopicRequirements)}
-			{@const uniqueClaimTopicRequirements = [...new Map(claimTopicRequirements.values.map((claimTopicRequirement) => [claimTopicRequirement[EntityMetaKey.SelectorKey], claimTopicRequirement])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ClaimTopicRequirement}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={claimTopicRequirements.totalCount}
-				getKey={(claimTopicRequirement) => claimTopicRequirement[EntityMetaKey.SelectorKey]}
-				items={uniqueClaimTopicRequirements}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Claim topic requirements yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: claimTopicRequirement })}
-					{@const claimTopicRequirementFields = { ...claimTopicRequirement[EntityMetaKey.Selector], ...claimTopicRequirement }}
-					{@const selection = select(EntityType.ClaimTopicRequirement, claimTopicRequirement[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ClaimTopicRequirementView
-						selection={selection}
-						prefetched={claimTopicRequirementFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ClaimTopicRequirement}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: claimTopicRequirement })}
+		{@const claimTopicRequirementFields = { ...claimTopicRequirement[EntityMetaKey.Selector], ...claimTopicRequirement }}
+		{@const selection = select(EntityType.ClaimTopicRequirement, claimTopicRequirement[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ClaimTopicRequirementView
+			selection={selection}
+			prefetched={claimTopicRequirementFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

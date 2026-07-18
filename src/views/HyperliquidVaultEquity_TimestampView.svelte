@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidVaultEquityTimestamp = $derived(selection({}))
+	const hyperliquidVaultEquityTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid vault equity timestamp')
 	const viewDomId = $derived('hyperliquid-vault-equity-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidVaultEquityTimestamp}>
-			{#snippet Pending()}
-				{title || 'hyperliquid vault equity timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidVaultEquityTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -106,19 +108,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -136,19 +132,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -163,24 +153,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							equity: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const equity = pendingEntity.equity}
-					{#if equity !== undefined && equity !== null}
-						<div>
-							<dt>equity</dt>
-							<dd>
-								{String((equity) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const equity = resolvedEntity.equity}
@@ -198,24 +177,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pnl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pnl = pendingEntity.pnl}
-					{#if pnl !== undefined && pnl !== null}
-						<div>
-							<dt>pnl</dt>
-							<dd>
-								{String((pnl) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pnl = resolvedEntity.pnl}
@@ -233,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							allTimePnl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allTimePnl = pendingEntity.allTimePnl}
-					{#if allTimePnl !== undefined && allTimePnl !== null}
-						<div>
-							<dt>all time pnl</dt>
-							<dd>
-								{String((allTimePnl) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allTimePnl = resolvedEntity.allTimePnl}
@@ -268,24 +225,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							daysFollowing: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const daysFollowing = pendingEntity.daysFollowing}
-					{#if daysFollowing !== undefined && daysFollowing !== null}
-						<div>
-							<dt>days following</dt>
-							<dd>
-								{String((daysFollowing) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const daysFollowing = resolvedEntity.daysFollowing}
@@ -303,24 +249,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							vaultEntryTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const vaultEntryTimeMs = pendingEntity.vaultEntryTimeMs}
-					{#if vaultEntryTimeMs !== undefined && vaultEntryTimeMs !== null}
-						<div>
-							<dt>vault entry time ms</dt>
-							<dd>
-								{String((vaultEntryTimeMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const vaultEntryTimeMs = resolvedEntity.vaultEntryTimeMs}
@@ -338,24 +273,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lockupUntilMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lockupUntilMs = pendingEntity.lockupUntilMs}
-					{#if lockupUntilMs !== undefined && lockupUntilMs !== null}
-						<div>
-							<dt>lockup until ms</dt>
-							<dd>
-								{String((lockupUntilMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lockupUntilMs = resolvedEntity.lockupUntilMs}

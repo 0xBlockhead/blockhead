@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitTreeEntry = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			objectKind: true,
 			mode: true,
@@ -70,52 +71,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitTreeEntry}>
-			{#snippet Pending()}
-				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitTreeEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitTreeEntry}>
-			{#snippet Pending()}
-				{[String((pendingEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitTreeEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitTreeEntry}>
-			{#snippet Pending()}
-				{@const mode0 = pendingEntity.mode}
-				{#if mode0 !== undefined && mode0 !== null}
-					<span data-text="muted">
-						{String((mode0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const mode0 = resolvedEntity.mode}
-				{#if mode0 !== undefined && mode0 !== null}
-					<span data-text="muted">
-						{String((mode0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const mode0 = pendingEntity.mode}
+			{#if mode0 !== undefined && mode0 !== null}
+				<span data-text="muted">
+					{String((mode0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={gitTreeEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mode0 = resolvedEntity.mode}
+					{#if mode0 !== undefined && mode0 !== null}
+						<span data-text="muted">
+							{String((mode0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									path: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const path = pendingEntity.path}
-							{#if path !== undefined && path !== null}
-								{String((path) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const path = resolvedEntity.path}
@@ -167,19 +162,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									mode: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const mode = pendingEntity.mode}
-							{#if mode !== undefined && mode !== null}
-								{String((mode) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const mode = resolvedEntity.mode}
@@ -197,19 +186,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectId = pendingEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectId = resolvedEntity.objectId}
@@ -227,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectKind = pendingEntity.objectKind}
-							{#if objectKind !== undefined && objectKind !== null}
-								{String((objectKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectKind = resolvedEntity.objectKind}
@@ -254,8 +231,6 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

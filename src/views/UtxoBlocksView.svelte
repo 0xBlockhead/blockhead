@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 </script>
@@ -63,91 +62,58 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					height: true,
-					hash: true,
-					transactionCount: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.UtxoBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				height: true,
+				hash: true,
+				transactionCount: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(utxoBlocks) => [...new Map(utxoBlocks.values.map((utxoBlock) => [utxoBlock[EntityMetaKey.SelectorKey], utxoBlock])).values()]}
+	getKey={(utxoBlock) => utxoBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No UTXO blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(utxoBlocks)}
-			{@const uniqueUtxoBlocks = [...new Map(utxoBlocks.values.map((utxoBlock) => [utxoBlock[EntityMetaKey.SelectorKey], utxoBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoBlocks.totalCount}
-				getKey={(utxoBlock) => utxoBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueUtxoBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No UTXO blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: utxoBlock })}
-					{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
-					{@const selection = select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
-					<UtxoBlockView
-						selection={selection}
-						prefetched={utxoBlockFields}
-						href={
-							(utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-								blockNumber: String(utxoBlockHrefFields.height ?? ''),
-								hash: String(utxoBlockHrefFields.hash ?? ''),
-								network: String(caip2StringFromValue(utxoBlockHrefFields.$network.caip2) ?? ''),
-							}) : utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-								blockNumber: String(utxoBlockHrefFields.height ?? ''),
-								hash: String(utxoBlockHrefFields.hash ?? ''),
-								network: String(utxoBlockHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.UtxoBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: utxoBlock })}
+		{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
+		{@const selection = select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
+		<UtxoBlockView
+			selection={selection}
+			prefetched={utxoBlockFields}
+			href={
+				(utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+					blockNumber: String(utxoBlockHrefFields.height ?? ''),
+					hash: String(utxoBlockHrefFields.hash ?? ''),
+					network: String(caip2StringFromValue(utxoBlockHrefFields.$network.caip2) ?? ''),
+				}) : utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+					blockNumber: String(utxoBlockHrefFields.height ?? ''),
+					hash: String(utxoBlockHrefFields.hash ?? ''),
+					network: String(utxoBlockHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

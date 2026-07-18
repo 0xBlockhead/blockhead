@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
@@ -40,22 +44,30 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Filecoin || category !== ProposalCategory.Fip) {
-					throw new Error('FilecoinFips_Github: unsupported proposal id')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Filecoin,
+							category: OwnedProposalCategory.Fip,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Filecoin || category !== ProposalCategory.Fip) {
+						throw new Error('FilecoinFips_Github: unsupported proposal id')
+					}
+					const { getMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
+					const text = await getMarkdownText({ number: number })
+					const body = stripFrontmatter(text)
+					const frontmatter = parseFrontmatter(text)
+					return {
+						documentCategory: frontmatter.type.trim() || undefined,
+						documentTitle: frontmatter.title.trim() || undefined,
+						documentStatus: frontmatter.status.trim() || undefined,
+						documentBody: body.length > 0 ? body : undefined,
+					}
+				},
 				}
-				const { getMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				const text = await getMarkdownText({ number: number })
-				const body = stripFrontmatter(text)
-				const frontmatter = parseFrontmatter(text)
-				return {
-					documentCategory: frontmatter.type.trim() || undefined,
-					documentTitle: frontmatter.title.trim() || undefined,
-					documentStatus: frontmatter.status.trim() || undefined,
-					documentBody: body.length > 0 ? body : undefined,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -67,10 +79,12 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await getContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
+					return githubFilecoinFipProposalRows(await getContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

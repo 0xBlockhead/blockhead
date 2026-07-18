@@ -32,56 +32,58 @@ export default {
 		defineResolver(Source.BitcoinCore_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					assertBitcoinMainnet($network)
-					const {
-						getBlock,
-					} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-					const block = await getBlock({
-						rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
-						blockHash: hash,
-					})
-					if (typeof block === 'string')
-						throw new Error('BitcoinCore_JsonRpc: expected verbose block')
-					return {
-						hash: block.hash,
-						...(block.previousblockhash != null && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: BigInt(block.height - 1),
-									hash: block.previousblockhash,
+				[UtxoBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, hash }) => {
+						assertBitcoinMainnet($network)
+						const {
+							getBlock,
+						} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+							blockHash: hash,
+						})
+						if (typeof block === 'string')
+							throw new Error('BitcoinCore_JsonRpc: expected verbose block')
+						return {
+							hash: block.hash,
+							...(block.previousblockhash != null && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(block.height - 1),
+										hash: block.previousblockhash,
+									},
 								},
-							},
-						}),
-						timestampMs: block.time * 1000,
-						merkleRoot: block.merkleroot,
-						nonce: block.nonce,
-						difficulty: block.difficulty,
-						...(block.size != null && {
-							sizeBytes: block.size,
-						}),
-						...(block.weight != null && {
-							weightUnits: block.weight,
-						}),
-						transactionCount: block.nTx,
-						$$transactions: block.tx.map((transaction) => (
-							typeof transaction === 'string' ?
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction,
-									},
-								}
-							:
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction.txid,
-									},
-								}
-						)),
-					}
+							}),
+							timestampMs: block.time * 1000,
+							merkleRoot: block.merkleroot,
+							nonce: block.nonce,
+							difficulty: block.difficulty,
+							...(block.size != null && {
+								sizeBytes: block.size,
+							}),
+							...(block.weight != null && {
+								weightUnits: block.weight,
+							}),
+							transactionCount: block.nTx,
+							$$transactions: block.tx.map((transaction) => (
+								typeof transaction === 'string' ?
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction,
+										},
+									}
+								:
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction.txid,
+										},
+									}
+							)),
+						}
+					},
 				}
 			},
 		})({
@@ -100,27 +102,29 @@ export default {
 		defineResolver(Source.BitcoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-					assertBitcoinMainnet($network)
-					const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-					const transaction = await getRawTransaction({
-						rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
-						txId: txId,
-					})
-					if (typeof transaction === 'string')
-						throw new Error('BitcoinCore_JsonRpc: expected verbose transaction')
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: $network,
-							txId: transaction.txid,
-						},
-						version: transaction.version,
-						lockTime: transaction.locktime,
-						sizeBytes: transaction.size,
-						virtualSizeBytes: transaction.vsize,
-						weightUnits: transaction.weight,
-						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-					}
+				[UtxoTransactionSelector.NetworkTxId]: {
+					resolve: async ({ $network, txId }) => {
+						assertBitcoinMainnet($network)
+						const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+						const transaction = await getRawTransaction({
+							rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+							txId: txId,
+						})
+						if (typeof transaction === 'string')
+							throw new Error('BitcoinCore_JsonRpc: expected verbose transaction')
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								txId: transaction.txid,
+							},
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							virtualSizeBytes: transaction.vsize,
+							weightUnits: transaction.weight,
+							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+						}
+					},
 				}
 			},
 		})({

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const account = $derived(selection({}))
+	const account = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('account')
 	const viewDomId = $derived('account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={account}>
-			{#snippet Pending()}
-				{title || 'account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={account}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									caip10: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const caip10 = pendingEntity.caip10}
-							{#if caip10 !== undefined && caip10 !== null}
-								<TruncatedValue value={caip10 == null ? '' : String((`${(caip10).namespace}:${(caip10).reference}:${(caip10).accountAddress}`) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const caip10 = resolvedEntity.caip10}
@@ -150,19 +146,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -177,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							canonicalAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const canonicalAddress = pendingEntity.canonicalAddress}
-					{#if canonicalAddress !== undefined && canonicalAddress !== null}
-						<div>
-							<dt>canonical address</dt>
-							<dd>
-								<TruncatedValue value={String((canonicalAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const canonicalAddress = resolvedEntity.canonicalAddress}
@@ -212,8 +191,6 @@
 			<ResourceBoundary
 				resource={selection.$evmAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -239,8 +216,6 @@
 			<ResourceBoundary
 				resource={selection.$evmNetworkAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>

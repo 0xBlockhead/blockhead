@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGStorageLogEntry = $derived(selection({
-		sources: [
-			Source.ZeroGStorageScan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			sequenceNumber: true,
 		},
@@ -75,74 +72,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGStorageLogEntry}>
-			{#snippet Pending()}
-				{[String((pendingEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || title || 'zero g storage log entry'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGStorageLogEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGStorageLogEntry}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zeroGStorageLogEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGStorageLogEntry}>
-			{#snippet Pending()}
-				{@const sequenceNumber0 = pendingEntity.sequenceNumber}
-				{#if sequenceNumber0 !== undefined && sequenceNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(sequenceNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sequenceNumber0 = resolvedEntity.sequenceNumber}
-				{#if sequenceNumber0 !== undefined && sequenceNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(sequenceNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const sequenceNumber0 = pendingEntity.sequenceNumber}
+			{#if sequenceNumber0 !== undefined && sequenceNumber0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={sequenceNumber0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zeroGStorageLogEntry}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sequenceNumber0 = resolvedEntity.sequenceNumber}
+					{#if sequenceNumber0 !== undefined && sequenceNumber0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={sequenceNumber0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -171,19 +172,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									logEntryId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const logEntryId = pendingEntity.logEntryId}
-							{#if logEntryId !== undefined && logEntryId !== null}
-								{String((logEntryId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const logEntryId = resolvedEntity.logEntryId}
@@ -198,8 +193,6 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -220,8 +213,6 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -242,24 +233,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sequenceNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sequenceNumber = pendingEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
-						<div>
-							<dt>sequence number</dt>
-							<dd>
-								<NumberValue value={Number(sequenceNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sequenceNumber = resolvedEntity.sequenceNumber}
@@ -267,7 +247,9 @@
 						<div>
 							<dt>sequence number</dt>
 							<dd>
-								<NumberValue value={Number(sequenceNumber)} />
+								<NumberValue
+									value={sequenceNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -277,24 +259,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							commitment: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const commitment = pendingEntity.commitment}
-					{#if commitment !== undefined && commitment !== null}
-						<div>
-							<dt>commitment</dt>
-							<dd>
-								{String((commitment) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const commitment = resolvedEntity.commitment}

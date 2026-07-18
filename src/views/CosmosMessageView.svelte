@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosMessage = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			typeUrl: true,
 		},
@@ -93,40 +94,40 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosMessage}>
-			{#snippet Pending()}
-				{@const typeUrl0 = pendingEntity.typeUrl}
-				{#if typeUrl0 !== undefined && typeUrl0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(typeUrl0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(typeUrl0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const typeUrl0 = resolvedEntity.typeUrl}
-				{#if typeUrl0 !== undefined && typeUrl0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(typeUrl0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(typeUrl0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const typeUrl0 = pendingEntity.typeUrl}
+			{#if typeUrl0 !== undefined && typeUrl0 !== null}
+				<span data-text="muted">
+					<svelte:element
+						this={'a'}
+						href={String(typeUrl0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(typeUrl0)} />
+					</svelte:element>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosMessage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const typeUrl0 = resolvedEntity.typeUrl}
+					{#if typeUrl0 !== undefined && typeUrl0 !== null}
+						<span data-text="muted">
+							<svelte:element
+								this={'a'}
+								href={String(typeUrl0)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(typeUrl0)} />
+							</svelte:element>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								{String((indexInTransaction) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
@@ -167,26 +162,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									typeUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const typeUrl = pendingEntity.typeUrl}
-							{#if typeUrl !== undefined && typeUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(typeUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(typeUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const typeUrl = resolvedEntity.typeUrl}
@@ -208,24 +190,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moduleName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moduleName = pendingEntity.moduleName}
-					{#if moduleName !== undefined && moduleName !== null}
-						<div>
-							<dt>Module name</dt>
-							<dd>
-								{String((moduleName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moduleName = resolvedEntity.moduleName}
@@ -243,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							messageName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const messageName = pendingEntity.messageName}
-					{#if messageName !== undefined && messageName !== null}
-						<div>
-							<dt>Message name</dt>
-							<dd>
-								{String((messageName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const messageName = resolvedEntity.messageName}
@@ -280,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signerAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signerAddress = pendingEntity.signerAddress}
-					{#if signerAddress !== undefined && signerAddress !== null}
-						<div>
-							<dt>Signer address</dt>
-							<dd>
-								<TruncatedValue value={String((signerAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signerAddress = resolvedEntity.signerAddress}
@@ -315,24 +264,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							senderAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const senderAddress = pendingEntity.senderAddress}
-					{#if senderAddress !== undefined && senderAddress !== null}
-						<div>
-							<dt>Sender address</dt>
-							<dd>
-								<TruncatedValue value={String((senderAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const senderAddress = resolvedEntity.senderAddress}
@@ -350,24 +288,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							granterAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const granterAddress = pendingEntity.granterAddress}
-					{#if granterAddress !== undefined && granterAddress !== null}
-						<div>
-							<dt>Granter address</dt>
-							<dd>
-								<TruncatedValue value={String((granterAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const granterAddress = resolvedEntity.granterAddress}
@@ -385,24 +312,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							granteeAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const granteeAddress = pendingEntity.granteeAddress}
-					{#if granteeAddress !== undefined && granteeAddress !== null}
-						<div>
-							<dt>Grantee address</dt>
-							<dd>
-								<TruncatedValue value={String((granteeAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const granteeAddress = resolvedEntity.granteeAddress}
@@ -422,24 +338,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contractAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contractAddress = pendingEntity.contractAddress}
-					{#if contractAddress !== undefined && contractAddress !== null}
-						<div>
-							<dt>Contract address</dt>
-							<dd>
-								<TruncatedValue value={String((contractAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contractAddress = resolvedEntity.contractAddress}
@@ -460,19 +365,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									funds: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const funds = pendingEntity.funds}
-							{#if funds !== undefined && funds !== null}
-								{funds.values.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const funds = resolvedEntity.funds}
@@ -490,19 +389,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventTypes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventTypes = pendingEntity.eventTypes}
-							{#if eventTypes !== undefined && eventTypes !== null}
-								{eventTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventTypes = resolvedEntity.eventTypes}
@@ -517,8 +410,6 @@
 			<ResourceBoundary
 				resource={selection.$signer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null && cosmosAccount[EntityMetaKey.Selector] != null}
 						<div>

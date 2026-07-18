@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvalanchePChainBlockView from '$/views/AvalanchePChainBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					height: true,
-					timestampMs: true,
-					blockId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvalanchePChainBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				height: true,
+				timestampMs: true,
+				blockId: true,
+			},
+		})
+	}
+	getResourceItems={(avalanchePChainBlocks) => [...new Map(avalanchePChainBlocks.values.map((avalanchePChainBlock) => [avalanchePChainBlock[EntityMetaKey.SelectorKey], avalanchePChainBlock])).values()]}
+	getKey={(avalanchePChainBlock) => avalanchePChainBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avalanche p chain blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(avalanchePChainBlocks)}
-			{@const uniqueAvalanchePChainBlocks = [...new Map(avalanchePChainBlocks.values.map((avalanchePChainBlock) => [avalanchePChainBlock[EntityMetaKey.SelectorKey], avalanchePChainBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalanchePChainBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={avalanchePChainBlocks.totalCount}
-				getKey={(avalanchePChainBlock) => avalanchePChainBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueAvalanchePChainBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avalanche p chain blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: avalanchePChainBlock })}
-					{@const avalanchePChainBlockFields = { ...avalanchePChainBlock[EntityMetaKey.Selector], ...avalanchePChainBlock }}
-					{@const selection = select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvalanchePChainBlockView
-						selection={selection}
-						prefetched={avalanchePChainBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvalanchePChainBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: avalanchePChainBlock })}
+		{@const avalanchePChainBlockFields = { ...avalanchePChainBlock[EntityMetaKey.Selector], ...avalanchePChainBlock }}
+		{@const selection = select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvalanchePChainBlockView
+			selection={selection}
+			prefetched={avalanchePChainBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

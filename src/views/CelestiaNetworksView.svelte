@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CelestiaNetworkView from '$/views/CelestiaNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CelestiaNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(celestiaNetworks) => [...new Map(celestiaNetworks.values.map((celestiaNetwork) => [celestiaNetwork[EntityMetaKey.SelectorKey], celestiaNetwork])).values()]}
+	getKey={(celestiaNetwork) => celestiaNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Celestia networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(celestiaNetworks)}
-			{@const uniqueCelestiaNetworks = [...new Map(celestiaNetworks.values.map((celestiaNetwork) => [celestiaNetwork[EntityMetaKey.SelectorKey], celestiaNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={celestiaNetworks.totalCount}
-				getKey={(celestiaNetwork) => celestiaNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueCelestiaNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Celestia networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: celestiaNetwork })}
-					{@const celestiaNetworkFields = { ...celestiaNetwork[EntityMetaKey.Selector], ...celestiaNetwork }}
-					{@const selection = select(EntityType.CelestiaNetwork, celestiaNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CelestiaNetworkView
-						selection={selection}
-						prefetched={celestiaNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CelestiaNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: celestiaNetwork })}
+		{@const celestiaNetworkFields = { ...celestiaNetwork[EntityMetaKey.Selector], ...celestiaNetwork }}
+		{@const selection = select(EntityType.CelestiaNetwork, celestiaNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CelestiaNetworkView
+			selection={selection}
+			prefetched={celestiaNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -40,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoGovernanceVote = $derived(selection({}))
+	const cardanoGovernanceVote = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano governance vote')
 	const viewDomId = $derived('cardano-governance-vote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoGovernanceVote}>
-			{#snippet Pending()}
-				{title || 'Cardano governance vote'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoGovernanceVote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -85,6 +89,17 @@
 				<dd>
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal, {})}
+						href={
+							(selection.entitySelector.$proposal.proposalTxHash !== undefined && selection.entitySelector.$proposal.proposalIndex !== undefined && selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+								proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
+								proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$proposal.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$proposal.proposalTxHash !== undefined && selection.entitySelector.$proposal.proposalIndex !== undefined && selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+								proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
+								proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
+								network: String(selection.entitySelector.$proposal.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -97,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									voterKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const voterKind = pendingEntity.voterKind}
-							{#if voterKind !== undefined && voterKind !== null}
-								{String((voterKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const voterKind = resolvedEntity.voterKind}
@@ -127,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									voterCredential: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const voterCredential = pendingEntity.voterCredential}
-							{#if voterCredential !== undefined && voterCredential !== null}
-								<TruncatedValue value={String((voterCredential) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const voterCredential = resolvedEntity.voterCredential}
@@ -157,19 +160,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -187,19 +184,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									vote: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const vote = pendingEntity.vote}
-							{#if vote !== undefined && vote !== null}
-								{String((vote) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const vote = resolvedEntity.vote}
@@ -214,8 +205,6 @@
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null && cardanoDRep[EntityMetaKey.Selector] != null}
 						<div>
@@ -224,6 +213,15 @@
 								<CardanoDRepView
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
+									href={
+										(cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+											network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+											network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -236,8 +234,6 @@
 			<ResourceBoundary
 				resource={selection.$stakePool}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null && cardanoStakePool[EntityMetaKey.Selector] != null}
 						<div>
@@ -246,6 +242,15 @@
 								<CardanoStakePoolView
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
+									href={
+										(cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+											network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+											network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -258,8 +263,6 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoTransaction)}
 					{#if cardanoTransaction != null && cardanoTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -277,62 +280,40 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							voteTxHash: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const voteTxHash = pendingEntity.voteTxHash}
-					{#if voteTxHash !== undefined && voteTxHash !== null}
-						<div>
-							<dt>vote transaction hash</dt>
-							<dd>
+			<div>
+				<dt>vote transaction hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									voteTxHash: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const voteTxHash = resolvedEntity.voteTxHash}
+							{#if voteTxHash !== undefined && voteTxHash !== null}
 								<TruncatedValue value={String((voteTxHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const voteTxHash = resolvedEntity.voteTxHash}
-					{#if voteTxHash !== undefined && voteTxHash !== null}
-						<div>
-							<dt>vote transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((voteTxHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							voteIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const voteIndex = pendingEntity.voteIndex}
-					{#if voteIndex !== undefined && voteIndex !== null}
-						<div>
-							<dt>vote index</dt>
-							<dd>
-								{String((voteIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const voteIndex = resolvedEntity.voteIndex}
@@ -350,31 +331,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							anchorUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const anchorUrl = pendingEntity.anchorUrl}
-					{#if anchorUrl !== undefined && anchorUrl !== null}
-						<div>
-							<dt>anchor URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(anchorUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(anchorUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const anchorUrl = resolvedEntity.anchorUrl}
@@ -399,24 +362,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							anchorHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const anchorHash = pendingEntity.anchorHash}
-					{#if anchorHash !== undefined && anchorHash !== null}
-						<div>
-							<dt>anchor hash</dt>
-							<dd>
-								<TruncatedValue value={String((anchorHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const anchorHash = resolvedEntity.anchorHash}
@@ -434,24 +386,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const epoch = pendingEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
-						<div>
-							<dt>epoch</dt>
-							<dd>
-								{String((epoch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const epoch = resolvedEntity.epoch}
@@ -469,14 +410,16 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slot = pendingEntity.slot}
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot = resolvedEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -486,15 +429,26 @@
 						</div>
 					{/if}
 				{/snippet}
+			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							timestampMs: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot = resolvedEntity.slot}
-					{#if slot !== undefined && slot !== null}
+					{@const timestampMs = resolvedEntity.timestampMs}
+					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
-							<dt>slot</dt>
+							<dt>timestamp</dt>
 							<dd>
-								{String((slot) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
 							</dd>
 						</div>
 					{/if}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitTreePathResolutionView from '$/views/GitTreePathResolutionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					path: true,
-					status: true,
-					commitObjectId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitTreePathResolution}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitTreePathResolution}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				path: true,
+				status: true,
+				commitObjectId: true,
+			},
+		})
+	}
+	getResourceItems={(gitTreePathResolutions) => [...new Map(gitTreePathResolutions.values.map((gitTreePathResolution) => [gitTreePathResolution[EntityMetaKey.SelectorKey], gitTreePathResolution])).values()]}
+	getKey={(gitTreePathResolution) => gitTreePathResolution[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git tree path resolutions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitTreePathResolutions)}
-			{@const uniqueGitTreePathResolutions = [...new Map(gitTreePathResolutions.values.map((gitTreePathResolution) => [gitTreePathResolution[EntityMetaKey.SelectorKey], gitTreePathResolution])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitTreePathResolution}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitTreePathResolutions.totalCount}
-				getKey={(gitTreePathResolution) => gitTreePathResolution[EntityMetaKey.SelectorKey]}
-				items={uniqueGitTreePathResolutions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git tree path resolutions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitTreePathResolution })}
-					{@const gitTreePathResolutionFields = { ...gitTreePathResolution[EntityMetaKey.Selector], ...gitTreePathResolution }}
-					{@const selection = select(EntityType.GitTreePathResolution, gitTreePathResolution[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitTreePathResolutionView
-						selection={selection}
-						prefetched={gitTreePathResolutionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitTreePathResolution}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitTreePathResolution })}
+		{@const gitTreePathResolutionFields = { ...gitTreePathResolution[EntityMetaKey.Selector], ...gitTreePathResolution }}
+		{@const selection = select(EntityType.GitTreePathResolution, gitTreePathResolution[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitTreePathResolutionView
+			selection={selection}
+			prefetched={gitTreePathResolutionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

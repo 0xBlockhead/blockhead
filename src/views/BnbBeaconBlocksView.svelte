@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbBeaconBlockView from '$/views/BnbBeaconBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					height: true,
-					timestampMs: true,
-					hash: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbBeaconBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				height: true,
+				timestampMs: true,
+				hash: true,
+			},
+		})
+	}
+	getResourceItems={(bnbBeaconBlocks) => [...new Map(bnbBeaconBlocks.values.map((bnbBeaconBlock) => [bnbBeaconBlock[EntityMetaKey.SelectorKey], bnbBeaconBlock])).values()]}
+	getKey={(bnbBeaconBlock) => bnbBeaconBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb beacon blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbBeaconBlocks)}
-			{@const uniqueBnbBeaconBlocks = [...new Map(bnbBeaconBlocks.values.map((bnbBeaconBlock) => [bnbBeaconBlock[EntityMetaKey.SelectorKey], bnbBeaconBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbBeaconBlocks.totalCount}
-				getKey={(bnbBeaconBlock) => bnbBeaconBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbBeaconBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb beacon blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbBeaconBlock })}
-					{@const bnbBeaconBlockFields = { ...bnbBeaconBlock[EntityMetaKey.Selector], ...bnbBeaconBlock }}
-					{@const selection = select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbBeaconBlockView
-						selection={selection}
-						prefetched={bnbBeaconBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbBeaconBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbBeaconBlock })}
+		{@const bnbBeaconBlockFields = { ...bnbBeaconBlock[EntityMetaKey.Selector], ...bnbBeaconBlock }}
+		{@const selection = select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbBeaconBlockView
+			selection={selection}
+			prefetched={bnbBeaconBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

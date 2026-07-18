@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentProgramInstallView from '$/views/BlockheadAgentProgramInstallView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					installId: true,
-					command: true,
-					updatedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentProgramInstall}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentProgramInstall}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				installId: true,
+				command: true,
+				updatedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentProgramInstalls) => [...new Map(blockheadAgentProgramInstalls.values.map((blockheadAgentProgramInstall) => [blockheadAgentProgramInstall[EntityMetaKey.SelectorKey], blockheadAgentProgramInstall])).values()]}
+	getKey={(blockheadAgentProgramInstall) => blockheadAgentProgramInstall[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead agent program installs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentProgramInstalls)}
-			{@const uniqueBlockheadAgentProgramInstalls = [...new Map(blockheadAgentProgramInstalls.values.map((blockheadAgentProgramInstall) => [blockheadAgentProgramInstall[EntityMetaKey.SelectorKey], blockheadAgentProgramInstall])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentProgramInstall}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentProgramInstalls.totalCount}
-				getKey={(blockheadAgentProgramInstall) => blockheadAgentProgramInstall[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentProgramInstalls}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead agent program installs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentProgramInstall })}
-					{@const blockheadAgentProgramInstallFields = { ...blockheadAgentProgramInstall[EntityMetaKey.Selector], ...blockheadAgentProgramInstall }}
-					{@const selection = select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAgentProgramInstallView
-						selection={selection}
-						prefetched={blockheadAgentProgramInstallFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentProgramInstall}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentProgramInstall })}
+		{@const blockheadAgentProgramInstallFields = { ...blockheadAgentProgramInstall[EntityMetaKey.Selector], ...blockheadAgentProgramInstall }}
+		{@const selection = select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAgentProgramInstallView
+			selection={selection}
+			prefetched={blockheadAgentProgramInstallFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004AgentRegistrationFile = $derived(selection({}))
+	const eip8004AgentRegistrationFile = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file')
 	const viewDomId = $derived('eip8004agent-registration-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,37 +66,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004AgentRegistrationFile}>
-			{#snippet Pending()}
-				{[String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration file'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentRegistrationFile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004AgentRegistrationFile}>
-			{#snippet Pending()}
-				<Eip8004AgentRegistrationView
-					selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<Eip8004AgentRegistrationView
-					selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<Eip8004AgentRegistrationView
+						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eip8004AgentRegistrationFile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<Eip8004AgentRegistrationView
+						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -116,26 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fileUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fileUrl = pendingEntity.fileUrl}
-							{#if fileUrl !== undefined && fileUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(fileUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(fileUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fileUrl = resolvedEntity.fileUrl}

@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrProfile = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			about: true,
@@ -62,7 +60,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -90,10 +87,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={nostrProfile}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -109,16 +102,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={nostrProfile}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nostrProfile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -132,28 +125,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							displayName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const displayName = pendingEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
-						<div>
-							<dt>Display name</dt>
-							<dd>
-								{String((displayName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const displayName = resolvedEntity.displayName}
@@ -171,28 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							about: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const about = pendingEntity.about}
-					{#if about !== undefined && about !== null}
-						<div>
-							<dt>About</dt>
-							<dd>
-								<span data-text="long-text">{String((about) ?? '')}</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const about = resolvedEntity.about}
@@ -210,28 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrBand_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							nip05: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nip05 = pendingEntity.nip05}
-					{#if nip05 !== undefined && nip05 !== null}
-						<div>
-							<dt>NIP-05</dt>
-							<dd>
-								{String((nip05) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nip05 = resolvedEntity.nip05}
@@ -253,19 +201,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
+									sources: selection.sources,
 									fields: {
 										pubkey: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const pubkey = pendingEntity.pubkey}
-								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String((pubkey) ?? '')} />
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const pubkey = resolvedEntity.pubkey}
@@ -282,35 +224,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								website: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const website = pendingEntity.website}
-						{#if website !== undefined && website !== null}
-							<div>
-								<dt>Website</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(website)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(website)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const website = resolvedEntity.website}
@@ -337,28 +257,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								metadataUpdatedAt: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const metadataUpdatedAt = pendingEntity.metadataUpdatedAt}
-						{#if metadataUpdatedAt !== undefined && metadataUpdatedAt !== null}
-							<div>
-								<dt>Metadata updated</dt>
-								<dd>
-									<Timestamp timestamp={Number(metadataUpdatedAt)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const metadataUpdatedAt = resolvedEntity.metadataUpdatedAt}
@@ -395,11 +300,8 @@
 				}
 				data-card
 				class='network-view-collapsible-content'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Notes and articles</HeadingComponent>
 					</header>
@@ -413,11 +315,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/notes')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No notes in this observed.'
 						open={open}
 						title={label}
@@ -433,11 +338,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/articles')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No articles in this observed.'
 						open={open}
 						title={label}
@@ -460,11 +368,8 @@
 				}
 				data-card
 				class='network-view-collapsible-engagement'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Engagement</HeadingComponent>
 					</header>
@@ -478,11 +383,14 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/nostr/reposts')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No reposts in this observed.'
 						open={open}
 						title={label}

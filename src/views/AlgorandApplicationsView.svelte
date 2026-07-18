@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandApplicationView from '$/views/AlgorandApplicationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					applicationId: true,
-					$network: true,
-					creator: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplication}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandApplication}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				applicationId: true,
+				$network: true,
+				creator: true,
+			},
+		})
+	}
+	getResourceItems={(algorandApplications) => [...new Map(algorandApplications.values.map((algorandApplication) => [algorandApplication[EntityMetaKey.SelectorKey], algorandApplication])).values()]}
+	getKey={(algorandApplication) => algorandApplication[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand applications yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandApplications)}
-			{@const uniqueAlgorandApplications = [...new Map(algorandApplications.values.map((algorandApplication) => [algorandApplication[EntityMetaKey.SelectorKey], algorandApplication])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandApplication}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandApplications.totalCount}
-				getKey={(algorandApplication) => algorandApplication[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandApplications}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand applications yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandApplication })}
-					{@const algorandApplicationFields = { ...algorandApplication[EntityMetaKey.Selector], ...algorandApplication }}
-					{@const selection = select(EntityType.AlgorandApplication, algorandApplication[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandApplicationView
-						selection={selection}
-						prefetched={algorandApplicationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandApplication}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandApplication })}
+		{@const algorandApplicationFields = { ...algorandApplication[EntityMetaKey.Selector], ...algorandApplication }}
+		{@const selection = select(EntityType.AlgorandApplication, algorandApplication[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandApplicationView
+			selection={selection}
+			prefetched={algorandApplicationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

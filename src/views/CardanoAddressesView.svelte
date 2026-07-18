@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoAddress}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoAddresses) => [...new Map(cardanoAddresses.values.map((cardanoAddress) => [cardanoAddress[EntityMetaKey.SelectorKey], cardanoAddress])).values()]}
+	getKey={(cardanoAddress) => cardanoAddress[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano addresses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoAddresses)}
-			{@const uniqueCardanoAddresses = [...new Map(cardanoAddresses.values.map((cardanoAddress) => [cardanoAddress[EntityMetaKey.SelectorKey], cardanoAddress])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoAddresses.totalCount}
-				getKey={(cardanoAddress) => cardanoAddress[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoAddresses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano addresses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoAddress })}
-					{@const cardanoAddressFields = { ...cardanoAddress[EntityMetaKey.Selector], ...cardanoAddress }}
-					{@const selection = select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoAddressView
-						selection={selection}
-						prefetched={cardanoAddressFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoAddress}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoAddress })}
+		{@const cardanoAddressFields = { ...cardanoAddress[EntityMetaKey.Selector], ...cardanoAddress }}
+		{@const selection = select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoAddressView
+			selection={selection}
+			prefetched={cardanoAddressFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

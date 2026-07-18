@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moveStruct = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			isEvent: true,
 			isNative: true,
@@ -67,54 +68,54 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moveStruct}>
-			{#snippet Pending()}
-				{[String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={moveStruct}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moveStruct}>
-			{#snippet Pending()}
-				{[String((pendingEntity.isEvent) ?? ''), String((pendingEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.isEvent) ?? ''), String((resolvedEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.isEvent) ?? ''), String((pendingEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={moveStruct}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.isEvent) ?? ''), String((resolvedEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moveStruct}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<MoveModuleView
+					selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={moveStruct}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<MoveModuleView
+							selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									structName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const structName = pendingEntity.structName}
-							{#if structName !== undefined && structName !== null}
-								{String((structName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const structName = resolvedEntity.structName}
@@ -163,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isEvent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isEvent = pendingEntity.isEvent}
-					{#if isEvent !== undefined && isEvent !== null}
-						<div>
-							<dt>is event</dt>
-							<dd>
-								{isEvent ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isEvent = resolvedEntity.isEvent}
@@ -198,24 +182,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isNative: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isNative = pendingEntity.isNative}
-					{#if isNative !== undefined && isNative !== null}
-						<div>
-							<dt>is native</dt>
-							<dd>
-								{isNative ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isNative = resolvedEntity.isNative}
@@ -236,19 +209,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									abilities: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const abilities = pendingEntity.abilities}
-							{#if abilities !== undefined && abilities !== null}
-								{abilities.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const abilities = resolvedEntity.abilities}

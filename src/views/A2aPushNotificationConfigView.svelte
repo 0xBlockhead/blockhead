@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const a2aPushNotificationConfig = $derived(selection({
-		sources: [
-			Source.A2aService_Http,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 			url: true,
@@ -74,66 +71,66 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={a2aPushNotificationConfig}>
-			{#snippet Pending()}
-				{[String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aPushNotificationConfig}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={a2aPushNotificationConfig}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aPushNotificationConfig}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={a2aPushNotificationConfig}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const url0 = pendingEntity.url}
+			{#if url0 !== undefined && url0 !== null}
+				<span data-text="muted">
+					<svelte:element
+						this={'a'}
+						href={String(url0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(url0)} />
+					</svelte:element>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={a2aPushNotificationConfig}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<span data-text="muted">
+							<svelte:element
+								this={'a'}
+								href={String(url0)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(url0)} />
+							</svelte:element>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									configId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const configId = pendingEntity.configId}
-							{#if configId !== undefined && configId !== null}
-								{String((configId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const configId = resolvedEntity.configId}
@@ -182,31 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							url: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const url = pendingEntity.url}
-					{#if url !== undefined && url !== null}
-						<div>
-							<dt>URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const url = resolvedEntity.url}
@@ -231,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authKind = pendingEntity.authKind}
-					{#if authKind !== undefined && authKind !== null}
-						<div>
-							<dt>auth kind</dt>
-							<dd>
-								{String((authKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authKind = resolvedEntity.authKind}
@@ -266,24 +228,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -301,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deletedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deletedAt = pendingEntity.deletedAt}
-					{#if deletedAt !== undefined && deletedAt !== null}
-						<div>
-							<dt>deleted AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(deletedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deletedAt = resolvedEntity.deletedAt}
@@ -336,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}

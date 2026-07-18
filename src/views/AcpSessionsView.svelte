@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpSessionView from '$/views/AcpSessionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					sessionId: true,
-					$runtime: true,
-					workspaceUri: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpSession}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				sessionId: true,
+				$runtime: true,
+				workspaceUri: true,
+			},
+		})
+	}
+	getResourceItems={(acpSessions) => [...new Map(acpSessions.values.map((acpSession) => [acpSession[EntityMetaKey.SelectorKey], acpSession])).values()]}
+	getKey={(acpSession) => acpSession[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP sessions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpSessions)}
-			{@const uniqueAcpSessions = [...new Map(acpSessions.values.map((acpSession) => [acpSession[EntityMetaKey.SelectorKey], acpSession])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpSessions.totalCount}
-				getKey={(acpSession) => acpSession[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpSessions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP sessions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpSession })}
-					{@const acpSessionFields = { ...acpSession[EntityMetaKey.Selector], ...acpSession }}
-					{@const selection = select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpSessionView
-						selection={selection}
-						prefetched={acpSessionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpSession}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpSession })}
+		{@const acpSessionFields = { ...acpSession[EntityMetaKey.Selector], ...acpSession }}
+		{@const selection = select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpSessionView
+			selection={selection}
+			prefetched={acpSessionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -39,7 +39,7 @@
 		title='Lens account posts'
 		selection={
 			select(EntityType.LensAccount, {
-				address: decodeURIComponent(params.address),
+				address: params.address,
 			}).$$posts({
 				sources: [
 					Source.Lens_Graphql,
@@ -48,5 +48,8 @@
 			})
 		}
 		id='posts'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

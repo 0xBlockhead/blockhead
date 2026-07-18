@@ -73,18 +73,6 @@ export const LensNetwork = entity({
 			Source.Lens_Graphql,
 		],
 	},
-	$$lensFeeds: {
-		label: 'Feeds',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.LensFeed,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$lensUsernameNamespaces: {
-		label: 'Username namespaces',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.LensUsernameNamespace,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		Scope: [

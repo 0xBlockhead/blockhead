@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bridgeRouteQuoteStep = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			tool: true,
 			stepType: true,
@@ -94,38 +95,38 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bridgeRouteQuoteStep}>
-			{#snippet Pending()}
-				{@const tool0 = pendingEntity.tool}
-				{#if tool0 !== undefined && tool0 !== null}
-					<span data-text="muted">
-						{String((tool0) ?? '')}
-					</span>
-				{/if}
-				{@const stepType1 = pendingEntity.stepType}
-				{#if stepType1 !== undefined && stepType1 !== null}
-					<span data-text="muted">
-						{String((stepType1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tool0 = resolvedEntity.tool}
-				{#if tool0 !== undefined && tool0 !== null}
-					<span data-text="muted">
-						{String((tool0) ?? '')}
-					</span>
-				{/if}
-				{@const stepType1 = resolvedEntity.stepType}
-				{#if stepType1 !== undefined && stepType1 !== null}
-					<span data-text="muted">
-						{String((stepType1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const tool0 = pendingEntity.tool}
+			{#if tool0 !== undefined && tool0 !== null}
+				<span data-text="muted">
+					{String((tool0) ?? '')}
+				</span>
+			{/if}
+			{@const stepType1 = pendingEntity.stepType}
+			{#if stepType1 !== undefined && stepType1 !== null}
+				<span data-text="muted">
+					{String((stepType1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bridgeRouteQuoteStep}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tool0 = resolvedEntity.tool}
+					{#if tool0 !== undefined && tool0 !== null}
+						<span data-text="muted">
+							{String((tool0) ?? '')}
+						</span>
+					{/if}
+					{@const stepType1 = resolvedEntity.stepType}
+					{#if stepType1 !== undefined && stepType1 !== null}
+						<span data-text="muted">
+							{String((stepType1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInQuote: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInQuote = pendingEntity.indexInQuote}
-							{#if indexInQuote !== undefined && indexInQuote !== null}
-								{String((indexInQuote) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInQuote = resolvedEntity.indexInQuote}
@@ -163,24 +158,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerStepId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerStepId = pendingEntity.providerStepId}
-					{#if providerStepId !== undefined && providerStepId !== null}
-						<div>
-							<dt>provider step ID</dt>
-							<dd>
-								{String((providerStepId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerStepId = resolvedEntity.providerStepId}
@@ -198,24 +182,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stepType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stepType = pendingEntity.stepType}
-					{#if stepType !== undefined && stepType !== null}
-						<div>
-							<dt>step type</dt>
-							<dd>
-								{String((stepType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stepType = resolvedEntity.stepType}
@@ -233,24 +206,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tool: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tool = pendingEntity.tool}
-					{#if tool !== undefined && tool !== null}
-						<div>
-							<dt>tool</dt>
-							<dd>
-								{String((tool) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tool = resolvedEntity.tool}
@@ -268,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							toolName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const toolName = pendingEntity.toolName}
-					{#if toolName !== undefined && toolName !== null}
-						<div>
-							<dt>tool name</dt>
-							<dd>
-								{String((toolName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const toolName = resolvedEntity.toolName}
@@ -305,8 +256,6 @@
 			<ResourceBoundary
 				resource={selection.$fromNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -334,8 +283,6 @@
 			<ResourceBoundary
 				resource={selection.$toNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -363,8 +310,6 @@
 			<ResourceBoundary
 				resource={selection.$fromToken}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -394,8 +339,6 @@
 			<ResourceBoundary
 				resource={selection.$toToken}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -427,24 +370,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fromAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fromAmount = pendingEntity.fromAmount}
-					{#if fromAmount !== undefined && fromAmount !== null}
-						<div>
-							<dt>from amount</dt>
-							<dd>
-								<NumberValue value={Number(fromAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fromAmount = resolvedEntity.fromAmount}
@@ -452,7 +384,9 @@
 						<div>
 							<dt>from amount</dt>
 							<dd>
-								<NumberValue value={Number(fromAmount)} />
+								<NumberValue
+									value={fromAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -462,24 +396,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							toAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const toAmount = pendingEntity.toAmount}
-					{#if toAmount !== undefined && toAmount !== null}
-						<div>
-							<dt>to amount</dt>
-							<dd>
-								<NumberValue value={Number(toAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const toAmount = resolvedEntity.toAmount}
@@ -487,7 +410,9 @@
 						<div>
 							<dt>to amount</dt>
 							<dd>
-								<NumberValue value={Number(toAmount)} />
+								<NumberValue
+									value={toAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -497,24 +422,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							toAmountMin: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const toAmountMin = pendingEntity.toAmountMin}
-					{#if toAmountMin !== undefined && toAmountMin !== null}
-						<div>
-							<dt>to amount min</dt>
-							<dd>
-								<NumberValue value={Number(toAmountMin)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const toAmountMin = resolvedEntity.toAmountMin}
@@ -522,7 +436,9 @@
 						<div>
 							<dt>to amount min</dt>
 							<dd>
-								<NumberValue value={Number(toAmountMin)} />
+								<NumberValue
+									value={toAmountMin}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -532,24 +448,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							estimatedGas: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const estimatedGas = pendingEntity.estimatedGas}
-					{#if estimatedGas !== undefined && estimatedGas !== null}
-						<div>
-							<dt>estimated gas</dt>
-							<dd>
-								<NumberValue value={Number(estimatedGas)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const estimatedGas = resolvedEntity.estimatedGas}
@@ -557,7 +462,9 @@
 						<div>
 							<dt>estimated gas</dt>
 							<dd>
-								<NumberValue value={Number(estimatedGas)} />
+								<NumberValue
+									value={estimatedGas}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -569,24 +476,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							railId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const railId = pendingEntity.railId}
-					{#if railId !== undefined && railId !== null}
-						<div>
-							<dt>rail ID</dt>
-							<dd>
-								{String((railId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const railId = resolvedEntity.railId}
@@ -604,24 +500,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							settlementModel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const settlementModel = pendingEntity.settlementModel}
-					{#if settlementModel !== undefined && settlementModel !== null}
-						<div>
-							<dt>settlement model</dt>
-							<dd>
-								{String((settlementModel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const settlementModel = resolvedEntity.settlementModel}
@@ -639,24 +524,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							verificationModel: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const verificationModel = pendingEntity.verificationModel}
-					{#if verificationModel !== undefined && verificationModel !== null}
-						<div>
-							<dt>verification model</dt>
-							<dd>
-								{String((verificationModel) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const verificationModel = resolvedEntity.verificationModel}
@@ -674,24 +548,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetOutcome: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetOutcome = pendingEntity.assetOutcome}
-					{#if assetOutcome !== undefined && assetOutcome !== null}
-						<div>
-							<dt>asset outcome</dt>
-							<dd>
-								{String((assetOutcome) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetOutcome = resolvedEntity.assetOutcome}

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoAddress = $derived(selection({}))
+	const cardanoAddress = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano address')
 	const viewDomId = $derived('cardano-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoAddress}>
-			{#snippet Pending()}
-				{title || 'Cardano address'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -131,24 +127,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							addressKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const addressKind = pendingEntity.addressKind}
-					{#if addressKind !== undefined && addressKind !== null}
-						<div>
-							<dt>address kind</dt>
-							<dd>
-								<TruncatedValue value={String((addressKind) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const addressKind = resolvedEntity.addressKind}
@@ -166,24 +151,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							paymentCredential: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const paymentCredential = pendingEntity.paymentCredential}
-					{#if paymentCredential !== undefined && paymentCredential !== null}
-						<div>
-							<dt>payment credential</dt>
-							<dd>
-								<TruncatedValue value={String((paymentCredential) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const paymentCredential = resolvedEntity.paymentCredential}
@@ -201,24 +175,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeCredential: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeCredential = pendingEntity.stakeCredential}
-					{#if stakeCredential !== undefined && stakeCredential !== null}
-						<div>
-							<dt>stake credential</dt>
-							<dd>
-								<TruncatedValue value={String((stakeCredential) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeCredential = resolvedEntity.stakeCredential}
@@ -236,8 +199,6 @@
 			<ResourceBoundary
 				resource={selection.$stakeCredential}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null && cardanoStakeCredential[EntityMetaKey.Selector] != null}
 						<div>

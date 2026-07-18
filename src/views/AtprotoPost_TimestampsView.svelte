@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoPost_TimestampView from '$/views/AtprotoPost_TimestampView.svelte'
 </script>
@@ -62,86 +61,53 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					likeCount: true,
-					replyCount: true,
-					$post: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AtprotoPost_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				likeCount: true,
+				replyCount: true,
+				$post: true,
+			},
+		})
+	}
+	getResourceItems={(atprotoPostTimestamps) => [...new Map(atprotoPostTimestamps.values.map((atprotoPostTimestamp) => [atprotoPostTimestamp[EntityMetaKey.SelectorKey], atprotoPostTimestamp])).values()]}
+	getKey={(atprotoPostTimestamp) => atprotoPostTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol post observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(atprotoPostTimestamps)}
-			{@const uniqueAtprotoPostTimestamps = [...new Map(atprotoPostTimestamps.values.map((atprotoPostTimestamp) => [atprotoPostTimestamp[EntityMetaKey.SelectorKey], atprotoPostTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoPostTimestamps.totalCount}
-				getKey={(atprotoPostTimestamp) => atprotoPostTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAtprotoPostTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol post observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: atprotoPostTimestamp })}
-					{@const atprotoPostTimestampFields = { ...atprotoPostTimestamp[EntityMetaKey.Selector], ...atprotoPostTimestamp }}
-					{@const selection = select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const atprotoPostTimestampHrefFields = { ...atprotoPostTimestamp, ...atprotoPostTimestamp[EntityMetaKey.Selector] }}
-					<AtprotoPost_TimestampView
-						selection={selection}
-						prefetched={atprotoPostTimestampFields}
-						href={
-							(atprotoPostTimestampHrefFields.timestampMs !== undefined && atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-								timestampMs: String(atprotoPostTimestampHrefFields.timestampMs ?? ''),
-								uri: String(atprotoPostTimestampHrefFields.$post.uri ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AtprotoPost_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: atprotoPostTimestamp })}
+		{@const atprotoPostTimestampFields = { ...atprotoPostTimestamp[EntityMetaKey.Selector], ...atprotoPostTimestamp }}
+		{@const selection = select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const atprotoPostTimestampHrefFields = { ...atprotoPostTimestamp, ...atprotoPostTimestamp[EntityMetaKey.Selector] }}
+		<AtprotoPost_TimestampView
+			selection={selection}
+			prefetched={atprotoPostTimestampFields}
+			href={
+				(atprotoPostTimestampHrefFields.timestampMs !== undefined && atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(atprotoPostTimestampHrefFields.timestampMs ?? ''),
+					uri: encodeURIComponent(String(atprotoPostTimestampHrefFields.$post.uri ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

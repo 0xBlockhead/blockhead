@@ -43,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterUser = $derived(selection({
-		sources: [
-			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			username: true,
@@ -59,7 +56,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -88,10 +84,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={farcasterUser}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -107,54 +99,54 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterUser}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterUser}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterUser}>
-			{#snippet Pending()}
-				{[String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={farcasterUser}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={farcasterUser}>
-			{#snippet Pending()}
-				{@const username0 = pendingEntity.username}
-				{#if username0 !== undefined && username0 !== null}
-					<span data-text="muted">
-						<span>@</span>
-						{String((username0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const username0 = resolvedEntity.username}
-				{#if username0 !== undefined && username0 !== null}
-					<span data-text="muted">
-						<span>@</span>
-						{String((username0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const username0 = pendingEntity.username}
+			{#if username0 !== undefined && username0 !== null}
+				<span data-text="muted">
+					<span>@</span>
+					{String((username0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterUser}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const username0 = resolvedEntity.username}
+					{#if username0 !== undefined && username0 !== null}
+						<span data-text="muted">
+							<span>@</span>
+							{String((username0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -165,24 +157,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fid = pendingEntity.fid}
-							{#if fid !== undefined && fid !== null}
-								<NumberValue value={Number(fid)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fid = resolvedEntity.fid}
 							{#if fid !== undefined && fid !== null}
-								<NumberValue value={Number(fid)} />
+								<NumberValue
+									value={fid}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -194,25 +182,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							username: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const username = pendingEntity.username}
-					{#if username !== undefined && username !== null}
-						<div>
-							<dt>Username</dt>
-							<dd>
-								<span>@</span>
-								{String((username) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const username = resolvedEntity.username}
@@ -233,31 +209,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							url: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const url = pendingEntity.url}
-					{#if url !== undefined && url !== null}
-						<div>
-							<dt>URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const url = resolvedEntity.url}
@@ -284,8 +242,6 @@
 			<ResourceBoundary
 				resource={selection.$primaryEvmAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -312,6 +268,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						bio: true,
 					},
@@ -347,11 +304,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -364,11 +318,18 @@
 								sources: [
 									Source.Snapchain_Rest,
 								],
-								count: true,
 							})
 						}
-						href={resolve('/farcaster/feed/trending')}
+						href={
+							(selection.entitySelector.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]/casts', {
+								userId: selection.entitySelector.fid,
+							}) : undefined)
+						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Farcaster casts for this user.'
 						open={open}
 						title={label}
@@ -378,12 +339,12 @@
 
 				{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
 					<FarcasterVerifiedAddressesView
-						selection={
-							selection.$$verifiedAddresses({
-								count: true,
-							})
-						}
+						selection={selection.$$verifiedAddresses}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Farcaster verified addresses for this user.'
 						open={open}
 						title={label}
@@ -406,11 +367,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -418,12 +376,12 @@
 
 				{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
 					<FarcasterUser_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Farcaster user observations yet.'
 						open={open}
 						title={label}

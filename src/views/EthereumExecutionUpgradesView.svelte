@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EthereumExecutionUpgradeView from '$/views/EthereumExecutionUpgradeView.svelte'
 </script>
@@ -63,89 +62,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					upgradeId: true,
-					name: true,
-					slug: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EthereumExecutionUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EthereumExecutionUpgrade}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				upgradeId: true,
+				name: true,
+				slug: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(ethereumExecutionUpgrades) => [...new Map(ethereumExecutionUpgrades.values.map((ethereumExecutionUpgrade) => [ethereumExecutionUpgrade[EntityMetaKey.SelectorKey], ethereumExecutionUpgrade])).values()]}
+	getKey={(ethereumExecutionUpgrade) => ethereumExecutionUpgrade[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Ethereum execution upgrades yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ethereumExecutionUpgrades)}
-			{@const uniqueEthereumExecutionUpgrades = [...new Map(ethereumExecutionUpgrades.values.map((ethereumExecutionUpgrade) => [ethereumExecutionUpgrade[EntityMetaKey.SelectorKey], ethereumExecutionUpgrade])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EthereumExecutionUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ethereumExecutionUpgrades.totalCount}
-				getKey={(ethereumExecutionUpgrade) => ethereumExecutionUpgrade[EntityMetaKey.SelectorKey]}
-				items={uniqueEthereumExecutionUpgrades}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Ethereum execution upgrades yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ethereumExecutionUpgrade })}
-					{@const ethereumExecutionUpgradeFields = { ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }}
-					{@const selection = select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ethereumExecutionUpgradeHrefFields = { ...ethereumExecutionUpgrade, ...ethereumExecutionUpgrade[EntityMetaKey.Selector] }}
-					<EthereumExecutionUpgradeView
-						selection={selection}
-						prefetched={ethereumExecutionUpgradeFields}
-						href={
-							(ethereumExecutionUpgradeHrefFields.slug !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
-								upgradeSlug: String(ethereumExecutionUpgradeHrefFields.slug ?? ''),
-								network: String(caip2StringFromValue(ethereumExecutionUpgradeHrefFields.$network.caip2) ?? ''),
-							}) : ethereumExecutionUpgradeHrefFields.slug !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
-								upgradeSlug: String(ethereumExecutionUpgradeHrefFields.slug ?? ''),
-								network: String(ethereumExecutionUpgradeHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EthereumExecutionUpgrade}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ethereumExecutionUpgrade })}
+		{@const ethereumExecutionUpgradeFields = { ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }}
+		{@const selection = select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ethereumExecutionUpgradeHrefFields = { ...ethereumExecutionUpgrade, ...ethereumExecutionUpgrade[EntityMetaKey.Selector] }}
+		<EthereumExecutionUpgradeView
+			selection={selection}
+			prefetched={ethereumExecutionUpgradeFields}
+			href={
+				(ethereumExecutionUpgradeHrefFields.slug !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
+					upgradeSlug: String(ethereumExecutionUpgradeHrefFields.slug ?? ''),
+					network: String(caip2StringFromValue(ethereumExecutionUpgradeHrefFields.$network.caip2) ?? ''),
+				}) : ethereumExecutionUpgradeHrefFields.slug !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
+					upgradeSlug: String(ethereumExecutionUpgradeHrefFields.slug ?? ''),
+					network: String(ethereumExecutionUpgradeHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

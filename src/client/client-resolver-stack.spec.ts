@@ -25,6 +25,8 @@ import {
 	PersistedCollectionSourceStatus,
 	client,
 	entityResolverSourcesForSelectorKeys,
+	localMutationAuthorityKey,
+	persistedCollectionAppendResult,
 	persistedCollectionHydrationPlan,
 	persistedCollectionRemoteResult,
 } from '$/client/$client.svelte.ts'
@@ -53,6 +55,7 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 } from '$/schema/EntityField.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const clientDirectory = resolve(
@@ -189,12 +192,36 @@ describe('client resolver stack architecture', () => {
 			),
 			'utf8'
 		)
+		const applicationBootstrapSource = readFileSync(
+			resolve(
+				process.cwd(),
+				'src/components/ApplicationBootstrap.svelte'
+			),
+			'utf8'
+		)
 
 		expect(source('$client.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
 		expect(productionLayoutSource).not.toMatch(/\$e2eProbe|E2E|__blockhead/)
 		expect(productionLayoutSource).toMatch(/openBrowserWASQLiteOPFSDatabase/)
 		expect(productionLayoutSource).toMatch(/createBrowserWASQLitePersistence/)
+		expect(productionLayoutSource.indexOf('await import.meta.hot?.data.databaseClose')).toBeLessThan(
+			productionLayoutSource.indexOf('return openBrowserWASQLiteOPFSDatabase')
+		)
+		expect(productionLayoutSource).toMatch(/data\.databaseClose = closeDatabase\(\)/)
+		expect(productionLayoutSource).toMatch(/const closeDatabase = databaseCloseWhenReady\(databasePromise\)/)
+		expect(productionLayoutSource).toMatch(/const applicationRuntime = applicationRuntimeWhenReady\([\s\S]*?bootstrap,[\s\S]*?mountWalletConnectionRuntime\(appClient\)/)
+		expect(productionLayoutSource).toMatch(/export const getAppClient = \(\) => \{[\s\S]*?if \(appClient == null\)[\s\S]*?throw new Error\('App client was read before bootstrap completed'\)[\s\S]*?return appClient/)
+		expect(productionLayoutSource).not.toMatch(/export (?:const|let) appClient/)
+		expect(productionLayoutSource).not.toMatch(/bootstrap\.then\([\s\S]*?\.catch\(\(\) => \{\}\)/)
+		expect(productionLayoutSource).toMatch(/loadResolvers\(indexSourceProviders\(sourceProviders, env\)\.enabledSources\)/)
+		expect(productionLayoutSource).toMatch(/const bootstrap = Promise\.all\(\[/)
+		expect(productionLayoutSource).toMatch(/export const select: AppClient\['select'\]/)
+		expect(productionLayoutSource).toMatch(/<ApplicationBootstrap[\s\S]*?ready=\{applicationRuntime\.ready\}[\s\S]*?\{children\}[\s\S]*?\/>/)
+		expect(productionLayoutSource).not.toMatch(/<ApplicationBootstrap[^>]*>[\s\S]*?\{@render children\(\)\}[\s\S]*?<\/ApplicationBootstrap>/)
+		expect(applicationBootstrapSource).toMatch(/\{#await ready\}[\s\S]*?Loading\.\.\.[\s\S]*?\{:then\}[\s\S]*?\{@render children\(\)\}[\s\S]*?\{:catch error\}/)
+		expect(applicationBootstrapSource).toMatch(/boundaryKey="ApplicationBootstrap"[\s\S]*?failure=\{\{[\s\S]*?error,/)
+		expect(productionLayoutSource).not.toMatch(/temporary|inMemory|memoryPersistence|installAppClientProbe/)
 	})
 
 	it('keeps Persisted collection query functions from using hydrated rows for the persistence gate', () => {
@@ -300,6 +327,7 @@ describe('client resolver stack architecture', () => {
 		})
 		expect(completedEmpty.nextMarker).toEqual({
 			collectionId: 'fields',
+			continuationBySource: {},
 			loadedKey: 'network',
 			rowCount: 0,
 			sourceRowCounts: {
@@ -318,6 +346,136 @@ describe('client resolver stack architecture', () => {
 		)).toMatchObject({
 			decision: CollectionLoadDecision.LoadedMarker,
 			remoteSources: [],
+		})
+
+		const continued = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			persistedRows: [],
+			loaded: {
+				rows: [hydratedRow],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+					continuation: {
+						operation: 'listing',
+						target: 'community',
+						viewerScope: 'anonymous',
+						terminal: false,
+						token: 'opaque-token',
+					},
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(continued.nextMarker.continuationBySource).toEqual({
+			'source-a': {
+				operation: 'listing',
+				target: 'community',
+				viewerScope: 'anonymous',
+				terminal: false,
+				token: 'opaque-token',
+			},
+		})
+		const failedContinuation = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			marker: continued.nextMarker,
+			persistedRows: continued.rows,
+			loaded: {
+				rows: [],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Failed,
+					error: 'expired token',
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(failedContinuation.rows).toEqual(continued.rows)
+		expect(failedContinuation.nextMarker).toEqual(continued.nextMarker)
+		expect(failedContinuation.failedOutcomes).toEqual([{
+			source: 'source-a',
+			status: PersistedCollectionSourceStatus.Failed,
+			error: 'expired token',
+		}])
+
+		const appended = persistedCollectionAppendResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			marker: continued.nextMarker,
+			persistedRows: [
+				{
+					...hydratedRow,
+					title: 'First page',
+					valueIndex: 0,
+				},
+				{
+					key: 'sibling',
+					[EntityMetaKey.Source]: 'source-b',
+					valueIndex: 0,
+				},
+			],
+			loaded: {
+				rows: [
+					{
+						...hydratedRow,
+						title: 'Second-page update',
+						valueIndex: 0,
+					},
+					{
+						key: 'next',
+						[EntityMetaKey.Source]: 'source-a',
+						valueIndex: 1,
+					},
+				],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+					continuation: {
+						operation: 'listing',
+						target: 'community',
+						viewerScope: 'anonymous',
+						terminal: true,
+					},
+				}],
+			},
+			source: 'source-a',
+			getKey: (row) => `${row[EntityMetaKey.Source]}:${row.key}:${row.valueIndex}`,
+			getValueIdentity: (row) => row.key,
+			setValueIndex: (row, valueIndex) => ({
+				...row,
+				valueIndex,
+			}),
+		})
+		expect(appended.rows).toEqual([
+			{
+				key: 'sibling',
+				[EntityMetaKey.Source]: 'source-b',
+				valueIndex: 0,
+			},
+			{
+				...hydratedRow,
+				title: 'Second-page update',
+				valueIndex: 0,
+			},
+			{
+				key: 'next',
+				[EntityMetaKey.Source]: 'source-a',
+				valueIndex: 1,
+			},
+		])
+		expect(appended.nextMarker.continuationBySource).toEqual({
+			'source-a': {
+				operation: 'listing',
+				target: 'community',
+				viewerScope: 'anonymous',
+				terminal: true,
+			},
 		})
 
 		const emptyRows = completedRows.rows.slice(0, 0)
@@ -354,6 +512,7 @@ describe('client resolver stack architecture', () => {
 	it('reconciles persisted field and count rows through partial, live, refresh, and malformed replay', async () => {
 		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
 		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+		let providerCalls = 0
 		const persistence = {
 			adapter: {
 				loadSubset: async (collectionId) => [
@@ -451,7 +610,9 @@ describe('client resolver stack architecture', () => {
 				resolvers: [{
 					entityType: 'PersistenceFixture',
 					resolve: {
-						Slug: async () => ({}),
+						Slug: {
+							resolve: async () => ({}),
+						},
 					},
 					resolveLive: {
 						items: {
@@ -496,7 +657,9 @@ describe('client resolver stack architecture', () => {
 				resolvers: [{
 					entityType: 'PersistenceFixture',
 					resolve: {
-						Slug: async () => ({}),
+						Slug: {
+							resolve: async () => ({}),
+						},
 					},
 					projections: {
 						items: {
@@ -1105,6 +1268,61 @@ describe('client resolver stack architecture', () => {
 			}))
 	})
 
+	it('retains completed source ownership across A to B to A subset loads', () => {
+		const sourceA = persistedCollectionRemoteResult({
+			collectionId: 'entities',
+			loadedKey: 'shared-subset',
+			persistedRows: [],
+			loaded: {
+				rows: [{
+					[EntityMetaKey.Source]: 'source-a',
+					value: 'a',
+				}],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => `${row[EntityMetaKey.Source]}:${row.value}`,
+		})
+		const sourceB = persistedCollectionRemoteResult({
+			collectionId: 'entities',
+			loadedKey: 'shared-subset',
+			marker: sourceA.nextMarker,
+			persistedRows: sourceA.rows,
+			loaded: {
+				rows: [{
+					[EntityMetaKey.Source]: 'source-b',
+					value: 'b',
+				}],
+				outcomes: [{
+					source: 'source-b',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-b'],
+			requestedSources: ['source-b'],
+			getKey: (row) => `${row[EntityMetaKey.Source]}:${row.value}`,
+		})
+
+		expect(sourceB.nextMarker.sourceRowKeys).toEqual({
+			'source-a': ['source-a:a'],
+			'source-b': ['source-b:b'],
+		})
+		expect(persistedCollectionHydrationPlan(
+			'entities',
+			'shared-subset',
+			sourceB.nextMarker,
+			sourceA.rows,
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.HydratedRows,
+			remoteSources: [],
+		})
+	})
+
 	it('replays incomplete persisted subsets and rejects implicit-source marker incompatibility', () => {
 		const persistedRows = [
 			{
@@ -1233,6 +1451,7 @@ describe('client resolver stack architecture', () => {
 			loadedKey: 'network',
 			marker: {
 				collectionId: 'counts',
+				continuationBySource: {},
 				loadedKey: 'network',
 				rowCount: 1,
 				sourceRowCounts: {
@@ -1264,6 +1483,7 @@ describe('client resolver stack architecture', () => {
 			loadedKey: 'network',
 			marker: {
 				collectionId: 'counts',
+				continuationBySource: {},
 				loadedKey: 'network',
 				rowCount: 1,
 				sourceRowCounts: {
@@ -1295,6 +1515,7 @@ describe('client resolver stack architecture', () => {
 		expect(failedRefresh.status).toBe(PersistedCollectionLoadStatus.Partial)
 		expect(failedRefresh.nextMarker).toEqual({
 			collectionId: 'counts',
+			continuationBySource: {},
 			loadedKey: 'network',
 			rowCount: 1,
 			sourceRowCounts: {
@@ -1307,6 +1528,197 @@ describe('client resolver stack architecture', () => {
 		expect(source('$client.svelte.ts')).toMatch(/collectionLoadFailures\.add\(\{[\s\S]*sources: \[outcome\.source\]/)
 		expect(source('$client.svelte.ts')).toMatch(/console\.error\([\s\S]*\[Blockhead collection-load-failure\]/)
 		expect(source('$client.svelte.ts')).not.toMatch(/console\.warn\([^)]*partially failed/)
+	})
+
+	it('appends and cancels continuation pages within the exact relationship partition', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'ContinuationParent',
+				labels: {
+					singular: 'Continuation parent',
+					plural: 'Continuation parents',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				$$children: {
+					type: EntityFieldType.EntitiesReference,
+					entityType: 'ContinuationChild',
+					cardinality: EntityFieldCardinality.ZeroOrMany,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+			}),
+			entity({
+				entityType: 'ContinuationChild',
+				labels: {
+					singular: 'Continuation child',
+					plural: 'Continuation children',
+				},
+			})({
+				id: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Id: ['id'],
+				},
+			}),
+		] as const
+		let releaseCancelledPage: (() => void) | undefined
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'continuation-provider',
+				label: 'Continuation provider',
+				sources: [{
+					provider: 'continuation-provider',
+					source: 'continuation-source',
+					label: 'Continuation source',
+				}],
+			}],
+		})({
+			resolvers: [{
+				source: 'continuation-source',
+				resolvers: [{
+					entityType: 'ContinuationParent',
+					resolve: {
+						Slug: {
+							resolve: async ({ slug }, resolverContext) => {
+								if (resolverContext.providerContinuationToken === 'cancelled-page')
+									await new Promise<void>((resolve) => {
+										releaseCancelledPage = resolve
+									})
+
+								return {
+									children: (
+										resolverContext.providerContinuationToken === undefined ?
+											[`${slug}-first`]
+										:
+											resolverContext.providerContinuationToken === 'next-page' ?
+												[
+													`${slug}-first`,
+													`${slug}-second`,
+												]
+											:
+												[`${slug}-cancelled`]
+									),
+									next: (
+										resolverContext.providerContinuationToken === undefined ?
+											'next-page'
+										:
+											resolverContext.providerContinuationToken === 'next-page' ?
+												'cancelled-page'
+											:
+												undefined
+									),
+								}
+							},
+						},
+					},
+					projections: {
+						$$children: {
+							select: ({ children }) => children.map((id) => ({
+								[EntityMetaKey.Selector]: { id },
+							})),
+							continuation: ({ next }) => (
+								next === undefined ?
+									{
+										operation: 'children',
+										target: 'fixture',
+										terminal: true,
+									}
+								:
+									{
+										operation: 'children',
+										target: 'fixture',
+										terminal: false,
+										token: next,
+									}
+							),
+						},
+					},
+				}],
+			}] satisfies SourceResolverModule<typeof fixtureSchema, 'continuation-source', ResolverContext>[],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+		const firstResource = subscribeEntityField(
+			context,
+			'ContinuationParent',
+			{ slug: 'first' },
+			'$$children',
+			{
+				sources: ['continuation-source'],
+			}
+		)
+		const secondResource = subscribeEntityField(
+			context,
+			'ContinuationParent',
+			{ slug: 'second' },
+			'$$children',
+			{
+				sources: ['continuation-source'],
+			}
+		)
+
+		await expect.poll(() => firstResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'first-first' },
+		])
+		await expect.poll(() => secondResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'second-first' },
+		])
+		expect((await firstResource).continuation?.metadata).toMatchObject({
+			terminal: false,
+			token: 'next-page',
+		})
+		await firstResource.current?.continuation?.loadMore()
+		await expect.poll(() => firstResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'first-first' },
+			{ id: 'first-second' },
+		])
+		expect(secondResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'second-first' },
+		])
+
+		const cancelledLoad = firstResource.current?.continuation?.loadMore()
+		await vi.waitFor(() => {
+			expect(firstResource.current?.continuation?.loading).toBe(true)
+		})
+		firstResource.current?.continuation?.cancel()
+		await expect(cancelledLoad).rejects.toMatchObject({
+			name: 'AbortError',
+		})
+		releaseCancelledPage?.()
+		await Promise.resolve()
+		expect(firstResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'first-first' },
+			{ id: 'first-second' },
+		])
+		expect(firstResource.current?.continuation?.metadata).toMatchObject({
+			terminal: false,
+			token: 'cancelled-page',
+		})
+		expect((await firstResource).entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'first-first' },
+			{ id: 'first-second' },
+		])
 	})
 
 	it('rejects an entire malformed hydrated source and forces replay without preserving its marker', () => {
@@ -1345,6 +1757,7 @@ describe('client resolver stack architecture', () => {
 			loadedKey: 'network',
 			marker: {
 				collectionId: 'fields',
+				continuationBySource: {},
 				loadedKey: 'network',
 				rowCount: 2,
 				sourceRowCounts: {
@@ -1474,7 +1887,7 @@ describe('client resolver stack architecture', () => {
 			})({
 				id: {
 					type: EntityFieldType.Primitive,
-					primitiveType: arktype('string'),
+					primitiveType: arktype('bigint'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				label: {
@@ -1506,17 +1919,19 @@ describe('client resolver stack architecture', () => {
 					{
 						entityType: 'SelectionFixture',
 						resolve: {
-							Slug: async () => ({}),
+							Slug: {
+								resolve: async () => ({}),
+							},
 						},
 						projections: {
 							$child: () => ({
 								[EntityMetaKey.Selector]: {
-									id: 'child',
+									id: 1n,
 								},
 							}),
 							$$children: () => [{
 								[EntityMetaKey.Selector]: {
-									id: 'child',
+									id: 1n,
 								},
 							}],
 						},
@@ -1524,7 +1939,9 @@ describe('client resolver stack architecture', () => {
 					{
 						entityType: 'SelectionChildFixture',
 						resolve: {
-							Id: async () => ({}),
+							Id: {
+								resolve: async () => ({}),
+							},
 						},
 						projections: {
 							label: () => 'Loaded child',
@@ -1662,7 +2079,8 @@ describe('client resolver stack architecture', () => {
 		expect(clientSource).toMatch(/materializeResolverOutput/)
 		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Field/)
 		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Count/)
-		expect(clientSource).toMatch(/const schemaIndex = indexSchema\(schema\)/)
+		expect(clientSource).toMatch(/schemaIndex = indexSchema\(schema\)/)
+		expect(clientSource).toMatch(/schemaIndex\?: ReturnType<typeof indexSchema<_Schema>>/)
 		expect(clientSource).not.toMatch(/Array\.isArray\(value\) \?[\s\S]*:\s*\[value\]/)
 		expect(materializerSource).toMatch(/schemaIndex\.entityFieldDefinitionByEntityTypePathAndName\[fieldDefinition\.entityType\]/)
 		expect(materializerSource).not.toMatch(/indexSchema\(|entityFieldDefinitions\(/)
@@ -1717,9 +2135,11 @@ describe('client resolver stack architecture', () => {
 				entityType: 'SelectorSourceFixture',
 				source: 'identity-source',
 				resolve: {
-					Slug: async () => {
-						calls['identity-source'] += 1
-						return {}
+					Slug: {
+						resolve: async () => {
+							calls['identity-source'] += 1
+							return {}
+						},
 					},
 				},
 				projections: {
@@ -1730,9 +2150,11 @@ describe('client resolver stack architecture', () => {
 				entityType: 'SelectorSourceFixture',
 				source: 'unrelated-source',
 				resolve: {
-					Slug: async () => {
-						calls['unrelated-source'] += 1
-						return {}
+					Slug: {
+						resolve: async () => {
+							calls['unrelated-source'] += 1
+							return {}
+						},
 					},
 				},
 				projections: {
@@ -1743,9 +2165,11 @@ describe('client resolver stack architecture', () => {
 				entityType: 'SelectorSourceFixture',
 				source: 'facet-source',
 				resolve: {
-					Slug: async () => {
-						calls['facet-source'] += 1
-						return 'resolved'
+					Slug: {
+						resolve: async () => {
+							calls['facet-source'] += 1
+							return 'resolved'
+						},
 					},
 				},
 				projections: {
@@ -1759,20 +2183,6 @@ describe('client resolver stack architecture', () => {
 			'identity-source' | 'unrelated-source' | 'facet-source',
 			ResolverContext
 		>['resolvers']
-
-		expect(entityResolverSourcesForSelectorKeys(
-			fixtureSchema,
-			fixtureSchema[0],
-			[stringify({ slug: 'fixture' })],
-			resolvers
-		)).toEqual(['identity-source'])
-		expect(entityResolverSourcesForSelectorKeys(
-			fixtureSchema,
-			fixtureSchema[0],
-			[stringify({ slug: 'fixture' })],
-			resolvers,
-			['facet-source']
-		)).toEqual(['facet-source'])
 
 		const context = client({
 			schema: fixtureSchema,
@@ -1825,6 +2235,20 @@ describe('client resolver stack architecture', () => {
 			schemaVersion: 1,
 		})
 
+		expect(entityResolverSourcesForSelectorKeys(
+			fixtureSchema,
+			fixtureSchema[0],
+			[stringify({ slug: 'fixture' })],
+			context.resolverIndexes.resolverDefinitionsByEntityType.SelectorSourceFixture
+		)).toEqual(['identity-source'])
+		expect(entityResolverSourcesForSelectorKeys(
+			fixtureSchema,
+			fixtureSchema[0],
+			[stringify({ slug: 'fixture' })],
+			context.resolverIndexes.resolverDefinitionsByEntityType.SelectorSourceFixture,
+			['facet-source']
+		)).toEqual(['facet-source'])
+
 		expect((await subscribeEntity(
 			context,
 			'SelectorSourceFixture',
@@ -1844,6 +2268,150 @@ describe('client resolver stack architecture', () => {
 			'unrelated-source': 0,
 			'facet-source': 1,
 		})
+	})
+
+	it('materializes every selector derived from one trusted identity snapshot', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'IdentityFixture',
+				labels: {
+					singular: 'Identity fixture',
+					plural: 'Identity fixtures',
+				},
+			})({
+				did: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				handle: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Did: ['did'],
+					Handle: ['handle'],
+				},
+			}),
+		] as const
+		let providerCalls = 0
+		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+		const persistence = {
+			adapter: {
+				loadSubset: async (collectionId) => [
+					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value,
+				})),
+				applyCommittedTx: async (collectionId, transaction) => {
+					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.mutations) {
+						if (mutation.type === 'delete')
+							collectionRows.delete(mutation.key)
+						else
+							collectionRows.set(mutation.key, mutation.value)
+					}
+					collectionRowsByCollectionId.set(collectionId, collectionRows)
+					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.collectionMetadataMutations ?? []) {
+						if (mutation.type === 'delete')
+							collectionMetadata.delete(mutation.key)
+						else
+							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
+					}
+					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
+				},
+				loadCollectionMetadata: async (collectionId) => [
+					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value: JSON.parse(value),
+				})),
+				ensureIndex: async () => {},
+			} satisfies PersistenceAdapter,
+		}
+		const createContext = () => client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'identity-provider',
+				label: 'Identity provider',
+				sources: [{
+					provider: 'identity-provider',
+					source: 'identity-source',
+					label: 'Identity source',
+				}],
+			}],
+		})({
+			resolvers: [{
+				source: 'identity-source',
+				resolvers: [{
+					entityType: 'IdentityFixture',
+					resolve: {
+						Did: {
+							resolve: async ({ did }) => {
+								providerCalls += 1
+								return {
+									did,
+									handle: 'alice.example',
+								}
+							},
+						},
+						Handle: {
+							resolve: async ({ handle }) => {
+								providerCalls += 1
+								return {
+									did: 'did:plc:alice',
+									handle,
+								}
+							},
+						},
+					},
+					projections: {
+						did: (identity) => identity.did,
+						handle: (identity) => identity.handle,
+					},
+				}],
+			}],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence,
+			schemaVersion: 1,
+		})
+		const context = createContext()
+
+		await subscribeEntity(
+			context,
+			'IdentityFixture',
+			{ handle: 'alice.example' },
+			{ sources: ['identity-source'] }
+		)
+		expect(context.entityCollections.IdentityFixture.toArray.map((row) => row[EntityMetaKey.Selector])).toEqual(expect.arrayContaining([
+			{ did: 'did:plc:alice' },
+			{ handle: 'alice.example' },
+		]))
+		await expect.poll(() => (
+			collectionRowsByCollectionId.get('client.entities.IdentityFixture')?.size
+		)).toBe(2)
+		await expect.poll(() => (
+			collectionMetadataByCollectionId.get('client.entities.IdentityFixture')?.size
+		)).toBe(2)
+
+		const restartedContext = createContext()
+		await subscribeEntity(
+			restartedContext,
+			'IdentityFixture',
+			{ did: 'did:plc:alice' },
+			{
+				sources: ['identity-source'],
+				fields: {},
+			}
+		)
+		expect(providerCalls).toBe(1)
 	})
 
 	it('materializes exact entity, field, reference, and count rows', () => {
@@ -1936,8 +2504,6 @@ describe('client resolver stack architecture', () => {
 				'not-a-number',
 			],
 		})).toThrow(/must be a number/)
-		expect(source('$client.svelte.ts').match(/row\.valueKey,\n\s+row\.valueIndex,/g)).toHaveLength(5)
-
 		expect(materializeResolverOutput({
 			kind: ResolverOutputMaterialization.Field,
 			schema: materializationFixtureSchema,
@@ -2142,7 +2708,9 @@ describe('client resolver stack architecture', () => {
 			resolvers: [{
 				entityType: 'CountFixture',
 				resolve: {
-					Slug: async () => ({}),
+					Slug: {
+						resolve: async () => ({}),
+					},
 				},
 				projections: {
 					items: {
@@ -2369,7 +2937,9 @@ describe('client resolver stack architecture', () => {
 				resolvers: [{
 					entityType: 'LiveFixture',
 					resolve: {
-						Slug: async () => ({}),
+						Slug: {
+							resolve: async () => ({}),
+						},
 					},
 					resolveLive: {
 						items: {
@@ -2491,6 +3061,455 @@ describe('client resolver stack architecture', () => {
 		secondSubscription.unsubscribe()
 		await expect.poll(() => cleanups).toBe(1)
 		expect(context.liveSubscriptions.size).toBe(0)
+	})
+
+	it('settles existing getter and promise resources from exact persisted Local authority', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'LocalAuthorityFixture',
+				labels: {
+					singular: 'Local authority fixture',
+					plural: 'Local authority fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				note: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				items: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.Many,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+			}),
+		] as const
+		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+		const persistence = {
+			adapter: {
+				loadSubset: async (collectionId) => [
+					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value,
+				})),
+				applyCommittedTx: async (collectionId, transaction) => {
+					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.mutations) {
+						if (mutation.type === 'delete')
+							collectionRows.delete(mutation.key)
+						else
+							collectionRows.set(mutation.key, mutation.value)
+					}
+					collectionRowsByCollectionId.set(collectionId, collectionRows)
+					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.collectionMetadataMutations ?? []) {
+						if (mutation.type === 'delete')
+							collectionMetadata.delete(mutation.key)
+						else
+							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
+					}
+					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
+				},
+				loadCollectionMetadata: async (collectionId) => [
+					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value: JSON.parse(value),
+				})),
+				ensureIndex: async () => {},
+			} satisfies PersistenceAdapter,
+		}
+		let providerCalls = 0
+		const createContext = () => client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'local',
+				label: 'Local',
+				sources: [{
+					provider: 'local',
+					source: Source.Local_Internal,
+					label: 'Local',
+				}],
+			}],
+		})({
+			resolvers: [{
+				source: Source.Local_Internal,
+				resolvers: [{
+					entityType: 'LocalAuthorityFixture',
+					resolve: {
+						Slug: {
+							resolve: ({ slug }) => {
+								providerCalls += 1
+								return slug === 'catalog' ?
+									{
+										slug,
+										note: 'Catalog value',
+									}
+								:
+									new Promise(() => {})
+							},
+						},
+					},
+					projections: {
+						note: (snapshot) => snapshot.note,
+						items: {
+							select: () => {
+								providerCalls += 1
+								return new Promise(() => {})
+							},
+							resolveCount: () => {
+								providerCalls += 1
+								return new Promise(() => {})
+							},
+						},
+					},
+				}],
+			}],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence,
+			schemaVersion: 1,
+		})
+		const context = createContext()
+		const entitySelector = {
+			slug: 'runtime',
+		}
+		const selectorKey = stringify(entitySelector)
+		const fieldAddressKey = entityFieldAddressKey('LocalAuthorityFixture', [], 'note')
+		const resource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			entitySelector,
+			'note',
+			{
+				sources: [Source.Local_Internal],
+			}
+		)
+
+		expect(resource.current).toBeUndefined()
+		context.entityFieldCollections.LocalAuthorityFixture[fieldAddressKey].utils.writeUpsertWithAuthority({
+			facetPath: [],
+			facetPathKey: stringify([]),
+			fieldName: 'note',
+			[EntityMetaKey.ParentSelector]: entitySelector,
+			[EntityMetaKey.ParentSelectorKey]: selectorKey,
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: 'Persisted locally',
+			valueKey: `Value:${stringify('Persisted locally')}`,
+		},
+			selectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey,
+				fieldName: 'note',
+				fieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+
+		await expect.poll(() => resource.current).toBe('Persisted locally')
+		await expect(resource).resolves.toBe('Persisted locally')
+
+		const absentEntitySelector = {
+			slug: 'runtime-absent',
+		}
+		const absentSelectorKey = stringify(absentEntitySelector)
+		const absentResource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			absentEntitySelector,
+			'note',
+			{
+				sources: [Source.Local_Internal],
+			}
+		)
+		expect(absentResource.ready).toBe(false)
+		context.entityFieldCollections.LocalAuthorityFixture[fieldAddressKey].utils.replaceRowsWithAuthority(
+			() => false,
+			[],
+			absentSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: absentSelectorKey,
+				fieldName: 'note',
+				fieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+
+		await expect.poll(() => absentResource.ready).toBe(true)
+		await expect(absentResource).resolves.toBeUndefined()
+
+		const itemsFieldAddressKey = entityFieldAddressKey('LocalAuthorityFixture', [], 'items')
+		const emptyItemsEntitySelector = {
+			slug: 'runtime-empty-items',
+		}
+		const emptyItemsSelectorKey = stringify(emptyItemsEntitySelector)
+		context.entityFieldCountCollections.LocalAuthorityFixture[itemsFieldAddressKey]?.utils.writeUpsertWithAuthority({
+			[EntityMetaKey.ParentSelector]: emptyItemsEntitySelector,
+			[EntityMetaKey.ParentSelectorKey]: emptyItemsSelectorKey,
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: 0,
+			facetPath: [],
+			facetPathKey: stringify([]),
+			fieldName: 'items',
+			filterKey: stringify({}),
+		},
+			emptyItemsSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: emptyItemsSelectorKey,
+				fieldName: 'items',
+				fieldAddressKey: itemsFieldAddressKey,
+				facetPathKey: stringify([]),
+				filterKey: stringify({}),
+			}),
+			'resolved'
+		)
+		context.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey].utils.replaceRowsWithAuthority(
+			() => false,
+			[],
+			emptyItemsSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: emptyItemsSelectorKey,
+				fieldName: 'items',
+				fieldAddressKey: itemsFieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+		const emptyItemsResource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			emptyItemsEntitySelector,
+			'items',
+			{
+				sources: [Source.Local_Internal],
+				count: true,
+			}
+		)
+		await expect.poll(() => emptyItemsResource.current).toMatchObject({
+			values: [],
+			totalCount: 0,
+		})
+		await expect(emptyItemsResource).resolves.toMatchObject({
+			values: [],
+			totalCount: 0,
+		})
+		const emptyItemsProxyResource = context.select(
+			'LocalAuthorityFixture',
+			emptyItemsEntitySelector,
+			{
+				sources: [Source.Local_Internal],
+			}
+		).items({
+			sources: [Source.Local_Internal],
+			count: true,
+		})
+		await expect.poll(() => emptyItemsProxyResource.current).toMatchObject({
+			values: [],
+			totalCount: 0,
+		})
+		await expect(emptyItemsProxyResource).resolves.toMatchObject({
+			values: [],
+			totalCount: 0,
+		})
+
+		const itemsResource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			entitySelector,
+			'items',
+			{
+				sources: [Source.Local_Internal],
+				count: true,
+			}
+		)
+		const filteredItemsResource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			entitySelector,
+			'items',
+			{
+				sources: [Source.Local_Internal],
+				count: true,
+				where: ({ row }) => eq(row.valueKey, `Value:${stringify('First')}`),
+				limit: 1,
+			}
+		)
+		context.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey].utils.writeUpsertWithAuthority({
+			facetPath: [],
+			facetPathKey: stringify([]),
+			fieldName: 'items',
+			[EntityMetaKey.ParentSelector]: entitySelector,
+			[EntityMetaKey.ParentSelectorKey]: selectorKey,
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: 'First',
+			valueIndex: 0,
+			valueKey: `Value:${stringify('First')}`,
+		},
+			selectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey,
+				fieldName: 'items',
+				fieldAddressKey: itemsFieldAddressKey,
+				facetPathKey: stringify([]),
+				valueKey: `Value:${stringify('First')}`,
+				valueIndex: 0,
+			}),
+			'present'
+		)
+		await Promise.resolve()
+		expect(itemsResource.ready).toBe(false)
+		expect(filteredItemsResource.ready).toBe(false)
+
+		context.entityFieldCountCollections.LocalAuthorityFixture[itemsFieldAddressKey]?.utils.writeUpsertWithAuthority({
+			[EntityMetaKey.ParentSelector]: entitySelector,
+			[EntityMetaKey.ParentSelectorKey]: selectorKey,
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: 1,
+			facetPath: [],
+			facetPathKey: stringify([]),
+			fieldName: 'items',
+			filterKey: stringify({}),
+		},
+			selectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey,
+				fieldName: 'items',
+				fieldAddressKey: itemsFieldAddressKey,
+				facetPathKey: stringify([]),
+				filterKey: stringify({}),
+			}),
+			'resolved'
+		)
+		context.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey].utils.replaceRowsWithAuthority(
+			() => false,
+			[],
+			selectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey,
+				fieldName: 'items',
+				fieldAddressKey: itemsFieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+
+		await expect.poll(() => itemsResource.current).toMatchObject({
+			values: ['First'],
+			totalCount: 1,
+		})
+		await expect.poll(() => filteredItemsResource.current).toMatchObject({
+			values: ['First'],
+		})
+		await expect(filteredItemsResource).resolves.toMatchObject({
+			values: ['First'],
+		})
+
+		const itemsCollectionId = context.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey].id
+		const itemsCountCollectionId = context.entityFieldCountCollections.LocalAuthorityFixture[itemsFieldAddressKey]?.id
+		await expect.poll(() => collectionMetadataByCollectionId.get(itemsCollectionId)?.size).toBeGreaterThan(0)
+		await expect.poll(() => (
+			itemsCountCollectionId === undefined ?
+				0
+			:
+				collectionMetadataByCollectionId.get(itemsCountCollectionId)?.size
+		)).toBeGreaterThan(0)
+
+		const providerCallsBeforeReentry = providerCalls
+		const reenteredContext = createContext()
+		const reenteredFilteredItemsResource = subscribeEntityField(
+			reenteredContext,
+			'LocalAuthorityFixture',
+			entitySelector,
+			'items',
+			{
+				sources: [Source.Local_Internal],
+				count: true,
+				where: ({ row }) => eq(row.valueKey, `Value:${stringify('First')}`),
+				limit: 1,
+			}
+		)
+		await expect.poll(() => reenteredFilteredItemsResource.current).toMatchObject({
+			values: ['First'],
+		})
+		await expect(reenteredFilteredItemsResource).resolves.toMatchObject({
+			values: ['First'],
+		})
+		expect(providerCalls).toBe(providerCallsBeforeReentry)
+
+		await expect(subscribeEntityField(
+			reenteredContext,
+			'LocalAuthorityFixture',
+			{
+				slug: 'catalog',
+			},
+			'note',
+			{
+				sources: [Source.Local_Internal],
+			}
+		)).resolves.toBe('Catalog value')
+		expect(providerCalls).toBeGreaterThan(providerCallsBeforeReentry)
+
+		reenteredContext.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey]
+			.utils.deleteSelectorRowsAndAuthority(
+				(row) => (
+					row[EntityMetaKey.Source] === Source.Local_Internal
+					&& row[EntityMetaKey.ParentSelectorKey] === selectorKey
+				),
+				selectorKey
+			)
+		reenteredContext.entityFieldCountCollections.LocalAuthorityFixture[itemsFieldAddressKey]
+			?.utils.deleteSelectorRowsAndAuthority(
+				(row) => (
+					row[EntityMetaKey.Source] === Source.Local_Internal
+					&& row[EntityMetaKey.ParentSelectorKey] === selectorKey
+				),
+				selectorKey
+			)
+		await expect.poll(() => (
+			reenteredContext.entityFieldCollections.LocalAuthorityFixture[itemsFieldAddressKey].toArray
+		)).toHaveLength(0)
+		const deletedItemsResource = subscribeEntityField(
+			reenteredContext,
+			'LocalAuthorityFixture',
+			entitySelector,
+			'items',
+			{
+				sources: [Source.Local_Internal],
+				count: true,
+				where: ({ row }) => eq(row.valueKey, `Value:${stringify('First')}`),
+				limit: 1,
+			}
+		)
+		expect(deletedItemsResource.current).toBeUndefined()
+		expect(deletedItemsResource.ready).toBe(false)
 	})
 
 	it('keeps view-facing reads behind the proxy and subscribe files', () => {

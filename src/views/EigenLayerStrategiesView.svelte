@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EigenLayerStrategyView from '$/views/EigenLayerStrategyView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					strategyAddress: true,
-					underlyingToken: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerStrategy}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EigenLayerStrategy}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				strategyAddress: true,
+				underlyingToken: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(eigenLayerStrategies) => [...new Map(eigenLayerStrategies.values.map((eigenLayerStrategy) => [eigenLayerStrategy[EntityMetaKey.SelectorKey], eigenLayerStrategy])).values()]}
+	getKey={(eigenLayerStrategy) => eigenLayerStrategy[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Eigen layer strategies yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eigenLayerStrategies)}
-			{@const uniqueEigenLayerStrategies = [...new Map(eigenLayerStrategies.values.map((eigenLayerStrategy) => [eigenLayerStrategy[EntityMetaKey.SelectorKey], eigenLayerStrategy])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerStrategy}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eigenLayerStrategies.totalCount}
-				getKey={(eigenLayerStrategy) => eigenLayerStrategy[EntityMetaKey.SelectorKey]}
-				items={uniqueEigenLayerStrategies}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Eigen layer strategies yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eigenLayerStrategy })}
-					{@const eigenLayerStrategyFields = { ...eigenLayerStrategy[EntityMetaKey.Selector], ...eigenLayerStrategy }}
-					{@const selection = select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EigenLayerStrategyView
-						selection={selection}
-						prefetched={eigenLayerStrategyFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EigenLayerStrategy}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eigenLayerStrategy })}
+		{@const eigenLayerStrategyFields = { ...eigenLayerStrategy[EntityMetaKey.Selector], ...eigenLayerStrategy }}
+		{@const selection = select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EigenLayerStrategyView
+			selection={selection}
+			prefetched={eigenLayerStrategyFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

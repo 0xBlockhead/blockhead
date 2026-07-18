@@ -12,6 +12,28 @@ const clampNostrBandLimit = (limit: number) => (
 	Math.min(100, Math.max(1, limit))
 )
 
+export const normalizeNostrBandProfileSearchQuery = (query: string) => {
+	if (/[\u0000-\u001f\u007f]/.test(query))
+		throw new Error('NostrBand profile search query contains control characters')
+
+	const normalizedQuery = query.trim().replace(/\s+/g, ' ')
+	if (normalizedQuery === '')
+		throw new Error('NostrBand profile search query must not be blank')
+	if (normalizedQuery.length > 64)
+		throw new Error('NostrBand profile search query exceeds 64 characters')
+
+	return normalizedQuery
+}
+
+/** GET /v0/events/search — kind-0 profile metadata events. */
+export const searchProfiles = (query: string, limit: number) => (
+	nostrBandGet<NostrBandEventsList>('/events/search', {
+		query: normalizeNostrBandProfileSearchQuery(query),
+		kinds: '0',
+		limit: clampNostrBandLimit(limit),
+	})
+)
+
 /**
  * GET /v0/events/e/{id}
  */

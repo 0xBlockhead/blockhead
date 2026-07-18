@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitLooseObjectView from '$/views/GitLooseObjectView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					byteSource: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitLooseObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitLooseObject}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				byteSource: true,
+			},
+		})
+	}
+	getResourceItems={(gitLooseObjects) => [...new Map(gitLooseObjects.values.map((gitLooseObject) => [gitLooseObject[EntityMetaKey.SelectorKey], gitLooseObject])).values()]}
+	getKey={(gitLooseObject) => gitLooseObject[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git loose objects yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitLooseObjects)}
-			{@const uniqueGitLooseObjects = [...new Map(gitLooseObjects.values.map((gitLooseObject) => [gitLooseObject[EntityMetaKey.SelectorKey], gitLooseObject])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitLooseObject}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitLooseObjects.totalCount}
-				getKey={(gitLooseObject) => gitLooseObject[EntityMetaKey.SelectorKey]}
-				items={uniqueGitLooseObjects}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git loose objects yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitLooseObject })}
-					{@const gitLooseObjectFields = { ...gitLooseObject[EntityMetaKey.Selector], ...gitLooseObject }}
-					{@const selection = select(EntityType.GitLooseObject, gitLooseObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitLooseObjectView
-						selection={selection}
-						prefetched={gitLooseObjectFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitLooseObject}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitLooseObject })}
+		{@const gitLooseObjectFields = { ...gitLooseObject[EntityMetaKey.Selector], ...gitLooseObject }}
+		{@const selection = select(EntityType.GitLooseObject, gitLooseObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitLooseObjectView
+			selection={selection}
+			prefetched={gitLooseObjectFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

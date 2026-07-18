@@ -24,7 +24,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: params.chainId,
+					reference: Number(params.chainId),
 				},
 			},
 			address: params.contractAddress,
@@ -38,16 +38,20 @@
 			name: true,
 			standard: true,
 			format: true,
-			Eip8004Registration,agentRegistry: true,
-			Eip8004Registration,agentId: true,
-			Eip8004Registration,agentUri: true,
-			Eip8004Registration,contactEndpoint: true,
-			Eip8004Registration,$agentWallet: true,
-			Eip8004Registration,x402Support: true,
+			Eip8004Registration: {
+				fields: {
+					agentRegistry: true,
+					agentId: true,
+					agentUri: true,
+					contactEndpoint: true,
+					$agentWallet: true,
+					x402Support: true,
+					supportedTrust: true,
+					registrationTypeIri: true,
+					fetchedAt: true,
+				},
+			},
 			active: true,
-			Eip8004Registration,supportedTrust: true,
-			Eip8004Registration,registrationTypeIri: true,
-			Eip8004Registration,fetchedAt: true,
 			description: true,
 		},
 	}))

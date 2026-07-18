@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGServiceProviderView from '$/views/ZeroGServiceProviderView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					providerId: true,
-					serviceKind: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGServiceProvider}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGServiceProvider}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				providerId: true,
+				serviceKind: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGServiceProviders) => [...new Map(zeroGServiceProviders.values.map((zeroGServiceProvider) => [zeroGServiceProvider[EntityMetaKey.SelectorKey], zeroGServiceProvider])).values()]}
+	getKey={(zeroGServiceProvider) => zeroGServiceProvider[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g service providers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGServiceProviders)}
-			{@const uniqueZeroGServiceProviders = [...new Map(zeroGServiceProviders.values.map((zeroGServiceProvider) => [zeroGServiceProvider[EntityMetaKey.SelectorKey], zeroGServiceProvider])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGServiceProvider}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGServiceProviders.totalCount}
-				getKey={(zeroGServiceProvider) => zeroGServiceProvider[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGServiceProviders}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g service providers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGServiceProvider })}
-					{@const zeroGServiceProviderFields = { ...zeroGServiceProvider[EntityMetaKey.Selector], ...zeroGServiceProvider }}
-					{@const selection = select(EntityType.ZeroGServiceProvider, zeroGServiceProvider[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGServiceProviderView
-						selection={selection}
-						prefetched={zeroGServiceProviderFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGServiceProvider}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGServiceProvider })}
+		{@const zeroGServiceProviderFields = { ...zeroGServiceProvider[EntityMetaKey.Selector], ...zeroGServiceProvider }}
+		{@const selection = select(EntityType.ZeroGServiceProvider, zeroGServiceProvider[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGServiceProviderView
+			selection={selection}
+			prefetched={zeroGServiceProviderFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

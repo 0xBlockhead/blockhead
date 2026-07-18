@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosContract_TimestampView from '$/views/TezosContract_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosContract_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosContractTimestamps) => [...new Map(tezosContractTimestamps.values.map((tezosContractTimestamp) => [tezosContractTimestamp[EntityMetaKey.SelectorKey], tezosContractTimestamp])).values()]}
+	getKey={(tezosContractTimestamp) => tezosContractTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos contract observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosContractTimestamps)}
-			{@const uniqueTezosContractTimestamps = [...new Map(tezosContractTimestamps.values.map((tezosContractTimestamp) => [tezosContractTimestamp[EntityMetaKey.SelectorKey], tezosContractTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosContractTimestamps.totalCount}
-				getKey={(tezosContractTimestamp) => tezosContractTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosContractTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos contract observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosContractTimestamp })}
-					{@const tezosContractTimestampFields = { ...tezosContractTimestamp[EntityMetaKey.Selector], ...tezosContractTimestamp }}
-					{@const selection = select(EntityType.TezosContract_Timestamp, tezosContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosContract_TimestampView
-						selection={selection}
-						prefetched={tezosContractTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosContract_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosContractTimestamp })}
+		{@const tezosContractTimestampFields = { ...tezosContractTimestamp[EntityMetaKey.Selector], ...tezosContractTimestamp }}
+		{@const selection = select(EntityType.TezosContract_Timestamp, tezosContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosContract_TimestampView
+			selection={selection}
+			prefetched={tezosContractTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

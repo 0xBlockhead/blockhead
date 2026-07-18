@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const redditSubreddit = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 		},
@@ -55,10 +53,10 @@
 
 
 	// Components
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
+	import RedditSubreddit_TimestampsView from '$/views/RedditSubreddit_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -70,7 +68,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
-			name: String(pendingEntity.name ?? ''),
+			name: encodeURIComponent(String(pendingEntity.name ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -80,10 +78,6 @@
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={redditSubreddit}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
 				{#if reference?.[EntityMetaKey.Selector] !== undefined}
@@ -99,16 +93,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={redditSubreddit}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [(String((pendingEntity.name) ?? '') ? 'r/' + String((pendingEntity.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={redditSubreddit}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,20 +113,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								<span>r/</span>
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -148,24 +135,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							title: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const title = pendingEntity.title}
-					{#if title !== undefined && title !== null}
-						<div>
-							<dt>Title</dt>
-							<dd>
-								{String((title) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const title = resolvedEntity.title}
@@ -184,24 +160,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								publicDescription: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const publicDescription = pendingEntity.publicDescription}
-						{#if publicDescription !== undefined && publicDescription !== null}
-							<div>
-								<dt>Public description</dt>
-								<dd>
-									<span data-text="long-text">{String((publicDescription) ?? '')}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const publicDescription = resolvedEntity.publicDescription}
@@ -221,24 +186,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								createdAt: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const createdAt = pendingEntity.createdAt}
-						{#if createdAt !== undefined && createdAt !== null}
-							<div>
-								<dt>Created</dt>
-								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const createdAt = resolvedEntity.createdAt}
@@ -258,24 +212,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								over18: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const over18 = pendingEntity.over18}
-						{#if over18 !== undefined && over18 !== null}
-							<div>
-								<dt>NSFW</dt>
-								<dd>
-									{over18 ? 'Yes' : 'No'}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const over18 = resolvedEntity.over18}
@@ -306,8 +249,30 @@
 						})
 					}
 				title='Submissions'
-				href={resolve('/reddit/links')}
+				href={
+						(selection.entitySelector.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/links', {
+							name: encodeURIComponent(String(selection.entitySelector.name ?? '')),
+						}) : undefined)
+					}
 				id='RedditLinksView-links'
+			/>
+
+			<RedditSubreddit_TimestampsView
+				selection={
+						selection.$$timestamps({
+							sources: [
+								Source.Reddit_PublicJson,
+							],
+							count: true,
+						})
+					}
+				title='Observations'
+				href={
+						(selection.entitySelector.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/observations', {
+							name: encodeURIComponent(String(selection.entitySelector.name ?? '')),
+						}) : undefined)
+					}
+				id='RedditSubreddit_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

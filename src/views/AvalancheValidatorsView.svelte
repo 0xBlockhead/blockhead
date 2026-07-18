@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvalancheValidatorView from '$/views/AvalancheValidatorView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					stakeAmountNavax: true,
-					startTimeMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalancheValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvalancheValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				nodeId: true,
+				stakeAmountNavax: true,
+				startTimeMs: true,
+			},
+		})
+	}
+	getResourceItems={(avalancheValidators) => [...new Map(avalancheValidators.values.map((avalancheValidator) => [avalancheValidator[EntityMetaKey.SelectorKey], avalancheValidator])).values()]}
+	getKey={(avalancheValidator) => avalancheValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avalanche validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(avalancheValidators)}
-			{@const uniqueAvalancheValidators = [...new Map(avalancheValidators.values.map((avalancheValidator) => [avalancheValidator[EntityMetaKey.SelectorKey], avalancheValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvalancheValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={avalancheValidators.totalCount}
-				getKey={(avalancheValidator) => avalancheValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueAvalancheValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avalanche validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: avalancheValidator })}
-					{@const avalancheValidatorFields = { ...avalancheValidator[EntityMetaKey.Selector], ...avalancheValidator }}
-					{@const selection = select(EntityType.AvalancheValidator, avalancheValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvalancheValidatorView
-						selection={selection}
-						prefetched={avalancheValidatorFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvalancheValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: avalancheValidator })}
+		{@const avalancheValidatorFields = { ...avalancheValidator[EntityMetaKey.Selector], ...avalancheValidator }}
+		{@const selection = select(EntityType.AvalancheValidator, avalancheValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvalancheValidatorView
+			selection={selection}
+			prefetched={avalancheValidatorFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

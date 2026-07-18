@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearChunk = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			shardId: true,
 		},
@@ -76,84 +74,92 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearChunk}>
-			{#snippet Pending()}
-				{@const chunkHash0 = pendingEntity.chunkHash}
-				{#if chunkHash0 !== undefined && chunkHash0 !== null}
-					<TruncatedValue value={String((chunkHash0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const chunkHash0 = resolvedEntity.chunkHash}
-				{#if chunkHash0 !== undefined && chunkHash0 !== null}
-					<TruncatedValue value={String((chunkHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const chunkHash0 = pendingEntity.chunkHash}
+					{#if chunkHash0 !== undefined && chunkHash0 !== null}
+						<TruncatedValue value={String((chunkHash0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const chunkHash0 = resolvedEntity.chunkHash}
+					{#if chunkHash0 !== undefined && chunkHash0 !== null}
+						<TruncatedValue value={String((chunkHash0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearChunk}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(nearBlock)}
-						{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
-							<NearBlockView
-								selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
-								prefetched={nearBlock}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(nearBlock)}
-						{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
-							<NearBlockView
-								selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
-								prefetched={nearBlock}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$block}
+					>
+						{#snippet children(nearBlock)}
+							{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
+								<NearBlockView
+									selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
+									prefetched={nearBlock}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={nearChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$block}
+					>
+						{#snippet children(nearBlock)}
+							{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
+								<NearBlockView
+									selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
+									prefetched={nearBlock}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearChunk}>
-			{#snippet Pending()}
-				{@const shardId0 = pendingEntity.shardId}
-				{#if shardId0 !== undefined && shardId0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(shardId0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const shardId0 = resolvedEntity.shardId}
-				{#if shardId0 !== undefined && shardId0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(shardId0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const shardId0 = pendingEntity.shardId}
+			{#if shardId0 !== undefined && shardId0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={shardId0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nearChunk}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const shardId0 = resolvedEntity.shardId}
+					{#if shardId0 !== undefined && shardId0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={shardId0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -182,19 +188,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chunkHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chunkHash = pendingEntity.chunkHash}
-							{#if chunkHash !== undefined && chunkHash !== null}
-								<TruncatedValue value={String((chunkHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chunkHash = resolvedEntity.chunkHash}
@@ -209,8 +209,6 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(nearBlock)}
 					{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -231,27 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							shardId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const shardId = pendingEntity.shardId}
-					{#if shardId !== undefined && shardId !== null}
-						<div>
-							<dt>Shard ID</dt>
-							<dd>
-								<NumberValue value={Number(shardId)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const shardId = resolvedEntity.shardId}
@@ -259,7 +243,9 @@
 						<div>
 							<dt>Shard ID</dt>
 							<dd>
-								<NumberValue value={Number(shardId)} />
+								<NumberValue
+									value={shardId}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -269,27 +255,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>Gas used</dt>
-							<dd>
-								<NumberValue value={Number(gasUsed)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -297,7 +269,9 @@
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								<NumberValue value={Number(gasUsed)} />
+								<NumberValue
+									value={gasUsed}
+								/>
 							</dd>
 						</div>
 					{/if}

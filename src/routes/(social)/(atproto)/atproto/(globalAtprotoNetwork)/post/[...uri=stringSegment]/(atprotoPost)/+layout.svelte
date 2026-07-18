@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,10 @@
 			{@const DetailView = AtprotoPostView}
 
 			<DetailView
-				selection={select(EntityType.AtprotoPost, data.selector)}
+				selection={select(EntityType.AtprotoPost, data.selector, { sources: [
+		Source.Constants_Internal,
+		Source.Atproto_Xrpc,
+	] })}
 				href={
 					resolve('/atproto/post/[...uri=stringSegment]', {
 						uri: params.uri,

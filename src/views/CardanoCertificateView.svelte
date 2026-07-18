@@ -3,11 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -40,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoCertificate = $derived(selection({}))
+	const cardanoCertificate = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano certificate')
 	const viewDomId = $derived('cardano-certificate-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoCertificate}>
-			{#snippet Pending()}
-				{title || 'Cardano certificate'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoCertificate}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,19 +101,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									certificateIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const certificateIndex = pendingEntity.certificateIndex}
-							{#if certificateIndex !== undefined && certificateIndex !== null}
-								{String((certificateIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const certificateIndex = resolvedEntity.certificateIndex}
@@ -127,19 +125,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									certificateKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const certificateKind = pendingEntity.certificateKind}
-							{#if certificateKind !== undefined && certificateKind !== null}
-								{String((certificateKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const certificateKind = resolvedEntity.certificateKind}
@@ -154,8 +146,6 @@
 			<ResourceBoundary
 				resource={selection.$stakeCredential}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null && cardanoStakeCredential[EntityMetaKey.Selector] != null}
 						<div>
@@ -176,8 +166,6 @@
 			<ResourceBoundary
 				resource={selection.$stakePool}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null && cardanoStakePool[EntityMetaKey.Selector] != null}
 						<div>
@@ -186,6 +174,15 @@
 								<CardanoStakePoolView
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
+									href={
+										(cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+											network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+											network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -198,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null && cardanoDRep[EntityMetaKey.Selector] != null}
 						<div>
@@ -208,6 +203,15 @@
 								<CardanoDRepView
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
+									href={
+										(cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+											network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+											network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -220,24 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							poolId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const poolId = pendingEntity.poolId}
-					{#if poolId !== undefined && poolId !== null}
-						<div>
-							<dt>pool ID</dt>
-							<dd>
-								{String((poolId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const poolId = resolvedEntity.poolId}
@@ -255,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardAddress = pendingEntity.rewardAddress}
-					{#if rewardAddress !== undefined && rewardAddress !== null}
-						<div>
-							<dt>reward address</dt>
-							<dd>
-								<TruncatedValue value={String((rewardAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardAddress = resolvedEntity.rewardAddress}
@@ -290,24 +272,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							depositLovelace: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const depositLovelace = pendingEntity.depositLovelace}
-					{#if depositLovelace !== undefined && depositLovelace !== null}
-						<div>
-							<dt>deposit lovelace</dt>
-							<dd>
-								{String((depositLovelace) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const depositLovelace = resolvedEntity.depositLovelace}
@@ -325,24 +296,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const epoch = pendingEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
-						<div>
-							<dt>epoch</dt>
-							<dd>
-								{String((epoch) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const epoch = resolvedEntity.epoch}
@@ -360,31 +320,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metadataUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metadataUrl = pendingEntity.metadataUrl}
-					{#if metadataUrl !== undefined && metadataUrl !== null}
-						<div>
-							<dt>metadata URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(metadataUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(metadataUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metadataUrl = resolvedEntity.metadataUrl}
@@ -409,24 +351,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metadataHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metadataHash = pendingEntity.metadataHash}
-					{#if metadataHash !== undefined && metadataHash !== null}
-						<div>
-							<dt>metadata hash</dt>
-							<dd>
-								<TruncatedValue value={String((metadataHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metadataHash = resolvedEntity.metadataHash}

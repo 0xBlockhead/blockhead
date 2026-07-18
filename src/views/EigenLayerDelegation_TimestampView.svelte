@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,13 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerDelegationTimestamp = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('eigen layer delegation timestamp')
 	const viewDomId = $derived('eigen-layer-delegation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -78,11 +71,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-			{#snippet Pending()}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
+						href={
 						(selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
@@ -91,16 +83,16 @@
 							network: String(selection.entitySelector.$staker.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
+						href={
 						(selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
@@ -109,57 +101,58 @@
 							network: String(selection.entitySelector.$staker.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-			{#snippet Pending()}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<EigenLayerStrategyView
+					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<EigenLayerStrategyView
+							selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -212,19 +205,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -242,19 +229,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -269,24 +250,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							delegatedShares: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const delegatedShares = pendingEntity.delegatedShares}
-					{#if delegatedShares !== undefined && delegatedShares !== null}
-						<div>
-							<dt>delegated shares</dt>
-							<dd>
-								<NumberValue value={Number(delegatedShares)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const delegatedShares = resolvedEntity.delegatedShares}
@@ -294,7 +264,9 @@
 						<div>
 							<dt>delegated shares</dt>
 							<dd>
-								<NumberValue value={Number(delegatedShares)} />
+								<NumberValue
+									value={delegatedShares}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -306,24 +278,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							underlyingTokenAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const underlyingTokenAmount = pendingEntity.underlyingTokenAmount}
-					{#if underlyingTokenAmount !== undefined && underlyingTokenAmount !== null}
-						<div>
-							<dt>underlying token amount</dt>
-							<dd>
-								<NumberValue value={Number(underlyingTokenAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const underlyingTokenAmount = resolvedEntity.underlyingTokenAmount}
@@ -331,7 +292,9 @@
 						<div>
 							<dt>underlying token amount</dt>
 							<dd>
-								<NumberValue value={Number(underlyingTokenAmount)} />
+								<NumberValue
+									value={underlyingTokenAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -341,24 +304,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							depositRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const depositRoot = pendingEntity.depositRoot}
-					{#if depositRoot !== undefined && depositRoot !== null}
-						<div>
-							<dt>deposit root</dt>
-							<dd>
-								{String((depositRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const depositRoot = resolvedEntity.depositRoot}
@@ -376,24 +328,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							withdrawalRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const withdrawalRoot = pendingEntity.withdrawalRoot}
-					{#if withdrawalRoot !== undefined && withdrawalRoot !== null}
-						<div>
-							<dt>withdrawal root</dt>
-							<dd>
-								{String((withdrawalRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const withdrawalRoot = resolvedEntity.withdrawalRoot}
@@ -411,24 +352,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							withdrawalQueued: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const withdrawalQueued = pendingEntity.withdrawalQueued}
-					{#if withdrawalQueued !== undefined && withdrawalQueued !== null}
-						<div>
-							<dt>withdrawal queued</dt>
-							<dd>
-								{withdrawalQueued ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const withdrawalQueued = resolvedEntity.withdrawalQueued}
@@ -446,24 +376,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							withdrawalCompleted: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const withdrawalCompleted = pendingEntity.withdrawalCompleted}
-					{#if withdrawalCompleted !== undefined && withdrawalCompleted !== null}
-						<div>
-							<dt>withdrawal completed</dt>
-							<dd>
-								{withdrawalCompleted ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const withdrawalCompleted = resolvedEntity.withdrawalCompleted}

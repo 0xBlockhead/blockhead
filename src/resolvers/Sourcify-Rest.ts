@@ -92,31 +92,33 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
-				[EvmContractVerificationSelector.EvmContract]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
-					if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
-					return {
-						...(contractLookup.match != null && contractLookup.match !== '' && { match: contractLookup.match }),
-						...(contractLookup.creationMatch != null
-							&& contractLookup.creationMatch !== ''
-							&& { creationMatch: contractLookup.creationMatch }),
-						...(contractLookup.runtimeMatch != null
-							&& contractLookup.runtimeMatch !== ''
-							&& { runtimeMatch: contractLookup.runtimeMatch }),
-						...((verifiedAtMs) => (
-							Number.isFinite(verifiedAtMs) && verifiedAtMs >= 0 ?
-								{ verifiedAtMs }
-							:
-								{}
-						))(Date.parse(contractLookup.verifiedAt ?? '')),
-						...(contractLookup.matchId != null && contractLookup.matchId !== '' && { matchId: String(contractLookup.matchId) }),
-						$compilation: {
-							[EntityMetaKey.Selector]: entitySelector,
-						},
-						$sourceBundle: {
-							[EntityMetaKey.Selector]: entitySelector,
-						},
-					}
+				[EvmContractVerificationSelector.EvmContract]: {
+					resolve: async (entitySelector) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
+						if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
+						return {
+							...(contractLookup.match != null && contractLookup.match !== '' && { match: contractLookup.match }),
+							...(contractLookup.creationMatch != null
+								&& contractLookup.creationMatch !== ''
+								&& { creationMatch: contractLookup.creationMatch }),
+							...(contractLookup.runtimeMatch != null
+								&& contractLookup.runtimeMatch !== ''
+								&& { runtimeMatch: contractLookup.runtimeMatch }),
+							...((verifiedAtMs) => (
+								Number.isFinite(verifiedAtMs) && verifiedAtMs >= 0 ?
+									{ verifiedAtMs }
+								:
+									{}
+							))(Date.parse(contractLookup.verifiedAt ?? '')),
+							...(contractLookup.matchId != null && contractLookup.matchId !== '' && { matchId: String(contractLookup.matchId) }),
+							$compilation: {
+								[EntityMetaKey.Selector]: entitySelector,
+							},
+							$sourceBundle: {
+								[EntityMetaKey.Selector]: entitySelector,
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -132,39 +134,41 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
-				[EvmContractCompilationSelector.EvmContract]: async ({ $contract }) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
-					if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
-					const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
-					const compiler = (
-						contractLookup.metadata?.compiler?.version
-						?? contractLookup.compilation?.compilerVersion
-						?? contractLookup.compilation?.compiler
-					)
-					const fullyQualifiedName = (
-						contractLookup.metadata?.fullyQualifiedName
-						?? contractLookup.compilation?.fullyQualifiedName
-					)
-					return {
-						...(language != null && language !== '' && { language }),
-						...(compiler != null && compiler !== '' && { compiler }),
-						...(contractLookup.compilation?.compilerVersion != null
-							&& contractLookup.compilation.compilerVersion !== ''
-							&& { compilerVersion: contractLookup.compilation.compilerVersion }),
-						...(contractLookup.compilation?.name != null
-							&& contractLookup.compilation.name !== ''
-							&& { name: contractLookup.compilation.name }),
-						...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
-						...(contractLookup.compilation?.compilerSettings != null && {
-							compilerSettingsJson: JSON.stringify(contractLookup.compilation.compilerSettings),
-						}),
-						...((storageLayoutJson) => (
-							storageLayoutJson != null ?
-								{ storageLayoutJson }
-							:
-								{}
-						))(sourcifyStorageLayoutJsonFromLookup(contractLookup)),
-					}
+				[EvmContractCompilationSelector.EvmContract]: {
+					resolve: async ({ $contract }) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
+						if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
+						const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
+						const compiler = (
+							contractLookup.metadata?.compiler?.version
+							?? contractLookup.compilation?.compilerVersion
+							?? contractLookup.compilation?.compiler
+						)
+						const fullyQualifiedName = (
+							contractLookup.metadata?.fullyQualifiedName
+							?? contractLookup.compilation?.fullyQualifiedName
+						)
+						return {
+							...(language != null && language !== '' && { language }),
+							...(compiler != null && compiler !== '' && { compiler }),
+							...(contractLookup.compilation?.compilerVersion != null
+								&& contractLookup.compilation.compilerVersion !== ''
+								&& { compilerVersion: contractLookup.compilation.compilerVersion }),
+							...(contractLookup.compilation?.name != null
+								&& contractLookup.compilation.name !== ''
+								&& { name: contractLookup.compilation.name }),
+							...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
+							...(contractLookup.compilation?.compilerSettings != null && {
+								compilerSettingsJson: JSON.stringify(contractLookup.compilation.compilerSettings),
+							}),
+							...((storageLayoutJson) => (
+								storageLayoutJson != null ?
+									{ storageLayoutJson }
+								:
+									{}
+							))(sourcifyStorageLayoutJsonFromLookup(contractLookup)),
+						}
+					},
 				},
 			},
 		})({
@@ -180,12 +184,14 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
-				[EvmContractSourceBundleSelector.EvmContract]: async ({ $contract }) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
-					if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
-					return {
-						files: sourcifySourceFilesFromLookup(contractLookup),
-					}
+				[EvmContractSourceBundleSelector.EvmContract]: {
+					resolve: async ({ $contract }) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
+						if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
+						return {
+							files: sourcifySourceFilesFromLookup(contractLookup),
+						}
+					},
 				},
 			},
 		})({
@@ -195,15 +201,17 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
-					if (contractLookup == null) return undefined
-					return (
-						Array.isArray(contractLookup.abi) ?
-							evmAbiFromJsonValue(contractLookup.abi)
-						:
-							undefined
-					)
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async (entitySelector) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+						if (contractLookup == null) return undefined
+						return (
+							Array.isArray(contractLookup.abi) ?
+								evmAbiFromJsonValue(contractLookup.abi)
+							:
+								undefined
+						)
+					},
 				},
 			},
 		})({
@@ -213,13 +221,15 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
-					if (await getSourcifyContractLookupForEntitySelector(entitySelector) == null) return undefined
-					return {
-						[EntityMetaKey.Selector]: {
-							$contract: entitySelector,
-						},
-					}
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async (entitySelector) => {
+						if (await getSourcifyContractLookupForEntitySelector(entitySelector) == null) return undefined
+						return {
+							[EntityMetaKey.Selector]: {
+								$contract: entitySelector,
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -229,17 +239,19 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
-					const deployer = contractLookup?.deployment?.deployer
-					if (deployer == null) return undefined
-					const normalized = hexLowerOfByteSize(deployer, 20)
-					if (normalized == null) return undefined
-					return {
-						[EntityMetaKey.Selector]: {
-							address: normalized,
-						},
-					}
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async (entitySelector) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+						const deployer = contractLookup?.deployment?.deployer
+						if (deployer == null) return undefined
+						const normalized = hexLowerOfByteSize(deployer, 20)
+						if (normalized == null) return undefined
+						return {
+							[EntityMetaKey.Selector]: {
+								address: normalized,
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -249,18 +261,20 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
-					const txHash = contractLookup?.deployment?.transactionHash
-					if (txHash == null) return undefined
-					const normalized = hexLowerOfByteSize(txHash, 32)
-					if (normalized == null) return undefined
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
-							txHash: normalized,
-						},
-					}
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async (entitySelector) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+						const txHash = contractLookup?.deployment?.transactionHash
+						if (txHash == null) return undefined
+						const normalized = hexLowerOfByteSize(txHash, 32)
+						if (normalized == null) return undefined
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								txHash: normalized,
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -270,18 +284,20 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
-					const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
-					const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
-					if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
-					const normalized = hexLowerOfByteSize(implementationAddress, 20)
-					if (normalized == null) return undefined
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
-							address: normalized,
-						},
-					}
+				[EvmContractSelector.EvmNetworkAddress]: {
+					resolve: async (entitySelector) => {
+						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+						const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
+						if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
+						const normalized = hexLowerOfByteSize(implementationAddress, 20)
+						if (normalized == null) return undefined
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								address: normalized,
+							},
+						}
+					},
 				},
 			},
 		})({

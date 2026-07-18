@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalActivityPubNetwork_TimestampView from '$/views/_GlobalActivityPubNetwork_TimestampView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					instanceTitle: true,
-					timestampMs: true,
-					instanceOrigin: true,
-					source: true,
-					reachable: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				instanceTitle: true,
+				timestampMs: true,
+				instanceOrigin: true,
+				source: true,
+				reachable: true,
+			},
+		})
+	}
+	getResourceItems={(globalActivityPubNetworkTimestamps) => [...new Map(globalActivityPubNetworkTimestamps.values.map((globalActivityPubNetworkTimestamp) => [globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey], globalActivityPubNetworkTimestamp])).values()]}
+	getKey={(globalActivityPubNetworkTimestamp) => globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global ActivityPub network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalActivityPubNetworkTimestamps)}
-			{@const uniqueGlobalActivityPubNetworkTimestamps = [...new Map(globalActivityPubNetworkTimestamps.values.map((globalActivityPubNetworkTimestamp) => [globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey], globalActivityPubNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalActivityPubNetworkTimestamps.totalCount}
-				getKey={(globalActivityPubNetworkTimestamp) => globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalActivityPubNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global ActivityPub network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalActivityPubNetworkTimestamp })}
-					{@const globalActivityPubNetworkTimestampFields = { ...globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], ...globalActivityPubNetworkTimestamp }}
-					{@const selection = select(EntityType._GlobalActivityPubNetwork_Timestamp, globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalActivityPubNetwork_TimestampView
-						selection={selection}
-						prefetched={globalActivityPubNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalActivityPubNetworkTimestamp })}
+		{@const globalActivityPubNetworkTimestampFields = { ...globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], ...globalActivityPubNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalActivityPubNetwork_Timestamp, globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalActivityPubNetwork_TimestampView
+			selection={selection}
+			prefetched={globalActivityPubNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

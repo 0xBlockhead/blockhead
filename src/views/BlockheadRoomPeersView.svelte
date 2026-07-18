@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadRoomPeerView from '$/views/BlockheadRoomPeerView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					displayName: true,
-					isConnected: true,
-					peerId: true,
-					id: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoomPeer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadRoomPeer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				displayName: true,
+				isConnected: true,
+				peerId: true,
+				id: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadRoomPeers) => [...new Map(blockheadRoomPeers.values.map((blockheadRoomPeer) => [blockheadRoomPeer[EntityMetaKey.SelectorKey], blockheadRoomPeer])).values()]}
+	getKey={(blockheadRoomPeer) => blockheadRoomPeer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Contacts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadRoomPeers)}
-			{@const uniqueBlockheadRoomPeers = [...new Map(blockheadRoomPeers.values.map((blockheadRoomPeer) => [blockheadRoomPeer[EntityMetaKey.SelectorKey], blockheadRoomPeer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoomPeer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRoomPeers.totalCount}
-				getKey={(blockheadRoomPeer) => blockheadRoomPeer[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadRoomPeers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Contacts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadRoomPeer })}
-					{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
-					{@const selection = select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadRoomPeerHrefFields = { ...blockheadRoomPeer, ...blockheadRoomPeer[EntityMetaKey.Selector] }}
-					<BlockheadRoomPeerView
-						selection={selection}
-						prefetched={blockheadRoomPeerFields}
-						href={
-							(blockheadRoomPeerHrefFields.id !== undefined ? resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
-								contactId: String(blockheadRoomPeerHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadRoomPeer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadRoomPeer })}
+		{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
+		{@const selection = select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadRoomPeerHrefFields = { ...blockheadRoomPeer, ...blockheadRoomPeer[EntityMetaKey.Selector] }}
+		<BlockheadRoomPeerView
+			selection={selection}
+			prefetched={blockheadRoomPeerFields}
+			href={
+				(blockheadRoomPeerHrefFields.id !== undefined ? resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
+					contactId: String(blockheadRoomPeerHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

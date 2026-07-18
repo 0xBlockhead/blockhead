@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSwapIntentView from '$/views/BlockheadSwapIntentView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$sessionAction: true,
-					amount: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSwapIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSwapIntent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$sessionAction: true,
+				amount: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSwapIntents) => [...new Map(blockheadSwapIntents.values.map((blockheadSwapIntent) => [blockheadSwapIntent[EntityMetaKey.SelectorKey], blockheadSwapIntent])).values()]}
+	getKey={(blockheadSwapIntent) => blockheadSwapIntent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead swap intents yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSwapIntents)}
-			{@const uniqueBlockheadSwapIntents = [...new Map(blockheadSwapIntents.values.map((blockheadSwapIntent) => [blockheadSwapIntent[EntityMetaKey.SelectorKey], blockheadSwapIntent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSwapIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSwapIntents.totalCount}
-				getKey={(blockheadSwapIntent) => blockheadSwapIntent[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSwapIntents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead swap intents yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSwapIntent })}
-					{@const blockheadSwapIntentFields = { ...blockheadSwapIntent[EntityMetaKey.Selector], ...blockheadSwapIntent }}
-					{@const selection = select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSwapIntentView
-						selection={selection}
-						prefetched={blockheadSwapIntentFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSwapIntent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSwapIntent })}
+		{@const blockheadSwapIntentFields = { ...blockheadSwapIntent[EntityMetaKey.Selector], ...blockheadSwapIntent }}
+		{@const selection = select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSwapIntentView
+			selection={selection}
+			prefetched={blockheadSwapIntentFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

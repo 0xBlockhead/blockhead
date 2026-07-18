@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XNetworkView from '$/views/XNetworkView.svelte'
 </script>
@@ -62,79 +61,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.XNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(xNetworks) => [...new Map(xNetworks.values.map((xNetwork) => [xNetwork[EntityMetaKey.SelectorKey], xNetwork])).values()]}
+	getKey={(xNetwork) => xNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No X yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(xNetworks)}
-			{@const uniqueXNetworks = [...new Map(xNetworks.values.map((xNetwork) => [xNetwork[EntityMetaKey.SelectorKey], xNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xNetworks.totalCount}
-				getKey={(xNetwork) => xNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueXNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No X yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: xNetwork })}
-					{@const xNetworkFields = { ...xNetwork[EntityMetaKey.Selector], ...xNetwork }}
-					{@const selection = select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const xNetworkHrefFields = { ...xNetwork, ...xNetwork[EntityMetaKey.Selector] }}
-					<XNetworkView
-						selection={selection}
-						prefetched={xNetworkFields}
-						href={(xNetwork[EntityMetaKey.Selector].scope === 'XNetwork' ? resolve('/x') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.XNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: xNetwork })}
+		{@const xNetworkFields = { ...xNetwork[EntityMetaKey.Selector], ...xNetwork }}
+		{@const selection = select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const xNetworkHrefFields = { ...xNetwork, ...xNetwork[EntityMetaKey.Selector] }}
+		<XNetworkView
+			selection={selection}
+			prefetched={xNetworkFields}
+			href={(xNetwork[EntityMetaKey.Selector].scope === 'XNetwork' ? resolve('/x') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

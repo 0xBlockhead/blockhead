@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TokenMetadataDocumentView from '$/views/TokenMetadataDocumentView.svelte'
 </script>
@@ -61,82 +60,49 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$media: true,
-					name: true,
-					symbol: true,
-					metadataKey: true,
-					metadataStandard: true,
-					source: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TokenMetadataDocument}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TokenMetadataDocument}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$media: true,
+				name: true,
+				symbol: true,
+				metadataKey: true,
+				metadataStandard: true,
+				source: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(tokenMetadataDocuments) => [...new Map(tokenMetadataDocuments.values.map((tokenMetadataDocument) => [tokenMetadataDocument[EntityMetaKey.SelectorKey], tokenMetadataDocument])).values()]}
+	getKey={(tokenMetadataDocument) => tokenMetadataDocument[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Token metadata documents yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tokenMetadataDocuments)}
-			{@const uniqueTokenMetadataDocuments = [...new Map(tokenMetadataDocuments.values.map((tokenMetadataDocument) => [tokenMetadataDocument[EntityMetaKey.SelectorKey], tokenMetadataDocument])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TokenMetadataDocument}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tokenMetadataDocuments.totalCount}
-				getKey={(tokenMetadataDocument) => tokenMetadataDocument[EntityMetaKey.SelectorKey]}
-				items={uniqueTokenMetadataDocuments}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Token metadata documents yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tokenMetadataDocument })}
-					{@const tokenMetadataDocumentFields = { ...tokenMetadataDocument[EntityMetaKey.Selector], ...tokenMetadataDocument }}
-					{@const selection = select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TokenMetadataDocumentView
-						selection={selection}
-						prefetched={tokenMetadataDocumentFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TokenMetadataDocument}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tokenMetadataDocument })}
+		{@const tokenMetadataDocumentFields = { ...tokenMetadataDocument[EntityMetaKey.Selector], ...tokenMetadataDocument }}
+		{@const selection = select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TokenMetadataDocumentView
+			selection={selection}
+			prefetched={tokenMetadataDocumentFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

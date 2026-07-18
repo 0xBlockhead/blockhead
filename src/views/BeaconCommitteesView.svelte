@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconCommitteeView from '$/views/BeaconCommitteeView.svelte'
 </script>
@@ -63,90 +62,57 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInSlot: true,
-					slot: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconCommittee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BeaconCommittee}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				indexInSlot: true,
+				slot: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(beaconCommittees) => [...new Map(beaconCommittees.values.map((beaconCommittee) => [beaconCommittee[EntityMetaKey.SelectorKey], beaconCommittee])).values()]}
+	getKey={(beaconCommittee) => beaconCommittee[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Beacon committees yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(beaconCommittees)}
-			{@const uniqueBeaconCommittees = [...new Map(beaconCommittees.values.map((beaconCommittee) => [beaconCommittee[EntityMetaKey.SelectorKey], beaconCommittee])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconCommittee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconCommittees.totalCount}
-				getKey={(beaconCommittee) => beaconCommittee[EntityMetaKey.SelectorKey]}
-				items={uniqueBeaconCommittees}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Beacon committees yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: beaconCommittee })}
-					{@const beaconCommitteeFields = { ...beaconCommittee[EntityMetaKey.Selector], ...beaconCommittee }}
-					{@const selection = select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const beaconCommitteeHrefFields = { ...beaconCommittee, ...beaconCommittee[EntityMetaKey.Selector] }}
-					<BeaconCommitteeView
-						selection={selection}
-						prefetched={beaconCommitteeFields}
-						href={
-							(beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-								slot: String(beaconCommitteeHrefFields.slot ?? ''),
-								index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
-								network: String(caip2StringFromValue(beaconCommitteeHrefFields.$network.caip2) ?? ''),
-							}) : beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-								slot: String(beaconCommitteeHrefFields.slot ?? ''),
-								index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
-								network: String(beaconCommitteeHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BeaconCommittee}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: beaconCommittee })}
+		{@const beaconCommitteeFields = { ...beaconCommittee[EntityMetaKey.Selector], ...beaconCommittee }}
+		{@const selection = select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const beaconCommitteeHrefFields = { ...beaconCommittee, ...beaconCommittee[EntityMetaKey.Selector] }}
+		<BeaconCommitteeView
+			selection={selection}
+			prefetched={beaconCommitteeFields}
+			href={
+				(beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
+					slot: String(beaconCommitteeHrefFields.slot ?? ''),
+					index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
+					network: String(caip2StringFromValue(beaconCommitteeHrefFields.$network.caip2) ?? ''),
+				}) : beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
+					slot: String(beaconCommitteeHrefFields.slot ?? ''),
+					index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
+					network: String(beaconCommitteeHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

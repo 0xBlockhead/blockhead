@@ -1,0 +1,358 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
+import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
+import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
+import { Source } from '$/sources/Source.ts'
+
+const youtubeQueries = vi.hoisted(() => ({
+	getChannel: vi.fn(),
+	listChannelPlaylists: vi.fn(),
+	listCommentThreads: vi.fn(),
+	listPopularVideos: vi.fn(),
+	searchChannelVideos: vi.fn(),
+}))
+
+const pipedQueries = vi.hoisted(() => ({
+	getChannel: vi.fn(),
+	getChannelIdFromUploaderUrl: vi.fn((url: string | undefined) => url?.split('/channel/')[1]),
+	getPlaylistIdFromUrl: vi.fn((url: string | undefined) => url?.split('/playlist?list=')[1]),
+	getVideoIdFromUrl: vi.fn((url: string | undefined) => url?.split('/watch?v=')[1]),
+	listChannelPlaylists: vi.fn(),
+	listChannelVideos: vi.fn(),
+	listComments: vi.fn(),
+	listTrending: vi.fn(),
+}))
+
+vi.mock('$/sources/Youtube/Rest/queries.ts', () => youtubeQueries)
+vi.mock('$/sources/Piped/Rest/queries.ts', () => pipedQueries)
+
+const { default: youtubeResolvers } = await import('$/resolvers/Youtube-Rest.ts')
+const { default: pipedResolvers } = await import('$/resolvers/Piped-Rest.ts')
+
+const resolverContext = {
+	filters: [],
+	sorts: [],
+	pagination: {},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+	limit: 10,
+}
+
+describe.each([
+	{
+		label: 'YouTube',
+		continuationToken: 'youtube-next',
+		resolveRows: async () => {
+			const videoSnapshot = await youtubeResolvers.resolvers[5].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				{ channelId: 'channel-1' },
+				resolverContext
+			)
+			const playlistSnapshot = await youtubeResolvers.resolvers[7].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				{ channelId: 'channel-1' },
+				resolverContext
+			)
+			const commentSnapshot = await youtubeResolvers.resolvers[12].resolve[YoutubeVideoSelector.VideoId].resolve(
+				{ videoId: 'video-1' },
+				resolverContext
+			)
+			return {
+				video: youtubeResolvers.resolvers[5].projections.$$videos.select(
+					videoSnapshot,
+					{ channelId: 'channel-1' },
+					resolverContext
+				)[0],
+				playlist: youtubeResolvers.resolvers[7].projections.$$playlists.select(
+					playlistSnapshot,
+					{ channelId: 'channel-1' },
+					resolverContext
+				)[0],
+				comment: youtubeResolvers.resolvers[12].projections.$$comments.select(
+					commentSnapshot,
+					{ videoId: 'video-1' },
+					resolverContext
+				)[0],
+				continuation: youtubeResolvers.resolvers[12].projections.$$comments.continuation(
+					commentSnapshot,
+					{ videoId: 'video-1' },
+					resolverContext
+				),
+				channel: (
+					await youtubeResolvers.resolvers[17].resolve[_GlobalYoutubeNetworkSelector.Scope].resolve(
+						{ scope: '_GlobalYoutubeNetwork' },
+						resolverContext
+					)
+				)[0],
+			}
+		},
+		arrange: () => {
+			youtubeQueries.searchChannelVideos.mockResolvedValueOnce({
+				items: [{
+					id: { videoId: 'video-1' },
+					snippet: {
+						title: 'Useful video',
+						description: 'Video description',
+						publishedAt: '2026-01-02T03:04:05Z',
+						channelId: 'channel-1',
+						thumbnails: {
+							high: { url: 'https://i.ytimg.com/video-1.jpg' },
+						},
+					},
+				}],
+			})
+			youtubeQueries.listChannelPlaylists.mockResolvedValueOnce({
+				items: [{
+					id: 'playlist-1',
+					snippet: {
+						title: 'Useful playlist',
+						channelId: 'channel-1',
+						thumbnails: {
+							high: { url: 'https://i.ytimg.com/playlist-1.jpg' },
+						},
+					},
+				}],
+			})
+			youtubeQueries.listCommentThreads.mockResolvedValueOnce({
+				nextPageToken: 'youtube-next',
+				items: [{
+					snippet: {
+						topLevelComment: {
+							id: 'comment-1',
+							snippet: {
+								authorDisplayName: 'Useful author',
+								textDisplay: 'Useful comment',
+								publishedAt: '2026-01-02T03:04:05Z',
+								authorChannelId: { value: 'channel-1' },
+							},
+						},
+					},
+				}],
+			})
+			youtubeQueries.listPopularVideos.mockResolvedValueOnce({
+				items: [{
+					id: 'video-1',
+					snippet: {
+						channelId: 'channel-1',
+						channelTitle: 'Useful channel',
+					},
+				}],
+			})
+		},
+	},
+	{
+		label: 'Piped',
+		continuationToken: 'piped-next',
+		resolveRows: async () => {
+			const videoSnapshot = await pipedResolvers.resolvers[5].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				{ channelId: 'channel-1' },
+				resolverContext
+			)
+			const playlistSnapshot = await pipedResolvers.resolvers[6].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				{ channelId: 'channel-1' },
+				resolverContext
+			)
+			const commentSnapshot = await pipedResolvers.resolvers[9].resolve[YoutubeVideoSelector.VideoId].resolve(
+				{ videoId: 'video-1' },
+				resolverContext
+			)
+			return {
+				video: pipedResolvers.resolvers[5].projections.$$videos.select(
+					videoSnapshot,
+					{ channelId: 'channel-1' },
+					resolverContext
+				)[0],
+				playlist: pipedResolvers.resolvers[6].projections.$$playlists.select(
+					playlistSnapshot,
+					{ channelId: 'channel-1' },
+					resolverContext
+				)[0],
+				comment: pipedResolvers.resolvers[9].projections.$$comments.select(
+					commentSnapshot,
+					{ videoId: 'video-1' },
+					resolverContext
+				)[0],
+				continuation: pipedResolvers.resolvers[9].projections.$$comments.continuation(
+					commentSnapshot,
+					{ videoId: 'video-1' },
+					resolverContext
+				),
+				channel: (
+					await pipedResolvers.resolvers[11].resolve[_GlobalYoutubeNetworkSelector.Scope].resolve(
+						{ scope: '_GlobalYoutubeNetwork' },
+						resolverContext
+					)
+				)[0],
+			}
+		},
+		arrange: () => {
+			pipedQueries.listChannelVideos.mockResolvedValueOnce({
+				items: [{
+					url: '/watch?v=video-1',
+					title: 'Useful video',
+					thumbnail: 'https://i.ytimg.com/video-1.jpg',
+					uploaderName: 'Useful channel',
+					uploaderUrl: '/channel/channel-1',
+					uploadedDate: '2026-01-02T03:04:05Z',
+				}],
+			})
+			pipedQueries.listChannelPlaylists.mockResolvedValueOnce({
+				items: [{
+					url: '/playlist?list=playlist-1',
+					name: 'Useful playlist',
+					thumbnail: 'https://i.ytimg.com/playlist-1.jpg',
+					uploaderName: 'Useful channel',
+					uploaderUrl: '/channel/channel-1',
+				}],
+			})
+			pipedQueries.listComments.mockResolvedValueOnce({
+				nextpage: 'piped-next',
+				comments: [{
+					commentId: 'comment-1',
+					author: 'Useful author',
+					commentText: 'Useful comment',
+					commentedTime: '2026-01-02T03:04:05Z',
+					commentorUrl: '/channel/channel-1',
+				}],
+			})
+			pipedQueries.listTrending.mockResolvedValueOnce([{
+				url: '/watch?v=video-1',
+				uploaderName: 'Useful channel',
+				uploaderUrl: '/channel/channel-1',
+			}])
+		},
+	},
+])('$label parent list materialization', ({
+	continuationToken,
+	resolveRows,
+	arrange,
+}) => {
+	it('prefills useful channel, video, playlist, and comment cards', async () => {
+		arrange()
+
+		const {
+			video,
+			playlist,
+			comment,
+			continuation,
+			channel,
+		} = await resolveRows()
+		expect(continuation).toEqual({
+			operation: continuationToken === 'youtube-next' ? 'commentThreads.list' : 'comments',
+			target: 'video-1',
+			terminal: false,
+			token: continuationToken,
+		})
+
+		expect(video[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'title')]: 'Useful video',
+			[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'thumbnailUrl')]: 'https://i.ytimg.com/video-1.jpg',
+			[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$thumbnail')]: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://i.ytimg.com/video-1.jpg',
+				},
+			},
+			[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
+				[EntityMetaKey.Selector]: { channelId: 'channel-1' },
+			},
+		})
+		expect(playlist[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.YoutubePlaylist, [], 'title')]: 'Useful playlist',
+			[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$thumbnail')]: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://i.ytimg.com/playlist-1.jpg',
+				},
+			},
+		})
+		expect(comment[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'text')]: 'Useful comment',
+			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'authorDisplayName')]: 'Useful author',
+		})
+		expect(channel[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: 'Useful channel',
+		})
+		for (const request of (
+			continuationToken === 'youtube-next' ?
+				[
+					youtubeQueries.searchChannelVideos,
+					youtubeQueries.listChannelPlaylists,
+					youtubeQueries.listCommentThreads,
+					youtubeQueries.listPopularVideos,
+				]
+			:
+				[
+					pipedQueries.listChannelVideos,
+					pipedQueries.listChannelPlaylists,
+					pipedQueries.listComments,
+					pipedQueries.listTrending,
+				]
+		))
+			expect(request).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('YouTube observation provenance', () => {
+	it.each([
+		{
+			label: 'YouTube',
+			source: Source.Youtube_Rest,
+			resolveObservation: async () => (
+				await youtubeResolvers.resolvers[4].resolve[YoutubeChannelSelector.ChannelId].resolve(
+					{ channelId: 'channel-1' },
+					resolverContext
+				)
+			)[0],
+			historicalResolverEntityTypes: youtubeResolvers.resolvers.map(({ entityType }) => entityType),
+			arrange: () => youtubeQueries.getChannel.mockResolvedValueOnce({
+				items: [{
+					statistics: {
+						subscriberCount: '0',
+						videoCount: '0',
+						viewCount: '0',
+					},
+				}],
+			}),
+		},
+		{
+			label: 'Piped',
+			source: Source.Piped_Rest,
+			resolveObservation: async () => (
+				await pipedResolvers.resolvers[4].resolve[YoutubeChannelSelector.ChannelId].resolve(
+					{ channelId: 'channel-1' },
+					resolverContext
+				)
+			)[0],
+			historicalResolverEntityTypes: pipedResolvers.resolvers.map(({ entityType }) => entityType),
+			arrange: () => pipedQueries.getChannel.mockResolvedValueOnce({
+				id: 'channel-1',
+				subscriberCount: 0,
+			}),
+		},
+	])('$label captures source-keyed persisted observations without historical refetch resolvers', async ({
+		source,
+		resolveObservation,
+		historicalResolverEntityTypes,
+		arrange,
+	}) => {
+		arrange()
+		const observation = await resolveObservation()
+
+		expect(observation[EntityMetaKey.Selector]).toMatchObject({
+			$channel: { channelId: 'channel-1' },
+			source,
+		})
+		for (const entityType of [
+			EntityType.YoutubeChannel_Timestamp,
+			EntityType.YoutubeComment_Timestamp,
+			EntityType.YoutubePlaylist_Timestamp,
+			EntityType.YoutubeVideo_Timestamp,
+		])
+			expect(historicalResolverEntityTypes).not.toContain(entityType)
+	})
+})

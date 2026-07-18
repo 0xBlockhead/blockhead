@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EigenLayerSlashingEventView from '$/views/EigenLayerSlashingEventView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$operator: true,
-					$avs: true,
-					slashedShares: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerSlashingEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EigenLayerSlashingEvent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$operator: true,
+				$avs: true,
+				slashedShares: true,
+			},
+		})
+	}
+	getResourceItems={(eigenLayerSlashingEvents) => [...new Map(eigenLayerSlashingEvents.values.map((eigenLayerSlashingEvent) => [eigenLayerSlashingEvent[EntityMetaKey.SelectorKey], eigenLayerSlashingEvent])).values()]}
+	getKey={(eigenLayerSlashingEvent) => eigenLayerSlashingEvent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Eigen layer slashing events yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eigenLayerSlashingEvents)}
-			{@const uniqueEigenLayerSlashingEvents = [...new Map(eigenLayerSlashingEvents.values.map((eigenLayerSlashingEvent) => [eigenLayerSlashingEvent[EntityMetaKey.SelectorKey], eigenLayerSlashingEvent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerSlashingEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eigenLayerSlashingEvents.totalCount}
-				getKey={(eigenLayerSlashingEvent) => eigenLayerSlashingEvent[EntityMetaKey.SelectorKey]}
-				items={uniqueEigenLayerSlashingEvents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Eigen layer slashing events yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eigenLayerSlashingEvent })}
-					{@const eigenLayerSlashingEventFields = { ...eigenLayerSlashingEvent[EntityMetaKey.Selector], ...eigenLayerSlashingEvent }}
-					{@const selection = select(EntityType.EigenLayerSlashingEvent, eigenLayerSlashingEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EigenLayerSlashingEventView
-						selection={selection}
-						prefetched={eigenLayerSlashingEventFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EigenLayerSlashingEvent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eigenLayerSlashingEvent })}
+		{@const eigenLayerSlashingEventFields = { ...eigenLayerSlashingEvent[EntityMetaKey.Selector], ...eigenLayerSlashingEvent }}
+		{@const selection = select(EntityType.EigenLayerSlashingEvent, eigenLayerSlashingEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EigenLayerSlashingEventView
+			selection={selection}
+			prefetched={eigenLayerSlashingEventFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetTransactionView from '$/views/StarknetTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					transactionHash: true,
-					transactionKind: true,
-					$block: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				transactionHash: true,
+				transactionKind: true,
+				$block: true,
+			},
+		})
+	}
+	getResourceItems={(starknetTransactions) => [...new Map(starknetTransactions.values.map((starknetTransaction) => [starknetTransaction[EntityMetaKey.SelectorKey], starknetTransaction])).values()]}
+	getKey={(starknetTransaction) => starknetTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetTransactions)}
-			{@const uniqueStarknetTransactions = [...new Map(starknetTransactions.values.map((starknetTransaction) => [starknetTransaction[EntityMetaKey.SelectorKey], starknetTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetTransactions.totalCount}
-				getKey={(starknetTransaction) => starknetTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetTransaction })}
-					{@const starknetTransactionFields = { ...starknetTransaction[EntityMetaKey.Selector], ...starknetTransaction }}
-					{@const selection = select(EntityType.StarknetTransaction, starknetTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetTransactionView
-						selection={selection}
-						prefetched={starknetTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetTransaction })}
+		{@const starknetTransactionFields = { ...starknetTransaction[EntityMetaKey.Selector], ...starknetTransaction }}
+		{@const selection = select(EntityType.StarknetTransaction, starknetTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetTransactionView
+			selection={selection}
+			prefetched={starknetTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaNetworkFee_TimestampView from '$/views/HederaNetworkFee_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNetworkFee_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaNetworkFee_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaNetworkFeeTimestamps) => [...new Map(hederaNetworkFeeTimestamps.values.map((hederaNetworkFeeTimestamp) => [hederaNetworkFeeTimestamp[EntityMetaKey.SelectorKey], hederaNetworkFeeTimestamp])).values()]}
+	getKey={(hederaNetworkFeeTimestamp) => hederaNetworkFeeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera network fee observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaNetworkFeeTimestamps)}
-			{@const uniqueHederaNetworkFeeTimestamps = [...new Map(hederaNetworkFeeTimestamps.values.map((hederaNetworkFeeTimestamp) => [hederaNetworkFeeTimestamp[EntityMetaKey.SelectorKey], hederaNetworkFeeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNetworkFee_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaNetworkFeeTimestamps.totalCount}
-				getKey={(hederaNetworkFeeTimestamp) => hederaNetworkFeeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaNetworkFeeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera network fee observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaNetworkFeeTimestamp })}
-					{@const hederaNetworkFeeTimestampFields = { ...hederaNetworkFeeTimestamp[EntityMetaKey.Selector], ...hederaNetworkFeeTimestamp }}
-					{@const selection = select(EntityType.HederaNetworkFee_Timestamp, hederaNetworkFeeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaNetworkFee_TimestampView
-						selection={selection}
-						prefetched={hederaNetworkFeeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaNetworkFee_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaNetworkFeeTimestamp })}
+		{@const hederaNetworkFeeTimestampFields = { ...hederaNetworkFeeTimestamp[EntityMetaKey.Selector], ...hederaNetworkFeeTimestamp }}
+		{@const selection = select(EntityType.HederaNetworkFee_Timestamp, hederaNetworkFeeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaNetworkFee_TimestampView
+			selection={selection}
+			prefetched={hederaNetworkFeeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -31,21 +35,29 @@ export default {
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const { getMediaWikiText } = await import('$/sources/DogecoinDips/Github/queries.ts')
-				if (realm !== SpecificationRealm.Dogecoin || category !== ProposalCategory.Dip) {
-					throw new Error('DogecoinDips_Github: proposal resolver only supports Dogecoin DIPs')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Dogecoin,
+							category: OwnedProposalCategory.Dip,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					const { getMediaWikiText } = await import('$/sources/DogecoinDips/Github/queries.ts')
+					if (realm !== SpecificationRealm.Dogecoin || category !== ProposalCategory.Dip) {
+						throw new Error('DogecoinDips_Github: proposal resolver only supports Dogecoin DIPs')
+					}
+					const text = await getMediaWikiText({ number: number })
+					if (text.trim() === '') throw new Error('DogecoinDips_Github: empty proposal text')
+					return {
+						documentCategory: dipMetadataValue(text, 'Type'),
+						documentTitle: dipMetadataValue(text, 'Title'),
+						documentStatus: dipMetadataValue(text, 'Status'),
+						documentBody: text,
+					}
+				},
 				}
-				const text = await getMediaWikiText({ number: number })
-				if (text.trim() === '') throw new Error('DogecoinDips_Github: empty proposal text')
-				return {
-					documentCategory: dipMetadataValue(text, 'Type'),
-					documentTitle: dipMetadataValue(text, 'Title'),
-					documentStatus: dipMetadataValue(text, 'Status'),
-					documentBody: text,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -57,7 +69,9 @@ export default {
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: dogecoinDipProposalRows
+				[_GlobalSelector.Scope]: {
+					resolve: dogecoinDipProposalRows,
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

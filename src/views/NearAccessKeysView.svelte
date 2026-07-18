@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearAccessKeyView from '$/views/NearAccessKeyView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					publicKey: true,
-					permission: true,
-					nonce: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccessKey}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearAccessKey}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				publicKey: true,
+				permission: true,
+				nonce: true,
+			},
+		})
+	}
+	getResourceItems={(nearAccessKeys) => [...new Map(nearAccessKeys.values.map((nearAccessKey) => [nearAccessKey[EntityMetaKey.SelectorKey], nearAccessKey])).values()]}
+	getKey={(nearAccessKey) => nearAccessKey[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near access keys yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearAccessKeys)}
-			{@const uniqueNearAccessKeys = [...new Map(nearAccessKeys.values.map((nearAccessKey) => [nearAccessKey[EntityMetaKey.SelectorKey], nearAccessKey])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccessKey}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearAccessKeys.totalCount}
-				getKey={(nearAccessKey) => nearAccessKey[EntityMetaKey.SelectorKey]}
-				items={uniqueNearAccessKeys}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near access keys yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearAccessKey })}
-					{@const nearAccessKeyFields = { ...nearAccessKey[EntityMetaKey.Selector], ...nearAccessKey }}
-					{@const selection = select(EntityType.NearAccessKey, nearAccessKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearAccessKeyView
-						selection={selection}
-						prefetched={nearAccessKeyFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearAccessKey}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearAccessKey })}
+		{@const nearAccessKeyFields = { ...nearAccessKey[EntityMetaKey.Selector], ...nearAccessKey }}
+		{@const selection = select(EntityType.NearAccessKey, nearAccessKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearAccessKeyView
+			selection={selection}
+			prefetched={nearAccessKeyFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

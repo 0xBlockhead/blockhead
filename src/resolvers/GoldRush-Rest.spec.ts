@@ -123,7 +123,7 @@ describe('GoldRush Foundational transaction source', () => {
 		const txHash = transactionResponse.data.items[0].tx_hash
 		const resolved = await transactionResolver.resolve[
 			EvmTransactionSelector.EvmNetworkTxHash
-		](
+		].resolve(
 			{
 				$network: {
 					caip2: {
@@ -202,7 +202,7 @@ describe('GoldRush Foundational transaction source', () => {
 
 		await expect(transactionResolver.resolve[
 			EvmTransactionSelector.EvmNetworkTxHash
-		](
+		].resolve(
 			{
 				$network: {
 					caip2: {
@@ -227,7 +227,7 @@ describe('GoldRush Foundational transaction source', () => {
 	it('rejects unsupported EIP-155 networks before transport', async () => {
 		await expect(transactionResolver.resolve[
 			EvmTransactionSelector.EvmNetworkTxHash
-		](
+		].resolve(
 			{
 				$network: {
 					caip2: {

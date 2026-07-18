@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBakingRight_TimestampView from '$/views/TezosBakingRight_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBakingRight_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBakingRight_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBakingRightTimestamps) => [...new Map(tezosBakingRightTimestamps.values.map((tezosBakingRightTimestamp) => [tezosBakingRightTimestamp[EntityMetaKey.SelectorKey], tezosBakingRightTimestamp])).values()]}
+	getKey={(tezosBakingRightTimestamp) => tezosBakingRightTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos baking right observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBakingRightTimestamps)}
-			{@const uniqueTezosBakingRightTimestamps = [...new Map(tezosBakingRightTimestamps.values.map((tezosBakingRightTimestamp) => [tezosBakingRightTimestamp[EntityMetaKey.SelectorKey], tezosBakingRightTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBakingRight_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBakingRightTimestamps.totalCount}
-				getKey={(tezosBakingRightTimestamp) => tezosBakingRightTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBakingRightTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos baking right observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBakingRightTimestamp })}
-					{@const tezosBakingRightTimestampFields = { ...tezosBakingRightTimestamp[EntityMetaKey.Selector], ...tezosBakingRightTimestamp }}
-					{@const selection = select(EntityType.TezosBakingRight_Timestamp, tezosBakingRightTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBakingRight_TimestampView
-						selection={selection}
-						prefetched={tezosBakingRightTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBakingRight_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBakingRightTimestamp })}
+		{@const tezosBakingRightTimestampFields = { ...tezosBakingRightTimestamp[EntityMetaKey.Selector], ...tezosBakingRightTimestamp }}
+		{@const selection = select(EntityType.TezosBakingRight_Timestamp, tezosBakingRightTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBakingRight_TimestampView
+			selection={selection}
+			prefetched={tezosBakingRightTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -240,8 +240,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Algod,
 				source: Source.Algod_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'algorand-algod',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'algorand',
 				},
 				endpoints: [
 					{
@@ -280,8 +280,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AlgorandIndexer,
 				source: Source.AlgorandIndexer_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'algorand-indexer',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'algorand',
 				},
 				endpoints: [
 					{
@@ -569,8 +569,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AptosFullnode,
 				source: Source.AptosFullnode_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'aptos-fullnode',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'aptos',
 				},
 				endpoints: [
 					{
@@ -626,7 +626,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AptosIndexer,
 				source: Source.AptosIndexer_Graphql,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'aptos',
 				},
 				endpoints: [
@@ -777,7 +777,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://public.api.bsky.app',
 						origin: 'https://public.api.bsky.app',
-						corsEnabled: true,
+						corsEnabled: false,
 					},
 				],
 				wireProtocol: WireProtocol.Xrpc,
@@ -785,12 +785,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.BrowserDirect,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Atproto_Xrpc-16',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.Lexicon,
@@ -925,7 +926,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Avail,
 				source: Source.Avail_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'avail',
 				},
 				endpoints: [
@@ -965,7 +966,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AvailExplorer,
 				source: Source.AvailExplorer_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'avail',
 				},
 				endpoints: [
@@ -1005,7 +1006,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AvalancheInfo,
 				source: Source.AvalancheInfo_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'avalanche-p-chain',
 				},
 				endpoints: [
@@ -1046,7 +1047,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AvalanchePlatformVm,
 				source: Source.AvalanchePlatformVm_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'avalanche-p-chain',
 				},
 				endpoints: [
@@ -1982,8 +1983,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Bittensor,
 				source: Source.Bittensor_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'bittensor:finney',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'bittensor',
 				},
 				endpoints: [
 					{
@@ -2427,7 +2428,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Blockfrost_Rest,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'blockfrost-cardano-mainnet',
+					key: 'cip34:1-764824073',
 				},
 				endpoints: [
 					{
@@ -3148,7 +3149,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.CardanoKoios_Rest,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'cardano-koios-mainnet',
+					key: 'cip34:1-764824073',
 				},
 				endpoints: [
 					{
@@ -3189,7 +3190,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.CardanoNode_LocalStateQuery,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'cardano',
+					key: 'cip34:1-764824073',
 				},
 				endpoints: [
 					{
@@ -3356,7 +3357,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Celestia,
 				source: Source.Celestia_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'celestia',
 				},
 				endpoints: [
@@ -3580,7 +3581,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.CircleCctpContracts_Solana,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'solana',
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 				},
 				endpoints: [
 					{
@@ -3604,7 +3605,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.CircleCctp,
 				source: Source.CircleCctpContracts_Stellar,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'stellar',
 				},
 				endpoints: [
@@ -4133,8 +4134,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'GoldRushFoundational_Rest-151',
-				serverCredentialId: 'GoldRushFoundational_Rest-151',
+				proxyId: 'GoldRushFoundational_Rest-150',
+				serverCredentialId: 'GoldRushFoundational_Rest-150',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -4323,8 +4324,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://cosmos-rest.publicnode.com',
-						origin: 'https://cosmos-rest.publicnode.com',
+						locator: 'https://rest.cosmos.directory/cosmoshub',
+						origin: 'https://rest.cosmos.directory',
 						corsEnabled: true,
 					},
 				],
@@ -4778,8 +4779,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Dydx,
 				source: Source.DydxIndexer_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'dydx-chain',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'dydx',
 				},
 				endpoints: [
 					{
@@ -4805,8 +4806,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Dydx,
 				source: Source.DydxValidator_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'dydx-chain',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'dydx',
 				},
 				endpoints: [
 					{
@@ -5297,34 +5298,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Esplora,
 				source: Source.Esplora_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'bitcoin',
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://blockstream.info/api',
-						origin: 'https://blockstream.info',
-						corsEnabled: true,
-					},
-				],
-				wireProtocol: WireProtocol.HttpRest,
-				apiFamily: ApiFamily.RestJson,
-				operationGroups: [
-					SourceOperationGroup.GenericRead,
-				],
-				delivery: SourceDelivery.BrowserDirect,
-				credentials: [
-					{
-						scope: SourceCredentialScope.None,
-					},
-				],
-			},
-			{
-				provider: SourceProvider.Esplora,
-				source: Source.Esplora_Rest,
-				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'liquid',
 				},
 				endpoints: [
@@ -5392,7 +5366,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'EthereumEips_Github-124',
+				proxyId: 'EthereumEips_Github-123',
 			},
 			{
 				provider: SourceProvider.EthereumEips,
@@ -5426,7 +5400,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'EthereumEips_Github-125',
+				proxyId: 'EthereumEips_Github-124',
 			},
 		],
 	},
@@ -5473,7 +5447,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'EthereumLists_Rest-126',
+				proxyId: 'EthereumLists_Rest-125',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5575,7 +5549,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
-				proxyId: 'Etherscan_Rest-128',
+				proxyId: 'Etherscan_Rest-127',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5624,7 +5598,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'EthForks_Rest-129',
+				proxyId: 'EthForks_Rest-128',
 			},
 		],
 	},
@@ -5670,8 +5644,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'EnvioHyperRpc_JsonRpc-130',
-				serverCredentialId: 'EnvioHyperRpc_JsonRpc-130',
+				proxyId: 'EnvioHyperRpc_JsonRpc-129',
+				serverCredentialId: 'EnvioHyperRpc_JsonRpc-129',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -5711,8 +5685,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'EnvioHyperSync_RawHttp-131',
-				serverCredentialId: 'EnvioHyperSync_RawHttp-131',
+				proxyId: 'EnvioHyperSync_RawHttp-130',
+				serverCredentialId: 'EnvioHyperSync_RawHttp-130',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5773,7 +5747,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Farcaster_Rest-132',
+				proxyId: 'Farcaster_Rest-131',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -6217,7 +6191,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'X_FxEmbed_Rest-143',
+				proxyId: 'X_FxEmbed_Rest-142',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -6270,8 +6244,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'GetBlockRpc_JsonRpc-144',
-				serverCredentialId: 'GetBlockRpc_JsonRpc-144',
+				proxyId: 'GetBlockRpc_JsonRpc-143',
+				serverCredentialId: 'GetBlockRpc_JsonRpc-143',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -6311,7 +6285,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				serverCredentialId: 'GetBlockYellowstone_Grpc-145',
+				serverCredentialId: 'GetBlockYellowstone_Grpc-144',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -6519,7 +6493,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.UserDelegated,
 					},
 				],
-				proxyId: 'Gitlab_Rest-150',
+				proxyId: 'Gitlab_Rest-149',
 			},
 		],
 	},
@@ -6622,8 +6596,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.HederaMirrorNode,
 				source: Source.HederaMirrorNode_Rest,
 				target: {
-					kind: SourceTargetKind.Global,
-					key: 'hedera-mainnet-mirror-node',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'hedera:mainnet',
 				},
 				endpoints: [
 					{
@@ -6644,7 +6618,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'HederaMirrorNode_Rest-154',
+				proxyId: 'HederaMirrorNode_Rest-153',
 			},
 		],
 	},
@@ -6664,7 +6638,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.HederaSdk_Grpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'hedera',
+					key: 'hedera:mainnet',
 				},
 				endpoints: [
 					{
@@ -6753,7 +6727,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Helius_Rest,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'solana:mainnet',
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 				},
 				endpoints: [
 					{
@@ -7086,7 +7060,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.InternetComputer,
 				source: Source.InternetComputer_RosettaApi,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'icp',
 				},
 				endpoints: [
@@ -7224,7 +7198,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Ipfs_Rest-168',
+				proxyId: 'Ipfs_Rest-167',
 			},
 		],
 	},
@@ -7243,7 +7217,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Juno,
 				source: Source.Juno_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'starknet',
 				},
 				endpoints: [
@@ -7378,7 +7352,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.KaspaNode,
 				source: Source.KaspaNode_Grpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'kaspa',
 				},
 				endpoints: [
@@ -7415,7 +7389,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.KaspaNode,
 				source: Source.KaspaNode_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'kaspa',
 				},
 				endpoints: [
@@ -7441,7 +7415,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.KaspaNode,
 				source: Source.KaspaNode_Wrpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'kaspa',
 				},
 				endpoints: [
@@ -7637,7 +7611,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Koios_Rest,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'cardano',
+					key: 'cip34:1-764824073',
 				},
 				endpoints: [
 					{
@@ -7658,7 +7632,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Koios_Rest-179',
+				proxyId: 'Koios_Rest-178',
 			},
 		],
 	},
@@ -7699,7 +7673,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'L2Beat_Rest-180',
+				proxyId: 'L2Beat_Rest-179',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8127,7 +8101,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
-				proxyId: 'LightningLnd_Rest-189',
+				proxyId: 'LightningLnd_Rest-188',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8171,8 +8145,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.LightningMempoolSpace,
 				source: Source.LightningMempoolSpace_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'lightning:mainnet',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'lightning',
 				},
 				endpoints: [
 					{
@@ -8393,8 +8367,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.LogosBlockchainNode,
 				source: Source.LogosBlockchainNode_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'logos',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'logos-testnet',
 				},
 				endpoints: [
 					{
@@ -8480,7 +8454,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Lotus_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'fil:mainnet',
+					key: 'fil:f',
 				},
 				endpoints: [
 					{
@@ -8716,7 +8690,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
-				proxyId: 'Mastodon_Rest-202',
+				proxyId: 'Mastodon_Rest-201',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8889,7 +8863,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'MetadataVision_Rest-206',
+				proxyId: 'MetadataVision_Rest-205',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8977,7 +8951,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'MevRelay_Rest-208',
+				proxyId: 'MevRelay_Rest-207',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9012,7 +8986,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'MevRelay_Rest-209',
+				proxyId: 'MevRelay_Rest-208',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9047,7 +9021,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'MevRelay_Rest-210',
+				proxyId: 'MevRelay_Rest-209',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9237,7 +9211,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.MoneroDaemonRpc_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'monero:mainnet',
+					key: 'monero:418015bb9ae982a1975da7d79277c270',
 				},
 				endpoints: [
 					{
@@ -9264,7 +9238,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'MoneroDaemonRpc_JsonRpc-215',
+				proxyId: 'MoneroDaemonRpc_JsonRpc-214',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9365,8 +9339,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.NearBlocks,
 				source: Source.NearBlocks_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'near:mainnet',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'near',
 				},
 				endpoints: [
 					{
@@ -9507,8 +9481,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.NearRpc,
 				source: Source.NearRpc_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'near:mainnet',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'near',
 				},
 				endpoints: [
 					{
@@ -9529,7 +9503,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'NearRpc_JsonRpc-221',
+				proxyId: 'NearRpc_JsonRpc-220',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9628,7 +9602,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
-				proxyId: 'Neynar_Rest-223',
+				proxyId: 'Neynar_Rest-222',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -9777,8 +9751,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Nodely,
 				source: Source.Nodely_Algod_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'algorand-algod',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'algorand',
 				},
 				endpoints: [
 					{
@@ -9799,14 +9773,14 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Nodely_Algod_Rest-227',
+				proxyId: 'Nodely_Algod_Rest-226',
 			},
 			{
 				provider: SourceProvider.Nodely,
 				source: Source.Nodely_AlgorandIndexer_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'algorand-indexer',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'algorand',
 				},
 				endpoints: [
 					{
@@ -9827,7 +9801,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Nodely_AlgorandIndexer_Rest-228',
+				proxyId: 'Nodely_AlgorandIndexer_Rest-227',
 			},
 		],
 	},
@@ -9868,7 +9842,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'NostrBand_Rest-229',
+				proxyId: 'NostrBand_Rest-228',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10027,7 +10001,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Ogmios_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'cardano',
+					key: 'cip34:1-764824073',
 				},
 				endpoints: [
 					{
@@ -10168,8 +10142,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'OpenAI_Rest-236',
-				serverCredentialId: 'OpenAI_Rest-236',
+				proxyId: 'OpenAI_Rest-235',
+				serverCredentialId: 'OpenAI_Rest-235',
 			},
 		],
 		origins: [
@@ -10222,7 +10196,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Openchain_Rest-237',
+				proxyId: 'Openchain_Rest-236',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10306,7 +10280,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Osmosis_LCD_Rest,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'cosmos',
+					key: 'cosmos:cosmoshub-4',
 				},
 				endpoints: [
 					{
@@ -10367,7 +10341,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Paraswap_Rest-240',
+				proxyId: 'Paraswap_Rest-239',
 			},
 		],
 	},
@@ -10386,7 +10360,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Pathfinder,
 				source: Source.Pathfinder_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'starknet',
 				},
 				endpoints: [
@@ -10530,7 +10504,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'PayjoinDirectory_Rest-244',
+				proxyId: 'PayjoinDirectory_Rest-243',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10896,11 +10870,91 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Primal_Rest-252',
+				proxyId: 'Primal_Rest-251',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
 						path: 'src/sources/Primal/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.PublicNode,
+		label: 'PublicNode',
+		sources: [
+			{
+				provider: SourceProvider.PublicNode,
+				source: Source.Solana_JsonRpc,
+				label: 'Solana JSON-RPC',
+			},
+		],
+		bindings: [
+			{
+				provider: SourceProvider.PublicNode,
+				source: Source.Solana_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://solana-rpc.publicnode.com',
+						origin: 'https://solana-rpc.publicnode.com',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.SolanaJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				proxyId: 'Solana_JsonRpc-276',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Solana/JsonRpc/types.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.PublicNode,
+				source: Source.Solana_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.WebSocketUrl,
+						locator: 'wss://solana-rpc.publicnode.com',
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.SolanaJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.GenericSubscribe,
+				],
+				delivery: SourceDelivery.RemoteLive,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Solana/JsonRpc/types.ts',
 						generated: false,
 					},
 				],
@@ -10968,7 +11022,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Pyth_SolanaProgram,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'solana',
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 				},
 				endpoints: [
 					{
@@ -11014,7 +11068,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'PythHermes_Rest-255',
+				proxyId: 'PythHermes_Rest-254',
 			},
 			{
 				provider: SourceProvider.Pyth,
@@ -11042,7 +11096,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'PythBenchmarks_Rest-256',
+				proxyId: 'PythBenchmarks_Rest-255',
 			},
 			{
 				provider: SourceProvider.Pyth,
@@ -11070,7 +11124,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'PythPriceFeedsCatalog_Rest-257',
+				proxyId: 'PythPriceFeedsCatalog_Rest-256',
 			},
 		],
 		origins: [
@@ -11195,7 +11249,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.QuilibriumNode,
 				source: Source.QuilibriumNode_Grpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'quilibrium',
 				},
 				endpoints: [
@@ -11279,7 +11333,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.QuilibriumNodeRpc,
 				source: Source.QuilibriumNodeRpc_Grpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'quilibrium',
 				},
 				endpoints: [
@@ -11515,7 +11569,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
-				proxyId: 'Reddit_Rest-267',
+				proxyId: 'Reddit_Rest-266',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11563,7 +11617,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Reddit_PublicJson-268',
+				proxyId: 'Reddit_PublicJson-267',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11705,7 +11759,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Rss_Rest-271',
+				proxyId: 'Rss_Rest-270',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11740,7 +11794,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Rss_Rest-272',
+				proxyId: 'Rss_Rest-271',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11788,7 +11842,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Rss2Json_Rest-273',
+				proxyId: 'Rss2Json_Rest-272',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11895,7 +11949,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
-				proxyId: 'Snapchain_Rest-275',
+				proxyId: 'Snapchain_Rest-274',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11907,79 +11961,48 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		],
 	},
 	{
-		provider: SourceProvider.Solana,
-		label: 'Solana',
+		provider: SourceProvider.SpaceAndTime,
+		label: 'Space and Time',
 		sources: [
 			{
-				provider: SourceProvider.Solana,
-				source: Source.Solana_JsonRpc,
-				label: 'Solana JSON-RPC',
+				provider: SourceProvider.SpaceAndTime,
+				source: Source.SpaceAndTime_MakeInfinite,
+				label: 'Space and Time MakeInfinite',
 			},
 		],
 		bindings: [
 			{
-				provider: SourceProvider.Solana,
-				source: Source.Solana_JsonRpc,
+				provider: SourceProvider.SpaceAndTime,
+				source: Source.SpaceAndTime_MakeInfinite,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'solana:mainnet',
+					key: 'eip155:1',
 				},
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://api.mainnet.solana.com',
-						origin: 'https://api.mainnet.solana.com',
+						locator: 'https://proxy.api.makeinfinite.dev',
+						origin: 'https://proxy.api.makeinfinite.dev',
 						corsEnabled: false,
 					},
 				],
-				wireProtocol: WireProtocol.JsonRpc2,
-				apiFamily: ApiFamily.SolanaJsonRpc,
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
 				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
-						scope: SourceCredentialScope.None,
+						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
-				proxyId: 'Solana_JsonRpc-276',
+				proxyId: 'SpaceAndTime_MakeInfinite-275',
+				serverCredentialId: 'SpaceAndTime_MakeInfinite-275',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
-						path: 'src/sources/Solana/JsonRpc/types.ts',
-						generated: false,
-					},
-				],
-			},
-			{
-				provider: SourceProvider.Solana,
-				source: Source.Solana_JsonRpc,
-				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'solana:mainnet',
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.WebSocketUrl,
-						locator: 'wss://api.mainnet.solana.com',
-					},
-				],
-				wireProtocol: WireProtocol.JsonRpc2,
-				apiFamily: ApiFamily.SolanaJsonRpc,
-				operationGroups: [
-					SourceOperationGroup.GenericSubscribe,
-				],
-				delivery: SourceDelivery.RemoteLive,
-				credentials: [
-					{
-						scope: SourceCredentialScope.None,
-					},
-				],
-				artifacts: [
-					{
-						kind: SourceArtifactKind.HandwrittenTypes,
-						path: 'src/sources/Solana/JsonRpc/types.ts',
+						path: 'src/sources/SpaceAndTime/MakeInfinite/types.ts',
 						generated: false,
 					},
 				],
@@ -12231,7 +12254,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Starknet,
 				source: Source.Starknet_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'starknet',
 				},
 				endpoints: [
@@ -12405,7 +12428,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.StellarRpc,
 				source: Source.StellarRpc_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'stellar',
 				},
 				endpoints: [
@@ -12647,7 +12670,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Sui,
 				source: Source.Sui_Graphql,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'sui',
 				},
 				endpoints: [
@@ -12681,7 +12704,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Sui,
 				source: Source.Sui_Grpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'sui',
 				},
 				endpoints: [
@@ -12706,7 +12729,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Sui,
 				source: Source.Sui_JsonRpc,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
+					kind: SourceTargetKind.NetworkSlug,
 					key: 'sui',
 				},
 				endpoints: [
@@ -12883,7 +12906,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.TezosNode_Rpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'tezos',
+					key: 'tezos:NetXdQprcVkpaWU',
 				},
 				endpoints: [
 					{
@@ -13210,7 +13233,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Tonlib_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'ton',
+					key: 'ton:-239',
 				},
 				endpoints: [
 					{
@@ -13249,7 +13272,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.TonLiteServer_Adnl,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'ton',
+					key: 'ton:-239',
 				},
 				endpoints: [
 					{
@@ -13468,8 +13491,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.TronGrid,
 				source: Source.TronGrid_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'tron:mainnet',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'tron',
 				},
 				endpoints: [
 					{
@@ -13555,8 +13578,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.TronScan,
 				source: Source.TronScan_Rest,
 				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'tron:mainnet',
+					kind: SourceTargetKind.NetworkSlug,
+					key: 'tron',
 				},
 				endpoints: [
 					{
@@ -13845,12 +13868,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					},
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'http://localhost:8545',
-						origin: 'http://localhost:8545',
-						corsEnabled: false,
-					},
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://eth.llamarpc.com',
 						origin: 'https://eth.llamarpc.com',
 						corsEnabled: false,
@@ -13873,7 +13890,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.EvmRpcCore,
 					SourceOperationGroup.EvmRpcTrace,
-					SourceOperationGroup.EvmRpcTxpool,
 				],
 				delivery: SourceDelivery.HttpProxy,
 				credentials: [
@@ -17566,13 +17582,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Xrpl_Rippled,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'xrpl',
+					key: 'xrpl:0',
 				},
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://{xrpl-rippled-host}',
-						origin: 'https://{xrpl-rippled-host}',
+						locator: 'https://s1.ripple.com:51234',
+						origin: 'https://s1.ripple.com:51234',
 						corsEnabled: false,
 					},
 				],
@@ -17581,10 +17597,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.RemoteQuery,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
+					},
+				],
+				proxyId: 'Xrpl_Rippled-412',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Xrpl/JsonRpc/types.ts',
+						generated: false,
 					},
 				],
 			},
@@ -17606,7 +17630,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.XrplClio_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'xrpl',
+					key: 'xrpl:0',
 				},
 				endpoints: [
 					{
@@ -17633,7 +17657,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.XrplClio_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'xrpl',
+					key: 'xrpl:0',
 				},
 				endpoints: [
 					{
@@ -17821,7 +17845,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Zcashd_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'bip122:00040fe8ec8471911baa1db1266ea15d',
+					key: 'bip122:00040fe8ec8471911baa1db1266ea15',
 				},
 				endpoints: [
 					{
@@ -17889,7 +17913,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.ZcashLightwalletd_Grpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'zcash',
+					key: 'bip122:00040fe8ec8471911baa1db1266ea15',
 				},
 				endpoints: [
 					{
@@ -17995,7 +18019,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Zebra_JsonRpc,
 				target: {
 					kind: SourceTargetKind.Caip2Network,
-					key: 'bip122:00040fe8ec8471911baa1db1266ea15d',
+					key: 'bip122:00040fe8ec8471911baa1db1266ea15',
 				},
 				endpoints: [
 					{

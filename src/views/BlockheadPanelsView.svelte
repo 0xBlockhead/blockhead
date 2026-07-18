@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadPanelView from '$/views/BlockheadPanelView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					kind: true,
-					entityType: true,
-					indexInParent: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPanel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadPanel}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				kind: true,
+				entityType: true,
+				indexInParent: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadPanels) => [...new Map(blockheadPanels.values.map((blockheadPanel) => [blockheadPanel[EntityMetaKey.SelectorKey], blockheadPanel])).values()]}
+	getKey={(blockheadPanel) => blockheadPanel[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Panels yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadPanels)}
-			{@const uniqueBlockheadPanels = [...new Map(blockheadPanels.values.map((blockheadPanel) => [blockheadPanel[EntityMetaKey.SelectorKey], blockheadPanel])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPanel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadPanels.totalCount}
-				getKey={(blockheadPanel) => blockheadPanel[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadPanels}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Panels yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadPanel })}
-					{@const blockheadPanelFields = { ...blockheadPanel[EntityMetaKey.Selector], ...blockheadPanel }}
-					{@const selection = select(EntityType.BlockheadPanel, blockheadPanel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadPanelView
-						selection={selection}
-						prefetched={blockheadPanelFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadPanel}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadPanel })}
+		{@const blockheadPanelFields = { ...blockheadPanel[EntityMetaKey.Selector], ...blockheadPanel }}
+		{@const selection = select(EntityType.BlockheadPanel, blockheadPanel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadPanelView
+			selection={selection}
+			prefetched={blockheadPanelFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

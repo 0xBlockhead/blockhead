@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarOffer = $derived(selection({}))
+	const stellarOffer = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar offer')
 	const viewDomId = $derived('stellar-offer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarOffer}>
-			{#snippet Pending()}
-				{title || 'stellar offer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarOffer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									offerId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const offerId = pendingEntity.offerId}
-							{#if offerId !== undefined && offerId !== null}
-								{String((offerId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const offerId = resolvedEntity.offerId}
@@ -122,8 +118,6 @@
 			<ResourceBoundary
 				resource={selection.$seller}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -144,8 +138,6 @@
 			<ResourceBoundary
 				resource={selection.$sellingAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -166,8 +158,6 @@
 			<ResourceBoundary
 				resource={selection.$buyingAsset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>

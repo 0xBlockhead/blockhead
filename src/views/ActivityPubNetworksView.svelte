@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubNetworkView from '$/views/ActivityPubNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ActivityPubNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+			},
+		})
+	}
+	getResourceItems={(activityPubNetworks) => [...new Map(activityPubNetworks.values.map((activityPubNetwork) => [activityPubNetwork[EntityMetaKey.SelectorKey], activityPubNetwork])).values()]}
+	getKey={(activityPubNetwork) => activityPubNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ActivityPub yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(activityPubNetworks)}
-			{@const uniqueActivityPubNetworks = [...new Map(activityPubNetworks.values.map((activityPubNetwork) => [activityPubNetwork[EntityMetaKey.SelectorKey], activityPubNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubNetworks.totalCount}
-				getKey={(activityPubNetwork) => activityPubNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueActivityPubNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ActivityPub yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: activityPubNetwork })}
-					{@const activityPubNetworkFields = { ...activityPubNetwork[EntityMetaKey.Selector], ...activityPubNetwork }}
-					{@const selection = select(EntityType.ActivityPubNetwork, activityPubNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ActivityPubNetworkView
-						selection={selection}
-						prefetched={activityPubNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ActivityPubNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: activityPubNetwork })}
+		{@const activityPubNetworkFields = { ...activityPubNetwork[EntityMetaKey.Selector], ...activityPubNetwork }}
+		{@const selection = select(EntityType.ActivityPubNetwork, activityPubNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ActivityPubNetworkView
+			selection={selection}
+			prefetched={activityPubNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

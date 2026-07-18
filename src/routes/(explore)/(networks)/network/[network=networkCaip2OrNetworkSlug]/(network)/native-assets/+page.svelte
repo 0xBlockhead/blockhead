@@ -43,5 +43,8 @@
 			})
 		}
 		id='native-assets'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

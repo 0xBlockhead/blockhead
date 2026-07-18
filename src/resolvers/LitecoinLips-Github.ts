@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
@@ -38,20 +42,28 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) {
-					throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Litecoin,
+							category: OwnedProposalCategory.Lip,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) {
+						throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
+					}
+					const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
+					const text = await getMediaWikiText({ number: number })
+					return {
+						documentCategory: metadataValue(text, 'Type') ?? 'LIP',
+						documentTitle: metadataValue(text, 'Title'),
+						documentStatus: metadataValue(text, 'Status'),
+						documentBody: text,
+					}
+				},
 				}
-				const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				const text = await getMediaWikiText({ number: number })
-				return {
-					documentCategory: metadataValue(text, 'Type') ?? 'LIP',
-					documentTitle: metadataValue(text, 'Title'),
-					documentStatus: metadataValue(text, 'Status'),
-					documentBody: text,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -63,10 +75,12 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
+					return litecoinLipRows(await getContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

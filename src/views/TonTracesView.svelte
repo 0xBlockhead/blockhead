@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonTraceView from '$/views/TonTraceView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTrace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonTrace}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonTraces) => [...new Map(tonTraces.values.map((tonTrace) => [tonTrace[EntityMetaKey.SelectorKey], tonTrace])).values()]}
+	getKey={(tonTrace) => tonTrace[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON traces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonTraces)}
-			{@const uniqueTonTraces = [...new Map(tonTraces.values.map((tonTrace) => [tonTrace[EntityMetaKey.SelectorKey], tonTrace])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonTrace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonTraces.totalCount}
-				getKey={(tonTrace) => tonTrace[EntityMetaKey.SelectorKey]}
-				items={uniqueTonTraces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON traces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonTrace })}
-					{@const tonTraceFields = { ...tonTrace[EntityMetaKey.Selector], ...tonTrace }}
-					{@const selection = select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonTraceView
-						selection={selection}
-						prefetched={tonTraceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonTrace}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonTrace })}
+		{@const tonTraceFields = { ...tonTrace[EntityMetaKey.Selector], ...tonTrace }}
+		{@const selection = select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonTraceView
+			selection={selection}
+			prefetched={tonTraceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAgentConnection = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			connectionKind: true,
 			enabled: true,
@@ -76,52 +73,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadAgentConnection}>
-			{#snippet Pending()}
-				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentConnection}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAgentConnection}>
-			{#snippet Pending()}
-				{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentConnection}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadAgentConnection}>
-			{#snippet Pending()}
-				{@const enabled0 = pendingEntity.enabled}
-				{#if enabled0 !== undefined && enabled0 !== null}
-					<span data-text="muted">
-						{enabled0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const enabled0 = resolvedEntity.enabled}
-				{#if enabled0 !== undefined && enabled0 !== null}
-					<span data-text="muted">
-						{enabled0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const enabled0 = pendingEntity.enabled}
+			{#if enabled0 !== undefined && enabled0 !== null}
+				<span data-text="muted">
+					{enabled0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadAgentConnection}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const enabled0 = resolvedEntity.enabled}
+					{#if enabled0 !== undefined && enabled0 !== null}
+						<span data-text="muted">
+							{enabled0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -159,8 +150,6 @@
 			<ResourceBoundary
 				resource={selection.$profile}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
 						<div>
@@ -181,8 +170,6 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -208,24 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							connectionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const connectionKind = pendingEntity.connectionKind}
-					{#if connectionKind !== undefined && connectionKind !== null}
-						<div>
-							<dt>connection kind</dt>
-							<dd>
-								{String((connectionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const connectionKind = resolvedEntity.connectionKind}
@@ -245,31 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endpointUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endpointUrl = pendingEntity.endpointUrl}
-					{#if endpointUrl !== undefined && endpointUrl !== null}
-						<div>
-							<dt>endpoint URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endpointUrl = resolvedEntity.endpointUrl}
@@ -294,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authKind = pendingEntity.authKind}
-					{#if authKind !== undefined && authKind !== null}
-						<div>
-							<dt>auth kind</dt>
-							<dd>
-								{String((authKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authKind = resolvedEntity.authKind}
@@ -329,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							enabled: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const enabled = pendingEntity.enabled}
-					{#if enabled !== undefined && enabled !== null}
-						<div>
-							<dt>enabled</dt>
-							<dd>
-								{enabled ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const enabled = resolvedEntity.enabled}

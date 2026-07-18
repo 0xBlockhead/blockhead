@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,11 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadQuilibriumNodeState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.QuilibriumNodeMetrics_Prometheus,
-			Source.QuilibriumNode_Grpc,
-		],
+		sources: selection.sources,
 		fields: {
 			endpoint: true,
 		},
@@ -82,88 +77,88 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium node state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeState}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeState}>
-			{#snippet Pending()}
-				{@const endpoint0 = pendingEntity.endpoint}
-				{#if endpoint0 !== undefined && endpoint0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(endpoint0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(endpoint0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const endpoint0 = resolvedEntity.endpoint}
-				{#if endpoint0 !== undefined && endpoint0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(endpoint0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(endpoint0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const endpoint0 = pendingEntity.endpoint}
+			{#if endpoint0 !== undefined && endpoint0 !== null}
+				<span data-text="muted">
+					<svelte:element
+						this={'a'}
+						href={String(endpoint0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(endpoint0)} />
+					</svelte:element>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const endpoint0 = resolvedEntity.endpoint}
+					{#if endpoint0 !== undefined && endpoint0 !== null}
+						<span data-text="muted">
+							<svelte:element
+								this={'a'}
+								href={String(endpoint0)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(endpoint0)} />
+							</svelte:element>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -174,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -219,31 +208,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endpoint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endpoint = pendingEntity.endpoint}
-					{#if endpoint !== undefined && endpoint !== null}
-						<div>
-							<dt>endpoint</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(endpoint)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpoint)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endpoint = resolvedEntity.endpoint}
@@ -268,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							grpcPort: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const grpcPort = pendingEntity.grpcPort}
-					{#if grpcPort !== undefined && grpcPort !== null}
-						<div>
-							<dt>grpc port</dt>
-							<dd>
-								<NumberValue value={Number(grpcPort)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const grpcPort = resolvedEntity.grpcPort}
@@ -293,7 +253,9 @@
 						<div>
 							<dt>grpc port</dt>
 							<dd>
-								<NumberValue value={Number(grpcPort)} />
+								<NumberValue
+									value={grpcPort}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -303,24 +265,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							restPort: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const restPort = pendingEntity.restPort}
-					{#if restPort !== undefined && restPort !== null}
-						<div>
-							<dt>REST port</dt>
-							<dd>
-								<NumberValue value={Number(restPort)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const restPort = resolvedEntity.restPort}
@@ -328,7 +279,9 @@
 						<div>
 							<dt>REST port</dt>
 							<dd>
-								<NumberValue value={Number(restPort)} />
+								<NumberValue
+									value={restPort}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -338,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerId = pendingEntity.peerId}
-					{#if peerId !== undefined && peerId !== null}
-						<div>
-							<dt>peer ID</dt>
-							<dd>
-								{String((peerId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerId = resolvedEntity.peerId}
@@ -391,11 +333,8 @@
 				}
 				data-card
 				class='network-view-collapsible-network'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Network</HeadingComponent>
 					</header>
@@ -403,12 +342,12 @@
 
 				{#snippet SectionQuilibriumFrames({ id, label, open })}
 					<QuilibriumFramesView
-						selection={
-							selection.$$frames({
-								count: true,
-							})
-						}
+						selection={selection.$$frames}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Quilibrium frames.'
 						open={open}
 						title={label}
@@ -418,12 +357,12 @@
 
 				{#snippet SectionQuilibriumProvers({ id, label, open })}
 					<QuilibriumProversView
-						selection={
-							selection.$$provers({
-								count: true,
-							})
-						}
+						selection={selection.$$provers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Quilibrium provers.'
 						open={open}
 						title={label}
@@ -446,11 +385,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -458,12 +394,12 @@
 
 				{#snippet SectionQuilibriumNodeTimestamps({ id, label, open })}
 					<BlockheadQuilibriumNodeState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Quilibrium node observations.'
 						open={open}
 						title={label}

@@ -41,8 +41,10 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubeVideoTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')
+	const youtubeVideoTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')
 	const viewDomId = $derived('youtube-video-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -59,9 +61,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$video !== undefined && pendingEntity.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$video !== undefined && pendingEntity.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			videoId: String(pendingEntity.$video.videoId ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			videoId: encodeURIComponent(String(pendingEntity.$video.videoId ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -69,42 +72,50 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={youtubeVideoTimestamp}>
-			{#snippet Pending()}
-				<YoutubeVideoView
-					selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<YoutubeVideoView
+						selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
+						href={
 						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-							videoId: String(selection.entitySelector.$video.videoId ?? ''),
+							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-				{@const timestampMs1 = pendingEntity.timestampMs}
-				{#if timestampMs1 !== undefined && timestampMs1 !== null}
-					<Timestamp timestamp={Number(timestampMs1)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<YoutubeVideoView
-					selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+					{@const timestampMs1 = pendingEntity.timestampMs}
+					{#if timestampMs1 !== undefined && timestampMs1 !== null}
+						<Timestamp timestamp={Number(timestampMs1)} />
+					{/if}
+					{@const source2 = pendingEntity.source}
+					{#if source2 !== undefined && source2 !== null}
+						{String((source2) ?? '')}
+					{/if}
+		{:else}
+			<ResourceBoundary resource={youtubeVideoTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<YoutubeVideoView
+						selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
+						href={
 						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-							videoId: String(selection.entitySelector.$video.videoId ?? ''),
+							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-				{@const timestampMs1 = resolvedEntity.timestampMs}
-				{#if timestampMs1 !== undefined && timestampMs1 !== null}
-					<Timestamp timestamp={Number(timestampMs1)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+					{@const timestampMs1 = resolvedEntity.timestampMs}
+					{#if timestampMs1 !== undefined && timestampMs1 !== null}
+						<Timestamp timestamp={Number(timestampMs1)} />
+					{/if}
+					{@const source2 = resolvedEntity.source}
+					{#if source2 !== undefined && source2 !== null}
+						{String((source2) ?? '')}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -115,24 +126,42 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

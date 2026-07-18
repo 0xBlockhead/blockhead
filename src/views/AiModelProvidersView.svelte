@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiModelProviderView from '$/views/AiModelProviderView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					organizationKind: true,
-					providerId: true,
-					domain: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiModelProvider}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiModelProvider}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				organizationKind: true,
+				providerId: true,
+				domain: true,
+			},
+		})
+	}
+	getResourceItems={(aiModelProviders) => [...new Map(aiModelProviders.values.map((aiModelProvider) => [aiModelProvider[EntityMetaKey.SelectorKey], aiModelProvider])).values()]}
+	getKey={(aiModelProvider) => aiModelProvider[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI model providers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiModelProviders)}
-			{@const uniqueAiModelProviders = [...new Map(aiModelProviders.values.map((aiModelProvider) => [aiModelProvider[EntityMetaKey.SelectorKey], aiModelProvider])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiModelProvider}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiModelProviders.totalCount}
-				getKey={(aiModelProvider) => aiModelProvider[EntityMetaKey.SelectorKey]}
-				items={uniqueAiModelProviders}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI model providers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiModelProvider })}
-					{@const aiModelProviderFields = { ...aiModelProvider[EntityMetaKey.Selector], ...aiModelProvider }}
-					{@const selection = select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiModelProviderView
-						selection={selection}
-						prefetched={aiModelProviderFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiModelProvider}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiModelProvider })}
+		{@const aiModelProviderFields = { ...aiModelProvider[EntityMetaKey.Selector], ...aiModelProvider }}
+		{@const selection = select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiModelProviderView
+			selection={selection}
+			prefetched={aiModelProviderFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

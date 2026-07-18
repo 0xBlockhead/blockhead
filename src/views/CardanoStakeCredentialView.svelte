@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoStakeCredential = $derived(selection({}))
+	const cardanoStakeCredential = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano stake credential')
 	const viewDomId = $derived('cardano-stake-credential-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoStakeCredential}>
-			{#snippet Pending()}
-				{title || 'Cardano stake credential'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoStakeCredential}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									credential: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const credential = pendingEntity.credential}
-							{#if credential !== undefined && credential !== null}
-								<TruncatedValue value={String((credential) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const credential = resolvedEntity.credential}
@@ -130,24 +126,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							credentialKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const credentialKind = pendingEntity.credentialKind}
-					{#if credentialKind !== undefined && credentialKind !== null}
-						<div>
-							<dt>credential kind</dt>
-							<dd>
-								<TruncatedValue value={String((credentialKind) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const credentialKind = resolvedEntity.credentialKind}
@@ -165,24 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardAddress = pendingEntity.rewardAddress}
-					{#if rewardAddress !== undefined && rewardAddress !== null}
-						<div>
-							<dt>reward address</dt>
-							<dd>
-								<TruncatedValue value={String((rewardAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardAddress = resolvedEntity.rewardAddress}

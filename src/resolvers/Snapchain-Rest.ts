@@ -9,6 +9,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type Entity } from '$/schema/$schema.ts'
@@ -22,8 +23,7 @@ import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddr
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 import { FarcasterCastEmbedSelector } from '$/schema/FarcasterCastEmbed.ts'
 import { FarcasterCast_TimestampSelector } from '$/schema/FarcasterCast_Timestamp.ts'
-import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
-import { _GlobalFarcasterNetworkSelector } from '$/schema/_GlobalFarcasterNetwork.ts'
+import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 
@@ -71,114 +71,120 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: async ({ fid }) => {
-					type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
-					type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
-					const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const { userData, usernameProofs, verifications } = await getUserBundleByFid({
-						fid: fid,
-					})
-					const verifiedAddresses = (
-						(verifications.messages ?? [])
-							.flatMap<Entity<typeof schema, EntityType.FarcasterVerifiedAddress>>((message: SnapVerify) => {
-							const body = message.data?.verificationAddAddressBody
-							const address = optionalNonemptyString(body?.address)
-							const protocol = (
-								body?.protocol === 'PROTOCOL_ETHEREUM' ?
-									'ethereum' as const
-								:
-									body?.protocol === 'PROTOCOL_SOLANA' ?
-										'solana' as const
+				[FarcasterUserSelector.Fid]: {
+					resolve: async ({ fid }) => {
+						type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
+						type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
+						const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const { userData, usernameProofs, verifications } = await getUserBundleByFid({
+							fid: fid,
+						})
+						const verifiedAddresses = (
+							(verifications.messages ?? [])
+								.flatMap<Entity<typeof schema, EntityType.FarcasterVerifiedAddress>>((message: SnapVerify) => {
+								const body = message.data?.verificationAddAddressBody
+								const address = optionalNonemptyString(body?.address)
+								const protocol = (
+									body?.protocol === 'PROTOCOL_ETHEREUM' ?
+										'ethereum' as const
 									:
-										undefined
-							)
-							return protocol == null || address == null ?
-								[]
-							:
-								protocol === 'ethereum' ?
-									(
-										(evmAddress) => (
-											[{
-												[EntityMetaKey.Selector]: {
-													fid: fid,
-													protocol,
-													address: evmAddress,
-												},
-												$user: {
-													[EntityMetaKey.Selector]: { fid },
-												},
-												$evmAccount: {
+										body?.protocol === 'PROTOCOL_SOLANA' ?
+											'solana' as const
+										:
+											undefined
+								)
+								return protocol == null || address == null ?
+									[]
+								:
+									protocol === 'ethereum' ?
+										(
+											(evmAddress) => (
+												[{
 													[EntityMetaKey.Selector]: {
+														fid: fid,
+														protocol,
 														address: evmAddress,
 													},
-												},
-												protocol,
-												address: evmAddress,
-											}]
-										)
-									)(EvmAddress.assert(address))
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											fid: fid,
-											protocol,
-											address,
-										},
-										$user: {
-											[EntityMetaKey.Selector]: { fid },
-										},
-										$solanaAccount: {
-											[EntityMetaKey.Selector]: {
-												$network: {
-													caip2: {
-														namespace: 'solana',
-														reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
+														[EntityMetaKey.Selector]: { fid },
 													},
+													[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$evmAccount')]: {
+														[EntityMetaKey.Selector]: {
+															address: evmAddress,
+														},
+													},
+													[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: protocol,
+													[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: evmAddress,
 												},
-												pubkey: address,
+												}]
+											)
+										)(EvmAddress.assert(address))
+									:
+										[{
+											[EntityMetaKey.Selector]: {
+												fid: fid,
+												protocol,
+												address,
 											},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
+												[EntityMetaKey.Selector]: { fid },
+											},
+											[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$solanaAccount')]: {
+												[EntityMetaKey.Selector]: {
+													$network: {
+														caip2: {
+															namespace: 'solana',
+															reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+														},
+													},
+													pubkey: address,
+												},
+											},
+											[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: protocol,
+											[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: address,
 										},
-										protocol,
-										address,
-									}]
-							})
-							.filter((verification, index, verificationsList) => (
-							verificationsList.findIndex((otherVerification) => (
-								otherVerification[EntityMetaKey.Selector].protocol === verification[EntityMetaKey.Selector].protocol
-								&& otherVerification[EntityMetaKey.Selector].address === verification[EntityMetaKey.Selector].address
-							)) === index
-							))
-					)
-					const primaryVerifiedEvmAddress = verifiedAddresses.find((verification) => (
-						verification[EntityMetaKey.Selector].protocol === 'ethereum'
-					))?.[EntityMetaKey.Selector].address
-					const userFields: Partial<UserFields> = {
-						username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
-						$$verifiedAddresses: verifiedAddresses,
-					}
-					if (primaryVerifiedEvmAddress != null)
-						userFields.$primaryEvmAccount = {
-							[EntityMetaKey.Selector]: {
-								address: EvmAddress.assert(primaryVerifiedEvmAddress),
-							},
+										}]
+								})
+								.filter((verification, index, verificationsList) => (
+								verificationsList.findIndex((otherVerification) => (
+									otherVerification[EntityMetaKey.Selector].protocol === verification[EntityMetaKey.Selector].protocol
+									&& otherVerification[EntityMetaKey.Selector].address === verification[EntityMetaKey.Selector].address
+								)) === index
+								))
+						)
+						const primaryVerifiedEvmAddress = verifiedAddresses.find((verification) => (
+							verification[EntityMetaKey.Selector].protocol === 'ethereum'
+						))?.[EntityMetaKey.Selector].address
+						const userFields: Partial<UserFields> = {
+							username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
+							$$verifiedAddresses: verifiedAddresses,
 						}
-					for (const message of (userData.messages ?? [])) {
-						const userDataType = message.data?.userDataBody?.type
-						const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
-						if (fieldValue == null) continue
-						if (userDataType === 'USER_DATA_TYPE_PFP') {
-							const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
-							if (iconUrl != null) {
-								userFields.iconUrl = iconUrl
-								const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
-								if (iconMedia != null) userFields.$icon = iconMedia
+						if (primaryVerifiedEvmAddress != null)
+							userFields.$primaryEvmAccount = {
+								[EntityMetaKey.Selector]: {
+									address: EvmAddress.assert(primaryVerifiedEvmAddress),
+								},
 							}
+						for (const message of (userData.messages ?? [])) {
+							const userDataType = message.data?.userDataBody?.type
+							const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
+							if (fieldValue == null) continue
+							if (userDataType === 'USER_DATA_TYPE_PFP') {
+								const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
+								if (iconUrl != null) {
+									userFields.iconUrl = iconUrl
+									const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
+									if (iconMedia != null) userFields.$icon = iconMedia
+								}
+							}
+						else if (userDataType === 'USER_DATA_TYPE_DISPLAY') userFields.displayName = fieldValue
+						else if (userDataType === 'USER_DATA_TYPE_BIO') userFields.bio = fieldValue
+						else if (userDataType === 'USER_DATA_TYPE_URL') userFields.url = fieldValue
 						}
-					else if (userDataType === 'USER_DATA_TYPE_DISPLAY') userFields.displayName = fieldValue
-					else if (userDataType === 'USER_DATA_TYPE_BIO') userFields.bio = fieldValue
-					else if (userDataType === 'USER_DATA_TYPE_URL') userFields.url = fieldValue
-					}
-					return userFields
+						return userFields
+					},
 				}
 			},
 			})({
@@ -195,69 +201,71 @@ export default {
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterVerifiedAddress,
 				resolve: {
-					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: async (verifiedAddress) => {
-						type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
-						const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-						const { verifications } = await getUserBundleByFid({
-							fid: verifiedAddress.fid,
-						})
-						const verified = (
-							(verifications.messages ?? [])
-								.some((message: SnapVerify) => {
-									const body = message.data?.verificationAddAddressBody
-									const protocol = (
-										body?.protocol === 'PROTOCOL_ETHEREUM' ?
-											'ethereum' as const
-										:
-											body?.protocol === 'PROTOCOL_SOLANA' ?
-												'solana' as const
+					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: {
+						resolve: async (verifiedAddress) => {
+							type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
+							const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+							const { verifications } = await getUserBundleByFid({
+								fid: verifiedAddress.fid,
+							})
+							const verified = (
+								(verifications.messages ?? [])
+									.some((message: SnapVerify) => {
+										const body = message.data?.verificationAddAddressBody
+										const protocol = (
+											body?.protocol === 'PROTOCOL_ETHEREUM' ?
+												'ethereum' as const
 											:
-												undefined
-									)
-									const address = optionalNonemptyString(body?.address)
-									return (
-										protocol === verifiedAddress.protocol
-										&& (
-											protocol === 'ethereum' ?
-												address != null && EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address)
-											:
-												address === verifiedAddress.address
+												body?.protocol === 'PROTOCOL_SOLANA' ?
+													'solana' as const
+												:
+													undefined
 										)
-									)
-								})
-						)
-						if (!verified) throw new Error('Snapchain_Rest: verified address not found')
+										const address = optionalNonemptyString(body?.address)
+										return (
+											protocol === verifiedAddress.protocol
+											&& (
+												protocol === 'ethereum' ?
+													address != null && EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address)
+												:
+													address === verifiedAddress.address
+											)
+										)
+									})
+							)
+							if (!verified) throw new Error('Snapchain_Rest: verified address not found')
 
-						return {
-							fid: verifiedAddress.fid,
-							protocol: verifiedAddress.protocol,
-							address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
-							$user: {
-								[EntityMetaKey.Selector]: {
-									fid: verifiedAddress.fid,
-								},
-							},
-							...(verifiedAddress.protocol === 'ethereum' && {
-								$evmAccount: {
+							return {
+								fid: verifiedAddress.fid,
+								protocol: verifiedAddress.protocol,
+								address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
+								$user: {
 									[EntityMetaKey.Selector]: {
-										address: EvmAddress.assert(verifiedAddress.address),
+										fid: verifiedAddress.fid,
 									},
 								},
-							}),
-							...(verifiedAddress.protocol === 'solana' && {
-								$solanaAccount: {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2: {
-												namespace: 'solana',
-												reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-											},
+								...(verifiedAddress.protocol === 'ethereum' && {
+									$evmAccount: {
+										[EntityMetaKey.Selector]: {
+											address: EvmAddress.assert(verifiedAddress.address),
 										},
-										pubkey: verifiedAddress.address,
 									},
-								},
-							}),
-						}
+								}),
+								...(verifiedAddress.protocol === 'solana' && {
+									$solanaAccount: {
+										[EntityMetaKey.Selector]: {
+											$network: {
+												caip2: {
+													namespace: 'solana',
+													reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+												},
+											},
+											pubkey: verifiedAddress.address,
+										},
+									},
+								}),
+							}
+						},
 					},
 				},
 			})({
@@ -272,23 +280,25 @@ export default {
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterUser_Timestamp,
 			resolve: {
-				[FarcasterUser_TimestampSelector.FarcasterUserTimestampMs]: async ({ $user }) => {
-					const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const [followerCount, followingCount] = await Promise.all([
-						countLinksByFid({
-							fid: $user.fid,
-							linkType: 'follow',
-							reverse: true,
-						}),
-						countLinksByFid({
-							fid: $user.fid,
-							linkType: 'follow',
-						}),
-					])
-					return {
-						followerCount,
-						followingCount,
-					}
+				[FarcasterUser_TimestampSelector.FarcasterUserTimestampMs]: {
+					resolve: async ({ $user }) => {
+						const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const [followerCount, followingCount] = await Promise.all([
+							countLinksByFid({
+								fid: $user.fid,
+								linkType: 'follow',
+								reverse: true,
+							}),
+							countLinksByFid({
+								fid: $user.fid,
+								linkType: 'follow',
+							}),
+						])
+						return {
+							followerCount,
+							followingCount,
+						}
+					},
 				}
 			},
 		})({
@@ -299,82 +309,86 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: async ({ fid, hash }) => {
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
-					type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
-					const { getCastById } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const snapchainCast = await getCastById({
-						fid,
-						hash,
-					})
-					const castAddBody = snapchainCast.data?.castAddBody
-					const farcasterTimestamp = snapchainCast.data?.timestamp
-					const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
-					const channelId = channelIdFromParentUrl(parentUrl)
-					const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
-					if (timestamp == null)
-							throw new Error('Snapchain_Rest: cast missing timestamp')
+				[FarcasterCastSelector.FidHash]: {
+					resolve: async ({ fid, hash }) => {
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+						type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+						const { getCastById } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const snapchainCast = await getCastById({
+							fid,
+							hash,
+						})
+						const castAddBody = snapchainCast.data?.castAddBody
+						const farcasterTimestamp = snapchainCast.data?.timestamp
+						const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
+						const channelId = channelIdFromParentUrl(parentUrl)
+						const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
+						if (timestamp == null)
+								throw new Error('Snapchain_Rest: cast missing timestamp')
 
-					return {
-						fid,
-						hash: lowerHex0xCastHash(hash),
-						$author: {
-							[EntityMetaKey.Selector]: {
-								fid,
-							},
-						} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
-						text: optionalNonemptyString(castAddBody?.text) ?? '',
-						$parentCast: (
-							castAddBody?.parentCastId?.fid != null
-								&& castAddBody.parentCastId.hash != null
-						) ?
-							{
+						return {
+							fid,
+							hash: lowerHex0xCastHash(hash),
+							$author: {
 								[EntityMetaKey.Selector]: {
-									fid: castAddBody.parentCastId.fid,
-									hash: lowerHex0xCastHash(castAddBody.parentCastId.hash),
+									fid,
 								},
-							} satisfies CastEntity
-						:
-							undefined,
-						parentUrl,
-						timestamp,
-						mentions: castAddBody?.mentions,
-						$channel: (
-							channelId == null ?
-								undefined
-							:
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+							text: optionalNonemptyString(castAddBody?.text) ?? '',
+							$parentCast: (
+								castAddBody?.parentCastId?.fid != null
+									&& castAddBody.parentCastId.hash != null
+							) ?
 								{
 									[EntityMetaKey.Selector]: {
-										id: channelId,
+										fid: castAddBody.parentCastId.fid,
+										hash: lowerHex0xCastHash(castAddBody.parentCastId.hash),
 									},
-								} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
-						),
-						$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, indexInCast) => [
-							({
-								[EntityMetaKey.Selector]: {
-									$cast: {
-										fid,
-										hash,
+								} satisfies CastEntity
+							:
+								undefined,
+							parentUrl,
+							timestamp,
+							mentions: castAddBody?.mentions,
+							$channel: (
+								channelId == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: {
+											id: channelId,
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
+							),
+							$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, indexInCast) => [
+								({
+									[EntityMetaKey.Selector]: {
+										$cast: {
+											fid,
+											hash,
+										},
+										indexInCast,
 									},
-									indexInCast,
-								},
-								url: optionalNonemptyString(embed.url),
-								$embeddedCast: (
-										embed.castId?.fid != null
-										&& embed.castId.hash != null
-								) ?
-										{
-											[EntityMetaKey.Selector]: {
-												fid: embed.castId.fid,
-												hash: lowerHex0xCastHash(embed.castId.hash),
-											},
-										} satisfies CastEntity
-									:
-										undefined,
-							}) satisfies CastEmbedEntity,
-						]),
-					} satisfies Partial<CastFieldValues>
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: optionalNonemptyString(embed.url),
+										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: (
+											embed.castId?.fid != null
+											&& embed.castId.hash != null
+									) ?
+											{
+												[EntityMetaKey.Selector]: {
+													fid: embed.castId.fid,
+													hash: lowerHex0xCastHash(embed.castId.hash),
+												},
+											} satisfies CastEntity
+											:
+												undefined,
+									},
+								}) satisfies CastEmbedEntity,
+							]),
+						} satisfies Partial<CastFieldValues>
+					},
 				},
 			},
 		})({
@@ -393,23 +407,25 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast_Timestamp,
 			resolve: {
-				[FarcasterCast_TimestampSelector.FarcasterCastTimestampMs]: async ({ $cast }) => {
-					const {
-						getCastById,
-						getCastEngagementCountsForCast,
-					} = await import('$/sources/Snapchain/Rest/queries.ts')
-					if (!('fid' in $cast) || !('hash' in $cast))
-						throw new Error('Snapchain_Rest: cast snapshot id requires cast fid and hash')
-					await getCastById({
-						fid: $cast.fid,
-						hash: $cast.hash,
-					})
-					return getCastEngagementCountsForCast({
-						targetFid: $cast.fid,
-						targetHash: $cast.hash,
-						likeReactionType: SnapchainReactionType.Like,
-						recastReactionType: SnapchainReactionType.Recast,
-					})
+				[FarcasterCast_TimestampSelector.FarcasterCastTimestampMs]: {
+					resolve: async ({ $cast }) => {
+						const {
+							getCastById,
+							getCastEngagementCountsForCast,
+						} = await import('$/sources/Snapchain/Rest/queries.ts')
+						if (!('fid' in $cast) || !('hash' in $cast))
+							throw new Error('Snapchain_Rest: cast snapshot id requires cast fid and hash')
+						await getCastById({
+							fid: $cast.fid,
+							hash: $cast.hash,
+						})
+						return getCastEngagementCountsForCast({
+							targetFid: $cast.fid,
+							targetHash: $cast.hash,
+							likeReactionType: SnapchainReactionType.Like,
+							recastReactionType: SnapchainReactionType.Recast,
+						})
+					},
 				}
 			},
 		})({
@@ -421,37 +437,41 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCastEmbed,
 			resolve: {
-				[FarcasterCastEmbedSelector.CastIndexInCast]: async ({ $cast, indexInCast }) => {
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type CastEmbedFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCastEmbed>
-					const { getCastById } = await import('$/sources/Snapchain/Rest/queries.ts')
-					if (!('fid' in $cast) || !('hash' in $cast))
-						throw new Error('Snapchain_Rest: cast embed id requires cast fid and hash')
+				[FarcasterCastEmbedSelector.CastIndexInCast]: {
+					resolve: async ({ $cast, indexInCast }) => {
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type CastEmbedFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCastEmbed>
+						const { getCastById } = await import('$/sources/Snapchain/Rest/queries.ts')
+						if (!('fid' in $cast) || !('hash' in $cast))
+							throw new Error('Snapchain_Rest: cast embed id requires cast fid and hash')
 
-					const embed = (await getCastById({
-						fid: $cast.fid,
-						hash: $cast.hash,
-					})).data?.castAddBody?.embeds?.[indexInCast]
-					if (embed == null)
-						throw new Error('Snapchain_Rest: cast embed index not found')
+						const embed = (await getCastById({
+							fid: $cast.fid,
+							hash: $cast.hash,
+						})).data?.castAddBody?.embeds?.[indexInCast]
+						if (embed == null)
+							throw new Error('Snapchain_Rest: cast embed index not found')
 
-					return {
-						$cast,
-						indexInCast,
-						url: optionalNonemptyString(embed.url),
-						$embeddedCast: (
-							embed.castId?.fid != null
-								&& embed.castId.hash != null
-						) ?
-							{
-								[EntityMetaKey.Selector]: {
-									fid: embed.castId.fid,
-									hash: lowerHex0xCastHash(embed.castId.hash),
-								},
-							} satisfies CastEntity
-						:
-							undefined,
-					} satisfies Partial<CastEmbedFields>
+						return {
+							$cast: {
+								[EntityMetaKey.Selector]: $cast,
+							},
+							indexInCast,
+							url: optionalNonemptyString(embed.url),
+							$embeddedCast: (
+								embed.castId?.fid != null
+									&& embed.castId.hash != null
+							) ?
+								{
+									[EntityMetaKey.Selector]: {
+										fid: embed.castId.fid,
+										hash: lowerHex0xCastHash(embed.castId.hash),
+									},
+								} satisfies CastEntity
+							:
+								undefined,
+						} satisfies Partial<CastEmbedFields>
+					},
 				},
 			},
 		})({
@@ -467,139 +487,74 @@ export default {
 			}),
 
 		defineResolver(Source.Snapchain_Rest, {
-			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }) => {
-					type ConnectionFields = import('$/schema/$schema.ts').EntityFieldValues<
-						typeof schema,
-						EntityType.BlockheadFarcasterAccountConnection
-					>
-					type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
-					const {
-						getOnChainIdRegisterEventsByFid,
-						getUserBundleByFid,
-					} = await import('$/sources/Snapchain/Rest/queries.ts')
-					const { userData, usernameProofs, verifications } = await getUserBundleByFid({ fid: fid })
-					const idRegisterPage = await getOnChainIdRegisterEventsByFid({
-						fid: fid,
-						reverse: true,
-					})
-					const ethList = (
-						(verifications.messages ?? [])
-							.map((message: SnapVerify) => {
-							const body = message.data?.verificationAddAddressBody
-							if (body?.protocol !== 'PROTOCOL_ETHEREUM') return undefined
-							return optionalNonemptyString(body.address)
+				[FarcasterNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+
+						type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
+						const { getFids } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const subsetRowLimit = resolverContextRowLimit(context)
+						const fids: number[] = []
+						let pageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - fids.length, 0)
+							if (remaining === 0) break
+							const page = await getFids({
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken,
 							})
-							.filter((address): address is string => address != null)
-					)
-					const custodyEvent = (idRegisterPage.events ?? []).find(
-						(event) => (
-						event.idRegisterEventBody?.eventType === 'ID_REGISTER_EVENT_TYPE_REGISTER'
+							fids.push(...(page.fids ?? []))
+							pageToken = page.nextPageToken
+						} while (
+						pageToken != null
+						&& fids.length < subsetRowLimit
 						)
-					)
-					const connectionFields: Partial<ConnectionFields> = {
-						username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
-						...(ethList.length > 0 && { verifications: ethList }),
-						...((
-							custodyAddress
-					) => (
-						custodyAddress != null && {
-							custody: custodyAddress,
-						}
-					))(optionalNonemptyString(custodyEvent?.idRegisterEventBody?.to)),
-					}
-					for (const message of (userData.messages ?? [])) {
-						const userDataType = message.data?.userDataBody?.type
-						const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
-						if (fieldValue == null) continue
-						if (userDataType === 'USER_DATA_TYPE_PFP') {
-							const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
-							if (iconUrl != null) {
-								connectionFields.iconUrl = iconUrl
-								const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
-								if (iconMedia != null) connectionFields.$icon = iconMedia
-							}
-						}
-					else if (userDataType === 'USER_DATA_TYPE_DISPLAY') connectionFields.displayName = fieldValue
-					else if (userDataType === 'USER_DATA_TYPE_BIO') connectionFields.bio = fieldValue
-					}
-					return connectionFields
+						return (
+							fids.map((fid) => (({
+								[EntityMetaKey.Selector]: {
+									fid,
+								},
+							}) satisfies UserEntity))
+						)
+					},
 				}
 			},
 		})({
-				username: (connection) => connection.username,
-				displayName: (connection) => connection.displayName,
-				iconUrl: (connection) => connection.iconUrl,
-				$icon: (connection) => connection.$icon,
-				bio: (connection) => connection.bio,
-				verifications: (connection) => connection.verifications,
-				custody: (connection) => connection.custody,
-			}),
-
-		defineResolver(Source.Snapchain_Rest, {
-			entityType: EntityType._GlobalFarcasterNetwork,
-			resolve: {
-				[_GlobalFarcasterNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
-
-					type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
-					const { getFids } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const subsetRowLimit = resolverContextRowLimit(context)
-					const fids: number[] = []
-					let pageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - fids.length, 0)
-						if (remaining === 0) break
-						const page = await getFids({
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken,
-						})
-						fids.push(...(page.fids ?? []))
-						pageToken = page.nextPageToken
-					} while (
-					pageToken != null
-					&& fids.length < subsetRowLimit
-					)
-					return (
-						fids.map((fid) => (({
-							[EntityMetaKey.Selector]: {
-								fid,
-							},
-						}) satisfies UserEntity))
-					)
-				}
-			},
-		})({
-				$$observedUsers: (users) => users,
-			}),
+				$$users: (users) => users,
+		}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: async ({ fid }) => {
-					const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const [followerCount, followingCount] = await Promise.all([
-						countLinksByFid({
-							fid,
-							linkType: 'follow',
-							reverse: true,
-						}),
-						countLinksByFid({
-							fid,
-							linkType: 'follow',
-						}),
-					])
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$user: { fid },
-								timestampMs: Date.now(),
+				[FarcasterUserSelector.Fid]: {
+					resolve: async ({ fid }) => {
+						const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const [followerCount, followingCount] = await Promise.all([
+							countLinksByFid({
+								fid,
+								linkType: 'follow',
+								reverse: true,
+							}),
+							countLinksByFid({
+								fid,
+								linkType: 'follow',
+							}),
+						])
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$user: { fid },
+									timestampMs: Date.now(),
+								},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followerCount')]: followerCount,
+										[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followingCount')]: followingCount,
+									},
 							},
-							followerCount,
-							followingCount,
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -609,39 +564,41 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: async ({ fid }, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+				[FarcasterUserSelector.Fid]: {
+					resolve: async ({ fid }, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-					const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const subsetRowLimit = resolverContextRowLimit(context)
-					const casts: SnapCast[] = []
-					let pageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - casts.length, 0)
-						if (remaining === 0) break
-						const page = await getCastsByFid({
-							fid: fid,
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken,
-							reverse: true,
-						})
-						casts.push(...(page.messages ?? []))
-						pageToken = page.nextPageToken
-					} while (
-					pageToken != null
-					&& casts.length < subsetRowLimit
-					)
-					return (
-						casts
-							.map((cast) => (({
-								[EntityMetaKey.Selector]: {
-									fid: fid,
-									hash: lowerHex0xCastHash(cast.hash),
-								},
-							}) satisfies CastEntity))
-					)
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const subsetRowLimit = resolverContextRowLimit(context)
+						const casts: SnapCast[] = []
+						let pageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - casts.length, 0)
+							if (remaining === 0) break
+							const page = await getCastsByFid({
+								fid: fid,
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken,
+								reverse: true,
+							})
+							casts.push(...(page.messages ?? []))
+							pageToken = page.nextPageToken
+						} while (
+						pageToken != null
+						&& casts.length < subsetRowLimit
+						)
+						return (
+							casts
+								.map((cast) => (({
+									[EntityMetaKey.Selector]: {
+										fid: fid,
+										hash: lowerHex0xCastHash(cast.hash),
+									},
+								}) satisfies CastEntity))
+						)
+					},
 				}
 			},
 		})({
@@ -651,32 +608,39 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: async ({ fid, hash }) => {
-					const {
-						getCastById,
-						getCastEngagementCountsForCast,
-					} = await import('$/sources/Snapchain/Rest/queries.ts')
-					await getCastById({
-						fid,
-						hash,
-					})
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$cast: {
-									fid,
-									hash,
+				[FarcasterCastSelector.FidHash]: {
+					resolve: async ({ fid, hash }) => {
+						const {
+							getCastById,
+							getCastEngagementCountsForCast,
+						} = await import('$/sources/Snapchain/Rest/queries.ts')
+						await getCastById({
+							fid,
+							hash,
+						})
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$cast: {
+										fid,
+										hash,
+									},
+									timestampMs: Date.now(),
 								},
-								timestampMs: Date.now(),
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(await getCastEngagementCountsForCast({
+											targetFid: fid,
+											targetHash: hash,
+											likeReactionType: SnapchainReactionType.Like,
+											recastReactionType: SnapchainReactionType.Recast,
+										})).map(([fieldName, value]) => [
+											entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], fieldName),
+											value,
+										])
+									),
 							},
-							...(await getCastEngagementCountsForCast({
-								targetFid: fid,
-								targetHash: hash,
-								likeReactionType: SnapchainReactionType.Like,
-								recastReactionType: SnapchainReactionType.Recast,
-							})),
-						},
-					]
+						]
+					},
 				},
 			},
 		})({
@@ -686,47 +650,49 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: async ({ id }, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+				[FarcasterChannelSelector.Id]: {
+					resolve: async ({ id }, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-					const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const channel = await getChannel(id)
-					const channelPageUrl = optionalNonemptyString(channel?.url) ?? `https://warpcast.com/~/channel/${id}`
-					const subsetRowLimit = resolverContextRowLimit(context)
-					const casts: SnapCast[] = []
-					let pageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - casts.length, 0)
-						if (remaining === 0) break
-						const page = await getCastsByParent({
-							url: channelPageUrl,
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken,
-						})
-						casts.push(...(page.messages ?? []))
-						pageToken = page.nextPageToken
-					} while (
-						pageToken != null
-						&& casts.length < subsetRowLimit
-					)
-					return (
-						casts
-							.flatMap((cast) => {
-								const authorFid = cast.data?.fid
-								return authorFid == null ?
-									[]
-								:
-									[({
-										[EntityMetaKey.Selector]: {
-											fid: authorFid,
-											hash: lowerHex0xCastHash(cast.hash),
-										},
-									}) satisfies CastEntity]
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const channel = await getChannel(id)
+						const channelPageUrl = optionalNonemptyString(channel?.url) ?? `https://warpcast.com/~/channel/${id}`
+						const subsetRowLimit = resolverContextRowLimit(context)
+						const casts: SnapCast[] = []
+						let pageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - casts.length, 0)
+							if (remaining === 0) break
+							const page = await getCastsByParent({
+								url: channelPageUrl,
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken,
 							})
-					)
+							casts.push(...(page.messages ?? []))
+							pageToken = page.nextPageToken
+						} while (
+							pageToken != null
+							&& casts.length < subsetRowLimit
+						)
+						return (
+							casts
+								.flatMap((cast) => {
+									const authorFid = cast.data?.fid
+									return authorFid == null ?
+										[]
+									:
+										[({
+											[EntityMetaKey.Selector]: {
+												fid: authorFid,
+												hash: lowerHex0xCastHash(cast.hash),
+											},
+										}) satisfies CastEntity]
+								})
+						)
+					},
 				}
 			},
 		})({
@@ -736,203 +702,211 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Variant]: async ({ variant }, context) => {
-					if (variant !== 'trending')
-						throw new Error(`Snapchain_Rest: unsupported feed variant ${variant}`)
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+				[FarcasterFeedSelector.Variant]: {
+					resolve: async ({ variant }, context) => {
+						if (variant !== 'trending')
+							throw new Error(`Snapchain_Rest: unsupported feed variant ${variant}`)
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-					const subsetRowLimit = resolverContextRowLimit(context)
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const subsetRowLimit = resolverContextRowLimit(context)
 
-					const { getFids, getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const fids: number[] = []
-					let fidsPageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - fids.length, 0)
-						if (remaining === 0) break
-						const page = await getFids({
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken: fidsPageToken,
-						})
-						fids.push(...(page.fids ?? []))
-						fidsPageToken = page.nextPageToken
-					} while (
-						fidsPageToken != null
-						&& fids.length < subsetRowLimit
-					)
-					const feedCasts: SnapCast[] = []
-					fidLoop: for (const fid of fids) {
-						if (feedCasts.length >= subsetRowLimit) break fidLoop
+						const { getFids, getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const fids: number[] = []
+						let fidsPageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - fids.length, 0)
+							if (remaining === 0) break
+							const page = await getFids({
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken: fidsPageToken,
+							})
+							fids.push(...(page.fids ?? []))
+							fidsPageToken = page.nextPageToken
+						} while (
+							fidsPageToken != null
+							&& fids.length < subsetRowLimit
+						)
+						const feedCasts: SnapCast[] = []
+						fidLoop: for (const fid of fids) {
+							if (feedCasts.length >= subsetRowLimit) break fidLoop
+							let pageToken: string | undefined
+							do {
+								const page = await getCastsByFid({
+									fid,
+									pageSize: snapchainMaxPageSize,
+									pageToken,
+									reverse: true,
+								})
+								const batch = page.messages ?? []
+								const need = subsetRowLimit - feedCasts.length
+								feedCasts.push(...batch.slice(0, need))
+								pageToken = page.nextPageToken
+							} while (pageToken != null && feedCasts.length < subsetRowLimit)
+						}
+						return (
+							feedCasts
+								.flatMap((cast) => {
+									const authorFid = cast.data?.fid
+									return authorFid == null ?
+										[]
+									:
+										[({
+											[EntityMetaKey.Selector]: {
+												fid: authorFid,
+												hash: lowerHex0xCastHash(cast.hash),
+											},
+										}) satisfies CastEntity]
+								})
+						)
+					},
+				},
+				[FarcasterFeedSelector.ByUser]: {
+					resolve: async ({ fid }, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const subsetRowLimit = resolverContextRowLimit(context)
+
+						const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const casts: SnapCast[] = []
 						let pageToken: string | undefined
 						do {
+							const remaining = Math.max(subsetRowLimit - casts.length, 0)
+							if (remaining === 0) break
 							const page = await getCastsByFid({
 								fid,
-								pageSize: snapchainMaxPageSize,
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
 								pageToken,
 								reverse: true,
 							})
-							const batch = page.messages ?? []
-							const need = subsetRowLimit - feedCasts.length
-							feedCasts.push(...batch.slice(0, need))
+							casts.push(...(page.messages ?? []))
 							pageToken = page.nextPageToken
-						} while (pageToken != null && feedCasts.length < subsetRowLimit)
-					}
-					return (
-						feedCasts
-							.flatMap((cast) => {
-								const authorFid = cast.data?.fid
-								return authorFid == null ?
-									[]
-								:
-									[({
-										[EntityMetaKey.Selector]: {
-											fid: authorFid,
-											hash: lowerHex0xCastHash(cast.hash),
-										},
-									}) satisfies CastEntity]
+						} while (
+							pageToken != null
+							&& casts.length < subsetRowLimit
+						)
+						return (
+							casts
+								.map((cast) => (({
+									[EntityMetaKey.Selector]: {
+										fid,
+										hash: lowerHex0xCastHash(cast.hash),
+									},
+								}) satisfies CastEntity))
+						)
+					},
+				},
+				[FarcasterFeedSelector.ByChannel]: {
+					resolve: async ({ channelId }, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const subsetRowLimit = resolverContextRowLimit(context)
+
+						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const channel = await getChannel(channelId)
+						const channelPageUrl = (
+							optionalNonemptyString(channel?.url)
+							?? `https://warpcast.com/~/channel/${channelId}`
+						)
+						const casts: SnapCast[] = []
+						let pageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - casts.length, 0)
+							if (remaining === 0) break
+							const page = await getCastsByParent({
+								url: channelPageUrl,
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken,
 							})
-					)
-				},
-				[FarcasterFeedSelector.ByUser]: async ({ fid }, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
-
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-					const subsetRowLimit = resolverContextRowLimit(context)
-
-					const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const casts: SnapCast[] = []
-					let pageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - casts.length, 0)
-						if (remaining === 0) break
-						const page = await getCastsByFid({
-							fid,
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken,
-							reverse: true,
-						})
-						casts.push(...(page.messages ?? []))
-						pageToken = page.nextPageToken
-					} while (
-						pageToken != null
-						&& casts.length < subsetRowLimit
-					)
-					return (
-						casts
-							.map((cast) => (({
-								[EntityMetaKey.Selector]: {
-									fid,
-									hash: lowerHex0xCastHash(cast.hash),
-								},
-							}) satisfies CastEntity))
-					)
-				},
-				[FarcasterFeedSelector.ByChannel]: async ({ channelId }, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
-
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-					const subsetRowLimit = resolverContextRowLimit(context)
-
-					const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const channel = await getChannel(channelId)
-					const channelPageUrl = (
-						optionalNonemptyString(channel?.url)
-						?? `https://warpcast.com/~/channel/${channelId}`
-					)
-					const casts: SnapCast[] = []
-					let pageToken: string | undefined
-					do {
-						const remaining = Math.max(subsetRowLimit - casts.length, 0)
-						if (remaining === 0) break
-						const page = await getCastsByParent({
-							url: channelPageUrl,
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken,
-						})
-						casts.push(...(page.messages ?? []))
-						pageToken = page.nextPageToken
-					} while (
-						pageToken != null
-						&& casts.length < subsetRowLimit
-					)
-					return (
-						casts
-							.flatMap((cast) => {
-								const authorFid = cast.data?.fid
-								return authorFid == null ?
-									[]
-								:
-									[({
-										[EntityMetaKey.Selector]: {
-											fid: authorFid,
-											hash: lowerHex0xCastHash(cast.hash),
-										},
-									}) satisfies CastEntity]
-							})
-					)
-				},
-				[FarcasterFeedSelector.Following]: async ({ viewerFid }, context) => {
-					const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
-
-					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-					const subsetRowLimit = resolverContextRowLimit(context)
-
-					const { getCastsByFid, getLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-					const followedFids: number[] = []
-					let linksPageToken: string | undefined
-					const maxFollowedFids = Math.min(subsetRowLimit, 12)
-					do {
-						const remaining = Math.max(maxFollowedFids - followedFids.length, 0)
-						if (remaining === 0) break
-						const page = await getLinksByFid({
-							fid: viewerFid,
-							linkType: 'follow',
-							pageSize: Math.min(remaining, snapchainMaxPageSize),
-							pageToken: linksPageToken,
-							reverse: true,
-						})
-						for (const message of page.messages ?? []) {
-							const targetFid = message.data?.linkBody?.targetFid
-							if (targetFid != null) followedFids.push(targetFid)
-						}
-						linksPageToken = page.nextPageToken
-					} while (
-						linksPageToken != null
-						&& followedFids.length < maxFollowedFids
-					)
-					const perAuthor = Math.max(
-						1,
-						Math.ceil(subsetRowLimit / Math.max(followedFids.length, 1))
-					)
-					return (
-						(await Promise.all(
-							followedFids.map(async (fid) => (
-								await getCastsByFid({
-									fid,
-									pageSize: Math.min(perAuthor, snapchainMaxPageSize),
-									reverse: true,
+							casts.push(...(page.messages ?? []))
+							pageToken = page.nextPageToken
+						} while (
+							pageToken != null
+							&& casts.length < subsetRowLimit
+						)
+						return (
+							casts
+								.flatMap((cast) => {
+									const authorFid = cast.data?.fid
+									return authorFid == null ?
+										[]
+									:
+										[({
+											[EntityMetaKey.Selector]: {
+												fid: authorFid,
+												hash: lowerHex0xCastHash(cast.hash),
+											},
+										}) satisfies CastEntity]
 								})
-							))
-						))
-							.flatMap((page) => page.messages ?? [])
-							.flatMap((cast) => {
-								const authorFid = cast.data?.fid
-								return authorFid == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											fid: authorFid,
-											hash: lowerHex0xCastHash(cast.hash),
-										},
-									} satisfies CastEntity]
+						)
+					},
+				},
+				[FarcasterFeedSelector.Following]: {
+					resolve: async ({ viewerFid }, context) => {
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						const subsetRowLimit = resolverContextRowLimit(context)
+
+						const { getCastsByFid, getLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const followedFids: number[] = []
+						let linksPageToken: string | undefined
+						const maxFollowedFids = Math.min(subsetRowLimit, 12)
+						do {
+							const remaining = Math.max(maxFollowedFids - followedFids.length, 0)
+							if (remaining === 0) break
+							const page = await getLinksByFid({
+								fid: viewerFid,
+								linkType: 'follow',
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken: linksPageToken,
+								reverse: true,
 							})
-							.slice(0, subsetRowLimit)
-					)
+							for (const message of page.messages ?? []) {
+								const targetFid = message.data?.linkBody?.targetFid
+								if (targetFid != null) followedFids.push(targetFid)
+							}
+							linksPageToken = page.nextPageToken
+						} while (
+							linksPageToken != null
+							&& followedFids.length < maxFollowedFids
+						)
+						const perAuthor = Math.max(
+							1,
+							Math.ceil(subsetRowLimit / Math.max(followedFids.length, 1))
+						)
+						return (
+							(await Promise.all(
+								followedFids.map(async (fid) => (
+									await getCastsByFid({
+										fid,
+										pageSize: Math.min(perAuthor, snapchainMaxPageSize),
+										reverse: true,
+									})
+								))
+							))
+								.flatMap((page) => page.messages ?? [])
+								.flatMap((cast) => {
+									const authorFid = cast.data?.fid
+									return authorFid == null ?
+										[]
+									:
+										[{
+											[EntityMetaKey.Selector]: {
+												fid: authorFid,
+												hash: lowerHex0xCastHash(cast.hash),
+											},
+										} satisfies CastEntity]
+								})
+								.slice(0, subsetRowLimit)
+						)
+					},
 				},
 			},
 		})({

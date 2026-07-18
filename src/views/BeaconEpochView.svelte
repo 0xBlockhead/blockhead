@@ -40,10 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconEpoch = $derived(selection({
-		sources: [
-			Source.Beacon_Rest,
-			Source.BeaconchaIn_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived((String((pendingEntity.epoch) ?? '') ? 'Epoch #' + String((pendingEntity.epoch) ?? '') : '') || 'beacon epoch')
 	const viewDomId = $derived('beacon-epoch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -127,24 +124,20 @@
 						<ResourceBoundary
 							resource={
 								selection({
+									sources: selection.sources,
 									fields: {
 										slotCount: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const slotCount = pendingEntity.slotCount}
-								{#if slotCount !== undefined && slotCount !== null}
-									<NumberValue value={Number(slotCount)} />
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const slotCount = resolvedEntity.slotCount}
 								{#if slotCount !== undefined && slotCount !== null}
-									<NumberValue value={Number(slotCount)} />
+									<NumberValue
+										value={slotCount}
+									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -156,24 +149,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								finalized: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const finalized = pendingEntity.finalized}
-						{#if finalized !== undefined && finalized !== null}
-							<div>
-								<dt>Finalized</dt>
-								<dd>
-									{finalized ? 'Yes' : 'No'}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const finalized = resolvedEntity.finalized}
@@ -195,27 +177,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								globalParticipationRate: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const globalParticipationRate = pendingEntity.globalParticipationRate}
-						{#if globalParticipationRate !== undefined && globalParticipationRate !== null}
-							<div>
-								<dt>Participation</dt>
-								<dd>
-									<NumberValue
-										value={Number(globalParticipationRate)}
-										options={{ style: 'percent' }}
-									/>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const globalParticipationRate = resolvedEntity.globalParticipationRate}
@@ -238,24 +206,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								validatorsCount: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const validatorsCount = pendingEntity.validatorsCount}
-						{#if validatorsCount !== undefined && validatorsCount !== null}
-							<div>
-								<dt>Validators</dt>
-								<dd>
-									<NumberValue value={Number(validatorsCount)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const validatorsCount = resolvedEntity.validatorsCount}
@@ -263,7 +220,9 @@
 							<div>
 								<dt>Validators</dt>
 								<dd>
-									<NumberValue value={Number(validatorsCount)} />
+									<NumberValue
+										value={validatorsCount}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -275,24 +234,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								attestationsCount: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const attestationsCount = pendingEntity.attestationsCount}
-						{#if attestationsCount !== undefined && attestationsCount !== null}
-							<div>
-								<dt>Attestations</dt>
-								<dd>
-									<NumberValue value={Number(attestationsCount)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const attestationsCount = resolvedEntity.attestationsCount}
@@ -300,7 +248,9 @@
 							<div>
 								<dt>Attestations</dt>
 								<dd>
-									<NumberValue value={Number(attestationsCount)} />
+									<NumberValue
+										value={attestationsCount}
+									/>
 								</dd>
 							</div>
 						{/if}
@@ -312,24 +262,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								withdrawalsCount: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const withdrawalsCount = pendingEntity.withdrawalsCount}
-						{#if withdrawalsCount !== undefined && withdrawalsCount !== null}
-							<div>
-								<dt>Withdrawals</dt>
-								<dd>
-									<NumberValue value={Number(withdrawalsCount)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const withdrawalsCount = resolvedEntity.withdrawalsCount}
@@ -337,7 +276,9 @@
 							<div>
 								<dt>Withdrawals</dt>
 								<dd>
-									<NumberValue value={Number(withdrawalsCount)} />
+									<NumberValue
+										value={withdrawalsCount}
+									/>
 								</dd>
 							</div>
 						{/if}

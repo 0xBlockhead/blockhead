@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertCanonicalRouteUrl,
+	assertMainSettled,
 	assertNoGeneratedRouteArtifacts,
 	e2eBrowserNewContextOptions,
 	installBoundaryProbe,
@@ -12,7 +13,7 @@ import {
 test.use(e2eBrowserNewContextOptions())
 test.setTimeout(180_000)
 
-test('coins list reaches its catalog-backed settled state', async ({ page }) => {
+test('coins discovery navigates to a recognizable asset detail', async ({ page }) => {
 	await installBoundaryProbe(page)
 	await installChainlistRpcsJsonStub(page)
 	const diagnostics = setupPageRuntimeDiagnostics(page, {
@@ -50,4 +51,43 @@ test('coins list reaches its catalog-backed settled state', async ({ page }) => 
 	await diagnostics.step(expect(page.locator('#main [role="alert"], #main [data-error]')).toHaveCount(0))
 	await diagnostics.step(expect(page.locator('#main').getByText(/Loading\b/)).toHaveCount(0))
 	await diagnostics.step(expect(page.locator('#main')).not.toContainText('[object Object]'))
+	await diagnostics.step(expect(page.locator('#main')).not.toContainText('"$coin"'))
+
+	const ethereumLink = page.locator('#main').getByRole('link', {
+		name: /Ethereum.*ETH|ETH.*Ethereum/,
+	})
+	await diagnostics.step(expect(ethereumLink).toHaveCount(1))
+	await diagnostics.step(expect(ethereumLink).toHaveAttribute('href', '/coin/ETH'))
+	await diagnostics.step(ethereumLink.click())
+	await diagnostics.step(page.waitForURL('/coin/ETH'))
+	await diagnostics.step(assertCanonicalRouteUrl(page, '/coin/ETH'))
+	await diagnostics.step(assertMainSettled(
+		page,
+		120_000,
+		diagnostics,
+		{
+			requiredText: [
+				'Ethereum',
+				'ETH',
+			],
+			requiredDt: [
+				'Latest snapshot',
+			],
+		}
+	))
+	await diagnostics.step(expect(page.locator('#main')).toContainText(/360,000,000,000|No latest snapshot available\./))
+	await diagnostics.step(expect(page.getByRole('heading', {
+		level: 4,
+		name: 'ETH Ether',
+		exact: true,
+	}).first()).toBeVisible())
+	await diagnostics.step(expect(page.getByRole('heading', {
+		level: 4,
+		name: 'ETH Ether ETH Ether',
+		exact: true,
+	})).toHaveCount(0))
+	await diagnostics.step(expect(page.locator('#main [role="alert"], #main [data-error]')).toHaveCount(0))
+	await diagnostics.step(expect(page.locator('#main')).not.toContainText('[object Object]'))
+	await diagnostics.step(expect(page.locator('#main')).not.toContainText('"$coin"'))
+	await diagnostics.step(assertNoGeneratedRouteArtifacts(page, '/coin/ETH'))
 })

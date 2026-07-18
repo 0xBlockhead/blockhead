@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
 </script>
@@ -62,79 +61,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FarcasterNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(farcasterNetworks) => [...new Map(farcasterNetworks.values.map((farcasterNetwork) => [farcasterNetwork[EntityMetaKey.SelectorKey], farcasterNetwork])).values()]}
+	getKey={(farcasterNetwork) => farcasterNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Farcaster yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(farcasterNetworks)}
-			{@const uniqueFarcasterNetworks = [...new Map(farcasterNetworks.values.map((farcasterNetwork) => [farcasterNetwork[EntityMetaKey.SelectorKey], farcasterNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterNetworks.totalCount}
-				getKey={(farcasterNetwork) => farcasterNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueFarcasterNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Farcaster yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: farcasterNetwork })}
-					{@const farcasterNetworkFields = { ...farcasterNetwork[EntityMetaKey.Selector], ...farcasterNetwork }}
-					{@const selection = select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const farcasterNetworkHrefFields = { ...farcasterNetwork, ...farcasterNetwork[EntityMetaKey.Selector] }}
-					<FarcasterNetworkView
-						selection={selection}
-						prefetched={farcasterNetworkFields}
-						href={(farcasterNetwork[EntityMetaKey.Selector].scope === 'FarcasterNetwork' ? resolve('/farcaster') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FarcasterNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: farcasterNetwork })}
+		{@const farcasterNetworkFields = { ...farcasterNetwork[EntityMetaKey.Selector], ...farcasterNetwork }}
+		{@const selection = select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const farcasterNetworkHrefFields = { ...farcasterNetwork, ...farcasterNetwork[EntityMetaKey.Selector] }}
+		<FarcasterNetworkView
+			selection={selection}
+			prefetched={farcasterNetworkFields}
+			href={(farcasterNetwork[EntityMetaKey.Selector].scope === 'FarcasterNetwork' ? resolve('/farcaster') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

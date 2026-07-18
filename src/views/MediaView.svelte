@@ -39,7 +39,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const media = $derived(selection({}))
+	const media = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'Media')
 	const viewDomId = $derived('media-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -57,7 +59,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-			url: String(pendingEntity.url ?? ''),
+			url: encodeURIComponent(String(pendingEntity.url ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -114,36 +116,36 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={media}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={media}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -198,26 +200,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									url: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const url = pendingEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const url = resolvedEntity.url}
@@ -242,19 +231,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									type: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const type = pendingEntity.type}
-							{#if type !== undefined && type !== null}
-								{String((type) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const type = resolvedEntity.type}
@@ -272,19 +255,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transport: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transport = pendingEntity.transport}
-							{#if transport !== undefined && transport !== null}
-								{String((transport) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transport = resolvedEntity.transport}
@@ -299,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hash = resolvedEntity.hash}

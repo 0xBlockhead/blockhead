@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonNftItem = $derived(selection({}))
+	const tonNftItem = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON NFT item')
 	const viewDomId = $derived('ton-nft-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonNftItem}>
-			{#snippet Pending()}
-				{title || 'TON NFT item'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonNftItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -114,19 +116,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									itemAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const itemAddress = pendingEntity.itemAddress}
-							{#if itemAddress !== undefined && itemAddress !== null}
-								<TruncatedValue value={String((itemAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const itemAddress = resolvedEntity.itemAddress}
@@ -141,8 +137,6 @@
 			<ResourceBoundary
 				resource={selection.$collection}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tonNftCollection)}
 					{#if tonNftCollection != null && tonNftCollection[EntityMetaKey.Selector] != null}
 						<div>
@@ -163,24 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							itemIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const itemIndex = pendingEntity.itemIndex}
-					{#if itemIndex !== undefined && itemIndex !== null}
-						<div>
-							<dt>item index</dt>
-							<dd>
-								{String((itemIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const itemIndex = resolvedEntity.itemIndex}
@@ -198,8 +181,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>

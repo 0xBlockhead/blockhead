@@ -53,6 +53,26 @@ export const NostrNote = entity({
 			Source.NostrBand_Rest,
 		],
 	},
+	sensitive: {
+		label: 'Sensitive',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
+	contentWarning: {
+		label: 'Content warning',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
 	createdAt: {
 		label: 'Created',
 		description: 'The event creation time normalized to Unix milliseconds.',
@@ -105,6 +125,17 @@ export const NostrNote = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
+	$rootNote: {
+		label: 'Root note',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.NostrNote,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 	},
 	$$replies: {

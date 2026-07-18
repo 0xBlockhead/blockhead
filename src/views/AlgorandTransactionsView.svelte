@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandTransactionView from '$/views/AlgorandTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txId: true,
-					transactionType: true,
-					sender: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txId: true,
+				transactionType: true,
+				sender: true,
+			},
+		})
+	}
+	getResourceItems={(algorandTransactions) => [...new Map(algorandTransactions.values.map((algorandTransaction) => [algorandTransaction[EntityMetaKey.SelectorKey], algorandTransaction])).values()]}
+	getKey={(algorandTransaction) => algorandTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandTransactions)}
-			{@const uniqueAlgorandTransactions = [...new Map(algorandTransactions.values.map((algorandTransaction) => [algorandTransaction[EntityMetaKey.SelectorKey], algorandTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandTransactions.totalCount}
-				getKey={(algorandTransaction) => algorandTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandTransaction })}
-					{@const algorandTransactionFields = { ...algorandTransaction[EntityMetaKey.Selector], ...algorandTransaction }}
-					{@const selection = select(EntityType.AlgorandTransaction, algorandTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandTransactionView
-						selection={selection}
-						prefetched={algorandTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandTransaction })}
+		{@const algorandTransactionFields = { ...algorandTransaction[EntityMetaKey.Selector], ...algorandTransaction }}
+		{@const selection = select(EntityType.AlgorandTransaction, algorandTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandTransactionView
+			selection={selection}
+			prefetched={algorandTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

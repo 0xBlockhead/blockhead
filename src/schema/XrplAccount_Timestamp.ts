@@ -24,7 +24,7 @@ export const XrplAccount_Timestamp = entity({
 	ledgerIndex: {
 		label: 'ledger index',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

@@ -55,54 +55,56 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					assertZcashMainnet($network)
-					const {
-						getBlock,
-					} = await import('$/sources/Zebra/JsonRpc/queries.ts')
-					const block = await getBlock({
-						rpcUrl: bitcoinNetworkBySlug.zcash.zebraRpcUrl,
-						blockHash: hash,
-					})
-					return {
-						hash: block.hash,
-						...(block.previousblockhash != null && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: BigInt(block.height - 1),
-									hash: block.previousblockhash,
+				[UtxoBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, hash }) => {
+						assertZcashMainnet($network)
+						const {
+							getBlock,
+						} = await import('$/sources/Zebra/JsonRpc/queries.ts')
+						const block = await getBlock({
+							rpcUrl: bitcoinNetworkBySlug.zcash.zebraRpcUrl,
+							blockHash: hash,
+						})
+						return {
+							hash: block.hash,
+							...(block.previousblockhash != null && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: BigInt(block.height - 1),
+										hash: block.previousblockhash,
+									},
 								},
-							},
-						}),
-						timestampMs: block.time * 1000,
-						merkleRoot: block.merkleroot,
-						nonce: block.nonce,
-						difficulty: block.difficulty,
-						...(block.size != null && {
-							sizeBytes: block.size,
-						}),
-						...(block.weight != null && {
-							weightUnits: block.weight,
-						}),
-						transactionCount: block.nTx,
-						$$transactions: block.tx.map((transaction) => (
-							typeof transaction === 'string' ?
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction,
-									},
-								}
-							:
-								{
-									[EntityMetaKey.Selector]: {
-										$network,
-										txId: transaction.txid,
-									},
-								}
-						)),
-					}
+							}),
+							timestampMs: block.time * 1000,
+							merkleRoot: block.merkleroot,
+							nonce: block.nonce,
+							difficulty: block.difficulty,
+							...(block.size != null && {
+								sizeBytes: block.size,
+							}),
+							...(block.weight != null && {
+								weightUnits: block.weight,
+							}),
+							transactionCount: block.nTx,
+							$$transactions: block.tx.map((transaction) => (
+								typeof transaction === 'string' ?
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction,
+										},
+									}
+								:
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txId: transaction.txid,
+										},
+									}
+							)),
+						}
+					},
 				}
 			},
 		})({
@@ -121,32 +123,34 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
-					const transaction = await getTransaction(entitySelector)
-					return {
-						version: transaction.version,
-						lockTime: transaction.locktime,
-						sizeBytes: transaction.size,
-						virtualSizeBytes: transaction.vsize,
-						weightUnits: transaction.weight,
-						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-						$$inputs: transaction.vin.map((input, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						)),
-						$$outputs: transaction.vout.map((output, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						)),
-					}
+				[UtxoTransactionSelector.NetworkTxId]: {
+					resolve: async (entitySelector) => {
+						const transaction = await getTransaction(entitySelector)
+						return {
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							virtualSizeBytes: transaction.vsize,
+							weightUnits: transaction.weight,
+							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+							$$inputs: transaction.vin.map((input, indexInTransaction) => (
+								{
+									[EntityMetaKey.Selector]: {
+										$transaction: entitySelector,
+										indexInTransaction,
+									},
+								}
+							)),
+							$$outputs: transaction.vout.map((output, indexInTransaction) => (
+								{
+									[EntityMetaKey.Selector]: {
+										$transaction: entitySelector,
+										indexInTransaction,
+									},
+								}
+							)),
+						}
+					},
 				}
 			},
 		})({
@@ -163,35 +167,37 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
-					const input = (await getTransaction($transaction)).vin[indexInTransaction]
-					return {
-						[EntityMetaKey.Selector]: {
-							$transaction: $transaction,
-							indexInTransaction: indexInTransaction,
-						},
-						...(input.txid != null && input.vout != null && {
-							$spentOutput: {
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network: $transaction.$network,
-										txId: input.txid,
-									},
-									indexInTransaction: input.vout,
-								},
+				[UtxoInputSelector.TransactionIndexInTransaction]: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const input = (await getTransaction($transaction)).vin[indexInTransaction]
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: $transaction,
+								indexInTransaction: indexInTransaction,
 							},
-						}),
-						...(input.coinbase != null && {
-							coinbaseScript: input.coinbase,
-						}),
-						...(input.scriptSig != null && {
-							scriptSigAsm: input.scriptSig.asm,
-						}),
-						sequence: input.sequence,
-						...(input.txinwitness != null && {
-							witness: input.txinwitness,
-						}),
-					}
+							...(input.txid != null && input.vout != null && {
+								$spentOutput: {
+									[EntityMetaKey.Selector]: {
+										$transaction: {
+											$network: $transaction.$network,
+											txId: input.txid,
+										},
+										indexInTransaction: input.vout,
+									},
+								},
+							}),
+							...(input.coinbase != null && {
+								coinbaseScript: input.coinbase,
+							}),
+							...(input.scriptSig != null && {
+								scriptSigAsm: input.scriptSig.asm,
+							}),
+							sequence: input.sequence,
+							...(input.txinwitness != null && {
+								witness: input.txinwitness,
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -205,26 +211,28 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.TransactionIndexInTransaction]: async ({ $transaction, indexInTransaction }) => {
-					const output = (await getTransaction($transaction)).vout[indexInTransaction]
-					return {
-						[EntityMetaKey.Selector]: {
-							$transaction: $transaction,
-							indexInTransaction: indexInTransaction,
-						},
-						valueSats: valueSatsFromZec(output.value),
-						scriptPubKeyAsm: output.scriptPubKey.asm,
-						scriptPubKeyHex: output.scriptPubKey.hex,
-						scriptPubKeyType: output.scriptPubKey.type,
-						...(output.scriptPubKey.address != null && {
-							$address: {
-								[EntityMetaKey.Selector]: {
-									$network: $transaction.$network,
-									address: output.scriptPubKey.address,
-								},
+				[UtxoOutputSelector.TransactionIndexInTransaction]: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const output = (await getTransaction($transaction)).vout[indexInTransaction]
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: $transaction,
+								indexInTransaction: indexInTransaction,
 							},
-						}),
-					}
+							valueSats: valueSatsFromZec(output.value),
+							scriptPubKeyAsm: output.scriptPubKey.asm,
+							scriptPubKeyHex: output.scriptPubKey.hex,
+							scriptPubKeyType: output.scriptPubKey.type,
+							...(output.scriptPubKey.address != null && {
+								$address: {
+									[EntityMetaKey.Selector]: {
+										$network: $transaction.$network,
+										address: output.scriptPubKey.address,
+									},
+								},
+							}),
+						}
+					},
 				}
 			},
 		})({

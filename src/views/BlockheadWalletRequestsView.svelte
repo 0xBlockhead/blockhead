@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletRequestView from '$/views/BlockheadWalletRequestView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					requestKind: true,
-					requestMethod: true,
-					requestedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletRequest}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				requestKind: true,
+				requestMethod: true,
+				requestedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletRequests) => [...new Map(blockheadWalletRequests.values.map((blockheadWalletRequest) => [blockheadWalletRequest[EntityMetaKey.SelectorKey], blockheadWalletRequest])).values()]}
+	getKey={(blockheadWalletRequest) => blockheadWalletRequest[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead wallet requests yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletRequests)}
-			{@const uniqueBlockheadWalletRequests = [...new Map(blockheadWalletRequests.values.map((blockheadWalletRequest) => [blockheadWalletRequest[EntityMetaKey.SelectorKey], blockheadWalletRequest])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletRequests.totalCount}
-				getKey={(blockheadWalletRequest) => blockheadWalletRequest[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletRequests}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead wallet requests yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletRequest })}
-					{@const blockheadWalletRequestFields = { ...blockheadWalletRequest[EntityMetaKey.Selector], ...blockheadWalletRequest }}
-					{@const selection = select(EntityType.BlockheadWalletRequest, blockheadWalletRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWalletRequestView
-						selection={selection}
-						prefetched={blockheadWalletRequestFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletRequest}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletRequest })}
+		{@const blockheadWalletRequestFields = { ...blockheadWalletRequest[EntityMetaKey.Selector], ...blockheadWalletRequest }}
+		{@const selection = select(EntityType.BlockheadWalletRequest, blockheadWalletRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWalletRequestView
+			selection={selection}
+			prefetched={blockheadWalletRequestFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

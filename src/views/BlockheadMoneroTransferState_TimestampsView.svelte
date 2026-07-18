@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadMoneroTransferState_TimestampView from '$/views/BlockheadMoneroTransferState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					spent: true,
-					confirmations: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				spent: true,
+				confirmations: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadMoneroTransferStateTimestamps) => [...new Map(blockheadMoneroTransferStateTimestamps.values.map((blockheadMoneroTransferStateTimestamp) => [blockheadMoneroTransferStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroTransferStateTimestamp])).values()]}
+	getKey={(blockheadMoneroTransferStateTimestamp) => blockheadMoneroTransferStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead monero transfer state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadMoneroTransferStateTimestamps)}
-			{@const uniqueBlockheadMoneroTransferStateTimestamps = [...new Map(blockheadMoneroTransferStateTimestamps.values.map((blockheadMoneroTransferStateTimestamp) => [blockheadMoneroTransferStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroTransferStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadMoneroTransferStateTimestamps.totalCount}
-				getKey={(blockheadMoneroTransferStateTimestamp) => blockheadMoneroTransferStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadMoneroTransferStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead monero transfer state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadMoneroTransferStateTimestamp })}
-					{@const blockheadMoneroTransferStateTimestampFields = { ...blockheadMoneroTransferStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroTransferStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadMoneroTransferState_Timestamp, blockheadMoneroTransferStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadMoneroTransferState_TimestampView
-						selection={selection}
-						prefetched={blockheadMoneroTransferStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadMoneroTransferStateTimestamp })}
+		{@const blockheadMoneroTransferStateTimestampFields = { ...blockheadMoneroTransferStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroTransferStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadMoneroTransferState_Timestamp, blockheadMoneroTransferStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadMoneroTransferState_TimestampView
+			selection={selection}
+			prefetched={blockheadMoneroTransferStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNftView from '$/views/EvmNftView.svelte'
 </script>
@@ -63,90 +62,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Eip8004Scan_Rest,
-				],
-				fields: {
-					name: true,
-					tokenId: true,
-					$contract: true,
-				},
-				limit: 100,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNft}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Eip8004Scan_Rest,
+			],
+			fields: {
+				name: true,
+				tokenId: true,
+				$contract: true,
+			},
+			limit: 100,
+		})
+	}
+	getResourceItems={(evmNfts) => [...new Map(evmNfts.values.map((evmNft) => [evmNft[EntityMetaKey.SelectorKey], evmNft])).values()]}
+	getKey={(evmNft) => evmNft[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM NFTs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNfts)}
-			{@const uniqueEvmNfts = [...new Map(evmNfts.values.map((evmNft) => [evmNft[EntityMetaKey.SelectorKey], evmNft])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNfts.totalCount}
-				getKey={(evmNft) => evmNft[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNfts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM NFTs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNft })}
-					{@const evmNftFields = { ...evmNft[EntityMetaKey.Selector], ...evmNft }}
-					{@const selection = select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmNftHrefFields = { ...evmNft, ...evmNft[EntityMetaKey.Selector] }}
-					<EvmNftView
-						selection={selection}
-						prefetched={evmNftFields}
-						href={
-							(evmNftHrefFields.tokenId !== undefined && evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.$network !== undefined && evmNftHrefFields.$contract.$network.caip2 !== undefined && evmNftHrefFields.$contract.$network.caip2.reference !== undefined && evmNftHrefFields.$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
-								tokenId: String(evmNftHrefFields.tokenId ?? ''),
-								chainId: String(evmNftHrefFields.$contract.$network.caip2.reference ?? ''),
-								contractAddress: String(evmNftHrefFields.$contract.address ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNft}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNft })}
+		{@const evmNftFields = { ...evmNft[EntityMetaKey.Selector], ...evmNft }}
+		{@const selection = select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmNftHrefFields = { ...evmNft, ...evmNft[EntityMetaKey.Selector] }}
+		<EvmNftView
+			selection={selection}
+			prefetched={evmNftFields}
+			href={
+				(evmNftHrefFields.tokenId !== undefined && evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.$network !== undefined && evmNftHrefFields.$contract.$network.caip2 !== undefined && evmNftHrefFields.$contract.$network.caip2.reference !== undefined && evmNftHrefFields.$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
+					tokenId: String(evmNftHrefFields.tokenId ?? ''),
+					chainId: String(evmNftHrefFields.$contract.$network.caip2.reference ?? ''),
+					contractAddress: String(evmNftHrefFields.$contract.address ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

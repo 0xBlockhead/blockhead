@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenAccount = $derived(selection({}))
+	const solanaTokenAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account')
 	const viewDomId = $derived('solana-token-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -75,98 +77,106 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet Pending()}
-				{@const tokenAccountPubkey0 = pendingEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const tokenAccountPubkey0 = pendingEntity.tokenAccountPubkey}
+					{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
+						<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={solanaTokenAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
+					{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
+						<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet Pending()}
-				{@const tokenAccountPubkey0 = pendingEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const tokenAccountPubkey0 = pendingEntity.tokenAccountPubkey}
+					{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
+						<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={solanaTokenAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
+					{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
+						<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$mint}
-				>
-					{#snippet children(solanaTokenMint)}
-						<span data-text="muted">
-							<SolanaTokenMintView
-								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-								prefetched={solanaTokenMint}
-								href={
-									(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-										network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$mint}
-				>
-					{#snippet children(solanaTokenMint)}
-						<span data-text="muted">
-							<SolanaTokenMintView
-								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-								prefetched={solanaTokenMint}
-								href={
-									(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-										network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$mint}
+			>
+				{#snippet children(solanaTokenMint)}
+					{#if solanaTokenMint != null && solanaTokenMint[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<SolanaTokenMintView
+							selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+							prefetched={solanaTokenMint}
+							href={
+								(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+									mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+									network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+								}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+									mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+									network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={solanaTokenAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$mint}
+					>
+						{#snippet children(solanaTokenMint)}
+							{#if solanaTokenMint != null && solanaTokenMint[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<SolanaTokenMintView
+									selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+									prefetched={solanaTokenMint}
+									href={
+										(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+											mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+											network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+											mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+											network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -177,19 +187,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenAccountPubkey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenAccountPubkey = pendingEntity.tokenAccountPubkey}
-							{#if tokenAccountPubkey !== undefined && tokenAccountPubkey !== null}
-								<TruncatedValue value={String((tokenAccountPubkey) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenAccountPubkey = resolvedEntity.tokenAccountPubkey}
@@ -233,8 +237,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -264,8 +266,6 @@
 			<ResourceBoundary
 				resource={selection.$owner}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -297,8 +297,6 @@
 			<ResourceBoundary
 				resource={selection.$delegate}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -328,8 +326,6 @@
 			<ResourceBoundary
 				resource={selection.$closeAuthority}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>

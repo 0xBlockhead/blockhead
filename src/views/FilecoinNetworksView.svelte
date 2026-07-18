@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinNetworkView from '$/views/FilecoinNetworkView.svelte'
 </script>
@@ -62,79 +61,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Lotus_JsonRpc,
-				],
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinNetworks) => [...new Map(filecoinNetworks.values.map((filecoinNetwork) => [filecoinNetwork[EntityMetaKey.SelectorKey], filecoinNetwork])).values()]}
+	getKey={(filecoinNetwork) => filecoinNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinNetworks)}
-			{@const uniqueFilecoinNetworks = [...new Map(filecoinNetworks.values.map((filecoinNetwork) => [filecoinNetwork[EntityMetaKey.SelectorKey], filecoinNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinNetworks.totalCount}
-				getKey={(filecoinNetwork) => filecoinNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinNetwork })}
-					{@const filecoinNetworkFields = { ...filecoinNetwork[EntityMetaKey.Selector], ...filecoinNetwork }}
-					{@const selection = select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinNetworkView
-						selection={selection}
-						prefetched={filecoinNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinNetwork })}
+		{@const filecoinNetworkFields = { ...filecoinNetwork[EntityMetaKey.Selector], ...filecoinNetwork }}
+		{@const selection = select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinNetworkView
+			selection={selection}
+			prefetched={filecoinNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

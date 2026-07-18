@@ -43,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenMint = $derived(selection({}))
+	const solanaTokenMint = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint')
 	const viewDomId = $derived('solana-token-mint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -54,7 +56,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import SolanaTokenAccountsView from '$/views/SolanaTokenAccountsView.svelte'
 	import SolanaTokenMint_TimestampsView from '$/views/SolanaTokenMint_TimestampsView.svelte'
 </script>
 
@@ -78,80 +79,80 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={solanaTokenMint}>
-			{#snippet Pending()}
-				{@const mintAddress0 = pendingEntity.mintAddress}
-				{#if mintAddress0 !== undefined && mintAddress0 !== null}
-					<TruncatedValue value={String((mintAddress0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const mintAddress0 = resolvedEntity.mintAddress}
-				{#if mintAddress0 !== undefined && mintAddress0 !== null}
-					<TruncatedValue value={String((mintAddress0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const mintAddress0 = pendingEntity.mintAddress}
+					{#if mintAddress0 !== undefined && mintAddress0 !== null}
+						<TruncatedValue value={String((mintAddress0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={solanaTokenMint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mintAddress0 = resolvedEntity.mintAddress}
+					{#if mintAddress0 !== undefined && mintAddress0 !== null}
+						<TruncatedValue value={String((mintAddress0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaTokenMint}>
-			{#snippet Pending()}
-				{@const mintAddress0 = pendingEntity.mintAddress}
-				{#if mintAddress0 !== undefined && mintAddress0 !== null}
-					<TruncatedValue value={String((mintAddress0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const mintAddress0 = resolvedEntity.mintAddress}
-				{#if mintAddress0 !== undefined && mintAddress0 !== null}
-					<TruncatedValue value={String((mintAddress0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const mintAddress0 = pendingEntity.mintAddress}
+					{#if mintAddress0 !== undefined && mintAddress0 !== null}
+						<TruncatedValue value={String((mintAddress0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={solanaTokenMint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mintAddress0 = resolvedEntity.mintAddress}
+					{#if mintAddress0 !== undefined && mintAddress0 !== null}
+						<TruncatedValue value={String((mintAddress0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaTokenMint}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={solanaTokenMint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									mintAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const mintAddress = pendingEntity.mintAddress}
-							{#if mintAddress !== undefined && mintAddress !== null}
-								<TruncatedValue value={String((mintAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const mintAddress = resolvedEntity.mintAddress}
@@ -209,46 +204,6 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-solana-token-mint-accounts'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'solana-token-mint-token-accounts',
-							label: 'Token accounts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-assets'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Token accounts</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionSolanaTokenMintTokenAccounts({ id, label, open })}
-					<SolanaTokenAccountsView
-						selection={
-							selection.$$tokenAccounts({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No token accounts.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
 				id={viewDomId + '-carousel-solana-token-mint-observations'}
 				sectionIdPrefix={viewDomId}
 				sections={
@@ -261,11 +216,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -278,10 +230,13 @@
 								sources: [
 									Source.Solana_JsonRpc,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No token mint observations.'
 						open={open}
 						title={label}

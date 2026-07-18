@@ -36,7 +36,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalAgentNetwork = $derived(selection({}))
+	const globalAgentNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('global agent network')
 	const viewDomId = $derived('-global-agent-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalAgentNetwork}>
-			{#snippet Pending()}
-				{title || 'global agent network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalAgentNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -85,19 +87,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									networkId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const networkId = pendingEntity.networkId}
-							{#if networkId !== undefined && networkId !== null}
-								{String((networkId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const networkId = resolvedEntity.networkId}
@@ -112,24 +108,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -147,24 +132,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolKind = pendingEntity.protocolKind}
-					{#if protocolKind !== undefined && protocolKind !== null}
-						<div>
-							<dt>protocol kind</dt>
-							<dd>
-								{String((protocolKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolKind = resolvedEntity.protocolKind}
@@ -204,11 +178,8 @@
 				}
 				data-card
 				class='network-view-collapsible-agent-protocols'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Agent protocols</HeadingComponent>
 					</header>
@@ -216,12 +187,12 @@
 
 				{#snippet SectionAgentAcpPrograms({ id, label, open })}
 					<AcpAgentProgramsView
-						selection={
-							selection.$$acpPrograms({
-								count: true,
-							})
-						}
+						selection={selection.$$acpPrograms}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ACP programs.'
 						open={open}
 						title={label}
@@ -231,12 +202,12 @@
 
 				{#snippet SectionAgentA2aCards({ id, label, open })}
 					<A2aAgentCardsView
-						selection={
-							selection.$$a2aCards({
-								count: true,
-							})
-						}
+						selection={selection.$$a2aCards}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No A2A cards.'
 						open={open}
 						title={label}
@@ -246,12 +217,12 @@
 
 				{#snippet SectionAgentMcpServers({ id, label, open })}
 					<McpServersView
-						selection={
-							selection.$$mcpServers({
-								count: true,
-							})
-						}
+						selection={selection.$$mcpServers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP servers.'
 						open={open}
 						title={label}
@@ -278,11 +249,8 @@
 				}
 				data-card
 				class='network-view-collapsible-registrations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Registrations and profiles</HeadingComponent>
 					</header>
@@ -290,12 +258,12 @@
 
 				{#snippet SectionAgentEip8004({ id, label, open })}
 					<Eip8004AgentRegistrationsView
-						selection={
-							selection.$$eip8004Registrations({
-								count: true,
-							})
-						}
+						selection={selection.$$eip8004Registrations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No EIP-8004 registrations.'
 						open={open}
 						title={label}
@@ -305,12 +273,12 @@
 
 				{#snippet SectionAgentBlockheadProfiles({ id, label, open })}
 					<BlockheadAgentProfilesView
-						selection={
-							selection.$$blockheadProfiles({
-								count: true,
-							})
-						}
+						selection={selection.$$blockheadProfiles}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Blockhead agent profiles.'
 						open={open}
 						title={label}
@@ -333,11 +301,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -345,12 +310,12 @@
 
 				{#snippet SectionAgentHubObservations({ id, label, open })}
 					<GlobalAgentNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No agent network observations.'
 						open={open}
 						title={label}

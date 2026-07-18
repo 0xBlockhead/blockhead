@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum ActivityPubInstanceModeratedDomainSelector {
-	InstanceOriginModeratedDomainSource = 'InstanceOriginModeratedDomainSource',
+	ObservationDomain = 'ObservationDomain',
 }
 export const ActivityPubInstanceModeratedDomain = entity({
 	entityType: EntityType.ActivityPubInstanceModeratedDomain,
@@ -16,21 +16,14 @@ export const ActivityPubInstanceModeratedDomain = entity({
 	},
 	description: 'A domain that a declared ActivityPub instance reports in its public moderation-domain list.',
 })({
-	instanceOrigin: {
-		label: 'Instance origin',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+	$observation: {
+		label: 'Observation',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.One,
 	},
 	domain: {
 		label: 'Domain',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	source: {
-		label: 'Source',
-		description: 'The source that observed this moderation relation.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
@@ -49,10 +42,9 @@ export const ActivityPubInstanceModeratedDomain = entity({
 	},
 })({
 	selectors: {
-		InstanceOriginModeratedDomainSource: [
-			'instanceOrigin',
+		ObservationDomain: [
+			'$observation',
 			'domain',
-			'source',
 		],
 	},
 })

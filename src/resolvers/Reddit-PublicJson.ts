@@ -14,6 +14,7 @@ import { Source } from '$/sources/Source.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import type {
@@ -94,31 +95,33 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => {
-					if (redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
-						return {
-							title: `r/${name}`,
-							publicDescription: undefined,
-							createdAt: undefined,
-							over18: undefined,
-							$icon: undefined,
-						}
+				[RedditSubredditSelector.Name]: {
+					resolve: async ({ name }) => {
+						if (redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
+							return {
+								title: `r/${name}`,
+								publicDescription: undefined,
+								createdAt: undefined,
+								over18: undefined,
+								$icon: undefined,
+							}
 
-					const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const subredditAbout = (await getSubredditAbout(name)).data
-					const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
-					return {
-						title: optionalNonemptyString(subredditAbout.title),
-						publicDescription: optionalNonemptyString(subredditAbout.public_description),
-						...(timestampMsFromUnixSeconds(subredditAbout.created_utc) != null && {
-							createdAt: timestampMsFromUnixSeconds(subredditAbout.created_utc),
-						}),
-						...(subredditAbout.over18 === true && { over18: true }),
-						...(subredditAbout.over18 === false && { over18: false }),
-						...(iconMedia != null && {
-							$icon: iconMedia,
-						}),
-					}
+						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const subredditAbout = (await getSubredditAbout(name)).data
+						const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
+						return {
+							title: optionalNonemptyString(subredditAbout.title),
+							publicDescription: optionalNonemptyString(subredditAbout.public_description),
+							...(timestampMsFromUnixSeconds(subredditAbout.created_utc) != null && {
+								createdAt: timestampMsFromUnixSeconds(subredditAbout.created_utc),
+							}),
+							...(subredditAbout.over18 === true && { over18: true }),
+							...(subredditAbout.over18 === false && { over18: false }),
+							...(iconMedia != null && {
+								$icon: iconMedia,
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -132,45 +135,47 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }) => {
-					const seedLink = redditNetworkSeedLinks.find((link) => link.fullname === fullname)
-					if (seedLink != null)
-						return {
-							title: seedLink.title,
-							selftext: undefined,
-							url: undefined,
-							author: seedLink.author,
-							createdAt: seedLink.createdAt,
-							$subreddit: {
-								[EntityMetaKey.Selector]: { name: seedLink.subredditName },
-							},
-							permalink: seedLink.permalink,
-						}
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const seedLink = redditNetworkSeedLinks.find((link) => link.fullname === fullname)
+						if (seedLink != null)
+							return {
+								title: seedLink.title,
+								selftext: undefined,
+								url: undefined,
+								author: seedLink.author,
+								createdAt: seedLink.createdAt,
+								$subreddit: {
+									[EntityMetaKey.Selector]: { name: seedLink.subredditName },
+								},
+								permalink: seedLink.permalink,
+							}
 
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
-					const sub = optionalNonemptyString(redditThing.data.subreddit)
-					return {
-						title: optionalNonemptyString(redditThing.data.title),
-						selftext: optionalNonemptyString(redditThing.data.selftext),
-						url: optionalNonemptyString(redditThing.data.url),
-						author: optionalNonemptyString(redditThing.data.author),
-						...(timestampMsFromUnixSeconds(redditThing.data.created_utc) != null && {
-							createdAt: timestampMsFromUnixSeconds(redditThing.data.created_utc),
-						}),
-						$subreddit: (
-							sub == null ?
-								undefined
-							:
-								{
-									[EntityMetaKey.Selector]: { name: sub.toLowerCase() },
-								}
-						),
-						permalink: optionalNonemptyString(redditThing.data.permalink),
-					}
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+						const sub = optionalNonemptyString(redditThing.data.subreddit)
+						return {
+							title: optionalNonemptyString(redditThing.data.title),
+							selftext: optionalNonemptyString(redditThing.data.selftext),
+							url: optionalNonemptyString(redditThing.data.url),
+							author: optionalNonemptyString(redditThing.data.author),
+							...(timestampMsFromUnixSeconds(redditThing.data.created_utc) != null && {
+								createdAt: timestampMsFromUnixSeconds(redditThing.data.created_utc),
+							}),
+							$subreddit: (
+								sub == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: { name: sub.toLowerCase() },
+									}
+							),
+							permalink: optionalNonemptyString(redditThing.data.permalink),
+						}
+					},
 				}
 			},
 		})({
@@ -186,48 +191,50 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async ({ fullname }) => {
-					const seedComment = redditNetworkSeedComments.find((comment) => comment.fullname === fullname)
-					if (seedComment != null)
-						return {
-							body: seedComment.body,
-							author: seedComment.author,
-							createdAt: seedComment.createdAt,
-							depth: undefined,
-							$link: {
-								[EntityMetaKey.Selector]: {
-									fullname: seedComment.linkFullname,
+				[RedditCommentSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const seedComment = redditNetworkSeedComments.find((comment) => comment.fullname === fullname)
+						if (seedComment != null)
+							return {
+								body: seedComment.body,
+								author: seedComment.author,
+								createdAt: seedComment.createdAt,
+								depth: undefined,
+								$link: {
+									[EntityMetaKey.Selector]: {
+										fullname: seedComment.linkFullname,
+									},
 								},
-							},
-							$parentComment: undefined,
-						}
+								$parentComment: undefined,
+							}
 
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
-					const linkId = optionalNonemptyString(redditThing.data.link_id)
-					const parentId = optionalNonemptyString(redditThing.data.parent_id)
-					return {
-						body: optionalNonemptyString(redditThing.data.body),
-						author: optionalNonemptyString(redditThing.data.author),
-						...(timestampMsFromUnixSeconds(redditThing.data.created_utc) != null && {
-							createdAt: timestampMsFromUnixSeconds(redditThing.data.created_utc),
-						}),
-						...(redditThing.data.depth != null && { depth: redditThing.data.depth }),
-						$link: (
-							linkId == null ?
-								undefined
-							:
-								{
-									[EntityMetaKey.Selector]: { fullname: linkId },
-								}
-						),
-						...(parentId?.startsWith('t1_') === true && {
-							$parentComment: { [EntityMetaKey.Selector]: { fullname: parentId } },
-						}),
-					}
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
+						const linkId = optionalNonemptyString(redditThing.data.link_id)
+						const parentId = optionalNonemptyString(redditThing.data.parent_id)
+						return {
+							body: optionalNonemptyString(redditThing.data.body),
+							author: optionalNonemptyString(redditThing.data.author),
+							...(timestampMsFromUnixSeconds(redditThing.data.created_utc) != null && {
+								createdAt: timestampMsFromUnixSeconds(redditThing.data.created_utc),
+							}),
+							...(redditThing.data.depth != null && { depth: redditThing.data.depth }),
+							$link: (
+								linkId == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: { fullname: linkId },
+									}
+							),
+							...(parentId?.startsWith('t1_') === true && {
+								$parentComment: { [EntityMetaKey.Selector]: { fullname: parentId } },
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -242,15 +249,17 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
-				[RedditSubreddit_TimestampSelector.SubredditTimestampMsSource]: async ({ $subreddit }) => {
-					const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const subredditAbout = (await getSubredditAbout($subreddit.name)).data
-					return {
-						...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
-						...(subredditAbout.active_user_count != null && {
-							activeUserCount: subredditAbout.active_user_count,
-						}),
-					}
+				[RedditSubreddit_TimestampSelector.SubredditTimestampMsSource]: {
+					resolve: async ({ $subreddit }) => {
+						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const subredditAbout = (await getSubredditAbout($subreddit.name)).data
+						return {
+							...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
+							...(subredditAbout.active_user_count != null && {
+								activeUserCount: subredditAbout.active_user_count,
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -261,18 +270,20 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
-				[RedditLink_TimestampSelector.LinkTimestampMsSource]: async ({ $link }) => {
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo($link.fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
-					return {
-						...(redditThing.data.score != null && { score: redditThing.data.score }),
-						...(redditThing.data.num_comments != null && {
-							commentCount: redditThing.data.num_comments,
-						}),
-					}
+				[RedditLink_TimestampSelector.LinkTimestampMsSource]: {
+					resolve: async ({ $link }) => {
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo($link.fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+						return {
+							...(redditThing.data.score != null && { score: redditThing.data.score }),
+							...(redditThing.data.num_comments != null && {
+								commentCount: redditThing.data.num_comments,
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -283,20 +294,22 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
-				[RedditComment_TimestampSelector.CommentTimestampMsSource]: async ({ $comment }) => {
-					if (redditNetworkSeedComments.some((comment) => comment.fullname === $comment.fullname))
-						return {
-							score: undefined,
-						}
+				[RedditComment_TimestampSelector.CommentTimestampMsSource]: {
+					resolve: async ({ $comment }) => {
+						if (redditNetworkSeedComments.some((comment) => comment.fullname === $comment.fullname))
+							return {
+								score: undefined,
+							}
 
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo($comment.fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
-					return {
-						...(redditThing.data.score != null && { score: redditThing.data.score }),
-					}
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo($comment.fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
+						return {
+							...(redditThing.data.score != null && { score: redditThing.data.score }),
+						}
+					},
 				}
 			},
 		})({
@@ -306,20 +319,22 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await listSubredditHot('popular', limit)).data.children ?? [])
-							.flatMap((child) => {
-								if (child.kind !== 't3') return []
-								const name = optionalNonemptyString(child.data.subreddit)
-								if (name == null) return []
-								return [{
-									[EntityMetaKey.Selector]: { name: name.toLowerCase() },
-								}]
-							})
-					)
+				[_GlobalRedditNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						return (
+							((await listSubredditHot('popular', limit)).data.children ?? [])
+								.flatMap((child) => {
+									if (child.kind !== 't3') return []
+									const name = optionalNonemptyString(child.data.subreddit)
+									if (name == null) return []
+									return [{
+										[EntityMetaKey.Selector]: { name: name.toLowerCase() },
+									}]
+								})
+						)
+					},
 				}
 			},
 		})({
@@ -329,22 +344,24 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[_GlobalRedditNetworkSelector.Scope]: async (_entitySelector, context) => {
-					const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await listSubredditHot('popular', limit)).data.children ?? [])
-							.flatMap((child) => (
-								child.kind !== 't3' || child.data.name == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { fullname: child.data.name },
-										},
-									]
-							))
-					)
+				[_GlobalRedditNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						return (
+							((await listSubredditHot('popular', limit)).data.children ?? [])
+								.flatMap((child) => (
+									child.kind !== 't3' || child.data.name == null ?
+										[]
+									:
+										[
+											{
+												[EntityMetaKey.Selector]: { fullname: child.data.name },
+											},
+										]
+								))
+						)
+					},
 				}
 			},
 		})({
@@ -354,20 +371,28 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }) => {
-					const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const data = (await getSubredditAbout(name)).data
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$subreddit: { name },
-								timestampMs: Date.now(),
-								source: Source.Reddit_PublicJson,
+				[RedditSubredditSelector.Name]: {
+					resolve: async ({ name }) => {
+						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const data = (await getSubredditAbout(name)).data
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$subreddit: { name },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(data.subscribers != null && {
+										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'subscriberCount')]: data.subscribers,
+									}),
+									...(data.active_user_count != null && {
+										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'activeUserCount')]: data.active_user_count,
+									}),
+								},
 							},
-							...(data.subscribers != null && { subscriberCount: data.subscribers }),
-							...(data.active_user_count != null && { activeUserCount: data.active_user_count }),
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -377,11 +402,21 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async ({ name }, context) => {
-					const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					return (
-						((await listSubredditHot(name, limit)).data.children ?? [])
+				[RedditSubredditSelector.Name]: {
+					resolve: async ({ name }, context) => {
+						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						return listSubredditHot(
+							name,
+							resolverContextRowLimit(context),
+							context.providerContinuationToken
+						)
+					},
+				}
+			},
+		})({
+				$$links: {
+					select: (page) => (
+						(page.data.children ?? [])
 							.flatMap((child) => (
 								child.kind !== 't3' || child.data.name == null ?
 									[]
@@ -392,35 +427,53 @@ export default {
 										},
 									]
 							))
-					)
-				}
-			},
-		})({
-				$$links: (links) => links,
+					),
+					continuation: (page) => (
+						page.data.after == null || page.data.after === '' ?
+							{
+								operation: 'subreddit-links:hot',
+								target: 'reddit-public-json',
+								terminal: true,
+							}
+						:
+							{
+								operation: 'subreddit-links:hot',
+								target: 'reddit-public-json',
+								terminal: false,
+								token: page.data.after,
+							}
+					),
+				},
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }) => {
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$link: { fullname },
-								timestampMs: Date.now(),
-								source: Source.Reddit_PublicJson,
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$link: { fullname },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(redditThing.data.score != null && {
+										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'score')]: redditThing.data.score,
+									}),
+									...(redditThing.data.num_comments != null && {
+										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'commentCount')]: redditThing.data.num_comments,
+									}),
+								},
 							},
-							...(redditThing.data.score != null && { score: redditThing.data.score }),
-							...(redditThing.data.num_comments != null && {
-								commentCount: redditThing.data.num_comments,
-							}),
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -430,19 +483,21 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
-					const { getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const articleId = redditLinkArticleIdFromFullname(fullname)
-					return (
-						((await getCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
-							.flatMap((child) => (
-								child.kind === 't1' && child.data.name != null ?
-									[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
-								:
-									[]
-							))
-					)
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }, context) => {
+						const { getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const articleId = redditLinkArticleIdFromFullname(fullname)
+						return (
+							((await getCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
+								.flatMap((child) => (
+									child.kind === 't1' && child.data.name != null ?
+										[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
+									:
+										[]
+								))
+						)
+					},
 				}
 			},
 		})({
@@ -452,15 +507,17 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async ({ fullname }) => {
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
-					if (redditThing.data.num_comments == null || redditThing.data.num_comments < 0)
-						throw new Error('Reddit_PublicJson: link comment count not found')
-					return redditThing.data.num_comments
+				[RedditLinkSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+						if (redditThing.data.num_comments == null || redditThing.data.num_comments < 0)
+							throw new Error('Reddit_PublicJson: link comment count not found')
+						return redditThing.data.num_comments
+					},
 				}
 			},
 		})({
@@ -472,25 +529,31 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async ({ fullname }) => {
-					if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
-						return []
+				[RedditCommentSelector.Fullname]: {
+					resolve: async ({ fullname }) => {
+						if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
+							return []
 
-					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$comment: { fullname },
-								timestampMs: Date.now(),
-								source: Source.Reddit_PublicJson,
+						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$comment: { fullname },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(redditThing.data.score != null && {
+										[entityFieldAddressKey(EntityType.RedditComment_Timestamp, [], 'score')]: redditThing.data.score,
+									}),
+								},
 							},
-							...(redditThing.data.score != null && { score: redditThing.data.score }),
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -500,25 +563,27 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async ({ fullname }, context) => {
-					if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
-						return []
+				[RedditCommentSelector.Fullname]: {
+					resolve: async ({ fullname }, context) => {
+						if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
+							return []
 
-					const { getInfo, getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const redditThing = (await getInfo(fullname))
-						.data
-						.children[0]
-					if (redditThing.kind !== 't1')
-						throw new Error('Reddit_PublicJson: comment not found for replies')
-					const linkId = optionalNonemptyString(redditThing.data.link_id)
-					if (linkId == null)
-						throw new Error('Reddit_PublicJson: comment link_id missing')
-					const articleId = redditLinkArticleIdFromFullname(linkId)
-					const byParent = redditDirectReplyRefsByParentFromCommentForest(
-						((await getCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
-					)
-					return byParent.get(fullname) ?? []
+						const { getInfo, getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const redditThing = (await getInfo(fullname))
+							.data
+							.children[0]
+						if (redditThing.kind !== 't1')
+							throw new Error('Reddit_PublicJson: comment not found for replies')
+						const linkId = optionalNonemptyString(redditThing.data.link_id)
+						if (linkId == null)
+							throw new Error('Reddit_PublicJson: comment link_id missing')
+						const articleId = redditLinkArticleIdFromFullname(linkId)
+						const byParent = redditDirectReplyRefsByParentFromCommentForest(
+							((await getCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
+						)
+						return byParent.get(fullname) ?? []
+					},
 				}
 			},
 		})({

@@ -45,6 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmTrace = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			index: true,
 			type: true,
@@ -77,98 +78,98 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmTrace}>
-			{#snippet Pending()}
-				{@const serialValue = pendingEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-row="inline align-center gap-2 wrap">
-						<span>Trace </span>
-						<span data-badge="small">
-							#{String((serialValue) ?? '')}
-						</span>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const serialValue = pendingEntity.index}
+			{#if serialValue !== undefined && serialValue !== null}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Trace </span>
+					<span data-badge="small">
+						#{String((serialValue) ?? '')}
 					</span>
-				{:else}
-					{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const serialValue = resolvedEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-row="inline align-center gap-2 wrap">
-						<span>Trace </span>
-						<span data-badge="small">
-							#{String((serialValue) ?? '')}
+				</span>
+			{:else}
+				{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const serialValue = resolvedEntity.index}
+					{#if serialValue !== undefined && serialValue !== null}
+						<span data-row="inline align-center gap-2 wrap">
+							<span>Trace </span>
+							<span data-badge="small">
+								#{String((serialValue) ?? '')}
+							</span>
 						</span>
-					</span>
-				{:else}
-					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+					{:else}
+						{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmTrace}>
-			{#snippet Pending()}
-				{@const serialValue = pendingEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-badge="small">
-						#{String((serialValue) ?? '')}
-					</span>
-				{:else}
-					{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const serialValue = resolvedEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-badge="small">
-						#{String((serialValue) ?? '')}
-					</span>
-				{:else}
-					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const serialValue = pendingEntity.index}
+			{#if serialValue !== undefined && serialValue !== null}
+				<span data-badge="small">
+					#{String((serialValue) ?? '')}
+				</span>
+			{:else}
+				{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const serialValue = resolvedEntity.index}
+					{#if serialValue !== undefined && serialValue !== null}
+						<span data-badge="small">
+							#{String((serialValue) ?? '')}
+						</span>
+					{:else}
+						{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmTrace}>
-			{#snippet Pending()}
-				{@const type0 = pendingEntity.type}
-				{#if type0 !== undefined && type0 !== null}
-					<span data-text="muted">
-						{String((type0) ?? '')}
-					</span>
-				{/if}
-				{@const error1 = pendingEntity.error}
-				{#if error1 !== undefined && error1 !== null}
-					<span data-text="muted">
-						{String((error1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const type0 = resolvedEntity.type}
-				{#if type0 !== undefined && type0 !== null}
-					<span data-text="muted">
-						{String((type0) ?? '')}
-					</span>
-				{/if}
-				{@const error1 = resolvedEntity.error}
-				{#if error1 !== undefined && error1 !== null}
-					<span data-text="muted">
-						{String((error1) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const type0 = pendingEntity.type}
+			{#if type0 !== undefined && type0 !== null}
+				<span data-text="muted">
+					{String((type0) ?? '')}
+				</span>
+			{/if}
+			{@const error1 = pendingEntity.error}
+			{#if error1 !== undefined && error1 !== null}
+				<span data-text="muted">
+					{String((error1) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const type0 = resolvedEntity.type}
+					{#if type0 !== undefined && type0 !== null}
+						<span data-text="muted">
+							{String((type0) ?? '')}
+						</span>
+					{/if}
+					{@const error1 = resolvedEntity.error}
+					{#if error1 !== undefined && error1 !== null}
+						<span data-text="muted">
+							{String((error1) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -179,19 +180,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									traceAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const traceAddress = pendingEntity.traceAddress}
-							{#if traceAddress !== undefined && traceAddress !== null}
-								<TruncatedValue value={String((traceAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const traceAddress = resolvedEntity.traceAddress}
@@ -209,19 +204,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									index: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const index = pendingEntity.index}
-							{#if index !== undefined && index !== null}
-								{String((index) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const index = resolvedEntity.index}
@@ -239,19 +228,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									type: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const type = pendingEntity.type}
-							{#if type !== undefined && type !== null}
-								{String((type) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const type = resolvedEntity.type}
@@ -266,24 +249,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>Error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}
@@ -303,8 +275,6 @@
 			<ResourceBoundary
 				resource={selection.$from}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -330,8 +300,6 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -357,24 +325,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							value: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const value = pendingEntity.value}
-					{#if value !== undefined && value !== null}
-						<div>
-							<dt>Value</dt>
-							<dd>
-								<TruncatedValue value={String((value) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const value = resolvedEntity.value}
@@ -392,24 +349,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gas: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gas = pendingEntity.gas}
-					{#if gas !== undefined && gas !== null}
-						<div>
-							<dt>Gas</dt>
-							<dd>
-								{String((gas) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gas = resolvedEntity.gas}
@@ -427,24 +373,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>Gas used</dt>
-							<dd>
-								{String((gasUsed) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -464,24 +399,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							input: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const input = pendingEntity.input}
-					{#if input !== undefined && input !== null}
-						<div>
-							<dt>Input</dt>
-							<dd>
-								<TruncatedValue value={String((input) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const input = resolvedEntity.input}
@@ -499,24 +423,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							output: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const output = pendingEntity.output}
-					{#if output !== undefined && output !== null}
-						<div>
-							<dt>Output</dt>
-							<dd>
-								<TruncatedValue value={String((output) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const output = resolvedEntity.output}

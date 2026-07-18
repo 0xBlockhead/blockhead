@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalEvmAbiCatalogTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('global EVM ABI catalog timestamp')
 	const viewDomId = $derived('-global-evm-abi-catalog-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -69,43 +66,43 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
-			{#snippet Pending()}
-				<GlobalEvmAbiCatalogView
-					selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<GlobalEvmAbiCatalogView
-					selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<GlobalEvmAbiCatalogView
+						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<GlobalEvmAbiCatalogView
+						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,19 +124,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -157,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -186,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceReportedSelectorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceReportedSelectorCount = pendingEntity.sourceReportedSelectorCount}
-					{#if sourceReportedSelectorCount !== undefined && sourceReportedSelectorCount !== null}
-						<div>
-							<dt>source reported selector count</dt>
-							<dd>
-								<NumberValue value={Number(sourceReportedSelectorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceReportedSelectorCount = resolvedEntity.sourceReportedSelectorCount}
@@ -211,7 +185,9 @@
 						<div>
 							<dt>source reported selector count</dt>
 							<dd>
-								<NumberValue value={Number(sourceReportedSelectorCount)} />
+								<NumberValue
+									value={sourceReportedSelectorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -221,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceReportedTopicCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceReportedTopicCount = pendingEntity.sourceReportedTopicCount}
-					{#if sourceReportedTopicCount !== undefined && sourceReportedTopicCount !== null}
-						<div>
-							<dt>source reported topic count</dt>
-							<dd>
-								<NumberValue value={Number(sourceReportedTopicCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceReportedTopicCount = resolvedEntity.sourceReportedTopicCount}
@@ -246,7 +211,9 @@
 						<div>
 							<dt>source reported topic count</dt>
 							<dd>
-								<NumberValue value={Number(sourceReportedTopicCount)} />
+								<NumberValue
+									value={sourceReportedTopicCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -256,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceReportedErrorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceReportedErrorCount = pendingEntity.sourceReportedErrorCount}
-					{#if sourceReportedErrorCount !== undefined && sourceReportedErrorCount !== null}
-						<div>
-							<dt>source reported error count</dt>
-							<dd>
-								<NumberValue value={Number(sourceReportedErrorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceReportedErrorCount = resolvedEntity.sourceReportedErrorCount}
@@ -281,7 +237,9 @@
 						<div>
 							<dt>source reported error count</dt>
 							<dd>
-								<NumberValue value={Number(sourceReportedErrorCount)} />
+								<NumberValue
+									value={sourceReportedErrorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -293,24 +251,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seededSelectorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seededSelectorCount = pendingEntity.seededSelectorCount}
-					{#if seededSelectorCount !== undefined && seededSelectorCount !== null}
-						<div>
-							<dt>seeded selector count</dt>
-							<dd>
-								<NumberValue value={Number(seededSelectorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seededSelectorCount = resolvedEntity.seededSelectorCount}
@@ -318,7 +265,9 @@
 						<div>
 							<dt>seeded selector count</dt>
 							<dd>
-								<NumberValue value={Number(seededSelectorCount)} />
+								<NumberValue
+									value={seededSelectorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -328,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seededTopicCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seededTopicCount = pendingEntity.seededTopicCount}
-					{#if seededTopicCount !== undefined && seededTopicCount !== null}
-						<div>
-							<dt>seeded topic count</dt>
-							<dd>
-								<NumberValue value={Number(seededTopicCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seededTopicCount = resolvedEntity.seededTopicCount}
@@ -353,7 +291,9 @@
 						<div>
 							<dt>seeded topic count</dt>
 							<dd>
-								<NumberValue value={Number(seededTopicCount)} />
+								<NumberValue
+									value={seededTopicCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -363,24 +303,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seededErrorCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seededErrorCount = pendingEntity.seededErrorCount}
-					{#if seededErrorCount !== undefined && seededErrorCount !== null}
-						<div>
-							<dt>seeded error count</dt>
-							<dd>
-								<NumberValue value={Number(seededErrorCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seededErrorCount = resolvedEntity.seededErrorCount}
@@ -388,7 +317,9 @@
 						<div>
 							<dt>seeded error count</dt>
 							<dd>
-								<NumberValue value={Number(seededErrorCount)} />
+								<NumberValue
+									value={seededErrorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -400,24 +331,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reachable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reachable = pendingEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
-						<div>
-							<dt>reachable</dt>
-							<dd>
-								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reachable = resolvedEntity.reachable}
@@ -435,24 +355,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rateLimitRemaining: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
-					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
-						<div>
-							<dt>rate limit remaining</dt>
-							<dd>
-								<NumberValue value={Number(rateLimitRemaining)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rateLimitRemaining = resolvedEntity.rateLimitRemaining}
@@ -460,7 +369,9 @@
 						<div>
 							<dt>rate limit remaining</dt>
 							<dd>
-								<NumberValue value={Number(rateLimitRemaining)} />
+								<NumberValue
+									value={rateLimitRemaining}
+								/>
 							</dd>
 						</div>
 					{/if}

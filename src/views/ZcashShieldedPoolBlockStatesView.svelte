@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZcashShieldedPoolBlockStateView from '$/views/ZcashShieldedPoolBlockStateView.svelte'
 </script>
@@ -61,77 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					pool: true,
-					finalRoot: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZcashShieldedPoolBlockState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZcashShieldedPoolBlockState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$pool: true,
+				saplingTree: true,
+				orchardTree: true,
+			},
+		})
+	}
+	getResourceItems={(zcashShieldedPoolBlockStates) => [...new Map(zcashShieldedPoolBlockStates.values.map((zcashShieldedPoolBlockState) => [zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey], zcashShieldedPoolBlockState])).values()]}
+	getKey={(zcashShieldedPoolBlockState) => zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zcash shielded pool block states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zcashShieldedPoolBlockStates)}
-			{@const uniqueZcashShieldedPoolBlockStates = [...new Map(zcashShieldedPoolBlockStates.values.map((zcashShieldedPoolBlockState) => [zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey], zcashShieldedPoolBlockState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZcashShieldedPoolBlockState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zcashShieldedPoolBlockStates.totalCount}
-				getKey={(zcashShieldedPoolBlockState) => zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey]}
-				items={uniqueZcashShieldedPoolBlockStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zcash shielded pool block states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zcashShieldedPoolBlockState })}
-					{@const zcashShieldedPoolBlockStateFields = { ...zcashShieldedPoolBlockState[EntityMetaKey.Selector], ...zcashShieldedPoolBlockState }}
-					{@const selection = select(EntityType.ZcashShieldedPoolBlockState, zcashShieldedPoolBlockState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZcashShieldedPoolBlockStateView
-						selection={selection}
-						prefetched={zcashShieldedPoolBlockStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZcashShieldedPoolBlockState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zcashShieldedPoolBlockState })}
+		{@const zcashShieldedPoolBlockStateFields = { ...zcashShieldedPoolBlockState[EntityMetaKey.Selector], ...zcashShieldedPoolBlockState }}
+		{@const selection = select(EntityType.ZcashShieldedPoolBlockState, zcashShieldedPoolBlockState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZcashShieldedPoolBlockStateView
+			selection={selection}
+			prefetched={zcashShieldedPoolBlockStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -19,7 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.FarcasterChannel_Timestamp, {
 		$channel: {
-			id: decodeURIComponent(params.channelId),
+			id: params.channelId,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

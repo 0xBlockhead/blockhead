@@ -39,30 +39,32 @@ export default {
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.Url,
 			resolve: {
-				[UrlSelector.Url]: async ({ url }) => {
-					const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
-					try {
-						return {
-							$$previewTimestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$url: { url },
-										timestampMs: Date.now(),
-										source: Source.MetadataVision_Rest,
+				[UrlSelector.Url]: {
+					resolve: async ({ url }) => {
+						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
+						try {
+							return {
+								$$previewTimestamps: [
+									{
+										[EntityMetaKey.Selector]: {
+											$url: { url },
+											timestampMs: Date.now(),
+											source: Source.MetadataVision_Rest,
+										},
+										...urlPreviewFieldsFromWire(
+											await getOpenGraphWireForPublicHttpUrl(url)
+										),
 									},
-									...urlPreviewFieldsFromWire(
-										await getOpenGraphWireForPublicHttpUrl(url)
-									),
-								},
-							],
+								],
+							}
 						}
-					}
-					catch (error) {
-						throw new Error(
-							`MetadataVision_Rest: Open Graph fetch failed for ${url}`,
-							{ cause: error }
-					)
-					}
+						catch (error) {
+							throw new Error(
+								`MetadataVision_Rest: Open Graph fetch failed for ${url}`,
+								{ cause: error }
+						)
+						}
+					},
 				}
 			},
 		})({
@@ -74,14 +76,16 @@ export default {
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.UrlPreview_Timestamp,
 			resolve: {
-				[UrlPreview_TimestampSelector.UrlTimestampMsSource]: async ({ $url, source }) => {
-					if (source !== Source.MetadataVision_Rest)
-						throw new Error(`MetadataVision_Rest: unsupported source ${source}`)
+				[UrlPreview_TimestampSelector.UrlTimestampMsSource]: {
+					resolve: async ({ $url, source }) => {
+						if (source !== Source.MetadataVision_Rest)
+							throw new Error(`MetadataVision_Rest: unsupported source ${source}`)
 
-					const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
-					return urlPreviewFieldsFromWire(
-						await getOpenGraphWireForPublicHttpUrl($url.url)
-					)
+						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
+						return urlPreviewFieldsFromWire(
+							await getOpenGraphWireForPublicHttpUrl($url.url)
+						)
+					},
 				}
 			},
 		})({

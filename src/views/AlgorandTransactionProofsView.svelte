@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandTransactionProofView from '$/views/AlgorandTransactionProofView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransactionProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandTransactionProof}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandTransactionProofs) => [...new Map(algorandTransactionProofs.values.map((algorandTransactionProof) => [algorandTransactionProof[EntityMetaKey.SelectorKey], algorandTransactionProof])).values()]}
+	getKey={(algorandTransactionProof) => algorandTransactionProof[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand transaction proofs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandTransactionProofs)}
-			{@const uniqueAlgorandTransactionProofs = [...new Map(algorandTransactionProofs.values.map((algorandTransactionProof) => [algorandTransactionProof[EntityMetaKey.SelectorKey], algorandTransactionProof])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransactionProof}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandTransactionProofs.totalCount}
-				getKey={(algorandTransactionProof) => algorandTransactionProof[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandTransactionProofs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand transaction proofs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandTransactionProof })}
-					{@const algorandTransactionProofFields = { ...algorandTransactionProof[EntityMetaKey.Selector], ...algorandTransactionProof }}
-					{@const selection = select(EntityType.AlgorandTransactionProof, algorandTransactionProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandTransactionProofView
-						selection={selection}
-						prefetched={algorandTransactionProofFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandTransactionProof}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandTransactionProof })}
+		{@const algorandTransactionProofFields = { ...algorandTransactionProof[EntityMetaKey.Selector], ...algorandTransactionProof }}
+		{@const selection = select(EntityType.AlgorandTransactionProof, algorandTransactionProof[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandTransactionProofView
+			selection={selection}
+			prefetched={algorandTransactionProofFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

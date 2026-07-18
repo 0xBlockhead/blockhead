@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,10 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalXNetwork = $derived(selection({
-		sources: [
-			Source.X_Rest,
-			Source.X_FxEmbed_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('global X network')
 	const viewDomId = $derived('-global-xnetwork-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -54,7 +50,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XUsersView from '$/views/XUsersView.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
-	import GlobalXNetwork_TimestampsView from '$/views/_GlobalXNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -69,29 +64,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalXNetwork}>
-			{#snippet Pending()}
-				{title || 'global X network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalXNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={globalXNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global X network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalXNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
@@ -113,11 +108,8 @@
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Directory</HeadingComponent>
 					</header>
@@ -125,13 +117,13 @@
 
 				{#snippet SectionXUsers({ id, label, open })}
 					<XUsersView
-						selection={
-							selection.$$observedUsers({
-								count: true,
-							})
-						}
+						selection={selection.$$observedUsers}
 						href={resolve('/x/users')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No X users in this observed.'
 						open={open}
 						title={label}
@@ -141,54 +133,14 @@
 
 				{#snippet SectionXPosts({ id, label, open })}
 					<XPostsView
-						selection={
-							selection.$$observedPosts({
-								count: true,
-							})
-						}
+						selection={selection.$$observedPosts}
 						href={resolve('/x/posts')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No X posts in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-x-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'x-hub-observations',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionXHubObservations({ id, label, open })}
-					<GlobalXNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No X observed observations yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

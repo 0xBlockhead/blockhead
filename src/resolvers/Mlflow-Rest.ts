@@ -68,13 +68,15 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: async ({ $provider, providerModelId }, context) => {
-					assertProvider($provider)
-					const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
-					return (await getRegisteredModel({
-						binding: bindingWithEndpoint(context.publicEnv),
-						name: providerModelId,
-					})).registered_model
+				[AiModelSelector.ProviderModelId]: {
+					resolve: async ({ $provider, providerModelId }, context) => {
+						assertProvider($provider)
+						const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
+						return (await getRegisteredModel({
+							binding: bindingWithEndpoint(context.publicEnv),
+							name: providerModelId,
+						})).registered_model
+					},
 				},
 			},
 		})({
@@ -96,14 +98,16 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiModelVersion,
 			resolve: {
-				[AiModelVersionSelector.ModelVersionId]: async ({ $model, versionId }, context) => {
-					assertProvider($model.$provider)
-					const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
-					return (await getModelVersion({
-						binding: bindingWithEndpoint(context.publicEnv),
-						name: $model.providerModelId,
-						version: versionId,
-					})).model_version
+				[AiModelVersionSelector.ModelVersionId]: {
+					resolve: async ({ $model, versionId }, context) => {
+						assertProvider($model.$provider)
+						const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
+						return (await getModelVersion({
+							binding: bindingWithEndpoint(context.publicEnv),
+							name: $model.providerModelId,
+							version: versionId,
+						})).model_version
+					},
 				},
 			},
 		})({
@@ -129,18 +133,20 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiArtifact,
 			resolve: {
-				[AiArtifactSelector.ProviderArtifactId]: async ({ $provider, providerArtifactId }, context) => {
-					assertProvider($provider)
-					const artifact = parseArtifactId(providerArtifactId)
-					const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
-					return {
-						...artifact,
-						listing: await listArtifacts({
-							binding: bindingWithEndpoint(context.publicEnv),
-							runId: artifact.runId,
-							path: artifact.path,
-						}),
-					}
+				[AiArtifactSelector.ProviderArtifactId]: {
+					resolve: async ({ $provider, providerArtifactId }, context) => {
+						assertProvider($provider)
+						const artifact = parseArtifactId(providerArtifactId)
+						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
+						return {
+							...artifact,
+							listing: await listArtifacts({
+								binding: bindingWithEndpoint(context.publicEnv),
+								runId: artifact.runId,
+								path: artifact.path,
+							}),
+						}
+					},
 				},
 			},
 		})({
@@ -163,19 +169,21 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiDocument,
 			resolve: {
-				[AiDocumentSelector.KindArtifact]: async ({ documentKind, $artifact }, context) => {
-					assertProvider($artifact.$provider)
-					const artifact = parseArtifactId($artifact.providerArtifactId)
-					const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
-					await listArtifacts({
-						binding: bindingWithEndpoint(context.publicEnv),
-						runId: artifact.runId,
-						path: artifact.path,
-					})
-					return {
-						documentKind,
-						artifact,
-					}
+				[AiDocumentSelector.KindArtifact]: {
+					resolve: async ({ documentKind, $artifact }, context) => {
+						assertProvider($artifact.$provider)
+						const artifact = parseArtifactId($artifact.providerArtifactId)
+						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
+						await listArtifacts({
+							binding: bindingWithEndpoint(context.publicEnv),
+							runId: artifact.runId,
+							path: artifact.path,
+						})
+						return {
+							documentKind,
+							artifact,
+						}
+					},
 				},
 			},
 		})({

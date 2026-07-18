@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosBigMap = $derived(selection({}))
+	const tezosBigMap = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos big map')
 	const viewDomId = $derived('tezos-big-map-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosBigMap}>
-			{#snippet Pending()}
-				{title || 'tezos big map'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosBigMap}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,19 +100,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									bigMapId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const bigMapId = pendingEntity.bigMapId}
-							{#if bigMapId !== undefined && bigMapId !== null}
-								{String((bigMapId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const bigMapId = resolvedEntity.bigMapId}
@@ -125,24 +121,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							path: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const path = pendingEntity.path}
-					{#if path !== undefined && path !== null}
-						<div>
-							<dt>path</dt>
-							<dd>
-								{String((path) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const path = resolvedEntity.path}
@@ -178,11 +163,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -190,12 +172,12 @@
 
 				{#snippet SectionTezosBigMapKeys({ id, label, open })}
 					<TezosBigMapKeysView
-						selection={
-							selection.$$keys({
-								count: true,
-							})
-						}
+						selection={selection.$$keys}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No keys.'
 						open={open}
 						title={label}
@@ -205,12 +187,12 @@
 
 				{#snippet SectionTezosBigMapUpdates({ id, label, open })}
 					<TezosBigMapDiffsView
-						selection={
-							selection.$$updates({
-								count: true,
-							})
-						}
+						selection={selection.$$updates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No updates.'
 						open={open}
 						title={label}
@@ -233,11 +215,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -245,12 +224,12 @@
 
 				{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
 					<TezosBigMap_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

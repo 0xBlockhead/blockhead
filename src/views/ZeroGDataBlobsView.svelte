@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGDataBlobView from '$/views/ZeroGDataBlobView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					dataRoot: true,
-					$network: true,
-					sizeBytes: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDataBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGDataBlob}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				dataRoot: true,
+				$network: true,
+				sizeBytes: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGDataBlobs) => [...new Map(zeroGDataBlobs.values.map((zeroGDataBlob) => [zeroGDataBlob[EntityMetaKey.SelectorKey], zeroGDataBlob])).values()]}
+	getKey={(zeroGDataBlob) => zeroGDataBlob[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g data blobs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGDataBlobs)}
-			{@const uniqueZeroGDataBlobs = [...new Map(zeroGDataBlobs.values.map((zeroGDataBlob) => [zeroGDataBlob[EntityMetaKey.SelectorKey], zeroGDataBlob])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDataBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGDataBlobs.totalCount}
-				getKey={(zeroGDataBlob) => zeroGDataBlob[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGDataBlobs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g data blobs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGDataBlob })}
-					{@const zeroGDataBlobFields = { ...zeroGDataBlob[EntityMetaKey.Selector], ...zeroGDataBlob }}
-					{@const selection = select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGDataBlobView
-						selection={selection}
-						prefetched={zeroGDataBlobFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGDataBlob}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGDataBlob })}
+		{@const zeroGDataBlobFields = { ...zeroGDataBlob[EntityMetaKey.Selector], ...zeroGDataBlob }}
+		{@const selection = select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGDataBlobView
+			selection={selection}
+			prefetched={zeroGDataBlobFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

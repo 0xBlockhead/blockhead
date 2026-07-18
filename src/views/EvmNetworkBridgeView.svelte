@@ -44,6 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetworkBridge = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			relationshipType: true,
 		},
@@ -67,11 +68,11 @@
 	href={
 		href ?? (pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
 			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
-			url: String(pendingEntity.url ?? ''),
+			url: encodeURIComponent(String(pendingEntity.url ?? '')),
 			network: String(caip2StringFromValue(pendingEntity.$fromNetwork.caip2) ?? ''),
 		}) : pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
 			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
-			url: String(pendingEntity.url ?? ''),
+			url: encodeURIComponent(String(pendingEntity.url ?? '')),
 			network: String(pendingEntity.$fromNetwork.slug ?? ''),
 		}) : undefined)
 	}
@@ -80,78 +81,78 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNetworkBridge}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkBridge}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmNetworkBridge}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<TruncatedValue value={String((url0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<TruncatedValue value={String((url0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<TruncatedValue value={String((url0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkBridge}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<TruncatedValue value={String((url0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmNetworkBridge}>
-			{#snippet Pending()}
-				{@const relationshipType0 = pendingEntity.relationshipType}
-				{#if relationshipType0 !== undefined && relationshipType0 !== null}
-					<span data-text="muted">
-						{String((relationshipType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const relationshipType0 = resolvedEntity.relationshipType}
-				{#if relationshipType0 !== undefined && relationshipType0 !== null}
-					<span data-text="muted">
-						{String((relationshipType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const relationshipType0 = pendingEntity.relationshipType}
+			{#if relationshipType0 !== undefined && relationshipType0 !== null}
+				<span data-text="muted">
+					{String((relationshipType0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkBridge}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const relationshipType0 = resolvedEntity.relationshipType}
+					{#if relationshipType0 !== undefined && relationshipType0 !== null}
+						<span data-text="muted">
+							{String((relationshipType0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,26 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									url: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const url = pendingEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const url = resolvedEntity.url}
@@ -203,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							relationshipType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const relationshipType = pendingEntity.relationshipType}
-					{#if relationshipType !== undefined && relationshipType !== null}
-						<div>
-							<dt>Relationship type</dt>
-							<dd>
-								{String((relationshipType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const relationshipType = resolvedEntity.relationshipType}

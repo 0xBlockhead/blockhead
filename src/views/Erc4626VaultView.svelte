@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,13 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const erc4626Vault = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-			Source.Defillama_OpenApi,
-			Source.Etherscan_Rest,
-			Source.Sourcify_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			symbol: true,
@@ -82,30 +75,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={erc4626Vault}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? ''), String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'erc4626 vault'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? ''), String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={erc4626Vault}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={erc4626Vault}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$asset}
-				>
-					{#snippet children(evmCoinInstance)}
-						{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
-							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-								prefetched={evmCoinInstance}
-								href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$asset}
+					>
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									prefetched={evmCoinInstance}
+									href={
 									(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 										chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										coinInstanceSlug: String('native' ?? ''),
@@ -114,25 +106,27 @@
 										chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$asset}
-				>
-					{#snippet children(evmCoinInstance)}
-						{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
-							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-								prefetched={evmCoinInstance}
-								href={
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={erc4626Vault}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$asset}
+					>
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									prefetched={evmCoinInstance}
+									href={
 									(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 										chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										coinInstanceSlug: String('native' ?? ''),
@@ -141,14 +135,17 @@
 										chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 									}) : undefined)
 								}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -203,8 +200,6 @@
 			<ResourceBoundary
 				resource={selection.$asset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -234,8 +229,6 @@
 			<ResourceBoundary
 				resource={selection.$shareToken}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -267,24 +260,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -302,24 +284,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							symbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const symbol = pendingEntity.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const symbol = resolvedEntity.symbol}
@@ -337,24 +308,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decimals = pendingEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								<NumberValue value={Number(decimals)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decimals = resolvedEntity.decimals}
@@ -362,7 +322,9 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								<NumberValue value={Number(decimals)} />
+								<NumberValue
+									value={decimals}
+								/>
 							</dd>
 						</div>
 					{/if}

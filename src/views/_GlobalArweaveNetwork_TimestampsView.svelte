@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalArweaveNetwork_TimestampView from '$/views/_GlobalArweaveNetwork_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					sourceReportedLatestHeight: true,
-					reachable: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalArweaveNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalArweaveNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				sourceReportedLatestHeight: true,
+				reachable: true,
+			},
+		})
+	}
+	getResourceItems={(globalArweaveNetworkTimestamps) => [...new Map(globalArweaveNetworkTimestamps.values.map((globalArweaveNetworkTimestamp) => [globalArweaveNetworkTimestamp[EntityMetaKey.SelectorKey], globalArweaveNetworkTimestamp])).values()]}
+	getKey={(globalArweaveNetworkTimestamp) => globalArweaveNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global Arweave network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalArweaveNetworkTimestamps)}
-			{@const uniqueGlobalArweaveNetworkTimestamps = [...new Map(globalArweaveNetworkTimestamps.values.map((globalArweaveNetworkTimestamp) => [globalArweaveNetworkTimestamp[EntityMetaKey.SelectorKey], globalArweaveNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalArweaveNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalArweaveNetworkTimestamps.totalCount}
-				getKey={(globalArweaveNetworkTimestamp) => globalArweaveNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalArweaveNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global Arweave network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalArweaveNetworkTimestamp })}
-					{@const globalArweaveNetworkTimestampFields = { ...globalArweaveNetworkTimestamp[EntityMetaKey.Selector], ...globalArweaveNetworkTimestamp }}
-					{@const selection = select(EntityType._GlobalArweaveNetwork_Timestamp, globalArweaveNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalArweaveNetwork_TimestampView
-						selection={selection}
-						prefetched={globalArweaveNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalArweaveNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalArweaveNetworkTimestamp })}
+		{@const globalArweaveNetworkTimestampFields = { ...globalArweaveNetworkTimestamp[EntityMetaKey.Selector], ...globalArweaveNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalArweaveNetwork_Timestamp, globalArweaveNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalArweaveNetwork_TimestampView
+			selection={selection}
+			prefetched={globalArweaveNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

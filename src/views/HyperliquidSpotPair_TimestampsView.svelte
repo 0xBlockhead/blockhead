@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidSpotPair_TimestampView from '$/views/HyperliquidSpotPair_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotPair_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidSpotPair_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidSpotPairTimestamps) => [...new Map(hyperliquidSpotPairTimestamps.values.map((hyperliquidSpotPairTimestamp) => [hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey], hyperliquidSpotPairTimestamp])).values()]}
+	getKey={(hyperliquidSpotPairTimestamp) => hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid spot pair observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidSpotPairTimestamps)}
-			{@const uniqueHyperliquidSpotPairTimestamps = [...new Map(hyperliquidSpotPairTimestamps.values.map((hyperliquidSpotPairTimestamp) => [hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey], hyperliquidSpotPairTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidSpotPair_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidSpotPairTimestamps.totalCount}
-				getKey={(hyperliquidSpotPairTimestamp) => hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidSpotPairTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid spot pair observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidSpotPairTimestamp })}
-					{@const hyperliquidSpotPairTimestampFields = { ...hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], ...hyperliquidSpotPairTimestamp }}
-					{@const selection = select(EntityType.HyperliquidSpotPair_Timestamp, hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidSpotPair_TimestampView
-						selection={selection}
-						prefetched={hyperliquidSpotPairTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidSpotPair_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidSpotPairTimestamp })}
+		{@const hyperliquidSpotPairTimestampFields = { ...hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], ...hyperliquidSpotPairTimestamp }}
+		{@const selection = select(EntityType.HyperliquidSpotPair_Timestamp, hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidSpotPair_TimestampView
+			selection={selection}
+			prefetched={hyperliquidSpotPairTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

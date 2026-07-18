@@ -5,6 +5,7 @@ import {
 import type {
 	RedditPublicApiInfoResponse,
 	RedditPublicApiListing,
+	RedditPublicApiListingRequest,
 	RedditPublicApiSubredditAbout,
 	RedditPublicApiThing,
 } from '$/sources/RedditPublic/Rest/types.ts'
@@ -87,11 +88,10 @@ const redditThingFromRssEntry = (
 						title: tagText(block, 'title') ?? fullname,
 						permalink: new URL(linkHref(block) ?? `https://www.reddit.com/comments/${fullname.slice(3)}/`).pathname,
 						author: redditAuthorFromEntry(block) ?? '',
-						created_utc: ((publishedAt) => (
-							publishedAt != null && Number.isFinite(Date.parse(publishedAt)) ?
-								Math.floor(Date.parse(publishedAt) / 1_000)
-							:
-								0
+						...((publishedAt) => (
+							publishedAt != null && Number.isFinite(Date.parse(publishedAt)) && {
+								created_utc: Math.floor(Date.parse(publishedAt) / 1_000),
+							}
 						))(tagText(block, 'updated') ?? tagText(block, 'published')),
 					},
 				}
@@ -132,18 +132,49 @@ export const getSubredditAbout = async (name: string) => (
 
 export const listSubredditHot = async (
 	name: string,
-	limit: number
-) => (
-	await redditJsonGet<RedditPublicApiListing>(
+	limit: number,
+	after?: string
+): Promise<RedditPublicApiListing> => (
+	redditJsonGet<RedditPublicApiListing>(
 		`/r/${encodeURIComponent(name)}/hot.json?${(
 			new URLSearchParams({
+				...(after !== undefined && {
+					after,
+				}),
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
 		)}` as const
-	).catch(async () => (
-		await listSubredditRss(name, limit)
-	))
+	).catch(
+		after === undefined ?
+			async () => listSubredditRss(name, limit)
+		:
+			undefined
+	)
+)
+
+export const listSubredditLinks = async (
+	name: string,
+	request: RedditPublicApiListingRequest
+): Promise<RedditPublicApiListing> => (
+	request.sort === 'hot' ?
+		listSubredditHot(
+			name,
+			request.limit,
+			request.after
+		)
+	:
+		redditJsonGet<RedditPublicApiListing>(
+			`/r/${encodeURIComponent(name)}/${request.sort}.json?${(
+				new URLSearchParams({
+					...(request.after !== undefined && {
+						after: request.after,
+					}),
+					limit: String(request.limit),
+					raw_json: '1',
+				}).toString()
+			)}` as const
+		)
 )
 
 export const getComments = async (

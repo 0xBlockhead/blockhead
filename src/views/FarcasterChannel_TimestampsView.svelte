@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterChannel_TimestampView from '$/views/FarcasterChannel_TimestampView.svelte'
 </script>
@@ -62,84 +61,51 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$channel: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterChannel_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FarcasterChannel_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$channel: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(farcasterChannelTimestamps) => [...new Map(farcasterChannelTimestamps.values.map((farcasterChannelTimestamp) => [farcasterChannelTimestamp[EntityMetaKey.SelectorKey], farcasterChannelTimestamp])).values()]}
+	getKey={(farcasterChannelTimestamp) => farcasterChannelTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Farcaster channel observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(farcasterChannelTimestamps)}
-			{@const uniqueFarcasterChannelTimestamps = [...new Map(farcasterChannelTimestamps.values.map((farcasterChannelTimestamp) => [farcasterChannelTimestamp[EntityMetaKey.SelectorKey], farcasterChannelTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterChannel_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterChannelTimestamps.totalCount}
-				getKey={(farcasterChannelTimestamp) => farcasterChannelTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueFarcasterChannelTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Farcaster channel observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: farcasterChannelTimestamp })}
-					{@const farcasterChannelTimestampFields = { ...farcasterChannelTimestamp[EntityMetaKey.Selector], ...farcasterChannelTimestamp }}
-					{@const selection = select(EntityType.FarcasterChannel_Timestamp, farcasterChannelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const farcasterChannelTimestampHrefFields = { ...farcasterChannelTimestamp, ...farcasterChannelTimestamp[EntityMetaKey.Selector] }}
-					<FarcasterChannel_TimestampView
-						selection={selection}
-						prefetched={farcasterChannelTimestampFields}
-						href={
-							(farcasterChannelTimestampHrefFields.timestampMs !== undefined && farcasterChannelTimestampHrefFields.$channel !== undefined && farcasterChannelTimestampHrefFields.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-								timestampMs: String(farcasterChannelTimestampHrefFields.timestampMs ?? ''),
-								channelId: String(farcasterChannelTimestampHrefFields.$channel.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FarcasterChannel_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: farcasterChannelTimestamp })}
+		{@const farcasterChannelTimestampFields = { ...farcasterChannelTimestamp[EntityMetaKey.Selector], ...farcasterChannelTimestamp }}
+		{@const selection = select(EntityType.FarcasterChannel_Timestamp, farcasterChannelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const farcasterChannelTimestampHrefFields = { ...farcasterChannelTimestamp, ...farcasterChannelTimestamp[EntityMetaKey.Selector] }}
+		<FarcasterChannel_TimestampView
+			selection={selection}
+			prefetched={farcasterChannelTimestampFields}
+			href={
+				(farcasterChannelTimestampHrefFields.timestampMs !== undefined && farcasterChannelTimestampHrefFields.$channel !== undefined && farcasterChannelTimestampHrefFields.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(farcasterChannelTimestampHrefFields.timestampMs ?? ''),
+					channelId: String(farcasterChannelTimestampHrefFields.$channel.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

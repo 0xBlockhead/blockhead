@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LitecoinMwebOutputView from '$/views/LitecoinMwebOutputView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					commitment: true,
-					outputIndex: true,
-					$transaction: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebOutput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LitecoinMwebOutput}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				commitment: true,
+				outputIndex: true,
+				$transaction: true,
+			},
+		})
+	}
+	getResourceItems={(litecoinMwebOutputs) => [...new Map(litecoinMwebOutputs.values.map((litecoinMwebOutput) => [litecoinMwebOutput[EntityMetaKey.SelectorKey], litecoinMwebOutput])).values()]}
+	getKey={(litecoinMwebOutput) => litecoinMwebOutput[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Litecoin MWEB outputs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(litecoinMwebOutputs)}
-			{@const uniqueLitecoinMwebOutputs = [...new Map(litecoinMwebOutputs.values.map((litecoinMwebOutput) => [litecoinMwebOutput[EntityMetaKey.SelectorKey], litecoinMwebOutput])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebOutput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={litecoinMwebOutputs.totalCount}
-				getKey={(litecoinMwebOutput) => litecoinMwebOutput[EntityMetaKey.SelectorKey]}
-				items={uniqueLitecoinMwebOutputs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Litecoin MWEB outputs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: litecoinMwebOutput })}
-					{@const litecoinMwebOutputFields = { ...litecoinMwebOutput[EntityMetaKey.Selector], ...litecoinMwebOutput }}
-					{@const selection = select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LitecoinMwebOutputView
-						selection={selection}
-						prefetched={litecoinMwebOutputFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LitecoinMwebOutput}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: litecoinMwebOutput })}
+		{@const litecoinMwebOutputFields = { ...litecoinMwebOutput[EntityMetaKey.Selector], ...litecoinMwebOutput }}
+		{@const selection = select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LitecoinMwebOutputView
+			selection={selection}
+			prefetched={litecoinMwebOutputFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

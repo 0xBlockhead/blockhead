@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadWallet = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			protocol: true,
@@ -75,29 +72,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadWallet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadWallet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadWallet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadWallet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -108,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}
@@ -138,19 +129,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -168,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									protocol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const protocol = pendingEntity.protocol}
-							{#if protocol !== undefined && protocol !== null}
-								{String((protocol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const protocol = resolvedEntity.protocol}
@@ -198,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									discoveryKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const discoveryKind = pendingEntity.discoveryKind}
-							{#if discoveryKind !== undefined && discoveryKind !== null}
-								{String((discoveryKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const discoveryKind = resolvedEntity.discoveryKind}
@@ -228,19 +201,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transportKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transportKind = pendingEntity.transportKind}
-							{#if transportKind !== undefined && transportKind !== null}
-								{String((transportKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transportKind = resolvedEntity.transportKind}
@@ -255,8 +222,6 @@
 			<ResourceBoundary
 				resource={selection.$connectionMethod}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(walletConnectionMethod)}
 					{#if walletConnectionMethod != null && walletConnectionMethod[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,19 +247,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									icon: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const icon = pendingEntity.icon}
-							{#if icon !== undefined && icon !== null}
-								{String((icon) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const icon = resolvedEntity.icon}
@@ -309,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rdns: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rdns = pendingEntity.rdns}
-					{#if rdns !== undefined && rdns !== null}
-						<div>
-							<dt>rdns</dt>
-							<dd>
-								{String((rdns) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rdns = resolvedEntity.rdns}
@@ -344,31 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							websiteUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const websiteUrl = pendingEntity.websiteUrl}
-					{#if websiteUrl !== undefined && websiteUrl !== null}
-						<div>
-							<dt>website URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(websiteUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(websiteUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const websiteUrl = resolvedEntity.websiteUrl}
@@ -396,19 +326,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									capabilities: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const capabilities = pendingEntity.capabilities}
-							{#if capabilities !== undefined && capabilities !== null}
-								{capabilities == null ? '' : String(((capabilities).join(', ')) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const capabilities = resolvedEntity.capabilities}
@@ -423,24 +347,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							adapterId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const adapterId = pendingEntity.adapterId}
-					{#if adapterId !== undefined && adapterId !== null}
-						<div>
-							<dt>adapter ID</dt>
-							<dd>
-								{String((adapterId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const adapterId = resolvedEntity.adapterId}
@@ -458,24 +371,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceWalletKey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceWalletKey = pendingEntity.sourceWalletKey}
-					{#if sourceWalletKey !== undefined && sourceWalletKey !== null}
-						<div>
-							<dt>source wallet key</dt>
-							<dd>
-								{String((sourceWalletKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceWalletKey = resolvedEntity.sourceWalletKey}
@@ -493,24 +395,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							detectedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const detectedAt = pendingEntity.detectedAt}
-					{#if detectedAt !== undefined && detectedAt !== null}
-						<div>
-							<dt>detected AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(detectedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const detectedAt = resolvedEntity.detectedAt}

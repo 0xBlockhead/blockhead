@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,7 +34,9 @@
 		{@const DetailView = XmtpNetworkView}
 
 		<DetailView
-			selection={select(EntityType.XmtpNetwork, data.selector)}
+			selection={select(EntityType.XmtpNetwork, data.selector, { sources: [
+	Source.Constants_Internal,
+] })}
 			href={resolve('/xmtp')}
 			layout={EntityLayout.SummaryInline}
 		/>

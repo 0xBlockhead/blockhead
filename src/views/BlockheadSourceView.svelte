@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,9 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadSource = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			label: true,
 			source: true,
@@ -75,29 +72,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSource}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSource}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadSource}>
-			{#snippet Pending()}
-				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSource}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,24 +102,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}
@@ -140,24 +126,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							provider: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const provider = pendingEntity.provider}
-					{#if provider !== undefined && provider !== null}
-						<div>
-							<dt>Provider</dt>
-							<dd>
-								{String((provider) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const provider = resolvedEntity.provider}
@@ -175,31 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endpointUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endpointUrl = pendingEntity.endpointUrl}
-					{#if endpointUrl !== undefined && endpointUrl !== null}
-						<div>
-							<dt>Endpoint URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endpointUrl = resolvedEntity.endpointUrl}
@@ -226,24 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transportKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transportKind = pendingEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
-						<div>
-							<dt>Transport</dt>
-							<dd>
-								{String((transportKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transportKind = resolvedEntity.transportKind}
@@ -261,24 +207,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authKind = pendingEntity.authKind}
-					{#if authKind !== undefined && authKind !== null}
-						<div>
-							<dt>Auth</dt>
-							<dd>
-								{String((authKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authKind = resolvedEntity.authKind}
@@ -296,24 +231,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							corsMode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const corsMode = pendingEntity.corsMode}
-					{#if corsMode !== undefined && corsMode !== null}
-						<div>
-							<dt>CORS</dt>
-							<dd>
-								{String((corsMode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const corsMode = resolvedEntity.corsMode}
@@ -331,24 +255,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proxyMode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proxyMode = pendingEntity.proxyMode}
-					{#if proxyMode !== undefined && proxyMode !== null}
-						<div>
-							<dt>Proxy</dt>
-							<dd>
-								{String((proxyMode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proxyMode = resolvedEntity.proxyMode}
@@ -366,24 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							environmentScope: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const environmentScope = pendingEntity.environmentScope}
-					{#if environmentScope !== undefined && environmentScope !== null}
-						<div>
-							<dt>Environment</dt>
-							<dd>
-								{String((environmentScope) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const environmentScope = resolvedEntity.environmentScope}

@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonWorkchain = $derived(selection({}))
+	const tonWorkchain = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON workchain')
 	const viewDomId = $derived('ton-workchain-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonWorkchain}>
-			{#snippet Pending()}
-				{title || 'TON workchain'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonWorkchain}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,19 +105,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									workchain: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const workchain = pendingEntity.workchain}
-							{#if workchain !== undefined && workchain !== null}
-								{String((workchain) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const workchain = resolvedEntity.workchain}
@@ -130,24 +126,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -165,24 +150,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							addressFormat: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const addressFormat = pendingEntity.addressFormat}
-					{#if addressFormat !== undefined && addressFormat !== null}
-						<div>
-							<dt>address format</dt>
-							<dd>
-								<TruncatedValue value={String((addressFormat) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const addressFormat = resolvedEntity.addressFormat}
@@ -200,24 +174,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionFormat: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionFormat = pendingEntity.transactionFormat}
-					{#if transactionFormat !== undefined && transactionFormat !== null}
-						<div>
-							<dt>transaction format</dt>
-							<dd>
-								{String((transactionFormat) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionFormat = resolvedEntity.transactionFormat}
@@ -235,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							virtualMachine: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const virtualMachine = pendingEntity.virtualMachine}
-					{#if virtualMachine !== undefined && virtualMachine !== null}
-						<div>
-							<dt>virtual machine</dt>
-							<dd>
-								{String((virtualMachine) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const virtualMachine = resolvedEntity.virtualMachine}

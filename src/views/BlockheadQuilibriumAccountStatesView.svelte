@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadQuilibriumAccountStateView from '$/views/BlockheadQuilibriumAccountStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					accountAddress: true,
-					$network: true,
-					accountKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumAccountState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadQuilibriumAccountState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				accountAddress: true,
+				$network: true,
+				accountKind: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadQuilibriumAccountStates) => [...new Map(blockheadQuilibriumAccountStates.values.map((blockheadQuilibriumAccountState) => [blockheadQuilibriumAccountState[EntityMetaKey.SelectorKey], blockheadQuilibriumAccountState])).values()]}
+	getKey={(blockheadQuilibriumAccountState) => blockheadQuilibriumAccountState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead quilibrium account states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadQuilibriumAccountStates)}
-			{@const uniqueBlockheadQuilibriumAccountStates = [...new Map(blockheadQuilibriumAccountStates.values.map((blockheadQuilibriumAccountState) => [blockheadQuilibriumAccountState[EntityMetaKey.SelectorKey], blockheadQuilibriumAccountState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumAccountState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadQuilibriumAccountStates.totalCount}
-				getKey={(blockheadQuilibriumAccountState) => blockheadQuilibriumAccountState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadQuilibriumAccountStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead quilibrium account states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadQuilibriumAccountState })}
-					{@const blockheadQuilibriumAccountStateFields = { ...blockheadQuilibriumAccountState[EntityMetaKey.Selector], ...blockheadQuilibriumAccountState }}
-					{@const selection = select(EntityType.BlockheadQuilibriumAccountState, blockheadQuilibriumAccountState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadQuilibriumAccountStateView
-						selection={selection}
-						prefetched={blockheadQuilibriumAccountStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadQuilibriumAccountState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadQuilibriumAccountState })}
+		{@const blockheadQuilibriumAccountStateFields = { ...blockheadQuilibriumAccountState[EntityMetaKey.Selector], ...blockheadQuilibriumAccountState }}
+		{@const selection = select(EntityType.BlockheadQuilibriumAccountState, blockheadQuilibriumAccountState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadQuilibriumAccountStateView
+			selection={selection}
+			prefetched={blockheadQuilibriumAccountStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

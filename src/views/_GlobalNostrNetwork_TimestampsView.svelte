@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalNostrNetwork_TimestampView from '$/views/_GlobalNostrNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					source: true,
-					reachable: true,
-					observedNoteCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalNostrNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalNostrNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				source: true,
+				reachable: true,
+				observedNoteCount: true,
+			},
+		})
+	}
+	getResourceItems={(globalNostrNetworkTimestamps) => [...new Map(globalNostrNetworkTimestamps.values.map((globalNostrNetworkTimestamp) => [globalNostrNetworkTimestamp[EntityMetaKey.SelectorKey], globalNostrNetworkTimestamp])).values()]}
+	getKey={(globalNostrNetworkTimestamp) => globalNostrNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global Nostr network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalNostrNetworkTimestamps)}
-			{@const uniqueGlobalNostrNetworkTimestamps = [...new Map(globalNostrNetworkTimestamps.values.map((globalNostrNetworkTimestamp) => [globalNostrNetworkTimestamp[EntityMetaKey.SelectorKey], globalNostrNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalNostrNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalNostrNetworkTimestamps.totalCount}
-				getKey={(globalNostrNetworkTimestamp) => globalNostrNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalNostrNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global Nostr network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalNostrNetworkTimestamp })}
-					{@const globalNostrNetworkTimestampFields = { ...globalNostrNetworkTimestamp[EntityMetaKey.Selector], ...globalNostrNetworkTimestamp }}
-					{@const selection = select(EntityType._GlobalNostrNetwork_Timestamp, globalNostrNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalNostrNetwork_TimestampView
-						selection={selection}
-						prefetched={globalNostrNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalNostrNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalNostrNetworkTimestamp })}
+		{@const globalNostrNetworkTimestampFields = { ...globalNostrNetworkTimestamp[EntityMetaKey.Selector], ...globalNostrNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalNostrNetwork_Timestamp, globalNostrNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalNostrNetwork_TimestampView
+			selection={selection}
+			prefetched={globalNostrNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

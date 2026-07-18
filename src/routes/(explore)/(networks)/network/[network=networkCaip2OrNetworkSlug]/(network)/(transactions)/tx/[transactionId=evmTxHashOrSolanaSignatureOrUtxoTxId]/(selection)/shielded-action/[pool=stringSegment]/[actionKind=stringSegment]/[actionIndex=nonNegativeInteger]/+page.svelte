@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 

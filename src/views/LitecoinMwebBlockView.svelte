@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const litecoinMwebBlock = $derived(selection({
-		sources: [
-			Source.LitecoinCore_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			hogExTransactionId: true,
 			kernelRoot: true,
@@ -74,11 +71,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={litecoinMwebBlock}>
-			{#snippet Pending()}
-				<UtxoBlockView
-					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<UtxoBlockView
+						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
+						href={
 						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
@@ -89,16 +85,16 @@
 							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<UtxoBlockView
-					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={litecoinMwebBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<UtxoBlockView
+						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
+						href={
 						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
@@ -109,47 +105,48 @@
 							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={litecoinMwebBlock}>
-			{#snippet Pending()}
-				{[String((pendingEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB block'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={litecoinMwebBlock}>
-			{#snippet Pending()}
-				{@const kernelRoot0 = pendingEntity.kernelRoot}
-				{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
-					<span data-text="muted">
-						{String((kernelRoot0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const kernelRoot0 = resolvedEntity.kernelRoot}
-				{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
-					<span data-text="muted">
-						{String((kernelRoot0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const kernelRoot0 = pendingEntity.kernelRoot}
+			{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
+				<span data-text="muted">
+					{String((kernelRoot0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={litecoinMwebBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const kernelRoot0 = resolvedEntity.kernelRoot}
+					{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
+						<span data-text="muted">
+							{String((kernelRoot0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -179,24 +176,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hogExTransactionId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hogExTransactionId = pendingEntity.hogExTransactionId}
-					{#if hogExTransactionId !== undefined && hogExTransactionId !== null}
-						<div>
-							<dt>hog ex transaction ID</dt>
-							<dd>
-								{String((hogExTransactionId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hogExTransactionId = resolvedEntity.hogExTransactionId}
@@ -214,24 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							kernelRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const kernelRoot = pendingEntity.kernelRoot}
-					{#if kernelRoot !== undefined && kernelRoot !== null}
-						<div>
-							<dt>kernel root</dt>
-							<dd>
-								{String((kernelRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const kernelRoot = resolvedEntity.kernelRoot}

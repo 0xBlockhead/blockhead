@@ -48,6 +48,9 @@
 					})
 				}
 				id='bridges'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

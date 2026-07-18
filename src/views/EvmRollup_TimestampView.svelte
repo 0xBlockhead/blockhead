@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmRollupTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			listingStage: true,
 		},
@@ -81,72 +82,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmRollupTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmRollupTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmRollupTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmRollupTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmRollupTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<EvmRollupView
-						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-						href={
-							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EvmRollupView
-						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-						href={
-							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<EvmRollupView
+					selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+					href={
+						(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+							projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+							projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+							network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={evmRollupTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<EvmRollupView
+							selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+							href={
+								(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+									projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+									projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+									network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,24 +155,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listingStage: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listingStage = pendingEntity.listingStage}
-					{#if listingStage !== undefined && listingStage !== null}
-						<div>
-							<dt>Listing stage</dt>
-							<dd>
-								{String((listingStage) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listingStage = resolvedEntity.listingStage}
@@ -189,24 +179,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isArchived: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isArchived = pendingEntity.isArchived}
-					{#if isArchived !== undefined && isArchived !== null}
-						<div>
-							<dt>Archived</dt>
-							<dd>
-								{isArchived ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isArchived = resolvedEntity.isArchived}
@@ -224,24 +203,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isUpcoming: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isUpcoming = pendingEntity.isUpcoming}
-					{#if isUpcoming !== undefined && isUpcoming !== null}
-						<div>
-							<dt>Upcoming</dt>
-							<dd>
-								{isUpcoming ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isUpcoming = resolvedEntity.isUpcoming}
@@ -259,24 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isUnderReview: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isUnderReview = pendingEntity.isUnderReview}
-					{#if isUnderReview !== undefined && isUnderReview !== null}
-						<div>
-							<dt>Under review</dt>
-							<dd>
-								{isUnderReview ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isUnderReview = resolvedEntity.isUnderReview}
@@ -299,19 +256,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -326,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceUpdatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceUpdatedAt = pendingEntity.sourceUpdatedAt}
-					{#if sourceUpdatedAt !== undefined && sourceUpdatedAt !== null}
-						<div>
-							<dt>Source updated at</dt>
-							<dd>
-								<Timestamp timestamp={Number(sourceUpdatedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceUpdatedAt = resolvedEntity.sourceUpdatedAt}
@@ -364,19 +304,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}

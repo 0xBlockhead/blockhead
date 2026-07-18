@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadQuilibriumNodeState_TimestampView from '$/views/BlockheadQuilibriumNodeState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					engineState: true,
-					latestFrameNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadQuilibriumNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				engineState: true,
+				latestFrameNumber: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadQuilibriumNodeStateTimestamps) => [...new Map(blockheadQuilibriumNodeStateTimestamps.values.map((blockheadQuilibriumNodeStateTimestamp) => [blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeStateTimestamp])).values()]}
+	getKey={(blockheadQuilibriumNodeStateTimestamp) => blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead quilibrium node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadQuilibriumNodeStateTimestamps)}
-			{@const uniqueBlockheadQuilibriumNodeStateTimestamps = [...new Map(blockheadQuilibriumNodeStateTimestamps.values.map((blockheadQuilibriumNodeStateTimestamp) => [blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadQuilibriumNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadQuilibriumNodeStateTimestamps.totalCount}
-				getKey={(blockheadQuilibriumNodeStateTimestamp) => blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadQuilibriumNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead quilibrium node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadQuilibriumNodeStateTimestamp })}
-					{@const blockheadQuilibriumNodeStateTimestampFields = { ...blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadQuilibriumNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadQuilibriumNodeState_Timestamp, blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadQuilibriumNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadQuilibriumNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadQuilibriumNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadQuilibriumNodeStateTimestamp })}
+		{@const blockheadQuilibriumNodeStateTimestampFields = { ...blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadQuilibriumNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadQuilibriumNodeState_Timestamp, blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadQuilibriumNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadQuilibriumNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

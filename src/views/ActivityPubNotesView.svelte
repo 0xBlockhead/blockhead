@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 </script>
@@ -62,86 +61,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					content: true,
-					localStatusId: true,
-					createdAt: true,
-					instanceOrigin: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ActivityPubNote}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				content: true,
+				localStatusId: true,
+				createdAt: true,
+				sensitive: true,
+				spoilerText: true,
+				instanceOrigin: true,
+			},
+		})
+	}
+	getResourceItems={(activityPubNotes) => [...new Map(activityPubNotes.values.map((activityPubNote) => [activityPubNote[EntityMetaKey.SelectorKey], activityPubNote])).values()]}
+	getKey={(activityPubNote) => activityPubNote[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ActivityPub notes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(activityPubNotes)}
-			{@const uniqueActivityPubNotes = [...new Map(activityPubNotes.values.map((activityPubNote) => [activityPubNote[EntityMetaKey.SelectorKey], activityPubNote])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubNotes.totalCount}
-				getKey={(activityPubNote) => activityPubNote[EntityMetaKey.SelectorKey]}
-				items={uniqueActivityPubNotes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ActivityPub notes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: activityPubNote })}
-					{@const activityPubNoteFields = { ...activityPubNote[EntityMetaKey.Selector], ...activityPubNote }}
-					{@const selection = select(EntityType.ActivityPubNote, activityPubNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const activityPubNoteHrefFields = { ...activityPubNote, ...activityPubNote[EntityMetaKey.Selector] }}
-					<ActivityPubNoteView
-						selection={selection}
-						prefetched={activityPubNoteFields}
-						href={
-							(activityPubNoteHrefFields.instanceOrigin !== undefined && activityPubNoteHrefFields.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-								instanceOrigin: String(activityPubNoteHrefFields.instanceOrigin ?? ''),
-								localStatusId: String(activityPubNoteHrefFields.localStatusId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ActivityPubNote}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: activityPubNote })}
+		{@const activityPubNoteFields = { ...activityPubNote[EntityMetaKey.Selector], ...activityPubNote }}
+		{@const selection = select(EntityType.ActivityPubNote, activityPubNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const activityPubNoteHrefFields = { ...activityPubNote, ...activityPubNote[EntityMetaKey.Selector] }}
+		<ActivityPubNoteView
+			selection={selection}
+			prefetched={activityPubNoteFields}
+			href={
+				(activityPubNoteHrefFields.instanceOrigin !== undefined && activityPubNoteHrefFields.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
+					instanceOrigin: encodeURIComponent(String(activityPubNoteHrefFields.instanceOrigin ?? '')),
+					localStatusId: String(activityPubNoteHrefFields.localStatusId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

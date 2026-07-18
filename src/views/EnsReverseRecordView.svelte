@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ensReverseRecord = $derived(selection({
-		sources: [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('ENS reverse record')
 	const viewDomId = $derived('ens-reverse-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -72,55 +68,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ensReverseRecord}>
-			{#snippet Pending()}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={ensReverseRecord}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ensReverseRecord}>
-			{#snippet Pending()}
-				<AccountView
-					selection={select(EntityType.Account, selection.entitySelector.$account)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AccountView
-					selection={select(EntityType.Account, selection.entitySelector.$account)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AccountView
+						selection={select(EntityType.Account, selection.entitySelector.$account)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={ensReverseRecord}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AccountView
+						selection={select(EntityType.Account, selection.entitySelector.$account)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,7 +139,7 @@
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
 							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-								ensName: String(selection.entitySelector.$name.name ?? ''),
+								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

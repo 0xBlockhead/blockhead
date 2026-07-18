@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiEventView from '$/views/SuiEventView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiEvent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiEvents) => [...new Map(suiEvents.values.map((suiEvent) => [suiEvent[EntityMetaKey.SelectorKey], suiEvent])).values()]}
+	getKey={(suiEvent) => suiEvent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui events yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiEvents)}
-			{@const uniqueSuiEvents = [...new Map(suiEvents.values.map((suiEvent) => [suiEvent[EntityMetaKey.SelectorKey], suiEvent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiEvents.totalCount}
-				getKey={(suiEvent) => suiEvent[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiEvents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui events yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiEvent })}
-					{@const suiEventFields = { ...suiEvent[EntityMetaKey.Selector], ...suiEvent }}
-					{@const selection = select(EntityType.SuiEvent, suiEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiEventView
-						selection={selection}
-						prefetched={suiEventFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiEvent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiEvent })}
+		{@const suiEventFields = { ...suiEvent[EntityMetaKey.Selector], ...suiEvent }}
+		{@const selection = select(EntityType.SuiEvent, suiEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiEventView
+			selection={selection}
+			prefetched={suiEventFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

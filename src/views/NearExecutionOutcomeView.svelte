@@ -42,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nearExecutionOutcome = $derived(selection({
-		sources: [
-			Source.NearRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 			gasBurnt: true,
@@ -74,58 +72,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nearExecutionOutcome}>
-			{#snippet Pending()}
-				{@const outcomeId0 = pendingEntity.outcomeId}
-				{#if outcomeId0 !== undefined && outcomeId0 !== null}
-					<TruncatedValue value={String((outcomeId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const outcomeId0 = resolvedEntity.outcomeId}
-				{#if outcomeId0 !== undefined && outcomeId0 !== null}
-					<TruncatedValue value={String((outcomeId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const outcomeId0 = pendingEntity.outcomeId}
+					{#if outcomeId0 !== undefined && outcomeId0 !== null}
+						<TruncatedValue value={String((outcomeId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nearExecutionOutcome}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const outcomeId0 = resolvedEntity.outcomeId}
+					{#if outcomeId0 !== undefined && outcomeId0 !== null}
+						<TruncatedValue value={String((outcomeId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nearExecutionOutcome}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || title || 'near execution outcome'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={nearExecutionOutcome}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nearExecutionOutcome}>
-			{#snippet Pending()}
-				{@const gasBurnt0 = pendingEntity.gasBurnt}
-				{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(gasBurnt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const gasBurnt0 = resolvedEntity.gasBurnt}
-				{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(gasBurnt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const gasBurnt0 = pendingEntity.gasBurnt}
+			{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={gasBurnt0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={nearExecutionOutcome}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const gasBurnt0 = resolvedEntity.gasBurnt}
+					{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={gasBurnt0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,19 +149,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									outcomeId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const outcomeId = pendingEntity.outcomeId}
-							{#if outcomeId !== undefined && outcomeId !== null}
-								<TruncatedValue value={String((outcomeId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const outcomeId = resolvedEntity.outcomeId}
@@ -174,27 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							status: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const status = pendingEntity.status}
-					{#if status !== undefined && status !== null}
-						<div>
-							<dt>Status</dt>
-							<dd>
-								{String((status) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const status = resolvedEntity.status}
@@ -212,27 +194,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.NearRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							gasBurnt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasBurnt = pendingEntity.gasBurnt}
-					{#if gasBurnt !== undefined && gasBurnt !== null}
-						<div>
-							<dt>Gas burnt</dt>
-							<dd>
-								<NumberValue value={Number(gasBurnt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasBurnt = resolvedEntity.gasBurnt}
@@ -240,7 +208,9 @@
 						<div>
 							<dt>Gas burnt</dt>
 							<dd>
-								<NumberValue value={Number(gasBurnt)} />
+								<NumberValue
+									value={gasBurnt}
+								/>
 							</dd>
 						</div>
 					{/if}

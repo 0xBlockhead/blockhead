@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalIpfsAccess_TimestampView from '$/views/_GlobalIpfsAccess_TimestampView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$hub: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalIpfsAccess_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalIpfsAccess_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$hub: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(globalIpfsAccessTimestamps) => [...new Map(globalIpfsAccessTimestamps.values.map((globalIpfsAccessTimestamp) => [globalIpfsAccessTimestamp[EntityMetaKey.SelectorKey], globalIpfsAccessTimestamp])).values()]}
+	getKey={(globalIpfsAccessTimestamp) => globalIpfsAccessTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global IPFS access observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalIpfsAccessTimestamps)}
-			{@const uniqueGlobalIpfsAccessTimestamps = [...new Map(globalIpfsAccessTimestamps.values.map((globalIpfsAccessTimestamp) => [globalIpfsAccessTimestamp[EntityMetaKey.SelectorKey], globalIpfsAccessTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalIpfsAccess_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalIpfsAccessTimestamps.totalCount}
-				getKey={(globalIpfsAccessTimestamp) => globalIpfsAccessTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalIpfsAccessTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global IPFS access observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalIpfsAccessTimestamp })}
-					{@const globalIpfsAccessTimestampFields = { ...globalIpfsAccessTimestamp[EntityMetaKey.Selector], ...globalIpfsAccessTimestamp }}
-					{@const selection = select(EntityType._GlobalIpfsAccess_Timestamp, globalIpfsAccessTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const globalIpfsAccessTimestampHrefFields = { ...globalIpfsAccessTimestamp, ...globalIpfsAccessTimestamp[EntityMetaKey.Selector] }}
-					<GlobalIpfsAccess_TimestampView
-						selection={selection}
-						prefetched={globalIpfsAccessTimestampFields}
-						href={
-							(globalIpfsAccessTimestampHrefFields.timestampMs !== undefined && globalIpfsAccessTimestampHrefFields.source !== undefined ? resolve('/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(globalIpfsAccessTimestampHrefFields.timestampMs ?? ''),
-								source: String(globalIpfsAccessTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalIpfsAccess_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalIpfsAccessTimestamp })}
+		{@const globalIpfsAccessTimestampFields = { ...globalIpfsAccessTimestamp[EntityMetaKey.Selector], ...globalIpfsAccessTimestamp }}
+		{@const selection = select(EntityType._GlobalIpfsAccess_Timestamp, globalIpfsAccessTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const globalIpfsAccessTimestampHrefFields = { ...globalIpfsAccessTimestamp, ...globalIpfsAccessTimestamp[EntityMetaKey.Selector] }}
+		<GlobalIpfsAccess_TimestampView
+			selection={selection}
+			prefetched={globalIpfsAccessTimestampFields}
+			href={
+				(globalIpfsAccessTimestampHrefFields.timestampMs !== undefined && globalIpfsAccessTimestampHrefFields.source !== undefined ? resolve('/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(globalIpfsAccessTimestampHrefFields.timestampMs ?? ''),
+					source: String(globalIpfsAccessTimestampHrefFields.source ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

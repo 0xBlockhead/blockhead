@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TronAccountTokenBalance_TimestampView from '$/views/TronAccountTokenBalance_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronAccountTokenBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TronAccountTokenBalance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tronAccountTokenBalanceTimestamps) => [...new Map(tronAccountTokenBalanceTimestamps.values.map((tronAccountTokenBalanceTimestamp) => [tronAccountTokenBalanceTimestamp[EntityMetaKey.SelectorKey], tronAccountTokenBalanceTimestamp])).values()]}
+	getKey={(tronAccountTokenBalanceTimestamp) => tronAccountTokenBalanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tron account token balance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tronAccountTokenBalanceTimestamps)}
-			{@const uniqueTronAccountTokenBalanceTimestamps = [...new Map(tronAccountTokenBalanceTimestamps.values.map((tronAccountTokenBalanceTimestamp) => [tronAccountTokenBalanceTimestamp[EntityMetaKey.SelectorKey], tronAccountTokenBalanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronAccountTokenBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tronAccountTokenBalanceTimestamps.totalCount}
-				getKey={(tronAccountTokenBalanceTimestamp) => tronAccountTokenBalanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTronAccountTokenBalanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tron account token balance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tronAccountTokenBalanceTimestamp })}
-					{@const tronAccountTokenBalanceTimestampFields = { ...tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], ...tronAccountTokenBalanceTimestamp }}
-					{@const selection = select(EntityType.TronAccountTokenBalance_Timestamp, tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TronAccountTokenBalance_TimestampView
-						selection={selection}
-						prefetched={tronAccountTokenBalanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TronAccountTokenBalance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tronAccountTokenBalanceTimestamp })}
+		{@const tronAccountTokenBalanceTimestampFields = { ...tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], ...tronAccountTokenBalanceTimestamp }}
+		{@const selection = select(EntityType.TronAccountTokenBalance_Timestamp, tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TronAccountTokenBalance_TimestampView
+			selection={selection}
+			prefetched={tronAccountTokenBalanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

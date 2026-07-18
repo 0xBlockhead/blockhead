@@ -52,6 +52,32 @@ const contactEndpointFromDetail = (
 		.find((endpoint) => endpoint != null && endpoint !== '')
 )
 
+const servicesFromDetail = (
+	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>
+) => (
+	Object.entries(row.services ?? {}).flatMap(([wireKind, service]) => {
+		const endpointKind = wireKind.trim()
+		const endpointUrl = service.endpoint?.trim()
+		if (endpointKind === '' || endpointUrl == null || endpointUrl === '')
+			return []
+
+		return [{
+			endpointKind,
+			endpointUrl,
+			...(service.name != null && service.name.trim() !== '' && {
+				name: service.name.trim(),
+			}),
+			...(service.version != null && service.version.trim() !== '' && {
+				version: service.version.trim(),
+			}),
+			...(service.protocol != null && service.protocol.trim() !== '' && {
+				protocolKind: service.protocol.trim(),
+			}),
+			...(service.active != null && { active: service.active }),
+		}]
+	})
+)
+
 const agentUriFromDetail = (
 	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>
 ): string | undefined => {
@@ -113,6 +139,7 @@ export const fetchAgentDetail = async ({
 		...listRow,
 		agentUri,
 		fetchedAt: Date.now(),
+		services: servicesFromDetail(row),
 		...(row.name != null && row.name !== '' && { name: row.name }),
 		...(row.description != null && row.description !== '' && { description: row.description }),
 		...(row.image_url != null && row.image_url !== '' && { image: row.image_url }),

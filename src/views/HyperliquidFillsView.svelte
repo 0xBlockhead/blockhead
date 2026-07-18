@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidFillView from '$/views/HyperliquidFillView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidFill}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidFill}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidFills) => [...new Map(hyperliquidFills.values.map((hyperliquidFill) => [hyperliquidFill[EntityMetaKey.SelectorKey], hyperliquidFill])).values()]}
+	getKey={(hyperliquidFill) => hyperliquidFill[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid fills yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidFills)}
-			{@const uniqueHyperliquidFills = [...new Map(hyperliquidFills.values.map((hyperliquidFill) => [hyperliquidFill[EntityMetaKey.SelectorKey], hyperliquidFill])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidFill}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidFills.totalCount}
-				getKey={(hyperliquidFill) => hyperliquidFill[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidFills}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid fills yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidFill })}
-					{@const hyperliquidFillFields = { ...hyperliquidFill[EntityMetaKey.Selector], ...hyperliquidFill }}
-					{@const selection = select(EntityType.HyperliquidFill, hyperliquidFill[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidFillView
-						selection={selection}
-						prefetched={hyperliquidFillFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidFill}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidFill })}
+		{@const hyperliquidFillFields = { ...hyperliquidFill[EntityMetaKey.Selector], ...hyperliquidFill }}
+		{@const selection = select(EntityType.HyperliquidFill, hyperliquidFill[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidFillView
+			selection={selection}
+			prefetched={hyperliquidFillFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

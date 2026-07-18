@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearExecutionOutcomeView from '$/views/NearExecutionOutcomeView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					outcomeId: true,
-					status: true,
-					gasBurnt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearExecutionOutcome}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearExecutionOutcome}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				outcomeId: true,
+				status: true,
+				gasBurnt: true,
+			},
+		})
+	}
+	getResourceItems={(nearExecutionOutcomes) => [...new Map(nearExecutionOutcomes.values.map((nearExecutionOutcome) => [nearExecutionOutcome[EntityMetaKey.SelectorKey], nearExecutionOutcome])).values()]}
+	getKey={(nearExecutionOutcome) => nearExecutionOutcome[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near execution outcomes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearExecutionOutcomes)}
-			{@const uniqueNearExecutionOutcomes = [...new Map(nearExecutionOutcomes.values.map((nearExecutionOutcome) => [nearExecutionOutcome[EntityMetaKey.SelectorKey], nearExecutionOutcome])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearExecutionOutcome}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearExecutionOutcomes.totalCount}
-				getKey={(nearExecutionOutcome) => nearExecutionOutcome[EntityMetaKey.SelectorKey]}
-				items={uniqueNearExecutionOutcomes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near execution outcomes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearExecutionOutcome })}
-					{@const nearExecutionOutcomeFields = { ...nearExecutionOutcome[EntityMetaKey.Selector], ...nearExecutionOutcome }}
-					{@const selection = select(EntityType.NearExecutionOutcome, nearExecutionOutcome[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearExecutionOutcomeView
-						selection={selection}
-						prefetched={nearExecutionOutcomeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearExecutionOutcome}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearExecutionOutcome })}
+		{@const nearExecutionOutcomeFields = { ...nearExecutionOutcome[EntityMetaKey.Selector], ...nearExecutionOutcome }}
+		{@const selection = select(EntityType.NearExecutionOutcome, nearExecutionOutcome[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearExecutionOutcomeView
+			selection={selection}
+			prefetched={nearExecutionOutcomeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

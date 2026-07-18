@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const liquidityPool = $derived(selection({
-		sources: [
-			Source.Dexscreener_OpenApi,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool')
 	const viewDomId = $derived('liquidity-pool-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -82,80 +80,80 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet Pending()}
-				{@const id0 = pendingEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const id0 = pendingEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={liquidityPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const id0 = resolvedEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet Pending()}
-				{@const id0 = pendingEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const id0 = pendingEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={liquidityPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const id0 = resolvedEntity.id}
+					{#if id0 !== undefined && id0 !== null}
+						<TruncatedValue value={String((id0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={liquidityPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -184,19 +182,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								<TruncatedValue value={String((id) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}
@@ -219,8 +211,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -256,8 +246,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -287,8 +275,6 @@
 			<ResourceBoundary
 				resource={selection.$hooks}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -320,24 +306,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fee = pendingEntity.fee}
-					{#if fee !== undefined && fee !== null}
-						<div>
-							<dt>Fee</dt>
-							<dd>
-								<NumberValue value={Number(fee)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fee = resolvedEntity.fee}
@@ -345,7 +320,9 @@
 						<div>
 							<dt>Fee</dt>
 							<dd>
-								<NumberValue value={Number(fee)} />
+								<NumberValue
+									value={fee}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -355,24 +332,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tickSpacing: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tickSpacing = pendingEntity.tickSpacing}
-					{#if tickSpacing !== undefined && tickSpacing !== null}
-						<div>
-							<dt>Tick spacing</dt>
-							<dd>
-								<NumberValue value={Number(tickSpacing)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tickSpacing = resolvedEntity.tickSpacing}
@@ -380,7 +346,9 @@
 						<div>
 							<dt>Tick spacing</dt>
 							<dd>
-								<NumberValue value={Number(tickSpacing)} />
+								<NumberValue
+									value={tickSpacing}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -390,24 +358,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							v4PoolId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const v4PoolId = pendingEntity.v4PoolId}
-					{#if v4PoolId !== undefined && v4PoolId !== null}
-						<div>
-							<dt>v4 pool ID</dt>
-							<dd>
-								<TruncatedValue value={String((v4PoolId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const v4PoolId = resolvedEntity.v4PoolId}
@@ -443,11 +400,8 @@
 				}
 				data-card
 				class='network-view-collapsible-state'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>State</HeadingComponent>
 					</header>
@@ -455,12 +409,12 @@
 
 				{#snippet SectionLiquidityPoolBlocks({ id, label, open })}
 					<LiquidityPool_BlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No liquidity pool blocks yet.'
 						open={open}
 						title={label}
@@ -470,12 +424,12 @@
 
 				{#snippet SectionLiquidityPoolLeverages({ id, label, open })}
 					<LeveragesView
-						selection={
-							selection.$$leverages({
-								count: true,
-							})
-						}
+						selection={selection.$$leverages}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No leverage positions yet.'
 						open={open}
 						title={label}
@@ -498,11 +452,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -515,10 +466,13 @@
 								sources: [
 									Source.Dexscreener_OpenApi,
 								],
-								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No liquidity pool observations yet.'
 						open={open}
 						title={label}

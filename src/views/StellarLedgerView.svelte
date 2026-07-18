@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarLedger = $derived(selection({}))
+	const stellarLedger = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar ledger')
 	const viewDomId = $derived('stellar-ledger-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarLedger}>
-			{#snippet Pending()}
-				{title || 'stellar ledger'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarLedger}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sequence: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sequence = pendingEntity.sequence}
-							{#if sequence !== undefined && sequence !== null}
-								{String((sequence) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sequence = resolvedEntity.sequence}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hash = resolvedEntity.hash}
@@ -156,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							closeTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const closeTimeMs = pendingEntity.closeTimeMs}
-					{#if closeTimeMs !== undefined && closeTimeMs !== null}
-						<div>
-							<dt>close time ms</dt>
-							<dd>
-								{String((closeTimeMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const closeTimeMs = resolvedEntity.closeTimeMs}
@@ -191,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolVersion = pendingEntity.protocolVersion}
-					{#if protocolVersion !== undefined && protocolVersion !== null}
-						<div>
-							<dt>protocol version</dt>
-							<dd>
-								{String((protocolVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolVersion = resolvedEntity.protocolVersion}
@@ -226,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>transaction count</dt>
-							<dd>
-								{String((transactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}
@@ -261,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							operationCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const operationCount = pendingEntity.operationCount}
-					{#if operationCount !== undefined && operationCount !== null}
-						<div>
-							<dt>operation count</dt>
-							<dd>
-								{String((operationCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const operationCount = resolvedEntity.operationCount}
@@ -296,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							successfulTransactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const successfulTransactionCount = pendingEntity.successfulTransactionCount}
-					{#if successfulTransactionCount !== undefined && successfulTransactionCount !== null}
-						<div>
-							<dt>successful transaction count</dt>
-							<dd>
-								{String((successfulTransactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const successfulTransactionCount = resolvedEntity.successfulTransactionCount}
@@ -331,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							failedTransactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const failedTransactionCount = pendingEntity.failedTransactionCount}
-					{#if failedTransactionCount !== undefined && failedTransactionCount !== null}
-						<div>
-							<dt>failed transaction count</dt>
-							<dd>
-								{String((failedTransactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const failedTransactionCount = resolvedEntity.failedTransactionCount}

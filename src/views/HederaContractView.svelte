@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaContract = $derived(selection({}))
+	const hederaContract = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera contract')
 	const viewDomId = $derived('hedera-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaContract}>
-			{#snippet Pending()}
-				{title || 'hedera contract'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -109,19 +111,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									contractId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const contractId = pendingEntity.contractId}
-							{#if contractId !== undefined && contractId !== null}
-								{String((contractId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const contractId = resolvedEntity.contractId}
@@ -136,24 +132,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							evmAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const evmAddress = pendingEntity.evmAddress}
-					{#if evmAddress !== undefined && evmAddress !== null}
-						<div>
-							<dt>EVM address</dt>
-							<dd>
-								<TruncatedValue value={String((evmAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const evmAddress = resolvedEntity.evmAddress}
@@ -171,24 +156,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdTimestamp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdTimestamp = pendingEntity.createdTimestamp}
-					{#if createdTimestamp !== undefined && createdTimestamp !== null}
-						<div>
-							<dt>created timestamp</dt>
-							<dd>
-								{String((createdTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdTimestamp = resolvedEntity.createdTimestamp}
@@ -228,11 +202,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -240,12 +211,12 @@
 
 				{#snippet SectionHederaContractResults({ id, label, open })}
 					<HederaContractResultsView
-						selection={
-							selection.$$results({
-								count: true,
-							})
-						}
+						selection={selection.$$results}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No results.'
 						open={open}
 						title={label}
@@ -255,12 +226,12 @@
 
 				{#snippet SectionHederaContractLogs({ id, label, open })}
 					<HederaContractLogsView
-						selection={
-							selection.$$logs({
-								count: true,
-							})
-						}
+						selection={selection.$$logs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No logs.'
 						open={open}
 						title={label}
@@ -270,12 +241,12 @@
 
 				{#snippet SectionHederaContractState({ id, label, open })}
 					<HederaContractState_TimestampsView
-						selection={
-							selection.$$state({
-								count: true,
-							})
-						}
+						selection={selection.$$state}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No state.'
 						open={open}
 						title={label}
@@ -298,11 +269,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -310,12 +278,12 @@
 
 				{#snippet SectionHederaContractTimestamps({ id, label, open })}
 					<HederaContract_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

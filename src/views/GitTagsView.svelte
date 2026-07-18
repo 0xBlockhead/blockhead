@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitTagView from '$/views/GitTagView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					tagName: true,
-					objectId: true,
-					targetKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitTag}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitTag}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				tagName: true,
+				objectId: true,
+				targetKind: true,
+			},
+		})
+	}
+	getResourceItems={(gitTags) => [...new Map(gitTags.values.map((gitTag) => [gitTag[EntityMetaKey.SelectorKey], gitTag])).values()]}
+	getKey={(gitTag) => gitTag[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git tags yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitTags)}
-			{@const uniqueGitTags = [...new Map(gitTags.values.map((gitTag) => [gitTag[EntityMetaKey.SelectorKey], gitTag])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitTag}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitTags.totalCount}
-				getKey={(gitTag) => gitTag[EntityMetaKey.SelectorKey]}
-				items={uniqueGitTags}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git tags yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitTag })}
-					{@const gitTagFields = { ...gitTag[EntityMetaKey.Selector], ...gitTag }}
-					{@const selection = select(EntityType.GitTag, gitTag[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitTagView
-						selection={selection}
-						prefetched={gitTagFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitTag}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitTag })}
+		{@const gitTagFields = { ...gitTag[EntityMetaKey.Selector], ...gitTag }}
+		{@const selection = select(EntityType.GitTag, gitTag[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitTagView
+			selection={selection}
+			prefetched={gitTagFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

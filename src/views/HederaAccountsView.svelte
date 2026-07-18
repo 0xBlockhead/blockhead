@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaAccounts) => [...new Map(hederaAccounts.values.map((hederaAccount) => [hederaAccount[EntityMetaKey.SelectorKey], hederaAccount])).values()]}
+	getKey={(hederaAccount) => hederaAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaAccounts)}
-			{@const uniqueHederaAccounts = [...new Map(hederaAccounts.values.map((hederaAccount) => [hederaAccount[EntityMetaKey.SelectorKey], hederaAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaAccounts.totalCount}
-				getKey={(hederaAccount) => hederaAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaAccount })}
-					{@const hederaAccountFields = { ...hederaAccount[EntityMetaKey.Selector], ...hederaAccount }}
-					{@const selection = select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaAccountView
-						selection={selection}
-						prefetched={hederaAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaAccount })}
+		{@const hederaAccountFields = { ...hederaAccount[EntityMetaKey.Selector], ...hederaAccount }}
+		{@const selection = select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaAccountView
+			selection={selection}
+			prefetched={hederaAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

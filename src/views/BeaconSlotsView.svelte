@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					slot: true,
-					$epoch: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconSlot}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BeaconSlot}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				slot: true,
+				$epoch: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(beaconSlots) => [...new Map(beaconSlots.values.map((beaconSlot) => [beaconSlot[EntityMetaKey.SelectorKey], beaconSlot])).values()]}
+	getKey={(beaconSlot) => beaconSlot[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Beacon slots yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(beaconSlots)}
-			{@const uniqueBeaconSlots = [...new Map(beaconSlots.values.map((beaconSlot) => [beaconSlot[EntityMetaKey.SelectorKey], beaconSlot])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconSlot}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconSlots.totalCount}
-				getKey={(beaconSlot) => beaconSlot[EntityMetaKey.SelectorKey]}
-				items={uniqueBeaconSlots}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Beacon slots yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: beaconSlot })}
-					{@const beaconSlotFields = { ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }}
-					{@const selection = select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const beaconSlotHrefFields = { ...beaconSlot, ...beaconSlot[EntityMetaKey.Selector] }}
-					<BeaconSlotView
-						selection={selection}
-						prefetched={beaconSlotFields}
-						href={
-							(beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-								slot: String(beaconSlotHrefFields.slot ?? ''),
-								network: String(caip2StringFromValue(beaconSlotHrefFields.$network.caip2) ?? ''),
-							}) : beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-								slot: String(beaconSlotHrefFields.slot ?? ''),
-								network: String(beaconSlotHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BeaconSlot}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: beaconSlot })}
+		{@const beaconSlotFields = { ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }}
+		{@const selection = select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const beaconSlotHrefFields = { ...beaconSlot, ...beaconSlot[EntityMetaKey.Selector] }}
+		<BeaconSlotView
+			selection={selection}
+			prefetched={beaconSlotFields}
+			href={
+				(beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+					slot: String(beaconSlotHrefFields.slot ?? ''),
+					network: String(caip2StringFromValue(beaconSlotHrefFields.$network.caip2) ?? ''),
+				}) : beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+					slot: String(beaconSlotHrefFields.slot ?? ''),
+					network: String(beaconSlotHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

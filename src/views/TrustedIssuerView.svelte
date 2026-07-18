@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const trustedIssuer = $derived(selection({}))
+	const trustedIssuer = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('trusted issuer')
 	const viewDomId = $derived('trusted-issuer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={trustedIssuer}>
-			{#snippet Pending()}
-				{title || 'trusted issuer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={trustedIssuer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									issuerKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const issuerKey = pendingEntity.issuerKey}
-							{#if issuerKey !== undefined && issuerKey !== null}
-								<TruncatedValue value={String((issuerKey) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const issuerKey = resolvedEntity.issuerKey}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									claimTopics: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const claimTopics = pendingEntity.claimTopics}
-							{#if claimTopics !== undefined && claimTopics !== null}
-								{claimTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const claimTopics = resolvedEntity.claimTopics}

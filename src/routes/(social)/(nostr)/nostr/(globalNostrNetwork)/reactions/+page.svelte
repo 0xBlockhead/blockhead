@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,9 +30,16 @@
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
 			}).$$observedReactions({
+				sources: [
+					Source.NostrBand_Rest,
+					Source.Primal_Rest,
+				],
 				count: true,
 			})
 		}
 		id='observed-reactions'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

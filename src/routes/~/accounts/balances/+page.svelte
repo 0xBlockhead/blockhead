@@ -3,17 +3,16 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import WalletAccountPortfolio from '$/components/WalletAccountPortfolio.svelte'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
 </script>
 
 
@@ -23,19 +22,7 @@
 
 
 <Page>
-	<EvmNetworkActorCoinBalancesView
-		href={resolve('/~/accounts/balances')}
-		title='Balances'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$actorCoins',
-			}).$$actorCoins({
-				sources: [
-					Source.Allium_Rest,
-				],
-				count: true,
-			})
-		}
-		id='actor-coins'
-	/>
+	<HeadingComponent>Balances</HeadingComponent>
+
+	<WalletAccountPortfolio id='account-balances' />
 </Page>

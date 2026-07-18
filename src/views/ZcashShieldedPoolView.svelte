@@ -44,6 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zcashShieldedPool = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			noteProtocol: true,
 			activationNetworkUpgrade: true,
@@ -78,52 +79,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zcashShieldedPool}>
-			{#snippet Pending()}
-				{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded pool'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zcashShieldedPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zcashShieldedPool}>
-			{#snippet Pending()}
-				{[String((pendingEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded pool'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zcashShieldedPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zcashShieldedPool}>
-			{#snippet Pending()}
-				{@const activationNetworkUpgrade0 = pendingEntity.activationNetworkUpgrade}
-				{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
-					<span data-text="muted">
-						{String((activationNetworkUpgrade0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const activationNetworkUpgrade0 = resolvedEntity.activationNetworkUpgrade}
-				{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
-					<span data-text="muted">
-						{String((activationNetworkUpgrade0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const activationNetworkUpgrade0 = pendingEntity.activationNetworkUpgrade}
+			{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
+				<span data-text="muted">
+					{String((activationNetworkUpgrade0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zcashShieldedPool}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationNetworkUpgrade0 = resolvedEntity.activationNetworkUpgrade}
+					{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
+						<span data-text="muted">
+							{String((activationNetworkUpgrade0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,19 +135,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pool: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pool = pendingEntity.pool}
-							{#if pool !== undefined && pool !== null}
-								{String((pool) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pool = resolvedEntity.pool}
@@ -158,75 +153,53 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							noteProtocol: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const noteProtocol = pendingEntity.noteProtocol}
-					{#if noteProtocol !== undefined && noteProtocol !== null}
-						<div>
-							<dt>Note protocol</dt>
-							<dd>
+			<div>
+				<dt>Note protocol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									noteProtocol: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const noteProtocol = resolvedEntity.noteProtocol}
+							{#if noteProtocol !== undefined && noteProtocol !== null}
 								{String((noteProtocol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const noteProtocol = resolvedEntity.noteProtocol}
-					{#if noteProtocol !== undefined && noteProtocol !== null}
-						<div>
-							<dt>Note protocol</dt>
-							<dd>
-								{String((noteProtocol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							activationNetworkUpgrade: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const activationNetworkUpgrade = pendingEntity.activationNetworkUpgrade}
-					{#if activationNetworkUpgrade !== undefined && activationNetworkUpgrade !== null}
-						<div>
-							<dt>Activation network upgrade</dt>
-							<dd>
+			<div>
+				<dt>Activation network upgrade</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									activationNetworkUpgrade: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const activationNetworkUpgrade = resolvedEntity.activationNetworkUpgrade}
+							{#if activationNetworkUpgrade !== undefined && activationNetworkUpgrade !== null}
 								{String((activationNetworkUpgrade) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationNetworkUpgrade = resolvedEntity.activationNetworkUpgrade}
-					{#if activationNetworkUpgrade !== undefined && activationNetworkUpgrade !== null}
-						<div>
-							<dt>Activation network upgrade</dt>
-							<dd>
-								{String((activationNetworkUpgrade) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Network</dt>

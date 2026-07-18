@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWakuNodeState_TimestampView from '$/views/BlockheadWakuNodeState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					peerCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWakuNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				peerCount: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWakuNodeStateTimestamps) => [...new Map(blockheadWakuNodeStateTimestamps.values.map((blockheadWakuNodeStateTimestamp) => [blockheadWakuNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadWakuNodeStateTimestamp])).values()]}
+	getKey={(blockheadWakuNodeStateTimestamp) => blockheadWakuNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead waku node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWakuNodeStateTimestamps)}
-			{@const uniqueBlockheadWakuNodeStateTimestamps = [...new Map(blockheadWakuNodeStateTimestamps.values.map((blockheadWakuNodeStateTimestamp) => [blockheadWakuNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadWakuNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWakuNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWakuNodeStateTimestamps.totalCount}
-				getKey={(blockheadWakuNodeStateTimestamp) => blockheadWakuNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWakuNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead waku node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWakuNodeStateTimestamp })}
-					{@const blockheadWakuNodeStateTimestampFields = { ...blockheadWakuNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadWakuNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadWakuNodeState_Timestamp, blockheadWakuNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWakuNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadWakuNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWakuNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWakuNodeStateTimestamp })}
+		{@const blockheadWakuNodeStateTimestampFields = { ...blockheadWakuNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadWakuNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadWakuNodeState_Timestamp, blockheadWakuNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWakuNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadWakuNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

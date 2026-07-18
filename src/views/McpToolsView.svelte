@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpToolView from '$/views/McpToolView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					$server: true,
-					name: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpTool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpTool}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				$server: true,
+				name: true,
+			},
+		})
+	}
+	getResourceItems={(mcpTools) => [...new Map(mcpTools.values.map((mcpTool) => [mcpTool[EntityMetaKey.SelectorKey], mcpTool])).values()]}
+	getKey={(mcpTool) => mcpTool[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp tools yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpTools)}
-			{@const uniqueMcpTools = [...new Map(mcpTools.values.map((mcpTool) => [mcpTool[EntityMetaKey.SelectorKey], mcpTool])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpTool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpTools.totalCount}
-				getKey={(mcpTool) => mcpTool[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpTools}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp tools yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpTool })}
-					{@const mcpToolFields = { ...mcpTool[EntityMetaKey.Selector], ...mcpTool }}
-					{@const selection = select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpToolView
-						selection={selection}
-						prefetched={mcpToolFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpTool}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpTool })}
+		{@const mcpToolFields = { ...mcpTool[EntityMetaKey.Selector], ...mcpTool }}
+		{@const selection = select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpToolView
+			selection={selection}
+			prefetched={mcpToolFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

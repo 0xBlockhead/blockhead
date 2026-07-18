@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadMoneroSubaddressState_TimestampView from '$/views/BlockheadMoneroSubaddressState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balanceAtomicUnits: true,
-					used: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroSubaddressState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadMoneroSubaddressState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balanceAtomicUnits: true,
+				used: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadMoneroSubaddressStateTimestamps) => [...new Map(blockheadMoneroSubaddressStateTimestamps.values.map((blockheadMoneroSubaddressStateTimestamp) => [blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroSubaddressStateTimestamp])).values()]}
+	getKey={(blockheadMoneroSubaddressStateTimestamp) => blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead monero subaddress state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadMoneroSubaddressStateTimestamps)}
-			{@const uniqueBlockheadMoneroSubaddressStateTimestamps = [...new Map(blockheadMoneroSubaddressStateTimestamps.values.map((blockheadMoneroSubaddressStateTimestamp) => [blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroSubaddressStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroSubaddressState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadMoneroSubaddressStateTimestamps.totalCount}
-				getKey={(blockheadMoneroSubaddressStateTimestamp) => blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadMoneroSubaddressStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead monero subaddress state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadMoneroSubaddressStateTimestamp })}
-					{@const blockheadMoneroSubaddressStateTimestampFields = { ...blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroSubaddressStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadMoneroSubaddressState_Timestamp, blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadMoneroSubaddressState_TimestampView
-						selection={selection}
-						prefetched={blockheadMoneroSubaddressStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadMoneroSubaddressState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadMoneroSubaddressStateTimestamp })}
+		{@const blockheadMoneroSubaddressStateTimestampFields = { ...blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroSubaddressStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadMoneroSubaddressState_Timestamp, blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadMoneroSubaddressState_TimestampView
+			selection={selection}
+			prefetched={blockheadMoneroSubaddressStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaNode_TimestampView from '$/views/HederaNode_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaNode_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaNodeTimestamps) => [...new Map(hederaNodeTimestamps.values.map((hederaNodeTimestamp) => [hederaNodeTimestamp[EntityMetaKey.SelectorKey], hederaNodeTimestamp])).values()]}
+	getKey={(hederaNodeTimestamp) => hederaNodeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera node observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaNodeTimestamps)}
-			{@const uniqueHederaNodeTimestamps = [...new Map(hederaNodeTimestamps.values.map((hederaNodeTimestamp) => [hederaNodeTimestamp[EntityMetaKey.SelectorKey], hederaNodeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaNode_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaNodeTimestamps.totalCount}
-				getKey={(hederaNodeTimestamp) => hederaNodeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaNodeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera node observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaNodeTimestamp })}
-					{@const hederaNodeTimestampFields = { ...hederaNodeTimestamp[EntityMetaKey.Selector], ...hederaNodeTimestamp }}
-					{@const selection = select(EntityType.HederaNode_Timestamp, hederaNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaNode_TimestampView
-						selection={selection}
-						prefetched={hederaNodeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaNode_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaNodeTimestamp })}
+		{@const hederaNodeTimestampFields = { ...hederaNodeTimestamp[EntityMetaKey.Selector], ...hederaNodeTimestamp }}
+		{@const selection = select(EntityType.HederaNode_Timestamp, hederaNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaNode_TimestampView
+			selection={selection}
+			prefetched={hederaNodeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

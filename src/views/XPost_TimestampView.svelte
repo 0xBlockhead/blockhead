@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const xPostTimestamp = $derived(selection({
-		sources: [
-			Source.X_Rest,
-			Source.X_FxEmbed_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('X post observation')
 	const viewDomId = $derived('xpost-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -76,53 +72,53 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={xPostTimestamp}>
-			{#snippet Pending()}
-				<XPostView
-					selection={select(EntityType.XPost, selection.entitySelector.$post)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<XPostView
+						selection={select(EntityType.XPost, selection.entitySelector.$post)}
+						href={
 						(selection.entitySelector.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
 							postId: String(selection.entitySelector.$post.id ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<XPostView
-					selection={select(EntityType.XPost, selection.entitySelector.$post)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={xPostTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<XPostView
+						selection={select(EntityType.XPost, selection.entitySelector.$post)}
+						href={
 						(selection.entitySelector.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
 							postId: String(selection.entitySelector.$post.id ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={xPostTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={xPostTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -180,24 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							likeCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const likeCount = pendingEntity.likeCount}
-					{#if likeCount !== undefined && likeCount !== null}
-						<div>
-							<dt>Likes</dt>
-							<dd>
-								<NumberValue value={Number(likeCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const likeCount = resolvedEntity.likeCount}
@@ -205,7 +184,9 @@
 						<div>
 							<dt>Likes</dt>
 							<dd>
-								<NumberValue value={Number(likeCount)} />
+								<NumberValue
+									value={likeCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -217,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							retweetCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const retweetCount = pendingEntity.retweetCount}
-					{#if retweetCount !== undefined && retweetCount !== null}
-						<div>
-							<dt>Retweets</dt>
-							<dd>
-								<NumberValue value={Number(retweetCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const retweetCount = resolvedEntity.retweetCount}
@@ -242,7 +212,9 @@
 						<div>
 							<dt>Retweets</dt>
 							<dd>
-								<NumberValue value={Number(retweetCount)} />
+								<NumberValue
+									value={retweetCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -254,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							replyCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const replyCount = pendingEntity.replyCount}
-					{#if replyCount !== undefined && replyCount !== null}
-						<div>
-							<dt>Replies</dt>
-							<dd>
-								<NumberValue value={Number(replyCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const replyCount = resolvedEntity.replyCount}
@@ -279,7 +240,9 @@
 						<div>
 							<dt>Replies</dt>
 							<dd>
-								<NumberValue value={Number(replyCount)} />
+								<NumberValue
+									value={replyCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -291,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							quoteCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const quoteCount = pendingEntity.quoteCount}
-					{#if quoteCount !== undefined && quoteCount !== null}
-						<div>
-							<dt>Quotes</dt>
-							<dd>
-								<NumberValue value={Number(quoteCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const quoteCount = resolvedEntity.quoteCount}
@@ -316,7 +268,9 @@
 						<div>
 							<dt>Quotes</dt>
 							<dd>
-								<NumberValue value={Number(quoteCount)} />
+								<NumberValue
+									value={quoteCount}
+								/>
 							</dd>
 						</div>
 					{/if}

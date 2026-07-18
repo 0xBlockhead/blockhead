@@ -42,8 +42,16 @@ export type SolanaRpcMessage = {
 
 export type SolanaRpcInstruction = {
 	programId: string
+	program?: string
 	parsed?: {
 		type?: string
+		info?: {
+			account?: string
+			destination?: string
+			mint?: string
+			newAccount?: string
+			source?: string
+		}
 	}
 	accounts?: string[]
 	data?: string

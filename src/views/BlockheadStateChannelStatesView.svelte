@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadStateChannelStateView from '$/views/BlockheadStateChannelStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					version: true,
-					isFinal: true,
-					timestamp: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannelState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadStateChannelState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				version: true,
+				isFinal: true,
+				timestamp: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadStateChannelStates) => [...new Map(blockheadStateChannelStates.values.map((blockheadStateChannelState) => [blockheadStateChannelState[EntityMetaKey.SelectorKey], blockheadStateChannelState])).values()]}
+	getKey={(blockheadStateChannelState) => blockheadStateChannelState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead state channel states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadStateChannelStates)}
-			{@const uniqueBlockheadStateChannelStates = [...new Map(blockheadStateChannelStates.values.map((blockheadStateChannelState) => [blockheadStateChannelState[EntityMetaKey.SelectorKey], blockheadStateChannelState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannelState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadStateChannelStates.totalCount}
-				getKey={(blockheadStateChannelState) => blockheadStateChannelState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadStateChannelStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead state channel states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadStateChannelState })}
-					{@const blockheadStateChannelStateFields = { ...blockheadStateChannelState[EntityMetaKey.Selector], ...blockheadStateChannelState }}
-					{@const selection = select(EntityType.BlockheadStateChannelState, blockheadStateChannelState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadStateChannelStateView
-						selection={selection}
-						prefetched={blockheadStateChannelStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadStateChannelState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadStateChannelState })}
+		{@const blockheadStateChannelStateFields = { ...blockheadStateChannelState[EntityMetaKey.Selector], ...blockheadStateChannelState }}
+		{@const selection = select(EntityType.BlockheadStateChannelState, blockheadStateChannelState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadStateChannelStateView
+			selection={selection}
+			prefetched={blockheadStateChannelStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

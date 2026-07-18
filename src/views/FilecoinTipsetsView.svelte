@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinTipsetView from '$/views/FilecoinTipsetView.svelte'
 </script>
@@ -62,82 +61,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-				fields: {
-					height: true,
-					tipsetKey: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinTipset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinTipset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Lotus_JsonRpc,
+				Source.Filfox_Rest,
+			],
+			fields: {
+				height: true,
+				tipsetKey: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinTipsets) => [...new Map(filecoinTipsets.values.map((filecoinTipset) => [filecoinTipset[EntityMetaKey.SelectorKey], filecoinTipset])).values()]}
+	getKey={(filecoinTipset) => filecoinTipset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin tipsets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinTipsets)}
-			{@const uniqueFilecoinTipsets = [...new Map(filecoinTipsets.values.map((filecoinTipset) => [filecoinTipset[EntityMetaKey.SelectorKey], filecoinTipset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinTipset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinTipsets.totalCount}
-				getKey={(filecoinTipset) => filecoinTipset[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinTipsets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin tipsets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinTipset })}
-					{@const filecoinTipsetFields = { ...filecoinTipset[EntityMetaKey.Selector], ...filecoinTipset }}
-					{@const selection = select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinTipsetView
-						selection={selection}
-						prefetched={filecoinTipsetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinTipset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinTipset })}
+		{@const filecoinTipsetFields = { ...filecoinTipset[EntityMetaKey.Selector], ...filecoinTipset }}
+		{@const selection = select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinTipsetView
+			selection={selection}
+			prefetched={filecoinTipsetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AccountView from '$/views/AccountView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Account}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Account}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(accounts) => [...new Map(accounts.values.map((account) => [account[EntityMetaKey.SelectorKey], account])).values()]}
+	getKey={(account) => account[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(accounts)}
-			{@const uniqueAccounts = [...new Map(accounts.values.map((account) => [account[EntityMetaKey.SelectorKey], account])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Account}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={accounts.totalCount}
-				getKey={(account) => account[EntityMetaKey.SelectorKey]}
-				items={uniqueAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: account })}
-					{@const accountFields = { ...account[EntityMetaKey.Selector], ...account }}
-					{@const selection = select(EntityType.Account, account[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AccountView
-						selection={selection}
-						prefetched={accountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Account}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: account })}
+		{@const accountFields = { ...account[EntityMetaKey.Selector], ...account }}
+		{@const selection = select(EntityType.Account, account[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AccountView
+			selection={selection}
+			prefetched={accountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadKaspaNodeState_TimestampView from '$/views/BlockheadKaspaNodeState_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					isSynced: true,
-					hasUtxoIndex: true,
-					peerCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				isSynced: true,
+				hasUtxoIndex: true,
+				peerCount: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadKaspaNodeStateTimestamps) => [...new Map(blockheadKaspaNodeStateTimestamps.values.map((blockheadKaspaNodeStateTimestamp) => [blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadKaspaNodeStateTimestamp])).values()]}
+	getKey={(blockheadKaspaNodeStateTimestamp) => blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead kaspa node state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadKaspaNodeStateTimestamps)}
-			{@const uniqueBlockheadKaspaNodeStateTimestamps = [...new Map(blockheadKaspaNodeStateTimestamps.values.map((blockheadKaspaNodeStateTimestamp) => [blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadKaspaNodeStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadKaspaNodeStateTimestamps.totalCount}
-				getKey={(blockheadKaspaNodeStateTimestamp) => blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadKaspaNodeStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead kaspa node state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadKaspaNodeStateTimestamp })}
-					{@const blockheadKaspaNodeStateTimestampFields = { ...blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadKaspaNodeStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadKaspaNodeState_Timestamp, blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadKaspaNodeState_TimestampView
-						selection={selection}
-						prefetched={blockheadKaspaNodeStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadKaspaNodeStateTimestamp })}
+		{@const blockheadKaspaNodeStateTimestampFields = { ...blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadKaspaNodeStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadKaspaNodeState_Timestamp, blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadKaspaNodeState_TimestampView
+			selection={selection}
+			prefetched={blockheadKaspaNodeStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

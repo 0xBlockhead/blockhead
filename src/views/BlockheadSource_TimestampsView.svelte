@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSource_TimestampView from '$/views/BlockheadSource_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					enabled: true,
-					latencyMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSource_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSource_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				enabled: true,
+				latencyMs: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSourceTimestamps) => [...new Map(blockheadSourceTimestamps.values.map((blockheadSourceTimestamp) => [blockheadSourceTimestamp[EntityMetaKey.SelectorKey], blockheadSourceTimestamp])).values()]}
+	getKey={(blockheadSourceTimestamp) => blockheadSourceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead source observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSourceTimestamps)}
-			{@const uniqueBlockheadSourceTimestamps = [...new Map(blockheadSourceTimestamps.values.map((blockheadSourceTimestamp) => [blockheadSourceTimestamp[EntityMetaKey.SelectorKey], blockheadSourceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSource_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSourceTimestamps.totalCount}
-				getKey={(blockheadSourceTimestamp) => blockheadSourceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSourceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead source observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSourceTimestamp })}
-					{@const blockheadSourceTimestampFields = { ...blockheadSourceTimestamp[EntityMetaKey.Selector], ...blockheadSourceTimestamp }}
-					{@const selection = select(EntityType.BlockheadSource_Timestamp, blockheadSourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSource_TimestampView
-						selection={selection}
-						prefetched={blockheadSourceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSource_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSourceTimestamp })}
+		{@const blockheadSourceTimestampFields = { ...blockheadSourceTimestamp[EntityMetaKey.Selector], ...blockheadSourceTimestamp }}
+		{@const selection = select(EntityType.BlockheadSource_Timestamp, blockheadSourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSource_TimestampView
+			selection={selection}
+			prefetched={blockheadSourceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

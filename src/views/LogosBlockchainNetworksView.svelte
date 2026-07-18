@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LogosBlockchainNetworkView from '$/views/LogosBlockchainNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LogosBlockchainNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LogosBlockchainNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(logosBlockchainNetworks) => [...new Map(logosBlockchainNetworks.values.map((logosBlockchainNetwork) => [logosBlockchainNetwork[EntityMetaKey.SelectorKey], logosBlockchainNetwork])).values()]}
+	getKey={(logosBlockchainNetwork) => logosBlockchainNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Logos blockchain networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(logosBlockchainNetworks)}
-			{@const uniqueLogosBlockchainNetworks = [...new Map(logosBlockchainNetworks.values.map((logosBlockchainNetwork) => [logosBlockchainNetwork[EntityMetaKey.SelectorKey], logosBlockchainNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LogosBlockchainNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={logosBlockchainNetworks.totalCount}
-				getKey={(logosBlockchainNetwork) => logosBlockchainNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueLogosBlockchainNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Logos blockchain networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: logosBlockchainNetwork })}
-					{@const logosBlockchainNetworkFields = { ...logosBlockchainNetwork[EntityMetaKey.Selector], ...logosBlockchainNetwork }}
-					{@const selection = select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LogosBlockchainNetworkView
-						selection={selection}
-						prefetched={logosBlockchainNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LogosBlockchainNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: logosBlockchainNetwork })}
+		{@const logosBlockchainNetworkFields = { ...logosBlockchainNetwork[EntityMetaKey.Selector], ...logosBlockchainNetwork }}
+		{@const selection = select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LogosBlockchainNetworkView
+			selection={selection}
+			prefetched={logosBlockchainNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

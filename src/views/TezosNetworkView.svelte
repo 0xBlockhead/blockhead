@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosNetwork = $derived(selection({}))
+	const tezosNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos network')
 	const viewDomId = $derived('tezos-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -81,51 +83,51 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={tezosNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={tezosNetwork}>
-			{#snippet Pending()}
-				{[pendingEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || title || 'tezos network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[resolvedEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[pendingEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[resolvedEntity.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -177,11 +179,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -189,12 +188,12 @@
 
 				{#snippet SectionTezosChainObservations({ id, label, open })}
 					<TezosNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos network observations.'
 						open={open}
 						title={label}
@@ -204,12 +203,12 @@
 
 				{#snippet SectionTezosChainBlocks({ id, label, open })}
 					<TezosBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos blocks.'
 						open={open}
 						title={label}
@@ -219,12 +218,12 @@
 
 				{#snippet SectionTezosChainOperationGroups({ id, label, open })}
 					<TezosOperationGroupsView
-						selection={
-							selection.$$operationGroups({
-								count: true,
-							})
-						}
+						selection={selection.$$operationGroups}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos operation groups.'
 						open={open}
 						title={label}
@@ -234,12 +233,12 @@
 
 				{#snippet SectionTezosChainOperations({ id, label, open })}
 					<TezosOperationsView
-						selection={
-							selection.$$operations({
-								count: true,
-							})
-						}
+						selection={selection.$$operations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos operations.'
 						open={open}
 						title={label}
@@ -266,11 +265,8 @@
 				}
 				data-card
 				class='network-view-collapsible-accounts-contracts'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Accounts and contracts</HeadingComponent>
 					</header>
@@ -278,12 +274,12 @@
 
 				{#snippet SectionTezosAccounts({ id, label, open })}
 					<TezosAccountsView
-						selection={
-							selection.$$accounts({
-								count: true,
-							})
-						}
+						selection={selection.$$accounts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos accounts.'
 						open={open}
 						title={label}
@@ -293,12 +289,12 @@
 
 				{#snippet SectionTezosContracts({ id, label, open })}
 					<TezosContractsView
-						selection={
-							selection.$$contracts({
-								count: true,
-							})
-						}
+						selection={selection.$$contracts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos contracts.'
 						open={open}
 						title={label}
@@ -329,11 +325,8 @@
 				}
 				data-card
 				class='network-view-collapsible-baking-cycles'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Bakers and cycles</HeadingComponent>
 					</header>
@@ -341,12 +334,12 @@
 
 				{#snippet SectionTezosBakers({ id, label, open })}
 					<TezosBakersView
-						selection={
-							selection.$$bakers({
-								count: true,
-							})
-						}
+						selection={selection.$$bakers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos bakers.'
 						open={open}
 						title={label}
@@ -356,12 +349,12 @@
 
 				{#snippet SectionTezosCycles({ id, label, open })}
 					<TezosCyclesView
-						selection={
-							selection.$$cycles({
-								count: true,
-							})
-						}
+						selection={selection.$$cycles}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos cycles.'
 						open={open}
 						title={label}
@@ -371,12 +364,12 @@
 
 				{#snippet SectionTezosBakingRights({ id, label, open })}
 					<TezosBakingRightsView
-						selection={
-							selection.$$bakingRights({
-								count: true,
-							})
-						}
+						selection={selection.$$bakingRights}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos baking rights.'
 						open={open}
 						title={label}
@@ -403,11 +396,8 @@
 				}
 				data-card
 				class='network-view-collapsible-tokens'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Tokens</HeadingComponent>
 					</header>
@@ -415,12 +405,12 @@
 
 				{#snippet SectionTezosTokenList({ id, label, open })}
 					<TezosTokensView
-						selection={
-							selection.$$tokens({
-								count: true,
-							})
-						}
+						selection={selection.$$tokens}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos tokens.'
 						open={open}
 						title={label}
@@ -430,12 +420,12 @@
 
 				{#snippet SectionTezosTokenTransfers({ id, label, open })}
 					<TezosTokenTransfersView
-						selection={
-							selection.$$tokenTransfers({
-								count: true,
-							})
-						}
+						selection={selection.$$tokenTransfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos token transfers.'
 						open={open}
 						title={label}
@@ -470,11 +460,8 @@
 				}
 				data-card
 				class='network-view-collapsible-big-maps'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Big maps</HeadingComponent>
 					</header>
@@ -482,12 +469,12 @@
 
 				{#snippet SectionTezosBigMapList({ id, label, open })}
 					<TezosBigMapsView
-						selection={
-							selection.$$bigMaps({
-								count: true,
-							})
-						}
+						selection={selection.$$bigMaps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos big maps.'
 						open={open}
 						title={label}
@@ -497,12 +484,12 @@
 
 				{#snippet SectionTezosBigMapKeys({ id, label, open })}
 					<TezosBigMapKeysView
-						selection={
-							selection.$$bigMapKeys({
-								count: true,
-							})
-						}
+						selection={selection.$$bigMapKeys}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos big map keys.'
 						open={open}
 						title={label}
@@ -512,12 +499,12 @@
 
 				{#snippet SectionTezosBigMapObservations({ id, label, open })}
 					<TezosBigMap_TimestampsView
-						selection={
-							selection.$$bigMapTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$bigMapTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos big map observations.'
 						open={open}
 						title={label}
@@ -527,12 +514,12 @@
 
 				{#snippet SectionTezosBigMapKeyObservations({ id, label, open })}
 					<TezosBigMapKey_TimestampsView
-						selection={
-							selection.$$bigMapKeyTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$bigMapKeyTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Tezos big map key observations.'
 						open={open}
 						title={label}

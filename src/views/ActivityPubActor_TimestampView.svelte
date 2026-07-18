@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const activityPubActorTimestamp = $derived(selection({
-		sources: [
-			Source.Mastodon_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('ActivityPub actor observation')
 	const viewDomId = $derived('activity-pub-actor-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -65,9 +62,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.instanceOrigin !== undefined && pendingEntity.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.instanceOrigin !== undefined && pendingEntity.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			instanceOrigin: String(pendingEntity.$actor.instanceOrigin ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			instanceOrigin: encodeURIComponent(String(pendingEntity.$actor.instanceOrigin ?? '')),
 			localAccountId: String(pendingEntity.$actor.localAccountId ?? ''),
 		}) : undefined)
 	}
@@ -76,55 +74,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={activityPubActorTimestamp}>
-			{#snippet Pending()}
-				<ActivityPubActorView
-					selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ActivityPubActorView
+						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-							instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
+							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$actor.instanceOrigin ?? '')),
 							localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ActivityPubActorView
-					selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={activityPubActorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ActivityPubActorView
+						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-							instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
+							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$actor.instanceOrigin ?? '')),
 							localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={activityPubActorTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={activityPubActorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,7 +134,7 @@
 						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor, {})}
 						href={
 							(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-								instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
+								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$actor.instanceOrigin ?? '')),
 								localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 							}) : undefined)
 						}
@@ -154,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -180,27 +172,42 @@
 		</dl>
 
 		<dl data-column-item="center">
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							followersCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followersCount = pendingEntity.followersCount}
-					{#if followersCount !== undefined && followersCount !== null}
-						<div>
-							<dt>Followers</dt>
-							<dd>
-								<NumberValue value={Number(followersCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followersCount = resolvedEntity.followersCount}
@@ -208,7 +215,9 @@
 						<div>
 							<dt>Followers</dt>
 							<dd>
-								<NumberValue value={Number(followersCount)} />
+								<NumberValue
+									value={followersCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -220,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							followingCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followingCount = pendingEntity.followingCount}
-					{#if followingCount !== undefined && followingCount !== null}
-						<div>
-							<dt>Following</dt>
-							<dd>
-								<NumberValue value={Number(followingCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followingCount = resolvedEntity.followingCount}
@@ -245,7 +243,9 @@
 						<div>
 							<dt>Following</dt>
 							<dd>
-								<NumberValue value={Number(followingCount)} />
+								<NumberValue
+									value={followingCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -257,24 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							statusesCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const statusesCount = pendingEntity.statusesCount}
-					{#if statusesCount !== undefined && statusesCount !== null}
-						<div>
-							<dt>Statuses</dt>
-							<dd>
-								<NumberValue value={Number(statusesCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const statusesCount = resolvedEntity.statusesCount}
@@ -282,7 +271,9 @@
 						<div>
 							<dt>Statuses</dt>
 							<dd>
-								<NumberValue value={Number(statusesCount)} />
+								<NumberValue
+									value={statusesCount}
+								/>
 							</dd>
 						</div>
 					{/if}

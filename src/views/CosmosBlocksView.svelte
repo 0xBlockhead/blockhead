@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosBlockView from '$/views/CosmosBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					height: true,
-					hash: true,
-					transactionCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				height: true,
+				hash: true,
+				transactionCount: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosBlocks) => [...new Map(cosmosBlocks.values.map((cosmosBlock) => [cosmosBlock[EntityMetaKey.SelectorKey], cosmosBlock])).values()]}
+	getKey={(cosmosBlock) => cosmosBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosBlocks)}
-			{@const uniqueCosmosBlocks = [...new Map(cosmosBlocks.values.map((cosmosBlock) => [cosmosBlock[EntityMetaKey.SelectorKey], cosmosBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosBlocks.totalCount}
-				getKey={(cosmosBlock) => cosmosBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosBlock })}
-					{@const cosmosBlockFields = { ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }}
-					{@const selection = select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosBlockView
-						selection={selection}
-						prefetched={cosmosBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosBlock })}
+		{@const cosmosBlockFields = { ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }}
+		{@const selection = select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosBlockView
+			selection={selection}
+			prefetched={cosmosBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

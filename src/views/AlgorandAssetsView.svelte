@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandAssetView from '$/views/AlgorandAssetView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					assetId: true,
-					$network: true,
-					creator: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandAsset}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				assetId: true,
+				$network: true,
+				creator: true,
+			},
+		})
+	}
+	getResourceItems={(algorandAssets) => [...new Map(algorandAssets.values.map((algorandAsset) => [algorandAsset[EntityMetaKey.SelectorKey], algorandAsset])).values()]}
+	getKey={(algorandAsset) => algorandAsset[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand assets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandAssets)}
-			{@const uniqueAlgorandAssets = [...new Map(algorandAssets.values.map((algorandAsset) => [algorandAsset[EntityMetaKey.SelectorKey], algorandAsset])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandAsset}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandAssets.totalCount}
-				getKey={(algorandAsset) => algorandAsset[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandAssets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand assets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandAsset })}
-					{@const algorandAssetFields = { ...algorandAsset[EntityMetaKey.Selector], ...algorandAsset }}
-					{@const selection = select(EntityType.AlgorandAsset, algorandAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandAssetView
-						selection={selection}
-						prefetched={algorandAssetFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandAsset}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandAsset })}
+		{@const algorandAssetFields = { ...algorandAsset[EntityMetaKey.Selector], ...algorandAsset }}
+		{@const selection = select(EntityType.AlgorandAsset, algorandAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandAssetView
+			selection={selection}
+			prefetched={algorandAssetFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

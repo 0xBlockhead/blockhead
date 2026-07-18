@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const swarmResource = $derived(selection({
-		sources: [
-			Source.Swarm_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			canonicalUri: true,
 			gatewayOrigin: true,
@@ -89,35 +86,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={swarmResource}>
-			{#snippet Pending()}
-				{@const canonicalUri0 = pendingEntity.canonicalUri}
-				{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
-					<TruncatedValue value={String((canonicalUri0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const canonicalUri0 = resolvedEntity.canonicalUri}
-				{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
-					<TruncatedValue value={String((canonicalUri0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const canonicalUri0 = pendingEntity.canonicalUri}
+					{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
+						<TruncatedValue value={String((canonicalUri0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={swarmResource}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const canonicalUri0 = resolvedEntity.canonicalUri}
+					{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
+						<TruncatedValue value={String((canonicalUri0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={swarmResource}>
-			{#snippet Pending()}
-				{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || 'Swarm resource'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.contentType) ?? ''), String((resolvedEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={swarmResource}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.contentType) ?? ''), String((resolvedEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,19 +125,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									reference: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const reference = pendingEntity.reference}
-							{#if reference !== undefined && reference !== null}
-								<TruncatedValue value={String((reference) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const reference = resolvedEntity.reference}
@@ -158,19 +149,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									contentPath: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const contentPath = pendingEntity.contentPath}
-							{#if contentPath !== undefined && contentPath !== null}
-								{String((contentPath) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const contentPath = resolvedEntity.contentPath}
@@ -188,26 +173,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									canonicalUri: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const canonicalUri = pendingEntity.canonicalUri}
-							{#if canonicalUri !== undefined && canonicalUri !== null}
-								<svelte:element
-									this={'a'}
-									href={String(canonicalUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(canonicalUri)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const canonicalUri = resolvedEntity.canonicalUri}
@@ -232,26 +204,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									gatewayUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const gatewayUrl = pendingEntity.gatewayUrl}
-							{#if gatewayUrl !== undefined && gatewayUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(gatewayUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(gatewayUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const gatewayUrl = resolvedEntity.gatewayUrl}
@@ -278,19 +237,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									gatewayOrigin: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const gatewayOrigin = pendingEntity.gatewayOrigin}
-							{#if gatewayOrigin !== undefined && gatewayOrigin !== null}
-								{String((gatewayOrigin) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const gatewayOrigin = resolvedEntity.gatewayOrigin}
@@ -305,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fileName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fileName = pendingEntity.fileName}
-					{#if fileName !== undefined && fileName !== null}
-						<div>
-							<dt>File name</dt>
-							<dd>
-								{String((fileName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fileName = resolvedEntity.fileName}
@@ -340,24 +282,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							extension: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const extension = pendingEntity.extension}
-					{#if extension !== undefined && extension !== null}
-						<div>
-							<dt>Extension</dt>
-							<dd>
-								{String((extension) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const extension = resolvedEntity.extension}
@@ -375,24 +306,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contentType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contentType = pendingEntity.contentType}
-					{#if contentType !== undefined && contentType !== null}
-						<div>
-							<dt>Content type</dt>
-							<dd>
-								{String((contentType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contentType = resolvedEntity.contentType}
@@ -410,24 +330,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contentLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contentLength = pendingEntity.contentLength}
-					{#if contentLength !== undefined && contentLength !== null}
-						<div>
-							<dt>Content length</dt>
-							<dd>
-								<NumberValue value={Number(contentLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contentLength = resolvedEntity.contentLength}
@@ -435,7 +344,9 @@
 						<div>
 							<dt>Content length</dt>
 							<dd>
-								<NumberValue value={Number(contentLength)} />
+								<NumberValue
+									value={contentLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -448,19 +359,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									displayType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const displayType = pendingEntity.displayType}
-							{#if displayType !== undefined && displayType !== null}
-								{String((displayType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const displayType = resolvedEntity.displayType}
@@ -478,19 +383,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									isContentTypeInferred: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const isContentTypeInferred = pendingEntity.isContentTypeInferred}
-							{#if isContentTypeInferred !== undefined && isContentTypeInferred !== null}
-								{isContentTypeInferred ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const isContentTypeInferred = resolvedEntity.isContentTypeInferred}
@@ -505,8 +404,6 @@
 			<ResourceBoundary
 				resource={selection.$media}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -517,7 +414,7 @@
 									prefetched={media}
 									href={
 										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-											url: String(media[EntityMetaKey.Selector].url ?? ''),
+											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -533,6 +430,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						text: true,
 					},

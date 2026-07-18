@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetworkAccountTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			transactionCount: true,
 		},
@@ -71,11 +72,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-			{#snippet Pending()}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
@@ -84,16 +84,16 @@
 							network: String(selection.entitySelector.$account.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmNetworkAccountView
-					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmNetworkAccountView
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
@@ -102,53 +102,58 @@
 							network: String(selection.entitySelector.$account.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-			{#snippet Pending()}
-				{@const transactionCount0 = pendingEntity.transactionCount}
-				{#if transactionCount0 !== undefined && transactionCount0 !== null}
-					<NumberValue value={Number(transactionCount0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transactionCount0 = resolvedEntity.transactionCount}
-				{#if transactionCount0 !== undefined && transactionCount0 !== null}
-					<NumberValue value={Number(transactionCount0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const transactionCount0 = pendingEntity.transactionCount}
+					{#if transactionCount0 !== undefined && transactionCount0 !== null}
+						<NumberValue
+							value={transactionCount0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionCount0 = resolvedEntity.transactionCount}
+					{#if transactionCount0 !== undefined && transactionCount0 !== null}
+						<NumberValue
+							value={transactionCount0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -179,19 +184,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -209,19 +208,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -236,24 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								{String((blockNumber) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -273,24 +255,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>transaction count</dt>
-							<dd>
-								{String((transactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}
@@ -308,24 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenTransferCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenTransferCount = pendingEntity.tokenTransferCount}
-					{#if tokenTransferCount !== undefined && tokenTransferCount !== null}
-						<div>
-							<dt>token transfer count</dt>
-							<dd>
-								{String((tokenTransferCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenTransferCount = resolvedEntity.tokenTransferCount}
@@ -343,24 +303,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							internalTransferCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const internalTransferCount = pendingEntity.internalTransferCount}
-					{#if internalTransferCount !== undefined && internalTransferCount !== null}
-						<div>
-							<dt>internal transfer count</dt>
-							<dd>
-								{String((internalTransferCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const internalTransferCount = resolvedEntity.internalTransferCount}
@@ -378,24 +327,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nftCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nftCount = pendingEntity.nftCount}
-					{#if nftCount !== undefined && nftCount !== null}
-						<div>
-							<dt>NFT count</dt>
-							<dd>
-								{String((nftCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nftCount = resolvedEntity.nftCount}
@@ -415,24 +353,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							firstTransactionAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const firstTransactionAt = pendingEntity.firstTransactionAt}
-					{#if firstTransactionAt !== undefined && firstTransactionAt !== null}
-						<div>
-							<dt>first transaction AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(firstTransactionAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const firstTransactionAt = resolvedEntity.firstTransactionAt}
@@ -450,24 +377,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastTransactionAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastTransactionAt = pendingEntity.lastTransactionAt}
-					{#if lastTransactionAt !== undefined && lastTransactionAt !== null}
-						<div>
-							<dt>last transaction AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastTransactionAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastTransactionAt = resolvedEntity.lastTransactionAt}
@@ -485,24 +401,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isContract: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isContract = pendingEntity.isContract}
-					{#if isContract !== undefined && isContract !== null}
-						<div>
-							<dt>is contract</dt>
-							<dd>
-								{isContract ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isContract = resolvedEntity.isContract}

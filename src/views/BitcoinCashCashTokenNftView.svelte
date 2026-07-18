@@ -44,9 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashCashTokenNft = $derived(selection({
-		sources: [
-			Source.BitcoinCashNode_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			capability: true,
 		},
@@ -68,156 +66,136 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$output.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
-			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitcoinCashCashTokenNft}>
-			{#snippet Pending()}
-				{[String((pendingEntity.capability) ?? '')].filter(Boolean).join(' ') || title || 'Bitcoin Cash CashToken NFT'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.capability) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.capability) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenNft}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.capability) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitcoinCashCashTokenNft}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={
 						selection.$category({
 							sources: [
 								Source.BitcoinCashNode_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(bitcoinCashCashTokenCategory)}
-						<BitcoinCashCashTokenCategoryView
-							selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-							prefetched={bitcoinCashCashTokenCategory}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
+					>
+						{#snippet children(bitcoinCashCashTokenCategory)}
+							{#if bitcoinCashCashTokenCategory != null && bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
+							<BitcoinCashCashTokenCategoryView
+								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+								prefetched={bitcoinCashCashTokenCategory}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenNft}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
 						selection.$category({
 							sources: [
 								Source.BitcoinCashNode_JsonRpc,
 							],
 						})
 					}
-				>
-					{#snippet children(bitcoinCashCashTokenCategory)}
-						<BitcoinCashCashTokenCategoryView
-							selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-							prefetched={bitcoinCashCashTokenCategory}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					>
+						{#snippet children(bitcoinCashCashTokenCategory)}
+							{#if bitcoinCashCashTokenCategory != null && bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
+							<BitcoinCashCashTokenCategoryView
+								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+								prefetched={bitcoinCashCashTokenCategory}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bitcoinCashCashTokenNft}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
-						selection.$commitment({
-							sources: [
-								Source.BitcoinCashNode_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(bitcoinCashCashTokenCommitment)}
-						{#if bitcoinCashCashTokenCommitment != null && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<BitcoinCashCashTokenCommitmentView
-									selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector])}
-									prefetched={bitcoinCashCashTokenCommitment}
-									href={
-										(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2) ?? ''),
-										}) : bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection.$commitment({
-							sources: [
-								Source.BitcoinCashNode_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(bitcoinCashCashTokenCommitment)}
-						{#if bitcoinCashCashTokenCommitment != null && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<BitcoinCashCashTokenCommitmentView
-									selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector])}
-									prefetched={bitcoinCashCashTokenCommitment}
-									href={
-										(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2) ?? ''),
-										}) : bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={
+					selection.$commitment({
+						sources: [
+							Source.BitcoinCashNode_JsonRpc,
+						],
+					})
+				}
+			>
+				{#snippet children(bitcoinCashCashTokenCommitment)}
+					{#if bitcoinCashCashTokenCommitment != null && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<BitcoinCashCashTokenCommitmentView
+								selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector])}
+								prefetched={bitcoinCashCashTokenCommitment}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={bitcoinCashCashTokenNft}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
+							selection.$commitment({
+								sources: [
+									Source.BitcoinCashNode_JsonRpc,
+								],
+							})
+						}
+					>
+						{#snippet children(bitcoinCashCashTokenCommitment)}
+							{#if bitcoinCashCashTokenCommitment != null && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<BitcoinCashCashTokenCommitmentView
+										selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector])}
+										prefetched={bitcoinCashCashTokenCommitment}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -228,22 +206,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.BitcoinCashNode_JsonRpc,
-								],
+								sources: selection.sources,
 								fields: {
 									capability: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const capability = pendingEntity.capability}
-							{#if capability !== undefined && capability !== null}
-								{String((capability) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const capability = resolvedEntity.capability}
@@ -290,8 +259,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bitcoinCashCashTokenCommitment)}
 					{#if bitcoinCashCashTokenCommitment != null && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector] != null}
 						<div>
@@ -300,17 +267,6 @@
 								<BitcoinCashCashTokenCommitmentView
 									selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenCommitment}
-									href={
-										(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.caip2) ?? ''),
-										}) : bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-											outputIndex: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(bitcoinCashCashTokenCommitment[EntityMetaKey.Selector].$output.$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

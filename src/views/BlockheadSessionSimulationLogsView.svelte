@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionSimulationLogView from '$/views/BlockheadSessionSimulationLogView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					logIndex: true,
-					address: true,
-					callPath: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionSimulationLog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSessionSimulationLog}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				logIndex: true,
+				address: true,
+				callPath: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSessionSimulationLogs) => [...new Map(blockheadSessionSimulationLogs.values.map((blockheadSessionSimulationLog) => [blockheadSessionSimulationLog[EntityMetaKey.SelectorKey], blockheadSessionSimulationLog])).values()]}
+	getKey={(blockheadSessionSimulationLog) => blockheadSessionSimulationLog[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead session simulation logs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSessionSimulationLogs)}
-			{@const uniqueBlockheadSessionSimulationLogs = [...new Map(blockheadSessionSimulationLogs.values.map((blockheadSessionSimulationLog) => [blockheadSessionSimulationLog[EntityMetaKey.SelectorKey], blockheadSessionSimulationLog])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSessionSimulationLog}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSessionSimulationLogs.totalCount}
-				getKey={(blockheadSessionSimulationLog) => blockheadSessionSimulationLog[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSessionSimulationLogs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead session simulation logs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSessionSimulationLog })}
-					{@const blockheadSessionSimulationLogFields = { ...blockheadSessionSimulationLog[EntityMetaKey.Selector], ...blockheadSessionSimulationLog }}
-					{@const selection = select(EntityType.BlockheadSessionSimulationLog, blockheadSessionSimulationLog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSessionSimulationLogView
-						selection={selection}
-						prefetched={blockheadSessionSimulationLogFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSessionSimulationLog}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSessionSimulationLog })}
+		{@const blockheadSessionSimulationLogFields = { ...blockheadSessionSimulationLog[EntityMetaKey.Selector], ...blockheadSessionSimulationLog }}
+		{@const selection = select(EntityType.BlockheadSessionSimulationLog, blockheadSessionSimulationLog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSessionSimulationLogView
+			selection={selection}
+			prefetched={blockheadSessionSimulationLogFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

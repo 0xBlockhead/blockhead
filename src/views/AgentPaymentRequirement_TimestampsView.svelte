@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AgentPaymentRequirement_TimestampView from '$/views/AgentPaymentRequirement_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AgentPaymentRequirement_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AgentPaymentRequirement_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(agentPaymentRequirementTimestamps) => [...new Map(agentPaymentRequirementTimestamps.values.map((agentPaymentRequirementTimestamp) => [agentPaymentRequirementTimestamp[EntityMetaKey.SelectorKey], agentPaymentRequirementTimestamp])).values()]}
+	getKey={(agentPaymentRequirementTimestamp) => agentPaymentRequirementTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Agent payment requirement observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(agentPaymentRequirementTimestamps)}
-			{@const uniqueAgentPaymentRequirementTimestamps = [...new Map(agentPaymentRequirementTimestamps.values.map((agentPaymentRequirementTimestamp) => [agentPaymentRequirementTimestamp[EntityMetaKey.SelectorKey], agentPaymentRequirementTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AgentPaymentRequirement_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={agentPaymentRequirementTimestamps.totalCount}
-				getKey={(agentPaymentRequirementTimestamp) => agentPaymentRequirementTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAgentPaymentRequirementTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Agent payment requirement observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: agentPaymentRequirementTimestamp })}
-					{@const agentPaymentRequirementTimestampFields = { ...agentPaymentRequirementTimestamp[EntityMetaKey.Selector], ...agentPaymentRequirementTimestamp }}
-					{@const selection = select(EntityType.AgentPaymentRequirement_Timestamp, agentPaymentRequirementTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AgentPaymentRequirement_TimestampView
-						selection={selection}
-						prefetched={agentPaymentRequirementTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AgentPaymentRequirement_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: agentPaymentRequirementTimestamp })}
+		{@const agentPaymentRequirementTimestampFields = { ...agentPaymentRequirementTimestamp[EntityMetaKey.Selector], ...agentPaymentRequirementTimestamp }}
+		{@const selection = select(EntityType.AgentPaymentRequirement_Timestamp, agentPaymentRequirementTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AgentPaymentRequirement_TimestampView
+			selection={selection}
+			prefetched={agentPaymentRequirementTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

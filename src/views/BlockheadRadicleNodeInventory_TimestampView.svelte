@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadRadicleNodeInventoryTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 			repositoryCount: true,
@@ -73,58 +70,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node inventory timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-			{#snippet Pending()}
-				{@const repositoryCount0 = pendingEntity.repositoryCount}
-				{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(repositoryCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const repositoryCount0 = resolvedEntity.repositoryCount}
-				{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(repositoryCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const repositoryCount0 = pendingEntity.repositoryCount}
+			{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={repositoryCount0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const repositoryCount0 = resolvedEntity.repositoryCount}
+					{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={repositoryCount0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -146,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -176,19 +171,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -206,19 +195,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									status: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const status = pendingEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const status = resolvedEntity.status}
@@ -235,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							repositoryCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const repositoryCount = pendingEntity.repositoryCount}
-					{#if repositoryCount !== undefined && repositoryCount !== null}
-						<div>
-							<dt>repository count</dt>
-							<dd>
-								<NumberValue value={Number(repositoryCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const repositoryCount = resolvedEntity.repositoryCount}
@@ -260,7 +232,9 @@
 						<div>
 							<dt>repository count</dt>
 							<dd>
-								<NumberValue value={Number(repositoryCount)} />
+								<NumberValue
+									value={repositoryCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -270,24 +244,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							connectedPeerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const connectedPeerCount = pendingEntity.connectedPeerCount}
-					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
-						<div>
-							<dt>connected peer count</dt>
-							<dd>
-								<NumberValue value={Number(connectedPeerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const connectedPeerCount = resolvedEntity.connectedPeerCount}
@@ -295,7 +258,9 @@
 						<div>
 							<dt>connected peer count</dt>
 							<dd>
-								<NumberValue value={Number(connectedPeerCount)} />
+								<NumberValue
+									value={connectedPeerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -305,24 +270,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							routingTableSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const routingTableSize = pendingEntity.routingTableSize}
-					{#if routingTableSize !== undefined && routingTableSize !== null}
-						<div>
-							<dt>routing table size</dt>
-							<dd>
-								<NumberValue value={Number(routingTableSize)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const routingTableSize = resolvedEntity.routingTableSize}
@@ -330,7 +284,9 @@
 						<div>
 							<dt>routing table size</dt>
 							<dd>
-								<NumberValue value={Number(routingTableSize)} />
+								<NumberValue
+									value={routingTableSize}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -343,19 +299,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									advertisedRids: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const advertisedRids = pendingEntity.advertisedRids}
-							{#if advertisedRids !== undefined && advertisedRids !== null}
-								{advertisedRids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const advertisedRids = resolvedEntity.advertisedRids}

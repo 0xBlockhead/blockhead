@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AptosNetwork_TimestampView from '$/views/AptosNetwork_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					ledgerVersion: true,
-					blockHeight: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AptosNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				ledgerVersion: true,
+				blockHeight: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(aptosNetworkTimestamps) => [...new Map(aptosNetworkTimestamps.values.map((aptosNetworkTimestamp) => [aptosNetworkTimestamp[EntityMetaKey.SelectorKey], aptosNetworkTimestamp])).values()]}
+	getKey={(aptosNetworkTimestamp) => aptosNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Aptos network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aptosNetworkTimestamps)}
-			{@const uniqueAptosNetworkTimestamps = [...new Map(aptosNetworkTimestamps.values.map((aptosNetworkTimestamp) => [aptosNetworkTimestamp[EntityMetaKey.SelectorKey], aptosNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AptosNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aptosNetworkTimestamps.totalCount}
-				getKey={(aptosNetworkTimestamp) => aptosNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAptosNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Aptos network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aptosNetworkTimestamp })}
-					{@const aptosNetworkTimestampFields = { ...aptosNetworkTimestamp[EntityMetaKey.Selector], ...aptosNetworkTimestamp }}
-					{@const selection = select(EntityType.AptosNetwork_Timestamp, aptosNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AptosNetwork_TimestampView
-						selection={selection}
-						prefetched={aptosNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AptosNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aptosNetworkTimestamp })}
+		{@const aptosNetworkTimestampFields = { ...aptosNetworkTimestamp[EntityMetaKey.Selector], ...aptosNetworkTimestamp }}
+		{@const selection = select(EntityType.AptosNetwork_Timestamp, aptosNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AptosNetwork_TimestampView
+			selection={selection}
+			prefetched={aptosNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpNetwork_TimestampView from '$/views/IcpNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpNetworkTimestamps) => [...new Map(icpNetworkTimestamps.values.map((icpNetworkTimestamp) => [icpNetworkTimestamp[EntityMetaKey.SelectorKey], icpNetworkTimestamp])).values()]}
+	getKey={(icpNetworkTimestamp) => icpNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpNetworkTimestamps)}
-			{@const uniqueIcpNetworkTimestamps = [...new Map(icpNetworkTimestamps.values.map((icpNetworkTimestamp) => [icpNetworkTimestamp[EntityMetaKey.SelectorKey], icpNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpNetworkTimestamps.totalCount}
-				getKey={(icpNetworkTimestamp) => icpNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpNetworkTimestamp })}
-					{@const icpNetworkTimestampFields = { ...icpNetworkTimestamp[EntityMetaKey.Selector], ...icpNetworkTimestamp }}
-					{@const selection = select(EntityType.IcpNetwork_Timestamp, icpNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpNetwork_TimestampView
-						selection={selection}
-						prefetched={icpNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpNetworkTimestamp })}
+		{@const icpNetworkTimestampFields = { ...icpNetworkTimestamp[EntityMetaKey.Selector], ...icpNetworkTimestamp }}
+		{@const selection = select(EntityType.IcpNetwork_Timestamp, icpNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpNetwork_TimestampView
+			selection={selection}
+			prefetched={icpNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

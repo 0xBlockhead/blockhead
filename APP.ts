@@ -1,3 +1,6 @@
+import type { SourceTarget } from './scripts/app/inputs/source-target.ts'
+
+
 export enum SourceTargetKind {
 	Caip2Network = "Caip2Network",
 	Canister = "Canister",
@@ -7,6 +10,7 @@ export enum SourceTargetKind {
 	GitRepository = "GitRepository",
 	Global = "Global",
 	LocalDevice = "LocalDevice",
+	NetworkSlug = "NetworkSlug",
 	SqlDataset = "SqlDataset",
 	TorrentSwarm = "TorrentSwarm",
 }
@@ -427,6 +431,7 @@ export enum Source {
 	Rss2Json_Rest = "Rss2Json_Rest",
 	SigstoreRekor_Rest = "SigstoreRekor_Rest",
 	Snapchain_Rest = "Snapchain_Rest",
+	SpaceAndTime_MakeInfinite = "SpaceAndTime_MakeInfinite",
 	Solana_JsonRpc = "Solana_JsonRpc",
 	SolanaMobileWalletAdapter_WalletApi = "SolanaMobileWalletAdapter_WalletApi",
 	SolanaSimds_Github = "SolanaSimds_Github",
@@ -689,6 +694,7 @@ export enum SourceProvider {
 	PolkadotRfcs = "PolkadotRfcs",
 	Pontem = "Pontem",
 	Primal = "Primal",
+	PublicNode = "PublicNode",
 	Pyth = "Pyth",
 	qBittorrentWebUi = "qBittorrentWebUi",
 	QuilibriumDocs = "QuilibriumDocs",
@@ -706,7 +712,7 @@ export enum SourceProvider {
 	Rss2Json = "Rss2Json",
 	SigstoreRekor = "SigstoreRekor",
 	Snapchain = "Snapchain",
-	Solana = "Solana",
+	SpaceAndTime = "SpaceAndTime",
 	SolanaMobileWalletAdapter = "SolanaMobileWalletAdapter",
 	SolanaSimds = "SolanaSimds",
 	Sourcify = "Sourcify",
@@ -833,11 +839,10 @@ type _SourceRuntimeSecret = {
 		}
 }
 
+export type _SourceTarget = SourceTarget<SourceTargetKind>
+
 type _SourceBindingBase = {
-	target: {
-		kind: SourceTargetKind
-		key: string
-	}
+	target: _SourceTarget
 }
 
 type _SourceBindingCompatibilityRow = {
@@ -985,6 +990,11 @@ export enum _ExpressionDecode {
 	Number = "number",
 }
 
+export enum _RouteParamEncoding {
+	Opaque = "Opaque",
+	Path = "Path",
+}
+
 export type _RouteParamTransform = {
 	from: string
 	name: string
@@ -998,11 +1008,6 @@ enum EntityLayout {
 	SummaryInline = "SummaryInline",
 }
 
-export enum _ListEntityRow {
-	Summary = "summary",
-	Title = "title",
-	Value = "value",
-}
 
 enum _ListFilterComparison {
 	TimeInterval = "timeInterval",
@@ -1057,6 +1062,7 @@ type _ViewFieldFormat =
 	| "dateTime"
 	| "longText"
 	| "markdown"
+	| "syndicationHtml"
 	| "namespaceReference"
 	| "number"
 	| "numberValue"
@@ -1085,22 +1091,15 @@ export enum EntityType {
 	_GlobalEnsNetwork_Timestamp = "_GlobalEnsNetwork_Timestamp",
 	_GlobalEvmAbiCatalog = "_GlobalEvmAbiCatalog",
 	_GlobalEvmAbiCatalog_Timestamp = "_GlobalEvmAbiCatalog_Timestamp",
-	_GlobalFarcasterNetwork = "_GlobalFarcasterNetwork",
-	_GlobalFarcasterNetwork_Timestamp = "_GlobalFarcasterNetwork_Timestamp",
 	_GlobalIpfsAccess = "_GlobalIpfsAccess",
 	_GlobalIpfsAccess_Timestamp = "_GlobalIpfsAccess_Timestamp",
-	_GlobalLensNetwork = "_GlobalLensNetwork",
-	_GlobalLensNetwork_Timestamp = "_GlobalLensNetwork_Timestamp",
 	_GlobalNostrNetwork = "_GlobalNostrNetwork",
 	_GlobalNostrNetwork_Timestamp = "_GlobalNostrNetwork_Timestamp",
 	_GlobalRedditNetwork = "_GlobalRedditNetwork",
 	_GlobalRedditNetwork_Timestamp = "_GlobalRedditNetwork_Timestamp",
-	_GlobalRssNetwork = "_GlobalRssNetwork",
-	_GlobalRssNetwork_Timestamp = "_GlobalRssNetwork_Timestamp",
 	_GlobalSwarmAccess = "_GlobalSwarmAccess",
 	_GlobalSwarmAccess_Timestamp = "_GlobalSwarmAccess_Timestamp",
 	_GlobalXNetwork = "_GlobalXNetwork",
-	_GlobalXNetwork_Timestamp = "_GlobalXNetwork_Timestamp",
 	_GlobalYoutubeNetwork = "_GlobalYoutubeNetwork",
 	_GlobalYoutubeNetwork_Timestamp = "_GlobalYoutubeNetwork_Timestamp",
 	A2aAgentCard = "A2aAgentCard",
@@ -1135,6 +1134,7 @@ export enum EntityType {
 	ActivityPubActor = "ActivityPubActor",
 	ActivityPubActor_Timestamp = "ActivityPubActor_Timestamp",
 	ActivityPubInstance = "ActivityPubInstance",
+	ActivityPubInstance_Timestamp = "ActivityPubInstance_Timestamp",
 	ActivityPubInstanceModeratedDomain = "ActivityPubInstanceModeratedDomain",
 	ActivityPubInstancePeer = "ActivityPubInstancePeer",
 	ActivityPubNetwork = "ActivityPubNetwork",
@@ -1794,6 +1794,7 @@ export enum EntityType {
 	NearValidator = "NearValidator",
 	NearValidator_Timestamp = "NearValidator_Timestamp",
 	Network = "Network",
+	Network_Activity_Day = "Network_Activity_Day",
 	Network_Timestamp = "Network_Timestamp",
 	NetworkEndpointObservation_Timestamp = "NetworkEndpointObservation_Timestamp",
 	NetworkStack = "NetworkStack",
@@ -1809,6 +1810,7 @@ export enum EntityType {
 	NostrRelay = "NostrRelay",
 	NostrRelay_Timestamp = "NostrRelay_Timestamp",
 	NostrRepost = "NostrRepost",
+	NostrSearchQuery = "NostrSearchQuery",
 	OracleFeed = "OracleFeed",
 	OracleFeed_Round = "OracleFeed_Round",
 	OracleFeed_Timestamp = "OracleFeed_Timestamp",
@@ -2033,8 +2035,6 @@ export enum EntityType {
 	XrplAmm_Timestamp = "XrplAmm_Timestamp",
 	XrplLedger = "XrplLedger",
 	XrplLedgerEntry = "XrplLedgerEntry",
-	XrplNetwork = "XrplNetwork",
-	XrplNetwork_Timestamp = "XrplNetwork_Timestamp",
 	XrplTransaction = "XrplTransaction",
 	XrplTransaction_Timestamp = "XrplTransaction_Timestamp",
 	XrplTrustline = "XrplTrustline",
@@ -2183,7 +2183,7 @@ const routeProperty = (value: _Expression, property: string): _Expression => ({
 	property,
 })
 
-const routeField = (name: string): _Expression => ({
+const routeField = (name: string): Exclude<_Expression, string> => ({
 	kind: "field",
 	name,
 })
@@ -2210,7 +2210,6 @@ const routeCaip2ParamValueFromString = (param: string) => routeCall(
 		{
 			kind: "param",
 			name: param,
-			decode: _ExpressionDecode.DecodeURIComponent,
 		},
 	]
 )
@@ -2344,7 +2343,6 @@ const routeMarketAssetFromParams = (kindParam: string, valueParam: string): _Exp
 			value: {
 				kind: "param",
 				name: valueParam,
-				decode: _ExpressionDecode.DecodeURIComponent,
 			},
 		},
 	],
@@ -2397,8 +2395,9 @@ export type _ViewItem<
 			enumConstantProperty?: string
 			valuePrefix?: _ViewItem<_EntityFieldReference>[]
 			valuePrefixSeparator?: string
-			prefix?: string
-			suffix?: string
+			decimalPlaces?: Exclude<_Expression, string>
+			prefix?: string | Exclude<_Expression, string>
+			suffix?: string | Exclude<_Expression, string>
 			link?: {
 				href: string
 				params?: {
@@ -2470,7 +2469,6 @@ type _ListViewQuery<
 type _ListViewRow<
 	_EntityFieldReference extends _FieldReference = _FieldReference,
 > = {
-	layout?: _ListEntityRow
 	value?: _ViewItem<_EntityFieldReference>[]
 	title?: _ViewItem<_EntityFieldReference>[]
 	titleFallback?: _ViewItem<_EntityFieldReference>[]
@@ -2491,7 +2489,6 @@ export type _ListView<
 	placeholderText?: string
 	query?: _ListViewQuery<_EntityFieldReference>
 	TypeAnnotationTooltip?: _RawSnippet
-	content?: _RawSnippet
 	emptyText?: string
 	filters?: {
 		prop: string
@@ -2506,7 +2503,6 @@ export type _ListView<
 			[param: string]: _ListViewRowHrefParam
 		}
 	}
-	entityRow?: _ListEntityRow
 	row?: _ListViewRow<_EntityFieldReference>
 }
 
@@ -2564,27 +2560,17 @@ type _EntityView<
 	}
 	carousels?: {
 		id?: string
+		after?: string
 		label: string
 		description?: string
 		className?: string
-		scrollContainerClassName?: string
 		when?: _ViewWhen
-		conditions?: {
-			field: _EntityFieldReference
-			equals?: _Literal
-			contains?: _Literal
-		}[]
 		sections: {
 			id?: string
 			label?: string
 			description?: string
 			when?: _ViewWhen
 			field?: _EntityFieldReference
-			conditions?: {
-				field: _EntityFieldReference
-				equals?: _Literal
-				contains?: _Literal
-			}[]
 			link?: {
 				route: string
 				params?: {
@@ -2616,6 +2602,11 @@ type _EntityView<
 			Content?: _RawSnippet
 			when?: _ViewWhen
 		}[]
+	}
+	contentWarning?: {
+		sensitiveField: _EntityFieldReference
+		textField: _EntityFieldReference
+		fallbackText: string
 	}
 	lists?: _ViewListSection<_EntityFieldReference>[]
 }
@@ -3105,6 +3096,7 @@ type _SelectorRouteMapping = {
 	title?: _Expression
 	href?: {
 		entityHref?: false
+		canonicalize?: true
 		conditions?: {
 			field: string
 			equals?: _Literal
@@ -3135,6 +3127,7 @@ type _SelectorRouteVariant = {
 	derivations?: Readonly<Record<string, _Expression>>
 	href?: {
 		entityHref?: false
+		canonicalize?: true
 		conditions?: {
 			field: string
 			equals?: _Literal
@@ -3156,6 +3149,35 @@ type _SelectorRouteVariant = {
 	boundaryLiveOptional?: true
 	page?: _RoutePage
 }
+
+type _SelectorRouteTarget = {
+	entityType: EntityType
+	selectorName: string
+}
+
+type _SelectorRouteOutcome =
+	| {
+		kind: "CuratedParent"
+		target: _SelectorRouteTarget
+	}
+	| {
+		kind: "Facet"
+		target: _SelectorRouteTarget
+		facetPath: readonly [string, ...string[]]
+	}
+	| {
+		kind: "Hub" | "Internal"
+		nodeId: string
+	}
+	| {
+		kind: "Alias"
+		target: _SelectorRouteTarget
+	}
+	| {
+		kind: "Research" | "Blocked"
+		decision: string
+		evidence: string
+	}
 
 type _SchemaEntity<_Schema> = (
 	_Schema extends {
@@ -3345,6 +3367,35 @@ type _SchemaProjection<_Schema> = {
 	)
 }[_SchemaEntityType<_Schema>]
 
+type _SchemaSelectorRouteTarget<_Schema> = {
+	[_EntityType in _SchemaEntityType<_Schema>]: {
+		entityType: _EntityType
+		selectorName: _SchemaSelectorName<_Schema, _EntityType>
+	}
+}[_SchemaEntityType<_Schema>]
+
+type _SelectorRouteOutcomeForSchema<_Schema> =
+	| Exclude<_SelectorRouteOutcome, { kind: "CuratedParent" | "Facet" | "Alias" }>
+	| {
+		kind: "CuratedParent"
+		target: _SchemaSelectorRouteTarget<_Schema>
+	}
+	| {
+		kind: "Facet"
+		target: _SchemaSelectorRouteTarget<_Schema>
+		facetPath: _SchemaProjection<_Schema>["facetPath"]
+	}
+	| {
+		kind: "Alias"
+		target: _SchemaSelectorRouteTarget<_Schema>
+	}
+
+type _SelectorRouteOutcomesForSchema<_Schema> = {
+	readonly [_EntityType in _SchemaEntityType<_Schema>]?: {
+		readonly [_SelectorName in _SchemaSelectorName<_Schema, _EntityType>]?: _SelectorRouteOutcomeForSchema<_Schema>
+	}
+}
+
 type _SchemaPrimitiveConditionForField<
 	_Field,
 	_Prefix extends readonly (string | number)[],
@@ -3510,7 +3561,8 @@ type _RouteNodeForSchema<
 	children?: Readonly<Record<string, _RouteNodeForSchema<_Schema>>>
 }
 
-type _RouteDefinitionsForSchema<_Schema> = Omit<_RouteDefinitions, 'children'> & {
+type _RouteDefinitionsForSchema<_Schema> = Omit<_RouteDefinitions, 'children' | 'outcomes'> & {
+	outcomes: _SelectorRouteOutcomesForSchema<_Schema>
 	children: Readonly<Record<string, _RouteNodeForSchema<_Schema>>>
 }
 
@@ -3640,6 +3692,7 @@ type _RouteNode = {
 }
 
 type _RouteDefinitions = {
+	outcomes: Readonly<Record<string, Readonly<Record<string, _SelectorRouteOutcome>>>>
 	children: Readonly<Record<string, _RouteNode>>
 }
 
@@ -3650,6 +3703,7 @@ const defineRoutes = <const _Schema extends {
 			matcher: string
 			decode?: _ExpressionDecode | _RouteParamTransform
 			encode?: _RouteParamTransform
+			encoding?: _RouteParamEncoding
 		}
 	}[]
 	entities: readonly {
@@ -3698,6 +3752,7 @@ export type App = {
 				matcher: string
 				decode?: _ExpressionDecode | _RouteParamTransform
 				encode?: _RouteParamTransform
+				encoding?: _RouteParamEncoding
 			}
 			type: _ValueTypeType
 		}[]
@@ -3730,6 +3785,7 @@ export type App = {
 		}[]
 	}
 	routes: {
+		outcomes: _RouteDefinitions['outcomes']
 		children: _RouteDefinitions['children']
 	}
 	sources: {
@@ -3756,6 +3812,26 @@ export const schema = {
 			},
 		],
 		valueTypes: [
+			{
+				id: "CardanoCommitteeMember",
+				displayExpression: "value.cc_cold_id",
+				type: {
+					object: [
+						{ name: "cc_cold_id", type: { primitive: "string" } },
+						{ name: "cc_cold_hex", type: { primitive: "string" } },
+						{ name: "cc_cold_has_script", type: { primitive: "boolean" } },
+						{ name: "cc_hot_id", type: { primitive: "unknown" } },
+						{ name: "cc_hot_hex", type: { primitive: "unknown" } },
+						{ name: "cc_hot_has_script", type: { primitive: "unknown" } },
+						{ name: "status", type: { primitive: "string" } },
+						{ name: "expiration_epoch", type: { primitive: "number" } },
+					],
+				},
+			},
+			{
+				id: "OptimisticProviderResult",
+				type: { enum: "OptimisticProviderResult" },
+			},
 			{
 				id: "_GlobalAtprotoNetworkScope",
 				displayExpression: "'AT Protocol'",
@@ -3826,17 +3902,6 @@ export const schema = {
 			},
 			{
 				id: "caip2",
-				format: "namespaceReference",
-				displayExpression: "`${value.namespace}:${value.reference}`",
-				type: {
-					object: [
-						{ name: "namespace", type: { primitive: "string" } },
-						{ name: "reference", type: { primitive: "string" } },
-					],
-				},
-			},
-			{
-				id: "knownCaip2",
 				routeParam: {
 					matcher: "networkCaip2",
 					decode: {
@@ -3848,21 +3913,15 @@ export const schema = {
 						name: "caip2StringFromValue",
 					},
 				},
-				imports: [
-					{
-						from: "$/constants/Network.ts",
-						names: ["Caip2Namespace", "Caip2Reference"],
-					},
-				],
 				format: "namespaceReference",
 				displayExpression: "`${value.namespace}:${value.reference}`",
 				type: {
 					object: [
-						{ name: "namespace", type: { enum: "Caip2Namespace" } },
-						{ name: "reference", type: { enum: "Caip2Reference" } },
+						{ name: "namespace", type: { primitive: "string" } },
+						{ name: "reference", type: { primitive: "string" } },
 					],
 				},
-				},
+			},
 				{
 					id: "NetworkNamespace",
 					imports: [
@@ -3939,6 +3998,19 @@ export const schema = {
 					},
 				],
 				type: { raw: "ZeroExHex" },
+			},
+			{
+				id: "EvmTopicHash",
+				routeParam: {
+					matcher: "evmTopicHash",
+				},
+				imports: [
+					{
+						from: "$/schema/ZeroExHex.ts",
+						names: ["EvmTopicHash"],
+					},
+				],
+				type: { raw: "EvmTopicHash" },
 			},
 			{
 				id: "zeroExHexArray",
@@ -4213,6 +4285,29 @@ export const schema = {
 				],
 				type: { enum: "ZcashShieldedPoolKind" },
 			},
+			{
+				id: "ZcashShieldedActionKind",
+				routeParam: {
+					matcher: "stringSegment",
+				},
+				imports: [
+					{
+						from: "$/schema/ZcashShieldedAction.ts",
+						names: ["ZcashShieldedActionKind"],
+					},
+				],
+				type: { enum: "ZcashShieldedActionKind" },
+			},
+			{
+				id: "ZcashCommitmentTree",
+				displayExpression: "`${value.finalRoot} / ${value.finalState}`",
+				type: {
+					object: [
+						{ name: "finalRoot", type: { primitive: "string" } },
+						{ name: "finalState", type: { primitive: "string" } },
+					],
+				},
+			},
 				{
 					id: "BlockheadFarcasterConnectionAuthMethod",
 					type: { enum: "BlockheadFarcasterConnectionAuthMethod" },
@@ -4257,10 +4352,28 @@ export const schema = {
 				},
 			},
 			{
+				id: "opaqueRouteIdentifier",
+				routeParam: {
+					matcher: "stringSegment",
+					decode: _ExpressionDecode.DecodeURIComponent,
+					encoding: _RouteParamEncoding.Opaque,
+				},
+				type: { primitive: "string" },
+			},
+			{
+				id: "routeContentPath",
+				routeParam: {
+					matcher: "stringSegment",
+					encoding: _RouteParamEncoding.Path,
+				},
+				type: { primitive: "string" },
+			},
+			{
 				id: "urlString",
 				routeParam: {
 					matcher: "absoluteUrl",
 					decode: _ExpressionDecode.DecodeURIComponent,
+					encoding: _RouteParamEncoding.Opaque,
 				},
 				imports: [
 					{
@@ -4407,6 +4520,7 @@ export const schema = {
 				routeParam: {
 					matcher: "stringSegment",
 					decode: _ExpressionDecode.DecodeURIComponent,
+					encoding: _RouteParamEncoding.Opaque,
 				},
 				type: { primitive: "string" },
 			},
@@ -4488,6 +4602,17 @@ export const schema = {
 				routeParam: {
 					matcher: "stringSegment",
 				},
+				type: { primitive: "string" },
+			},
+			{
+				id: "syndicationHtml",
+				displayImports: [
+					{
+						from: "$/lib/html.ts",
+						names: ["htmlToPlainText"],
+					},
+				],
+				displayExpression: "htmlToPlainText(value)",
 				type: { primitive: "string" },
 			},
 			{
@@ -4741,35 +4866,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					primitiveType: { unit: "_GlobalActivityPubNetwork" },
 				},
-				"$$observedActors": {
-					label: "Observed actors",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubActor,
-				},
-				"$$observedNotes": {
-					label: "Observed notes",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubNote,
-				},
+				"$$observedActors": { label: "Observed actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubActor },
+				"$$observedNotes": { label: "Observed notes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubNote },
 				"$$instances": {
 					label: "Instances",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.ActivityPubInstance,
-				},
-				"$$instancePeers": {
-					label: "Instance peers",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubInstancePeer,
-				},
-				"$$instanceModeratedDomains": {
-					label: "Instance moderated domains",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubInstanceModeratedDomain,
 				},
 				"$$timestamps": {
 					label: "Timestamps",
@@ -4786,7 +4889,7 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal, Source.Mastodon_Rest],
 							fields: ["scope"],
-							openFields: ["$$observedActors", "$$observedNotes", "$$instances", "$$instancePeers", "$$instanceModeratedDomains", "$$timestamps"],
+							openFields: ["$$instances", "$$timestamps"],
 						},
 						summary: {
 							title: [{ text: "ActivityPub observeds" }],
@@ -4802,18 +4905,7 @@ export const schema = {
 								label: "Directory",
 								className: "network-view-collapsible-directory",
 								sections: [
-									{ id: "activitypub-actors", field: "$$observedActors", List: "ActivityPubActorsView", label: "Actors", emptyText: "No ActivityPub actors in this observed." },
-									{ id: "activitypub-notes", field: "$$observedNotes", List: "ActivityPubNotesView", label: "Notes", emptyText: "No ActivityPub notes in this observed." },
 									{ id: "activitypub-instances", field: "$$instances", List: "ActivityPubInstancesView", label: "Instances", emptyText: "No ActivityPub instances declared." },
-								],
-							},
-							{
-								id: "activitypub-federation",
-								label: "Federation",
-								className: "network-view-collapsible-federation",
-								sections: [
-									{ id: "activitypub-peers", field: "$$instancePeers", List: "ActivityPubInstancePeersView", label: "Instance peers", emptyText: "No ActivityPub instance peers in this observed." },
-									{ id: "activitypub-moderated-domains", field: "$$instanceModeratedDomains", List: "ActivityPubInstanceModeratedDomainsView", label: "Moderated domains", emptyText: "No ActivityPub moderated domains in this observed." },
 								],
 							},
 							{
@@ -4829,7 +4921,6 @@ export const schema = {
 					plural: {
 						component: "_GlobalActivityPubNetworksView",
 						title: "ActivityPub observeds",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -4900,7 +4991,6 @@ export const schema = {
 					},
 					plural: { component: "_GlobalActivityPubNetwork_TimestampsView",
 						title: "ActivityPub hub observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -4998,7 +5088,7 @@ export const schema = {
 						closed: ["$network", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$network", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedAgentCount", format: "number" }, { field: "seededAgentCount", format: "number" }, { field: "sourceReportedServerCount", format: "number" }, { field: "seededServerCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 					},
-					plural: { component: "_GlobalAgentNetwork_TimestampsView", title: "global agent network observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "_GlobalAgentNetwork_TimestampsView", title: "global agent network observations", },
 				},
 			}),
 
@@ -5084,7 +5174,7 @@ export const schema = {
 						closed: ["$catalog", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedArtifactCount", format: "number" }, { field: "seededArtifactCount", format: "number" }, { field: "sourceReportedDocumentCount", format: "number" }, { field: "seededDocumentCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 					},
-					plural: { component: "_GlobalAiArtifactCatalog_TimestampsView", title: "global AI artifact catalog observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "_GlobalAiArtifactCatalog_TimestampsView", title: "global AI artifact catalog observations", },
 				},
 			}),
 
@@ -5144,7 +5234,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "_GlobalAiModelCatalogsView", title: "global AI model catalogs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "_GlobalAiModelCatalogsView", title: "global AI model catalogs", },
 				},
 			}),
 
@@ -5187,7 +5277,7 @@ export const schema = {
 						closed: ["$catalog", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedModelCount", format: "number" }, { field: "seededModelCount", format: "number" }, { field: "searchResultCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 					},
-					plural: { component: "_GlobalAiModelCatalog_TimestampsView", title: "global AI model catalog observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "_GlobalAiModelCatalog_TimestampsView", title: "global AI model catalog observations", },
 				},
 			}),
 
@@ -5258,7 +5348,6 @@ export const schema = {
 					},
 					plural: { component: "_GlobalArweaveNetworksView",
 						title: "Arweave observeds",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -5307,7 +5396,6 @@ export const schema = {
 					},
 					plural: { component: "_GlobalArweaveNetwork_TimestampsView",
 						title: "Arweave hub observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -5545,7 +5633,6 @@ export const schema = {
 					plural: {
 						component: "_GlobalAtprotoNetwork_TimestampsView",
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "timestampMs",
@@ -5752,118 +5839,6 @@ export const schema = {
 			}),
 
 			entity({
-				entityType: EntityType._GlobalFarcasterNetwork,
-				labels: {
-					singular: "global Farcaster network",
-					plural: "global Farcaster networks",
-				},
-			})({
-				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$observedUsers": { label: "observed users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest] },
-				"$$observedChannels": { label: "observed channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest] },
-				"$$observedCasts": { label: "observed casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast },
-				"$$observedFeeds": { label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalFarcasterNetwork_Timestamp },
-			})({
-				selectors: {
-					"Scope": ["scope"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Constants_Internal, Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest],
-							fields: ["scope"],
-							openFields: ["$$observedUsers", "$$observedChannels", "$$observedCasts", "$$observedFeeds", "$$timestamps"],
-						},
-						summary: {
-							title: [{ text: "Farcaster observed" }],
-							value: [{ field: "scope" }],
-						},
-						carousels: [
-							{
-								id: "farcaster-directory",
-								label: "Directory",
-								className: "network-view-collapsible-directory",
-								sections: [
-									{ id: "farcaster-feeds", field: "$$observedFeeds", List: "FarcasterFeedsView", label: "Feeds", emptyText: "No Farcaster feeds in this observed." },
-									{ id: "farcaster-users", field: "$$observedUsers", List: "FarcasterUsersView", label: "Users", emptyText: "No Farcaster users in this observed." },
-									{ id: "farcaster-channels", field: "$$observedChannels", List: "FarcasterChannelsView", label: "Channels", emptyText: "No Farcaster channels in this observed." },
-								],
-							},
-							{
-								id: "farcaster-casts",
-								label: "Casts",
-								className: "network-view-collapsible-casts",
-								sections: [
-									{ id: "farcaster-cast-list", field: "$$observedCasts", List: "FarcasterCastsView", label: "Casts", emptyText: "No Farcaster casts in this observed." },
-								],
-							},
-							{
-								id: "farcaster-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "farcaster-hub-observations", field: "$$timestamps", List: "_GlobalFarcasterNetwork_TimestampsView", label: "Observations", emptyText: "No Farcaster observed observations yet." },
-								],
-							},
-						],
-					},
-					plural: { component: "_GlobalFarcasterNetworksView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalFarcasterNetwork_Timestamp,
-				labels: {
-					singular: "global Farcaster network timestamp",
-					plural: "global Farcaster network observations",
-				},
-			})({
-				"$hub": { label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalFarcasterNetwork },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"feedVariant": { label: "feed variant", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"fid": { label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"channelId": { label: "channel ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"viewerFid": { label: "viewer FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedCastCount": { label: "observed cast count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedUserCount": { label: "observed user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedChannelCount": { label: "observed channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededFeedVariantCount": { label: "seeded feed variant count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededChannelCount": { label: "seeded channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"hubHost": { label: "hub host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"snapchainHost": { label: "snapchain host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"reachable": { label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"cursor": { label: "cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest] },
-						summary: {
-							title: [{ field: "$hub" }],
-							value: [{ field: "timestampMs", format: "timestamp" }],
-						},
-						content: {
-							dl: [
-								[{ field: "$hub" }],
-								[{ field: "timestampMs", format: "timestamp" }],
-								[{ field: "source" }],
-								[{ field: "feedVariant" }, { field: "fid", format: "number" }, { field: "channelId" }, { field: "viewerFid", format: "number" }],
-								[{ field: "observedCastCount", format: "number" }, { field: "observedUserCount", format: "number" }, { field: "observedChannelCount", format: "number" }],
-								[{ field: "seededFeedVariantCount", format: "number" }, { field: "seededChannelCount", format: "number" }],
-								[{ field: "hubHost" }, { field: "snapchainHost" }],
-								[{ field: "reachable" }, { field: "cursor", format: "truncated" }],
-							],
-						},
-					},
-					plural: { component: "_GlobalFarcasterNetwork_TimestampsView" },
-				},
-			}),
-
-			entity({
 				entityType: EntityType._GlobalIpfsAccess,
 				labels: {
 					singular: "global IPFS access",
@@ -5891,7 +5866,6 @@ export const schema = {
 					},
 					plural: {
 						component: "_GlobalIpfsAccessesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -5939,113 +5913,6 @@ export const schema = {
 					},
 					plural: { component: "_GlobalIpfsAccess_TimestampsView",
 					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalLensNetwork,
-				labels: {
-					singular: "global lens network",
-					plural: "global lens networks",
-				},
-			})({
-				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$observedAccounts": { label: "observed accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensAccount },
-				"$$observedFeeds": { label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensFeed },
-				"$$observedPosts": { label: "observed posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost },
-				"$$observedUsernameNamespaces": { label: "observed username namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsernameNamespace },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalLensNetwork_Timestamp },
-			})({
-				selectors: {
-					"Scope": ["scope"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Constants_Internal, Source.Lens_Graphql],
-							fields: ["scope"],
-							openFields: ["$$observedAccounts", "$$observedFeeds", "$$observedPosts", "$$observedUsernameNamespaces", "$$timestamps"],
-						},
-						summary: {
-							title: [{ text: "Lens observed" }],
-							value: [{ field: "scope" }],
-						},
-						carousels: [
-							{
-								id: "lens-directory",
-								label: "Directory",
-								className: "network-view-collapsible-directory",
-								sections: [
-									{ id: "lens-accounts", field: "$$observedAccounts", List: "LensAccountsView", label: "Accounts", emptyText: "No Lens accounts in this observed." },
-									{ id: "lens-feeds", field: "$$observedFeeds", List: "LensFeedsView", label: "Feeds", emptyText: "No Lens feeds in this observed." },
-									{ id: "lens-username-namespaces", field: "$$observedUsernameNamespaces", List: "LensUsernameNamespacesView", label: "Username namespaces", emptyText: "No Lens username namespaces in this observed." },
-								],
-							},
-							{
-								id: "lens-posts",
-								label: "Posts",
-								className: "network-view-collapsible-posts",
-								sections: [
-									{ id: "lens-post-list", field: "$$observedPosts", List: "LensPostsView", label: "Posts", emptyText: "No Lens posts in this observed." },
-								],
-							},
-							{
-								id: "lens-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "lens-hub-observations", field: "$$timestamps", List: "_GlobalLensNetwork_TimestampsView", label: "Observations", emptyText: "No Lens observed observations yet." },
-								],
-							},
-						],
-					},
-					plural: { component: "_GlobalLensNetworksView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalLensNetwork_Timestamp,
-				labels: {
-					singular: "global lens network timestamp",
-					plural: "global lens network observations",
-				},
-			})({
-				"$hub": { label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalLensNetwork },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observedAccountCount": { label: "observed account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedFeedCount": { label: "observed feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedPostCount": { label: "observed post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedUsernameNamespaceCount": { label: "observed username namespace count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededAccountCount": { label: "seeded account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededFeedCount": { label: "seeded feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededPostCount": { label: "seeded post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"cursor": { label: "cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Lens_Graphql] },
-						summary: {
-							title: [{ field: "$hub" }],
-							value: [{ field: "timestampMs", format: "timestamp" }],
-						},
-						content: {
-							dl: [
-								[{ field: "$hub" }],
-								[{ field: "timestampMs", format: "timestamp" }],
-								[{ field: "source" }],
-								[{ field: "observedAccountCount", format: "number" }, { field: "observedFeedCount", format: "number" }],
-								[{ field: "observedPostCount", format: "number" }, { field: "observedUsernameNamespaceCount", format: "number" }],
-								[{ field: "seededAccountCount", format: "number" }, { field: "seededFeedCount", format: "number" }, { field: "seededPostCount", format: "number" }],
-								[{ field: "reachable" }, { field: "cursor", format: "truncated" }],
-							],
-						},
-					},
-					plural: { component: "_GlobalLensNetwork_TimestampsView" },
 				},
 			}),
 
@@ -6132,6 +5999,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrReaction,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$$observedArticles": {
 					label: "Articles",
@@ -6140,12 +6008,7 @@ export const schema = {
 					entityType: EntityType.NostrArticle,
 					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
-				"$$timestamps": {
-					label: "Observations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType._GlobalNostrNetwork_Timestamp,
-				},
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalNostrNetwork_Timestamp },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -6166,9 +6029,7 @@ export const schema = {
 								"$$observedNotes",
 								"$$observedRelays",
 								"$$observedReposts",
-								"$$observedReactions",
 								"$$observedArticles",
-								"$$timestamps",
 							],
 						},
 						summary: {
@@ -6220,15 +6081,6 @@ export const schema = {
 								className: "network-view-collapsible-engagement",
 								sections: [
 									{ id: "nostr-reposts", field: "$$observedReposts", List: "NostrRepostsView", label: "Reposts", href: "/(social)/(nostr)/nostr/reposts", emptyText: "No Nostr reposts in this observed." },
-									{ id: "nostr-reactions", field: "$$observedReactions", List: "NostrReactionsView", label: "Reactions", href: "/(social)/(nostr)/nostr/reactions", emptyText: "No Nostr reactions in this observed." },
-								],
-							},
-							{
-								id: "nostr-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "nostr-hub-observations", field: "$$timestamps", List: "_GlobalNostrNetwork_TimestampsView", label: "Observations", emptyText: "No Nostr network observations." },
 								],
 							},
 						],
@@ -6274,7 +6126,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "_GlobalNostrNetwork_TimestampsView", title: "Nostr observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "_GlobalNostrNetwork_TimestampsView", title: "Nostr observations", },
 				},
 			}),
 
@@ -6312,12 +6164,7 @@ export const schema = {
 						Source.Reddit_PublicJson,
 					],
 				},
-				"$$timestamps": {
-					label: "Observations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType._GlobalRedditNetwork_Timestamp,
-				},
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalRedditNetwork_Timestamp },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -6325,8 +6172,11 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
-							openFields: ["$$observedSubreddits", "$$observedLinks", "$$timestamps"],
+							sources: [
+								Source.Constants_Internal,
+								Source.Reddit_PublicJson,
+							],
+							openFields: ["$$observedSubreddits", "$$observedLinks"],
 						},
 						carousels: [
 							{
@@ -6338,17 +6188,17 @@ export const schema = {
 									{ id: "reddit-links", field: "$$observedLinks", List: "RedditLinksView", label: "Links", href: "/(social)/(reddit)/reddit/links" },
 								],
 							},
-							{
-								id: "reddit-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "reddit-hub-observations", field: "$$timestamps", List: "_GlobalRedditNetwork_TimestampsView", label: "Observations", emptyText: "No Reddit network observations." },
-								],
-							},
 						],
 					},
 					plural: { component: "_GlobalRedditNetworksView",
+						query: {
+							sources: {
+								default: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
+							},
+						},
 					},
 				},
 			}),
@@ -6386,97 +6236,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "_GlobalRedditNetwork_TimestampsView", title: "Reddit observations", entityRow: _ListEntityRow.Summary },
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalRssNetwork,
-				labels: {
-					singular: "global RSS network",
-					plural: "global RSS networks",
-				},
-			})({
-				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$observedFeeds": { label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssFeed },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalRssNetwork_Timestamp },
-			})({
-				selectors: {
-					"Scope": ["scope"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: [Source.Constants_Internal, Source.Rss_Rest, Source.Rss2Json_Rest],
-							fields: ["scope"],
-							openFields: ["$$observedFeeds", "$$timestamps"],
-						},
-						summary: {
-							title: [{ text: "RSS observed" }],
-							value: [{ field: "scope" }],
-						},
-						carousels: [
-							{
-								id: "rss-directory",
-								label: "Feeds",
-								className: "network-view-collapsible-directory",
-								sections: [
-									{ id: "rss-feeds", field: "$$observedFeeds", List: "RssFeedsView", label: "Feeds", emptyText: "No RSS feeds in this observed." },
-								],
-							},
-							{
-								id: "rss-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "rss-hub-observations", field: "$$timestamps", List: "_GlobalRssNetwork_TimestampsView", label: "Observations", emptyText: "No RSS observed observations yet." },
-								],
-							},
-						],
-					},
-					plural: { component: "_GlobalRssNetworksView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalRssNetwork_Timestamp,
-				labels: {
-					singular: "global RSS network timestamp",
-					plural: "global RSS network observations",
-				},
-			})({
-				"$hub": { label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalRssNetwork },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observedFeedCount": { label: "observed feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedItemCount": { label: "observed item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededFeedCount": { label: "seeded feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededItemCount": { label: "seeded item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"fetchWindowKind": { label: "fetch window kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Rss_Rest, Source.Rss2Json_Rest] },
-						summary: {
-							title: [{ field: "$hub" }],
-							value: [{ field: "timestampMs", format: "timestamp" }],
-						},
-						content: {
-							dl: [
-								[{ field: "$hub" }],
-								[{ field: "timestampMs", format: "timestamp" }],
-								[{ field: "source" }],
-								[{ field: "observedFeedCount", format: "number" }, { field: "observedItemCount", format: "number" }],
-								[{ field: "seededFeedCount", format: "number" }, { field: "seededItemCount", format: "number" }],
-								[{ field: "reachable" }, { field: "fetchWindowKind" }],
-							],
-						},
-					},
-					plural: { component: "_GlobalRssNetwork_TimestampsView" },
+					plural: { component: "_GlobalRedditNetwork_TimestampsView", title: "Reddit observations", },
 				},
 			}),
 
@@ -6508,7 +6268,6 @@ export const schema = {
 					},
 					plural: {
 						component: "_GlobalSwarmAccessesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -6569,7 +6328,6 @@ export const schema = {
 				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$observedUsers": { label: "observed users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XUser },
 				"$$observedPosts": { label: "observed posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XPost },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalXNetwork_Timestamp },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -6579,7 +6337,7 @@ export const schema = {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
 							fields: ["scope"],
-							openFields: ["$$observedUsers", "$$observedPosts", "$$timestamps"],
+							openFields: ["$$observedUsers", "$$observedPosts"],
 						},
 						summary: {
 							title: [{ text: "X observed" }],
@@ -6595,62 +6353,9 @@ export const schema = {
 									{ id: "x-posts", field: "$$observedPosts", List: "XPostsView", label: "Posts", emptyText: "No X posts in this observed." },
 								],
 							},
-							{
-								id: "x-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "x-hub-observations", field: "$$timestamps", List: "_GlobalXNetwork_TimestampsView", label: "Observations", emptyText: "No X observed observations yet." },
-								],
-							},
 						],
 					},
 					plural: { component: "_GlobalXNetworksView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalXNetwork_Timestamp,
-				labels: {
-					singular: "global X network timestamp",
-					plural: "global X network observations",
-				},
-			})({
-				"$hub": { label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalXNetwork },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observedUserCount": { label: "observed user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedPostCount": { label: "observed post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededUserCount": { label: "seeded user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededPostCount": { label: "seeded post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"rateLimitRemaining": { label: "rate limit remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"searchWindowStartMs": { label: "search window start ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"searchWindowEndMs": { label: "search window end ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.X_Rest, Source.X_FxEmbed_Rest] },
-						summary: {
-							title: [{ field: "$hub" }],
-							value: [{ field: "timestampMs", format: "timestamp" }],
-						},
-						content: {
-							dl: [
-								[{ field: "$hub" }],
-								[{ field: "timestampMs", format: "timestamp" }],
-								[{ field: "source" }],
-								[{ field: "observedUserCount", format: "number" }, { field: "observedPostCount", format: "number" }],
-								[{ field: "seededUserCount", format: "number" }, { field: "seededPostCount", format: "number" }],
-								[{ field: "reachable" }, { field: "rateLimitRemaining", format: "number" }],
-								[{ field: "searchWindowStartMs", format: "timestamp" }, { field: "searchWindowEndMs", format: "timestamp" }],
-							],
-						},
-					},
-					plural: { component: "_GlobalXNetwork_TimestampsView" },
 				},
 			}),
 
@@ -6669,21 +6374,21 @@ export const schema = {
 					valueType: "_GlobalYoutubeNetworkScope",
 				},
 				"$$observedChannels": {
-					label: "Channels",
+					label: "Channels represented in the bounded popular chart",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubeChannel,
-					defaultSources: [Source.Constants_Internal, Source.Youtube_Rest],
+					defaultSources: [Source.Constants_Internal, Source.Youtube_Rest, Source.Piped_Rest],
 				},
 				"$$observedVideos": {
-					label: "Videos",
+					label: "Bounded popular videos",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubeVideo,
-					defaultSources: [Source.Constants_Internal, Source.Youtube_Rest],
+					defaultSources: [Source.Constants_Internal, Source.Youtube_Rest, Source.Piped_Rest],
 				},
 				"$$observedPlaylists": {
-					label: "Playlists",
+					label: "Playlists from bounded channel discovery seeds",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubePlaylist,
@@ -6716,21 +6421,18 @@ export const schema = {
 						carousels: [
 							{
 								id: "youtube-directory",
-								label: "Directory",
+								label: "Bounded discovery",
 								className: "network-view-collapsible-directory",
 								sections: [
-									{ id: "youtube-channels", field: "$$observedChannels", List: "YoutubeChannelsView", label: "Channels", href: "/(social)/(youtube)/youtube/channels" },
+									{ id: "youtube-channels", field: "$$observedChannels", List: "YoutubeChannelsView", label: "Popular-chart channels", href: "/(social)/(youtube)/youtube/channels" },
 									{
 										id: "youtube-videos",
 										field: "$$observedVideos",
 										List: "YoutubeVideosView",
-										label: "Videos",
+										label: "Popular videos (provider-default region and category; Piped US)",
 										href: "/(social)/(youtube)/youtube/videos",
-										selection: {
-											sources: [Source.Constants_Internal],
-										},
 									},
-									{ id: "youtube-playlists", field: "$$observedPlaylists", List: "YoutubePlaylistsView", label: "Playlists", href: "/(social)/(youtube)/youtube/playlists" },
+									{ id: "youtube-playlists", field: "$$observedPlaylists", List: "YoutubePlaylistsView", label: "Seeded-channel playlists", href: "/(social)/(youtube)/youtube/playlists" },
 								],
 							},
 						],
@@ -6866,7 +6568,6 @@ export const schema = {
 					plural: {
 						component: "_GlobalYoutubeNetwork_TimestampsView",
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "timestampMs",
@@ -6908,7 +6609,7 @@ export const schema = {
 							{ field: "$$documents", component: "AiDocumentsView", emptyText: "No linked documents." },
 						],
 					},
-					plural: { component: "A2aAgentCardsView", title: "A2A agent cards", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentCardsView", title: "A2A agent cards", },
 				},
 			}),
 
@@ -6966,7 +6667,7 @@ export const schema = {
 							{ field: "$$skills", component: "A2aAgentSkillsView", emptyText: "No A2A agent skills." },
 						],
 					},
-					plural: { component: "A2aAgentCard_SnapshotsView", title: "A2A agent card snapshots", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentCard_SnapshotsView", title: "A2A agent card snapshots", },
 				},
 			}),
 
@@ -6999,7 +6700,7 @@ export const schema = {
 						closed: ["$cardSnapshot", "protocolBinding", "url"],
 						content: { dl: [["$cardSnapshot", "protocolBinding", "url", "protocolVersion", "transportKind", "mediaType"]] },
 					},
-					plural: { component: "A2aAgentInterfacesView", title: "A2A agent interfaces", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentInterfacesView", title: "A2A agent interfaces", },
 				},
 			}),
 
@@ -7036,7 +6737,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "A2aAgentService_TimestampsView", emptyText: "No A2A service observations." },
 						],
 					},
-					plural: { component: "A2aAgentServicesView", title: "A2A agent services", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentServicesView", title: "A2A agent services", },
 				},
 			}),
 
@@ -7071,7 +6772,7 @@ export const schema = {
 						closed: ["$service", { field: "timestampMs", format: "timestamp" }, "health"],
 						content: { dl: [["$service", { field: "timestampMs", format: "timestamp" }, "source", "health", "protocolVersion", "reachable", { field: "latencyMs", format: "number" }, { field: "statusCode", format: "number" }, "error"]] },
 					},
-					plural: { component: "A2aAgentService_TimestampsView", title: "A2A agent service observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentService_TimestampsView", title: "A2A agent service observations", },
 				},
 			}),
 
@@ -7105,7 +6806,7 @@ export const schema = {
 						closed: ["$cardSnapshot", "skillId", "name"],
 						content: { dl: [["$cardSnapshot", "skillId", "name", "description"]] },
 					},
-					plural: { component: "A2aAgentSkillsView", title: "A2A agent skills", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aAgentSkillsView", title: "A2A agent skills", },
 				},
 			}),
 
@@ -7139,7 +6840,7 @@ export const schema = {
 						content: { dl: [["$task", "artifactId", "name", "description", { field: "createdAt", format: "timestamp" }, "$aiArtifact"]] },
 						lists: [{ field: "$$parts", component: "A2aMessagePartsView", emptyText: "No A2A artifact parts." }],
 					},
-					plural: { component: "A2aArtifactsView", title: "A2A artifacts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aArtifactsView", title: "A2A artifacts", },
 				},
 			}),
 
@@ -7172,7 +6873,7 @@ export const schema = {
 						content: { dl: [["$task", "messageId", "role", "contextId", { field: "createdAt", format: "timestamp" }]] },
 						lists: [{ field: "$$parts", component: "A2aMessagePartsView", emptyText: "No A2A message parts." }],
 					},
-					plural: { component: "A2aMessagesView", title: "A2A messages", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aMessagesView", title: "A2A messages", },
 				},
 			}),
 
@@ -7208,7 +6909,7 @@ export const schema = {
 						closed: ["$message", "$artifact", "partIndex", "partKind"],
 						content: { dl: [["$message", "$artifact", "partIndex", "partKind", "text", "uri", "mimeType", "$aiArtifact"]] },
 					},
-					plural: { component: "A2aMessagePartsView", title: "A2A message parts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aMessagePartsView", title: "A2A message parts", },
 				},
 			}),
 
@@ -7242,7 +6943,7 @@ export const schema = {
 						closed: ["$task", "configId", "status"],
 						content: { dl: [["$task", "configId", "url", "authKind", { field: "createdAt", format: "timestamp" }, { field: "deletedAt", format: "timestamp" }, "status"]] },
 					},
-					plural: { component: "A2aPushNotificationConfigsView", title: "A2A push notification configs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aPushNotificationConfigsView", title: "A2A push notification configs", },
 				},
 			}),
 
@@ -7303,7 +7004,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "A2aTasksView", title: "A2A tasks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aTasksView", title: "A2A tasks", },
 				},
 			}),
 
@@ -7336,7 +7037,7 @@ export const schema = {
 						closed: ["$task", { field: "timestampMs", format: "timestamp" }, "state"],
 						content: { dl: [["$task", { field: "timestampMs", format: "timestamp" }, "source", "state", "statusMessage", "error"]] },
 					},
-					plural: { component: "A2aTask_TimestampsView", title: "A2A task observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aTask_TimestampsView", title: "A2A task observations", },
 				},
 			}),
 
@@ -7370,7 +7071,7 @@ export const schema = {
 						closed: ["$task", "sequence", "eventKind"],
 						content: { dl: [["$task", "sequence", "eventKind", { field: "timestampMs", format: "timestamp" }, "state", "final", "$artifact"]] },
 					},
-					plural: { component: "A2aTaskEventsView", title: "A2A task events", entityRow: _ListEntityRow.Summary },
+					plural: { component: "A2aTaskEventsView", title: "A2A task events", },
 				},
 			}),
 
@@ -7423,7 +7124,7 @@ export const schema = {
 						closed: ["registryAgentId", "label", "packageName"],
 						content: { dl: [["registryAgentId", "packageName", "repositoryUrl", "label", "authors"]] },
 					},
-					plural: { component: "AcpAgentProgramsView", title: "ACP agent programs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpAgentProgramsView", title: "ACP agent programs", },
 				},
 			}),
 
@@ -7461,7 +7162,7 @@ export const schema = {
 						content: { dl: [["$program", "version", "$artifact"], [{ field: "releaseDate", format: "timestamp" }, "distributionKind", "command"]] },
 						lists: [{ field: "$$documents", component: "AiDocumentsView", emptyText: "No linked documents." }],
 					},
-					plural: { component: "AcpAgentProgramVersionsView", title: "ACP agent program versions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpAgentProgramVersionsView", title: "ACP agent program versions", },
 				},
 			}),
 
@@ -7500,7 +7201,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "AcpAgentRuntime_TimestampsView", emptyText: "No ACP runtime observations." },
 						],
 					},
-					plural: { component: "AcpAgentRuntimesView", title: "ACP agent runtimes", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpAgentRuntimesView", title: "ACP agent runtimes", },
 				},
 			}),
 
@@ -7538,7 +7239,7 @@ export const schema = {
 						closed: ["$runtime", { field: "timestampMs", format: "timestamp" }, "health"],
 						content: { dl: [["$runtime", { field: "timestampMs", format: "timestamp" }, "source", "health", "protocolVersion"], ["error"]] },
 					},
-					plural: { component: "AcpAgentRuntime_TimestampsView", title: "ACP agent runtime observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpAgentRuntime_TimestampsView", title: "ACP agent runtime observations", },
 				},
 			}),
 
@@ -7575,7 +7276,7 @@ export const schema = {
 						closed: ["$session", "operationId", "operationKind"],
 						content: { dl: [["$session", "operationId", "operationKind", "path"], [{ field: "startLine", format: "number" }, { field: "endLine", format: "number" }, "contentHashAlgorithm", "contentHash"], [{ field: "timestampMs", format: "timestamp" }, "status", "error"]] },
 					},
-					plural: { component: "AcpFileOperationsView", title: "ACP file operations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpFileOperationsView", title: "ACP file operations", },
 				},
 			}),
 
@@ -7607,7 +7308,7 @@ export const schema = {
 						content: { dl: [["$session", "messageId", "role", { field: "createdAt", format: "timestamp" }]] },
 						lists: [{ field: "$$parts", component: "AcpMessagePartsView", emptyText: "No ACP message parts." }],
 					},
-					plural: { component: "AcpMessagesView", title: "ACP messages", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpMessagesView", title: "ACP messages", },
 				},
 			}),
 
@@ -7641,7 +7342,7 @@ export const schema = {
 						closed: ["$message", { field: "partIndex", format: "number" }, "partKind"],
 						content: { dl: [["$message", { field: "partIndex", format: "number" }, "partKind", "mimeType", "uri", "$artifact"]] },
 					},
-					plural: { component: "AcpMessagePartsView", title: "ACP message parts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpMessagePartsView", title: "ACP message parts", },
 				},
 			}),
 
@@ -7674,7 +7375,7 @@ export const schema = {
 						closed: ["$session", "requestId", "requestKind"],
 						content: { dl: [["$session", "requestId", "requestKind", "decision"], [{ field: "createdAt", format: "timestamp" }, { field: "resolvedAt", format: "timestamp" }]] },
 					},
-					plural: { component: "AcpPermissionRequestsView", title: "ACP permission requests", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpPermissionRequestsView", title: "ACP permission requests", },
 				},
 			}),
 
@@ -7708,7 +7409,7 @@ export const schema = {
 						closed: ["$session", "turnId", "stopReason"],
 						content: { dl: [["$session", "turnId", "stopReason"], [{ field: "startedAt", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, { field: "cancelledAt", format: "timestamp" }], ["userPromptHashAlgorithm", "userPromptHash"]] },
 					},
-					plural: { component: "AcpPromptTurnsView", title: "ACP prompt turns", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpPromptTurnsView", title: "ACP prompt turns", },
 				},
 			}),
 
@@ -7748,7 +7449,7 @@ export const schema = {
 							{ field: "$$promptTurns", component: "AcpPromptTurnsView", emptyText: "No ACP prompt turns." },
 						],
 					},
-					plural: { component: "AcpSessionsView", title: "ACP sessions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpSessionsView", title: "ACP sessions", },
 				},
 			}),
 
@@ -7779,7 +7480,7 @@ export const schema = {
 						closed: ["$session", { field: "sequence", format: "number" }, "updateKind"],
 						content: { dl: [["$session", { field: "sequence", format: "number" }, "updateKind", { field: "timestampMs", format: "timestamp" }]] },
 					},
-					plural: { component: "AcpSessionUpdatesView", title: "ACP session updates", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpSessionUpdatesView", title: "ACP session updates", },
 				},
 			}),
 
@@ -7813,7 +7514,7 @@ export const schema = {
 						content: { dl: [["$session", "terminalId", "command", "cwd"], [{ field: "createdAt", format: "timestamp" }, { field: "releasedAt", format: "timestamp" }]] },
 						lists: [{ field: "$$timestamps", component: "AcpTerminal_TimestampsView", emptyText: "No ACP terminal observations." }],
 					},
-					plural: { component: "AcpTerminalsView", title: "ACP terminals", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpTerminalsView", title: "ACP terminals", },
 				},
 			}),
 
@@ -7846,7 +7547,7 @@ export const schema = {
 						closed: ["$terminal", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$terminal", { field: "timestampMs", format: "timestamp" }, "source", "status", { field: "exitCode", format: "number" }, { field: "outputBytes", format: "number" }, "error"]] },
 					},
-					plural: { component: "AcpTerminal_TimestampsView", title: "ACP terminal observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpTerminal_TimestampsView", title: "ACP terminal observations", },
 				},
 			}),
 
@@ -7884,7 +7585,7 @@ export const schema = {
 						content: { dl: [["$promptTurn", "toolCallId", "toolName", "serverName"], [{ field: "startedAt", format: "timestamp" }, { field: "completedAt", format: "timestamp" }], ["inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash"]] },
 						lists: [{ field: "$$timestamps", component: "AcpToolCall_TimestampsView", emptyText: "No ACP tool call observations." }],
 					},
-					plural: { component: "AcpToolCallsView", title: "ACP tool calls", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpToolCallsView", title: "ACP tool calls", },
 				},
 			}),
 
@@ -7917,7 +7618,7 @@ export const schema = {
 						closed: ["$toolCall", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$toolCall", { field: "timestampMs", format: "timestamp" }, "source", "status", { field: "latencyMs", format: "number" }, "error"]] },
 					},
-					plural: { component: "AcpToolCall_TimestampsView", title: "ACP tool call observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AcpToolCall_TimestampsView", title: "ACP tool call observations", },
 				},
 			}),
 
@@ -7933,7 +7634,7 @@ export const schema = {
 				"username": { label: "Username", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"acct": { label: "acct", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"displayName": { label: "Display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"note": { label: "Note", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"note": { label: "Note", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "syndicationHtml" },
 				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
 				"$headerImage": { label: "Header image", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
 				"profileUrl": { label: "Profile URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -7965,7 +7666,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["displayName", "username", "acct", "localAccountId", "activityStreamsUri", "profileUrl", "createdAt", "$icon"],
+							fields: ["displayName", "username", "acct", "localAccountId", "activityStreamsUri", "profileUrl", "createdAt", "$icon", "note"],
 							openFields: ["$$timestamps", "$$notes"],
 						},
 						summary: {
@@ -7974,6 +7675,10 @@ export const schema = {
 							value: [{ field: "acct" }, { field: "localAccountId" }],
 						},
 						content: {
+							body: {
+								field: "note",
+								format: "syndicationHtml",
+							},
 							dl: [
 								[{ field: "acct" }],
 								[{ field: "username" }],
@@ -8008,12 +7713,13 @@ export const schema = {
 			})({
 				"$actor": { label: "Actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubActor },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"followersCount": { label: "Followers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"followingCount": { label: "Following", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"statusesCount": { label: "Statuses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
-					"ActivityPubActorTimestampMs": ["$actor", "timestampMs"],
+					"ActivityPubActorTimestampMsSource": ["$actor", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -8026,6 +7732,7 @@ export const schema = {
 							dl: [
 								[{ field: "$actor" }],
 								[{ field: "timestampMs", format: "timestamp" }],
+								["source"],
 								[{ field: "followersCount", format: "number" }],
 								[{ field: "followingCount", format: "number" }],
 								[{ field: "statusesCount", format: "number" }],
@@ -8045,60 +7752,87 @@ export const schema = {
 				description: "A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.",
 			})({
 				"instanceOrigin": { label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
-				"source": { label: "Source", description: "The source that observes this ActivityPub instance.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$peers": {
-					label: "Peers",
+				"$$timestamps": {
+					label: "Observations",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubInstancePeer,
-					defaultSources: [Source.Mastodon_Rest],
-				},
-				"$$moderatedDomains": {
-					label: "Moderated domains",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.ActivityPubInstanceModeratedDomain,
+					entityType: EntityType.ActivityPubInstance_Timestamp,
 					defaultSources: [Source.Mastodon_Rest],
 				},
 			})({
 				selectors: {
-					"InstanceOriginSource": ["instanceOrigin", "source"],
+					"InstanceOrigin": ["instanceOrigin"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["instanceOrigin", "source", "title", "description", "version"],
-							openFields: ["$$peers", "$$moderatedDomains"],
+							fields: ["instanceOrigin"],
+							openFields: ["$$timestamps"],
 						},
 						summary: {
-							title: ["title", { field: "instanceOrigin", format: "url" }],
-							value: ["source", "version"],
+							title: [{ field: "instanceOrigin", format: "url" }],
 						},
 						content: {
 							dl: [
 								[{ field: "instanceOrigin", format: "url" }],
-								["source", "title", "version"],
-								["description"],
 							],
 							lists: [
 								{
-									field: "$$peers",
-									component: "ActivityPubInstancePeersView",
-									emptyText: "No public peers reported for this ActivityPub instance.",
-								},
-								{
-									field: "$$moderatedDomains",
-									component: "ActivityPubInstanceModeratedDomainsView",
-									emptyText: "No public moderated domains reported for this ActivityPub instance.",
+									field: "$$timestamps",
+									component: "ActivityPubInstance_TimestampsView",
+									emptyText: "No ActivityPub instance observations yet.",
 								},
 							],
 						},
 					},
 					plural: { component: "ActivityPubInstancesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.ActivityPubInstance_Timestamp,
+				labels: {
+					singular: "ActivityPub instance observation",
+					plural: "ActivityPub instance observations",
+				},
+			})({
+				"$instance": { label: "Instance", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubInstance },
+				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$$peers": { label: "Peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubInstancePeer },
+				"$$moderatedDomains": { label: "Moderated domains", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubInstanceModeratedDomain },
+			})({
+				selectors: {
+					"InstanceTimestampMsSource": ["$instance", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Mastodon_Rest],
+							fields: ["$instance", "timestampMs", "source"],
+							openFields: ["title", "description", "version", "$$peers", "$$moderatedDomains"],
+						},
+						summary: {
+							title: ["title", { field: "timestampMs", format: "timestamp" }],
+							value: ["$instance", "source", "version"],
+						},
+						content: {
+							dl: [
+								["$instance", { field: "timestampMs", format: "timestamp" }, "source"],
+								["title", "version"],
+								["description"],
+							],
+							lists: [
+								{ field: "$$peers", component: "ActivityPubInstancePeersView", emptyText: "No public peers reported for this observation." },
+								{ field: "$$moderatedDomains", component: "ActivityPubInstanceModeratedDomainsView", emptyText: "No public moderated domains reported for this observation." },
+							],
+						},
+					},
+					plural: { component: "ActivityPubInstance_TimestampsView" },
 				},
 			}),
 
@@ -8110,29 +7844,27 @@ export const schema = {
 				},
 				description: "A domain that a declared ActivityPub instance reports in its public moderation-domain list.",
 			})({
-				"instanceOrigin": { label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$observation": { label: "Observation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubInstance_Timestamp },
 				"domain": { label: "Domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"source": { label: "Source", description: "The source that observed this moderation relation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"severity": { label: "Severity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"comment": { label: "Comment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
-					"InstanceOriginModeratedDomainSource": ["instanceOrigin", "domain", "source"],
+					"ObservationDomain": ["$observation", "domain"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["instanceOrigin", "domain", "source", "severity", "comment"],
+							fields: ["$observation", "domain", "severity", "comment"],
 						},
 						summary: {
-							title: ["domain", "severity", "comment", { field: "instanceOrigin", format: "url" }],
-							value: ["source"],
+							title: ["domain", "severity", "comment"],
+							value: ["$observation"],
 						},
 						content: {
 							dl: [
-								[{ field: "instanceOrigin", format: "url" }],
-								["domain", "severity", "source"],
+								["$observation", "domain", "severity"],
 								["comment"],
 							],
 						},
@@ -8149,27 +7881,25 @@ export const schema = {
 				},
 				description: "A domain that a declared ActivityPub instance reports as a known connected domain.",
 			})({
-				"instanceOrigin": { label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$observation": { label: "Observation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubInstance_Timestamp },
 				"peerDomain": { label: "Peer domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"source": { label: "Source", description: "The source that observed this peer relation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 			})({
 				selectors: {
-					"InstanceOriginPeerDomainSource": ["instanceOrigin", "peerDomain", "source"],
+					"ObservationPeerDomain": ["$observation", "peerDomain"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["instanceOrigin", "peerDomain", "source"],
+							fields: ["$observation", "peerDomain"],
 						},
 						summary: {
-							title: ["peerDomain", { field: "instanceOrigin", format: "url" }],
-							value: ["source"],
+							title: ["peerDomain"],
+							value: ["$observation"],
 						},
 						content: {
 							dl: [
-								[{ field: "instanceOrigin", format: "url" }],
-								["peerDomain", "source"],
+								["$observation", "peerDomain"],
 							],
 						},
 					},
@@ -8258,7 +7988,7 @@ export const schema = {
 				"instanceOrigin": { label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"localStatusId": { label: "Local status ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$author": { label: "Author", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ActivityPubActor },
-				"content": { label: "Content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"content": { label: "Content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "syndicationHtml" },
 				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"editedAt": { label: "Edited", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"activityStreamsUri": { label: "ActivityStreams URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -8284,6 +8014,11 @@ export const schema = {
 							fields: ["content", "createdAt", "$author", "statusUrl", "activityStreamsUri"],
 							openFields: ["$$thread", "$$timestamps"],
 						},
+						contentWarning: {
+							sensitiveField: "sensitive",
+							textField: "spoilerText",
+							fallbackText: "Sensitive content",
+						},
 						summary: {
 							title: [{ field: "content", format: "truncated" }, { field: "localStatusId" }],
 							value: [{ field: "createdAt", format: "timestamp" }, { field: "localStatusId" }],
@@ -8291,7 +8026,7 @@ export const schema = {
 						content: {
 							body: {
 								field: "content",
-								format: "longText",
+								format: "syndicationHtml",
 							},
 							dl: [
 								[{ field: "$author" }],
@@ -8333,12 +8068,13 @@ export const schema = {
 			})({
 				"$note": { label: "Note", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ActivityPubNote },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"favouriteCount": { label: "Favourites", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"reblogCount": { label: "Reblogs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"replyCount": { label: "Replies", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
-					"ActivityPubNoteTimestampMs": ["$note", "timestampMs"],
+					"ActivityPubNoteTimestampMsSource": ["$note", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -8351,6 +8087,7 @@ export const schema = {
 							dl: [
 								[{ field: "$note" }],
 								[{ field: "timestampMs", format: "timestamp" }],
+								["source"],
 								[{ field: "favouriteCount", format: "number" }],
 								[{ field: "reblogCount", format: "number" }],
 								[{ field: "replyCount", format: "number" }],
@@ -8403,7 +8140,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "AgentIdentityClaimsView", title: "agent identity claims", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AgentIdentityClaimsView", title: "agent identity claims", },
 				},
 			}),
 
@@ -8501,7 +8238,7 @@ export const schema = {
 							{ field: "$$attestations", component: "AiArtifactAttestationsView", emptyText: "No AI artifact attestations." },
 						],
 					},
-					plural: { component: "AiArtifactsView", title: "AI artifacts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiArtifactsView", title: "AI artifacts", },
 				},
 			}),
 
@@ -8543,7 +8280,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "AiArtifactAttestationsView", title: "AI artifact attestations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiArtifactAttestationsView", title: "AI artifact attestations", },
 				},
 			}),
 
@@ -8578,7 +8315,7 @@ export const schema = {
 						content: { dl: [["benchmarkId", "benchmarkUri", "source", "sourceBenchmarkId", "label"], ["taskType", "metricName", "metricType", "license", "$dataset"]] },
 						lists: [{ field: "$$documents", component: "AiDocumentsView", emptyText: "No linked documents." }],
 					},
-					plural: { component: "AiBenchmarksView", title: "AI benchmarks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiBenchmarksView", title: "AI benchmarks", },
 				},
 			}),
 
@@ -8616,7 +8353,7 @@ export const schema = {
 						content: { dl: [["datasetUri", "huggingFaceDatasetId", "revision", "source", "datasetName", "datasetDigest", "$artifact"], ["label", "license", "modality", "version", "isLiveDataset"]] },
 						lists: [{ field: "$$documents", component: "AiDocumentsView", emptyText: "No linked documents." }],
 					},
-					plural: { component: "AiDatasetsView", title: "AI datasets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiDatasetsView", title: "AI datasets", },
 				},
 			}),
 
@@ -8657,7 +8394,7 @@ export const schema = {
 						content: { dl: [["documentKind", "contentHashAlgorithm", "contentHash", "$artifact", "documentUrl"], ["mediaType", "sourceFormat", "schemaVersion", "conformsTo", "declaredSubjectKind"]] },
 						lists: [{ field: "$$claims", component: "AiDocumentClaimsView", emptyText: "No AI document claims." }],
 					},
-					plural: { component: "AiDocumentsView", title: "AI documents", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiDocumentsView", title: "AI documents", },
 				},
 			}),
 
@@ -8703,7 +8440,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "AiDocumentClaimsView", title: "AI document claims", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiDocumentClaimsView", title: "AI document claims", },
 				},
 			}),
 
@@ -8752,7 +8489,7 @@ export const schema = {
 						closed: ["subjectKind", "$benchmark", "metricName"],
 						content: { dl: [["subjectKind", "$benchmark", "metricName", "metricType", "value", "unit"], [{ field: "timestampMs", format: "timestamp" }, "source", "$model", "$modelVersion", "$a2aAgentService", "$mcpServer", "$eip8004Registration"], ["sourceRunId", "sourceResultId", "step", "split", "method", "harnessVersion"], ["datasetName", "datasetType", "datasetConfig", "datasetSplit", "datasetDigest", "sourceName", "sourceUrl"]] },
 					},
-					plural: { component: "AiEvaluation_TimestampsView", title: "AI evaluation observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiEvaluation_TimestampsView", title: "AI evaluation observations", },
 				},
 			}),
 
@@ -8808,7 +8545,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AiModelsView", title: "AI models", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiModelsView", title: "AI models", },
 				},
 			}),
 
@@ -8872,7 +8609,7 @@ export const schema = {
 						closed: ["$model", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$model", { field: "timestampMs", format: "timestamp" }, "source"], ["providerObjectType", "providerDisplayName", "providerDescription", "providerVersion", "providerOwnedBy", "availabilityStatus", "providerLifecycleStatus"], [{ field: "releaseDate", format: "timestamp" }, { field: "deprecationDate", format: "timestamp" }, "deprecated", "deleted"], ["contextWindowTokens", "maxInputTokens", "maxOutputTokens"], ["supportedToolUse", "supportedStructuredOutput", "supportedJsonMode", "supportedStreaming", "supportedThinking", "tokenizerUrl"], ["inputPricePerMillionTokens", "outputPricePerMillionTokens", "cacheReadPricePerMillionTokens", "cacheWritePricePerMillionTokens", "rateLimitTier"]] },
 					},
-					plural: { component: "AiModel_TimestampsView", title: "AI model observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiModel_TimestampsView", title: "AI model observations", },
 				},
 			}),
 
@@ -8922,7 +8659,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AiModelProvidersView", title: "AI model providers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiModelProvidersView", title: "AI model providers", },
 				},
 			}),
 
@@ -8965,7 +8702,7 @@ export const schema = {
 						content: { dl: [["$model", "versionId", "$artifact", "huggingFaceRepo", "revision"], ["mlflowRegisteredModelName", "mlflowModelVersion", "onnxIrVersion"], [{ field: "createdAt", format: "timestamp" }, { field: "trainingCutoff", format: "timestamp" }, "quantization", "fineTuneKind"]] },
 						lists: [{ field: "$$documents", component: "AiDocumentsView", emptyText: "No linked documents." }],
 					},
-					plural: { component: "AiModelVersionsView", title: "AI model versions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiModelVersionsView", title: "AI model versions", },
 				},
 			}),
 
@@ -9000,7 +8737,7 @@ export const schema = {
 						content: { dl: [["$provider", "operationId", "label", "operationKind"], ["httpMethod", "pathTemplate", "documentUrl"]] },
 						lists: [{ field: "$$timestamps", component: "AiProviderApiOperation_TimestampsView", emptyText: "No AI provider API operation observations." }],
 					},
-					plural: { component: "AiProviderApiOperationsView", title: "AI provider API operations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiProviderApiOperationsView", title: "AI provider API operations", },
 				},
 			}),
 
@@ -9042,7 +8779,7 @@ export const schema = {
 						closed: ["$operation", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$operation", { field: "timestampMs", format: "timestamp" }, "source"], ["availabilityStatus", "supportedStreaming", "supportedToolUse", "supportedStructuredOutput", "supportedJsonMode", "error"]] },
 					},
-					plural: { component: "AiProviderApiOperation_TimestampsView", title: "AI provider API operation observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiProviderApiOperation_TimestampsView", title: "AI provider API operation observations", },
 				},
 			}),
 
@@ -9082,7 +8819,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "AiProviderCatalogEntry_TimestampsView", emptyText: "No AI provider catalog entry observations." },
 						],
 					},
-					plural: { component: "AiProviderCatalogEntriesView", title: "AI provider catalog entries", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiProviderCatalogEntriesView", title: "AI provider catalog entries", },
 				},
 			}),
 
@@ -9116,7 +8853,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "AiProviderCatalogEntry_TimestampsView", title: "AI provider catalog entry observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiProviderCatalogEntry_TimestampsView", title: "AI provider catalog entry observations", },
 				},
 			}),
 
@@ -9161,7 +8898,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "AiRelationshipClaimsView", title: "AI relationship claims", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AiRelationshipClaimsView", title: "AI relationship claims", },
 				},
 			}),
 
@@ -9205,7 +8942,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AlgorandAccountsView", title: "Algorand accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandAccountsView", title: "Algorand accounts", },
 				},
 			}),
 
@@ -9232,7 +8969,7 @@ export const schema = {
 						closed: ["$account", "round", "source"],
 						content: { dl: [["$account", "round", "source"], ["amount", "pendingRewards", "rewardsBase", "status"]] },
 					},
-					plural: { component: "AlgorandAccount_TimestampsView", title: "Algorand account observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandAccount_TimestampsView", title: "Algorand account observations", },
 				},
 			}),
 
@@ -9278,7 +9015,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AlgorandApplicationsView", title: "Algorand applications", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandApplicationsView", title: "Algorand applications", },
 				},
 			}),
 
@@ -9308,7 +9045,7 @@ export const schema = {
 						closed: ["$application", "round", "source"],
 						content: { dl: [["$application", "round", "source"], ["approvalProgramHash", "clearProgramHash", "boxCount", "deleted"]] },
 					},
-					plural: { component: "AlgorandApplication_TimestampsView", title: "Algorand application observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandApplication_TimestampsView", title: "Algorand application observations", },
 				},
 			}),
 
@@ -9335,7 +9072,7 @@ export const schema = {
 						closed: ["$account", "$application", "round", "source"],
 						content: { dl: [["$account", "$application", "round", "source"], ["deleted"]] },
 					},
-					plural: { component: "AlgorandApplicationLocalState_RoundsView", title: "Algorand application local state rounds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandApplicationLocalState_RoundsView", title: "Algorand application local state rounds", },
 				},
 			}),
 
@@ -9365,7 +9102,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "AlgorandAsset_TimestampsView", emptyText: "No Algorand asset observations." },
 						],
 					},
-					plural: { component: "AlgorandAssetsView", title: "Algorand assets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandAssetsView", title: "Algorand assets", },
 				},
 			}),
 
@@ -9399,9 +9136,9 @@ export const schema = {
 				views: {
 					singular: {
 						closed: ["$asset", "round", "source"],
-						content: { dl: [["$asset", "round", "source", "assetName", "unitName"], ["total", "decimals", "defaultFrozen", "url", "metadataHash"], ["manager", "reserve", "freeze", "clawback", "holderCount", "deleted"]] },
+						content: { dl: [["$asset", "round", "source", "assetName", "unitName"], [{ field: "total", format: "numberValue", decimalPlaces: routeField("decimals"), suffix: routeField("unitName") }, "decimals", "defaultFrozen", "url", "metadataHash"], ["manager", "reserve", "freeze", "clawback", "holderCount", "deleted"]] },
 					},
-					plural: { component: "AlgorandAsset_TimestampsView", title: "Algorand asset observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandAsset_TimestampsView", title: "Algorand asset observations", },
 				},
 			}),
 
@@ -9429,7 +9166,7 @@ export const schema = {
 						closed: ["$account", "$asset", "round", "source"],
 						content: { dl: [["$account", "$asset", "round", "source"], ["amount", "frozen", "optedInAtRound", "deleted"]] },
 					},
-					plural: { component: "AlgorandAssetHolding_RoundsView", title: "Algorand asset holding rounds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandAssetHolding_RoundsView", title: "Algorand asset holding rounds", },
 				},
 			}),
 
@@ -9453,7 +9190,7 @@ export const schema = {
 						content: { dl: [["$application", "boxName"], ["$$rounds"]] },
 						lists: [{ field: "$$rounds", component: "AlgorandBox_RoundsView", emptyText: "No Algorand box rounds." }],
 					},
-					plural: { component: "AlgorandBoxesView", title: "Algorand boxes", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandBoxesView", title: "Algorand boxes", },
 				},
 			}),
 
@@ -9479,7 +9216,7 @@ export const schema = {
 						closed: ["$box", "round", "source"],
 						content: { dl: [["$box", "round", "source"], ["value", "valueHash", "deleted"]] },
 					},
-					plural: { component: "AlgorandBox_RoundsView", title: "Algorand box rounds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandBox_RoundsView", title: "Algorand box rounds", },
 				},
 			}),
 
@@ -9537,7 +9274,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AlgorandNetworksView", title: "Algorand networks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandNetworksView", title: "Algorand networks", },
 				},
 			}),
 
@@ -9564,7 +9301,7 @@ export const schema = {
 						closed: ["$network", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$network", { field: "timestampMs", format: "timestamp" }, "source"], ["latestRound", "catchpoint", "genesisHash", "protocolVersion"]] },
 					},
-					plural: { component: "AlgorandNetwork_TimestampsView", title: "Algorand network observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandNetwork_TimestampsView", title: "Algorand network observations", },
 				},
 			}),
 
@@ -9590,7 +9327,7 @@ export const schema = {
 						closed: ["$network", "round"],
 						content: { dl: [["$network", "round", "hash"], [{ field: "timestampMs", format: "timestamp" }, "genesisHash", "proposer"]] },
 					},
-					plural: { component: "AlgorandRoundsView", title: "Algorand rounds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandRoundsView", title: "Algorand rounds", },
 				},
 			}),
 
@@ -9637,7 +9374,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "AlgorandTealProgramsView", title: "Algorand TEAL programs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandTealProgramsView", title: "Algorand TEAL programs", },
 				},
 			}),
 
@@ -9664,7 +9401,7 @@ export const schema = {
 						closed: ["$program", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$program", { field: "timestampMs", format: "timestamp" }, "source"], ["bytecode", "disassembly", "compileResultHash"]] },
 					},
-					plural: { component: "AlgorandTealProgram_TimestampsView", title: "Algorand TEAL program observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandTealProgram_TimestampsView", title: "Algorand TEAL program observations", },
 				},
 			}),
 
@@ -9700,7 +9437,7 @@ export const schema = {
 						content: { dl: [["$network", "txId", "round", "sender", "transactionType"], ["fee", "group", "$group", "parentTransactionId", "innerTransactionIndex"], ["logs", "$$proofs"]] },
 						lists: [{ field: "$$proofs", component: "AlgorandTransactionProofsView", emptyText: "No Algorand transaction proofs." }],
 					},
-					plural: { component: "AlgorandTransactionsView", title: "Algorand transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandTransactionsView", title: "Algorand transactions", },
 				},
 			}),
 
@@ -9724,7 +9461,7 @@ export const schema = {
 						content: { dl: [["$network", "group"], ["$$transactions"]] },
 						lists: [{ field: "$$transactions", component: "AlgorandTransactionsView", emptyText: "No Algorand transactions." }],
 					},
-					plural: { component: "AlgorandTransactionGroupsView", title: "Algorand transaction groups", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandTransactionGroupsView", title: "Algorand transaction groups", },
 				},
 			}),
 
@@ -9752,7 +9489,7 @@ export const schema = {
 						closed: ["$transaction", "round", "hashType", "source"],
 						content: { dl: [["$transaction", "round", "hashType", "source"], ["proofBytes", "stibHash", "treeDepth"]] },
 					},
-					plural: { component: "AlgorandTransactionProofsView", title: "Algorand transaction proofs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AlgorandTransactionProofsView", title: "Algorand transaction proofs", },
 				},
 			}),
 
@@ -9768,7 +9505,6 @@ export const schema = {
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccount_Timestamp },
 				"$$balances": { label: "balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosCoinBalance_Timestamp },
 				"$$resources": { label: "resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccountResource },
-				"$$modules": { label: "modules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MoveModule },
 				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction },
 			})({
 				selectors: {
@@ -9802,13 +9538,11 @@ export const schema = {
 								sections: [
 									{ id: "aptos-account-balances", field: "$$balances", List: "AptosCoinBalance_TimestampsView", label: "Balances", emptyText: "No balances found." },
 									{ id: "aptos-account-resource-list", field: "$$resources", List: "AptosAccountResourcesView", label: "Resources", emptyText: "No resources found." },
-									{ id: "aptos-account-modules", field: "$$modules", List: "MoveModulesView", label: "Modules", emptyText: "No modules found." },
 								],
 							},
 						],
 					},
 					plural: { component: "AptosAccountsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -9847,7 +9581,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosAccount_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -9882,7 +9615,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AptosAccountResourcesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -9917,7 +9649,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosAccountResource_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -9958,7 +9689,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AptosBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -9989,7 +9719,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["assetType"],
-							value: [{ field: "amount", format: "numberValue" }],
+							value: [{ field: "amount", format: "numberValue", suffix: routeField("unit") }],
 							HeadingAfter: [{ field: "ledgerVersion", format: "numberValue" }],
 						},
 						content: {
@@ -10000,7 +9730,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosCoinBalance_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10039,7 +9768,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosEventsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10056,7 +9784,6 @@ export const schema = {
 				"$$blocks": { label: "blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosBlock },
 				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction },
 				"$$accounts": { label: "accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccount },
-				"$$modules": { label: "modules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MoveModule },
 				"$$events": { label: "events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosEvent },
 				"$$coinBalanceTimestamps": { label: "coin balance timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosCoinBalance_Timestamp },
 			})({
@@ -10091,7 +9818,6 @@ export const schema = {
 								className: "network-view-collapsible-accounts-modules",
 								sections: [
 									{ id: "aptos-accounts", field: "$$accounts", List: "AptosAccountsView", label: "Accounts", emptyText: "No Aptos accounts." },
-									{ id: "aptos-modules", field: "$$modules", List: "MoveModulesView", label: "Move modules", emptyText: "No Aptos Move modules." },
 								],
 							},
 							{
@@ -10105,7 +9831,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AptosNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10147,7 +9872,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10190,7 +9914,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosStateChangesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10230,7 +9953,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AptosTableItemsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10268,7 +9990,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosTableItem_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10328,7 +10049,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AptosTransactionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10370,7 +10090,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AptosTransaction_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10421,7 +10140,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ArweaveBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10475,7 +10193,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ArweaveNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10519,7 +10236,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ArweaveNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10557,7 +10273,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ArweaveResourcesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10603,7 +10318,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ArweaveResource_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10652,7 +10366,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ArweaveTransactionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10716,7 +10429,6 @@ export const schema = {
 					},
 					plural: {
 						component: "AssetClassesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10757,7 +10469,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AssetEligibilitiesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -10842,7 +10553,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AssetFormatSupport_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11003,7 +10713,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AssetInstancesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -11050,7 +10759,6 @@ export const schema = {
 						lists: [{ field: "$$usageRights", component: "UsageRight_TimestampsView", emptyText: "No usage right observations." }],
 					},
 					plural: { component: "AssetObjectsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11081,19 +10789,23 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["supplyScopeKey"],
-							value: [{ field: "totalSupply", format: "numberValue" }],
+							value: [{ field: "totalSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") }],
 							HeadingAfter: ["source"],
 						},
 						content: {
 							dl: [
 								["$assetInstance", "supplyScopeKey", "$class", "classKey"],
 								["ledgerCoordinateKind", { field: "ledgerCoordinateValue", format: "numberValue" }, "source"],
-								[{ field: "totalSupply", format: "numberValue" }, { field: "maxSupply", format: "numberValue" }, { field: "mintedSupply", format: "numberValue" }, { field: "burnedSupply", format: "numberValue" }],
+								[
+									{ field: "totalSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+									{ field: "maxSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+									{ field: "mintedSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+									{ field: "burnedSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+								],
 							],
 						},
 					},
 					plural: { component: "AssetSupply_LedgerCoordinatesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11145,7 +10857,10 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["supplyScopeKey"],
-							value: ["totalSupply", "circulatingSupply"],
+							value: [
+								{ field: "totalSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+								{ field: "circulatingSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+							],
 							HeadingAfter: ["source"],
 						},
 						closed: ["supplyScopeKey", "timestampMs"],
@@ -11158,9 +10873,9 @@ export const schema = {
 									"source",
 								],
 								[
-									"totalSupply",
-									"circulatingSupply",
-									"burnedSupply",
+									{ field: "totalSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+									{ field: "circulatingSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
+									{ field: "burnedSupply", format: "numberValue", decimalPlaces: routeProperty(routeField("$assetInstance"), "decimals"), suffix: routeProperty(routeField("$assetInstance"), "symbol") },
 									"methodology",
 									"$class",
 									"$assetInstance",
@@ -11169,7 +10884,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AssetSupply_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11186,44 +10900,13 @@ export const schema = {
 					label: "DID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"handle": {
 					label: "Handle",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
-				},
-				"displayName": {
-					label: "Display name",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-				},
-				"description": {
-					label: "Description",
-					description: "The profile description from the current appview profile record.",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-				},
-				"indexedAt": {
-					label: "Indexed",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
-				"$icon": {
-					label: "Avatar",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.Media,
-				},
-				"$banner": {
-					label: "Banner",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.Media,
 				},
 				"$$timestamps": {
 					label: "Metric observations",
@@ -11251,37 +10934,62 @@ export const schema = {
 							openFields: ["$$posts", "$$timestamps"],
 						},
 						summary: {
-							icon: "$icon",
-							title: ["displayName", "handle"],
+							title: [
+								{
+									field: "did",
+									format: "truncated",
+								},
+							],
 							titleFallback: [
 								{
 									field: "did",
 									format: "truncated",
 								},
 							],
-							HeadingAfter: ["handle"],
+							Title: dedent `
+								<ResourceBoundary
+									resource={
+										selection.$$timestamps({
+											sources: [
+												Source.Atproto_Xrpc,
+											],
+											fields: {
+												displayName: true,
+												handle: true,
+												timestampMs: true,
+												source: true,
+											},
+											limit: 1,
+											orderBy: [
+												[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+											],
+										})
+									}
+								>
+									{#snippet Pending()}
+										<TruncatedValue value={String(pendingEntity.did ?? '')} />
+									{/snippet}
+									{#snippet children(observations)}
+										{@const observation = observations.values[0]}
+										{#if observation?.displayName}
+											{String(observation.displayName)}
+										{:else if observation?.handle}
+											@{String(observation.handle)}
+										{:else}
+											<TruncatedValue value={String(pendingEntity.did ?? '')} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							`,
 						},
-						closed: ["displayName", "handle", "did"],
+						closed: ["did"],
 						content: {
-							body: { field: "description", format: "longText" },
 							dl: [
 								[
-									{ field: "handle", prefix: "@" },
 									{
 										field: "did",
 										label: "DID",
 										format: "truncated",
-									},
-									{
-										field: "indexedAt",
-										when: "open",
-										format: "timestamp",
-									},
-									{ field: "$icon", label: "Avatar", when: "open" },
-									{
-										field: "$banner",
-										label: "Banner",
-										when: "open",
 									},
 								],
 							],
@@ -11325,6 +11033,49 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
+				"source": {
+					label: "Source",
+					description: "The appview source that produced this immutable profile observation.",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"handle": {
+					label: "Observed handle",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"displayName": {
+					label: "Display name",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "string",
+				},
+				"description": {
+					label: "Description",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "string",
+				},
+				"indexedAt": {
+					label: "Indexed",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "number",
+				},
+				"$icon": {
+					label: "Avatar",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.Media,
+				},
+				"$banner": {
+					label: "Banner",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.Media,
+				},
 				"followersCount": {
 					label: "Followers",
 					type: EntityFieldType.Primitive,
@@ -11348,22 +11099,32 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"AtprotoActorTimestampMs": ["$actor", "timestampMs"],
+					"AtprotoActorTimestampMsSource": ["$actor", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
 						summary: {
-							title: [
+							icon: "$icon",
+							title: ["displayName", "handle"],
+							titleFallback: [
 								{
 									field: "timestampMs",
 									format: "timestamp",
 								},
 							],
+							HeadingAfter: ["source"],
 						},
 						content: {
+							body: { field: "description", format: "longText" },
 							dl: [
 								[
 									{ field: "timestampMs", format: "timestamp" },
+									"source",
+									{ field: "handle", prefix: "@" },
+									"displayName",
+									{ field: "indexedAt", format: "timestamp" },
+									"$icon",
+									"$banner",
 									{ field: "followersCount", format: "number" },
 									{ field: "followsCount", format: "number" },
 									{ field: "postsCount", format: "number" },
@@ -11373,7 +11134,6 @@ export const schema = {
 					},
 					plural: { component: "AtprotoActor_TimestampsView",
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "timestampMs",
@@ -11457,7 +11217,7 @@ export const schema = {
 					label: "URI",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"$author": {
 					label: "Author",
@@ -11692,7 +11452,6 @@ export const schema = {
 					},
 					plural: { component: "AtprotoPost_TimestampsView",
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "timestampMs",
@@ -11766,7 +11525,7 @@ export const schema = {
 							{ field: "$$posts", component: "AtprotoPostsView", label: "Posts", emptyText: "No posts in this commit." },
 						],
 					},
-					plural: { component: "AtprotoRepoCommitsView", title: "Repo commits", entityRow: _ListEntityRow.Summary },
+					plural: { component: "AtprotoRepoCommitsView", title: "Repo commits", },
 				},
 			}),
 
@@ -11805,7 +11564,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvailAppIdsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11842,7 +11600,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvailAppId_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11890,7 +11647,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvailBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11940,7 +11696,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvailDataSubmissionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -11980,7 +11735,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvailNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12023,7 +11777,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvailNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12062,7 +11815,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvalancheBlockchainsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12101,7 +11853,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvalancheDelegatorsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12144,7 +11895,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvalanchePChainBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12195,7 +11945,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvalanchePChainTransactionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12232,7 +11981,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvalanchePChainTransaction_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12277,7 +12025,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvalancheSubnetsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12316,7 +12063,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvalancheSubnet_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12363,7 +12109,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "AvalancheValidatorsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12402,7 +12147,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "AvalancheValidator_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12460,7 +12204,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconAttestationsView",
 						title: "Attestations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12511,7 +12254,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconCommitteesView",
 						title: "Committees",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12688,7 +12430,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconEpochsView",
 						title: "Epochs",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12737,7 +12478,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconSlashingsView",
 						title: "Slashings",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12896,7 +12636,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconSlotsView",
 						title: "Slots",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -12945,7 +12684,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconSyncCommitteesView",
 						title: "Sync committees",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13018,7 +12756,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconValidatorsView",
 						title: "Validators",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13101,7 +12838,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BeaconValidator_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13174,7 +12910,6 @@ export const schema = {
 					},
 					plural: { component: "BeaconWithdrawalsView",
 						title: "Withdrawals",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13218,7 +12953,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitcoinCashBcmrMetadataEntriesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13245,7 +12979,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BitcoinCashCashTokenCategoriesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BitcoinCashCashTokenCategoriesView", },
 				},
 			}),
 
@@ -13274,7 +13008,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BitcoinCashCashTokenCommitmentsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BitcoinCashCashTokenCommitmentsView", },
 				},
 			}),
 
@@ -13304,7 +13038,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BitcoinCashCashTokenFungibleAmountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BitcoinCashCashTokenFungibleAmountsView", },
 				},
 			}),
 
@@ -13335,7 +13069,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BitcoinCashCashTokenNFTsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BitcoinCashCashTokenNFTsView", },
 				},
 			}),
 
@@ -13385,7 +13119,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BittensorBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13428,7 +13161,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BittensorMetagraph_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13509,7 +13241,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BittensorNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13595,7 +13326,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BittensorNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13632,7 +13362,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BittensorNeuronsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13684,7 +13413,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BittensorSubnetsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13725,7 +13453,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentAnnounce_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13764,7 +13491,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentDhtLookup_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13802,7 +13528,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentDhtNode_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13838,7 +13563,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentFilesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13874,7 +13598,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentFileTreeEntriesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13952,7 +13675,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BitTorrentMetainfosView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -13993,7 +13715,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentPeer_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14030,7 +13751,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentPiecesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14068,7 +13788,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentSwarmObservation_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14105,7 +13824,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BitTorrentTrackersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14145,7 +13863,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitTorrentTrackerScrape_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14190,7 +13907,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadActionOutcome_TimestampsView", emptyText: "No outcome observations." },
 						],
 					},
-					plural: { component: "BlockheadActionOutcomesView", title: "Blockhead action outcomes", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadActionOutcomesView", title: "Blockhead action outcomes", },
 				},
 			}),
 
@@ -14226,7 +13943,7 @@ export const schema = {
 						closed: ["$outcome", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$outcome", { field: "timestampMs", format: "timestamp" }, "source", "status", "finality"], ["transactionHash", "transactionId", "bridgeTransferId", "sourcePayloadHash", "error"]] },
 					},
-					plural: { component: "BlockheadActionOutcome_TimestampsView", title: "Blockhead action outcome observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadActionOutcome_TimestampsView", title: "Blockhead action outcome observations", },
 				},
 			}),
 
@@ -14276,7 +13993,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadActionReadinessCheck_TimestampsView", emptyText: "No readiness observations." },
 						],
 					},
-					plural: { component: "BlockheadActionReadinessChecksView", title: "Blockhead action readiness checks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadActionReadinessChecksView", title: "Blockhead action readiness checks", },
 				},
 			}),
 
@@ -14312,7 +14029,7 @@ export const schema = {
 						closed: ["$readinessCheck", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$readinessCheck", { field: "timestampMs", format: "timestamp" }, "source", "status"], [{ field: "observedAmount", format: "number" }, { field: "requiredAmount", format: "number" }, { field: "deficitAmount", format: "number" }, "observedCapabilityStatus", "sourcePayloadHash", "error"]] },
 					},
-					plural: { component: "BlockheadActionReadinessCheck_TimestampsView", title: "Blockhead action readiness check observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadActionReadinessCheck_TimestampsView", title: "Blockhead action readiness check observations", },
 				},
 			}),
 
@@ -14354,7 +14071,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadAgentConnection_TimestampsView", emptyText: "No agent connection observations." },
 						],
 					},
-					plural: { component: "BlockheadAgentConnectionsView", title: "Blockhead agent connections", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentConnectionsView", title: "Blockhead agent connections", },
 				},
 			}),
 
@@ -14392,7 +14109,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAgentConnection_TimestampsView", title: "Blockhead agent connection observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentConnection_TimestampsView", title: "Blockhead agent connection observations", },
 				},
 			}),
 
@@ -14440,7 +14157,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadAgentConversationsView",
 						title: "Agent conversations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -14502,7 +14218,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadAgentConversationTurnsView",
 						title: "Turns",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Local_Internal],
@@ -14550,7 +14265,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadAgentCredentialState_TimestampsView", emptyText: "No credential observations." },
 						],
 					},
-					plural: { component: "BlockheadAgentCredentialStatesView", title: "Blockhead agent credential states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentCredentialStatesView", title: "Blockhead agent credential states", },
 				},
 			}),
 
@@ -14587,7 +14302,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAgentCredentialState_TimestampsView", title: "Blockhead agent credential state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentCredentialState_TimestampsView", title: "Blockhead agent credential state observations", },
 				},
 			}),
 
@@ -14626,7 +14341,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAgentProfilesView", title: "Blockhead agent profiles", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentProfilesView", title: "Blockhead agent profiles", },
 				},
 			}),
 
@@ -14671,7 +14386,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadAgentProgramInstall_TimestampsView", emptyText: "No install observations." },
 						],
 					},
-					plural: { component: "BlockheadAgentProgramInstallsView", title: "Blockhead agent program installs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentProgramInstallsView", title: "Blockhead agent program installs", },
 				},
 			}),
 
@@ -14710,7 +14425,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAgentProgramInstall_TimestampsView", title: "Blockhead agent program install observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentProgramInstall_TimestampsView", title: "Blockhead agent program install observations", },
 				},
 			}),
 
@@ -14769,7 +14484,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAgentProviderCallsView", title: "Blockhead agent provider calls", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAgentProviderCallsView", title: "Blockhead agent provider calls", },
 				},
 			}),
 
@@ -14815,7 +14530,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAlgorandParticipationKeysView", title: "Blockhead Algorand participation keys", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAlgorandParticipationKeysView", title: "Blockhead Algorand participation keys", },
 				},
 			}),
 
@@ -14858,7 +14573,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAlgorandPendingTransactionsView", title: "Blockhead Algorand pending transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAlgorandPendingTransactionsView", title: "Blockhead Algorand pending transactions", },
 				},
 			}),
 
@@ -14897,7 +14612,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadAvalancheNodeState_TimestampsView", emptyText: "No Avalanche node-state observations." },
 						],
 					},
-					plural: { component: "BlockheadAvalancheNodeStatesView", title: "Blockhead Avalanche node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAvalancheNodeStatesView", title: "Blockhead Avalanche node states", },
 				},
 			}),
 
@@ -14941,7 +14656,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadAvalancheNodeState_TimestampsView", title: "Blockhead Avalanche node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadAvalancheNodeState_TimestampsView", title: "Blockhead Avalanche node state observations", },
 				},
 			}),
 
@@ -14980,7 +14695,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadBitTorrentClientStatesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15024,7 +14738,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadBitTorrentClientState_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15071,7 +14784,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadBitTorrentTransfer_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15130,7 +14842,7 @@ export const schema = {
 							{ field: "$$quotes", component: "BlockheadIntentQuotesView", emptyText: "No quotes." },
 						],
 					},
-					plural: { component: "BlockheadBridgeIntentsView", title: "Blockhead bridge intents", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadBridgeIntentsView", title: "Blockhead bridge intents", },
 				},
 			}),
 
@@ -15170,7 +14882,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadBridgeTransactionsView",
 						title: "Transactions",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15186,9 +14897,19 @@ export const schema = {
 				"method": { label: "method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"quoteId": { label: "quote ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"request": { label: "request", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"amount": { label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"amount": {
+					label: "amount",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "bigint",
+				},
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"feeReserve": { label: "fee reserve", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"feeReserve": {
+					label: "fee reserve",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "bigint",
+				},
 				"$walletState": { label: "wallet state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadCashuWalletState },
 				"$$inputProofs": { label: "input proofs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadCashuProof },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadCashuMeltQuote_Timestamp },
@@ -15200,12 +14921,23 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["quoteId"],
-							value: [{ field: "amount", format: "numberValue" }, "unit"],
+							value: [{ field: "amount", format: "numberValue" }],
 						},
 						content: {
 							dl: [
 								["$mint", "method", "quoteId", "request", "$walletState"],
-								["unit", { field: "amount", format: "numberValue" }, { field: "feeReserve", format: "numberValue" }],
+								[
+									{
+										field: "amount",
+										format: "numberValue",
+										suffix: routeField("unit"),
+									},
+									{
+										field: "feeReserve",
+										format: "numberValue",
+										suffix: routeField("unit"),
+									},
+								],
 							],
 						},
 						lists: [
@@ -15214,7 +14946,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadCashuMeltQuotesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15252,7 +14983,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadCashuMeltQuote_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15269,7 +14999,12 @@ export const schema = {
 				"quoteId": { label: "quote ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"request": { label: "request", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"amount": { label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"amount": {
+					label: "amount",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "bigint",
+				},
 				"$walletState": { label: "wallet state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadCashuWalletState },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadCashuMintQuote_Timestamp },
 			})({
@@ -15280,12 +15015,18 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["quoteId"],
-							value: [{ field: "amount", format: "numberValue" }, "unit"],
+							value: [{ field: "amount", format: "numberValue", suffix: routeField("unit") }],
 						},
 						content: {
 							dl: [
 								["$mint", "method", "quoteId", "request", "$walletState"],
-								["unit", { field: "amount", format: "numberValue" }],
+								[
+									{
+										field: "amount",
+										format: "numberValue",
+										suffix: routeField("unit"),
+									},
+								],
 							],
 						},
 						lists: [
@@ -15293,7 +15034,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadCashuMintQuotesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15330,7 +15070,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadCashuMintQuote_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15349,7 +15088,12 @@ export const schema = {
 				"keysetId": { label: "keyset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"secretHash": { label: "secret hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"secret": { label: "secret", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"amount": { label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"amount": {
+					label: "amount",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "bigint",
+				},
 				"unit": { label: "unit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"signature": { label: "signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"dleqJson": { label: "dleq JSON", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -15364,12 +15108,20 @@ export const schema = {
 					singular: {
 						summary: {
 							title: [{ field: "secretHash", format: "truncated" }],
-							value: [{ field: "amount", format: "numberValue" }, "unit"],
+							value: [{ field: "amount", format: "numberValue", suffix: routeField("unit") }],
 						},
 						content: {
 							dl: [
 								["walletId", "$mint", "mintUrl", "$keyset", "keysetId", { field: "secretHash", format: "truncated" }],
-								[{ field: "amount", format: "numberValue" }, "unit", "signature", "dleqJson"],
+								[
+									{
+										field: "amount",
+										format: "numberValue",
+										suffix: routeField("unit"),
+									},
+									"signature",
+									"dleqJson",
+								],
 								[{ field: "receivedAt", format: "timestamp" }, "sourceTokenId"],
 							],
 						},
@@ -15378,7 +15130,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadCashuProofsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15418,7 +15169,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadCashuProof_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15451,12 +15201,12 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["id"],
-							value: ["status", { field: "totalAmount", format: "numberValue" }],
+							value: ["status", { field: "totalAmount", format: "numberValue", suffix: routeField("unit") }],
 						},
 						content: {
 							dl: [
 								["id", "tokenVersion", "status", "unit", "memo"],
-								["mintUrl", "$mint", { field: "proofCount", format: "number" }, { field: "totalAmount", format: "numberValue" }],
+								["mintUrl", "$mint", { field: "proofCount", format: "number" }, { field: "totalAmount", format: "numberValue", suffix: routeField("unit") }],
 								[{ field: "importedAt", format: "timestamp" }, { field: "redeemedAt", format: "timestamp" }],
 							],
 							body: {
@@ -15470,7 +15220,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadCashuTokensView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15537,7 +15286,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadCashuWalletStatesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15570,19 +15318,18 @@ export const schema = {
 					singular: {
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "balance", format: "numberValue" }],
+							value: [{ field: "balance", format: "numberValue", suffix: routeProperty(routeField("$walletState"), "unit") }],
 							HeadingAfter: ["source"],
 						},
 						content: {
 							dl: [
-								["$walletState", { field: "timestampMs", format: "timestamp" }, "source", { field: "balance", format: "numberValue" }],
+								["$walletState", { field: "timestampMs", format: "timestamp" }, "source", { field: "balance", format: "numberValue", suffix: routeProperty(routeField("$walletState"), "unit") }],
 								[{ field: "proofCount", format: "number" }, { field: "unspentProofCount", format: "number" }, { field: "pendingProofCount", format: "number" }, { field: "spentProofCount", format: "number" }],
 								[{ field: "activeKeysetCount", format: "number" }, { field: "pendingMintQuoteCount", format: "number" }, { field: "pendingMeltQuoteCount", format: "number" }, { field: "tokenCount", format: "number" }, { field: "lastSyncedAt", format: "timestamp" }],
 							],
 						},
 					},
 					plural: { component: "BlockheadCashuWalletState_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15623,7 +15370,7 @@ export const schema = {
 							{ field: "$$storedData", component: "BlockheadCodexStoredDataEntriesView", emptyText: "No stored data." },
 						],
 					},
-					plural: { component: "BlockheadCodexStorageNodeStatesView", title: "Blockhead Codex storage node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadCodexStorageNodeStatesView", title: "Blockhead Codex storage node states", },
 				},
 			}),
 
@@ -15668,7 +15415,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadCodexStorageNodeState_TimestampsView", title: "Blockhead Codex storage node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadCodexStorageNodeState_TimestampsView", title: "Blockhead Codex storage node state observations", },
 				},
 			}),
 
@@ -15702,7 +15449,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadCodexStoredData_TimestampsView", emptyText: "No availability observations." },
 						],
 					},
-					plural: { component: "BlockheadCodexStoredDataEntriesView", title: "Blockhead Codex stored data", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadCodexStoredDataEntriesView", title: "Blockhead Codex stored data", },
 				},
 			}),
 
@@ -15735,7 +15482,7 @@ export const schema = {
 						closed: ["$storedData", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$storedData", { field: "timestampMs", format: "timestamp" }, "source", "hasLocalBlock", "availableLocally", "downloadStatus", "error"]] },
 					},
-					plural: { component: "BlockheadCodexStoredData_TimestampsView", title: "Blockhead Codex stored data observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadCodexStoredData_TimestampsView", title: "Blockhead Codex stored data observations", },
 				},
 			}),
 
@@ -15774,7 +15521,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadEnsNameSearchesView",
 						title: "ENS name searches",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15795,41 +15541,38 @@ export const schema = {
 					},
 				],
 			})({
-				"fid": { label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"username": { label: "Username", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"displayName": { label: "Display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"iconUrl": { label: "Icon URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
-				"bio": { label: "Bio", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"verifications": { label: "Verifications", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray" },
-				"custody": { label: "Custody", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"connectionId": { label: "Connection ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$user": { label: "Farcaster user", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FarcasterUser },
+				"signerAddress": { label: "Verified signer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"authMethod": { label: "Auth method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "BlockheadFarcasterConnectionAuthMethod" },
-				"signedAt": { label: "Signed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"verifiedAt": { label: "Verified", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"expiresAt": { label: "Expires", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"associationFingerprint": { label: "Association fingerprint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"selected": { label: "Selected viewer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 			})({
 				selectors: {
-					"Fid": ["fid"],
+					"ConnectionId": ["connectionId"],
 				},
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.Neynar_Rest, Source.Snapchain_Rest],
-							fields: ["displayName", "username", "$icon"],
-							openFields: ["bio", "verifications", "custody", "authMethod", "signedAt"],
+							sources: [Source.Local_Internal],
+							fields: ["$user", "authMethod", "selected"],
+							openFields: ["signerAddress", "verifiedAt", "expiresAt", "associationFingerprint"],
 						},
 						summary: {
-							icon: "$icon",
-							title: [{ field: "displayName" }, { field: "username" }, { field: "fid" }],
-							value: [{ text: "FID " }, { field: "fid" }],
-							HeadingAfter: [{ field: "username", prefix: "@" }],
+							title: [{ text: "Verified Farcaster connection" }],
+							value: [{ field: "$user" }],
+							HeadingAfter: [{ field: "authMethod" }],
 						},
 						content: {
-							body: { field: "bio", format: "longText" },
 							dl: [
-								[{ field: "fid", format: "number" }],
-								[{ field: "username", prefix: "@" }],
-								[{ field: "custody", format: "truncated" }],
+								[{ field: "$user" }],
+								[{ field: "signerAddress", format: "truncated" }],
 								[{ field: "authMethod" }],
-								[{ field: "signedAt", format: "timestamp" }],
+								[{ field: "verifiedAt", format: "timestamp" }, { field: "expiresAt", format: "timestamp" }],
+								[{ field: "associationFingerprint", format: "truncated" }],
+								[{ field: "selected" }],
 							],
 						},
 					},
@@ -15877,7 +15620,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BlockheadFedimintClientStatesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15921,7 +15663,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadFedimintClientState_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -15972,7 +15713,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadFilecoinPendingMessagesView",
 						title: "Filecoin pending messages",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -16023,7 +15763,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadIntentInvocationsView", title: "Blockhead intent invocations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadIntentInvocationsView", title: "Blockhead intent invocations", },
 				},
 			}),
 
@@ -16063,7 +15803,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadIntentOrder_TimestampsView", emptyText: "No order observations." },
 						],
 					},
-					plural: { component: "BlockheadIntentOrdersView", title: "Blockhead intent orders", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadIntentOrdersView", title: "Blockhead intent orders", },
 				},
 			}),
 
@@ -16098,7 +15838,7 @@ export const schema = {
 						closed: ["$order", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$order", { field: "timestampMs", format: "timestamp" }, "source", "status"], ["fillTxHash", "claimTxHash", { field: "gasUsed", format: "number" }, "statusPayloadHash", "error"]] },
 					},
-					plural: { component: "BlockheadIntentOrder_TimestampsView", title: "Blockhead intent order observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadIntentOrder_TimestampsView", title: "Blockhead intent order observations", },
 				},
 			}),
 
@@ -16138,7 +15878,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadIntentQuote_TimestampsView", emptyText: "No quote observations." },
 						],
 					},
-					plural: { component: "BlockheadIntentQuotesView", title: "Blockhead intent quotes", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadIntentQuotesView", title: "Blockhead intent quotes", },
 				},
 			}),
 
@@ -16176,7 +15916,7 @@ export const schema = {
 						closed: ["$quote", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$quote", { field: "timestampMs", format: "timestamp" }, "source", "quoteId", "solverId"], [{ field: "validUntil", format: "timestamp" }, { field: "estimatedFillSeconds", format: "number" }, "quotePayloadHash", "integrityChecksum", "error"]] },
 					},
-					plural: { component: "BlockheadIntentQuote_TimestampsView", title: "Blockhead intent quote observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadIntentQuote_TimestampsView", title: "Blockhead intent quote observations", },
 				},
 			}),
 
@@ -16215,7 +15955,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadKaspaNodeState_TimestampsView", emptyText: "No Kaspa node-state observations." },
 						],
 					},
-					plural: { component: "BlockheadKaspaNodeStatesView", title: "Blockhead Kaspa node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadKaspaNodeStatesView", title: "Blockhead Kaspa node states", },
 				},
 			}),
 
@@ -16258,7 +15998,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadKaspaNodeState_TimestampsView", title: "Blockhead Kaspa node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadKaspaNodeState_TimestampsView", title: "Blockhead Kaspa node state observations", },
 				},
 			}),
 
@@ -16298,7 +16038,7 @@ export const schema = {
 							{ field: "$$htlcs", component: "BlockheadLightningHtlcsView", emptyText: "No pending HTLCs." },
 						],
 					},
-					plural: { component: "BlockheadLightningChannelStatesView", title: "Blockhead Lightning channel states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningChannelStatesView", title: "Blockhead Lightning channel states", },
 				},
 			}),
 
@@ -16343,7 +16083,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningChannelState_TimestampsView", title: "Blockhead Lightning channel state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningChannelState_TimestampsView", title: "Blockhead Lightning channel state observations", },
 				},
 			}),
 
@@ -16382,7 +16122,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningHtlcsView", title: "Blockhead Lightning HTLCs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningHtlcsView", title: "Blockhead Lightning HTLCs", },
 				},
 			}),
 
@@ -16431,7 +16171,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadLightningInvoicesView",
 						title: "Lightning invoices",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -16461,7 +16200,7 @@ export const schema = {
 							value: ["state", { field: "amountPaidMsat", format: "numberValue" }],
 						},
 					},
-					plural: { component: "BlockheadLightningInvoice_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningInvoice_TimestampsView", },
 				},
 			}),
 
@@ -16530,7 +16269,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadLightningNodeStatesView", title: "Blockhead Lightning node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningNodeStatesView", title: "Blockhead Lightning node states", },
 				},
 			}),
 
@@ -16577,7 +16316,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLightningNodeState_TimestampsView", title: "Blockhead Lightning node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningNodeState_TimestampsView", title: "Blockhead Lightning node state observations", },
 				},
 			}),
 
@@ -16623,7 +16362,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadLightningPaymentsView",
 						title: "Lightning payments",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -16653,7 +16391,7 @@ export const schema = {
 							value: ["status", { field: "feeMsat", format: "numberValue" }],
 						},
 					},
-					plural: { component: "BlockheadLightningPayment_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLightningPayment_TimestampsView", },
 				},
 			}),
 
@@ -16697,7 +16435,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadLitecoinMwebOutputState_TimestampsView", emptyText: "No Litecoin MWEB output observations." },
 						],
 					},
-					plural: { component: "BlockheadLitecoinMwebOutputStatesView", title: "Blockhead Litecoin MWEB output states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLitecoinMwebOutputStatesView", title: "Blockhead Litecoin MWEB output states", },
 				},
 			}),
 
@@ -16737,7 +16475,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLitecoinMwebOutputState_TimestampsView", title: "Blockhead Litecoin MWEB output state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLitecoinMwebOutputState_TimestampsView", title: "Blockhead Litecoin MWEB output state observations", },
 				},
 			}),
 
@@ -16776,7 +16514,7 @@ export const schema = {
 							{ field: "$$outputs", component: "BlockheadLitecoinMwebOutputStatesView", emptyText: "No Litecoin MWEB outputs." },
 						],
 					},
-					plural: { component: "BlockheadLitecoinMwebWalletStatesView", title: "Blockhead Litecoin MWEB wallet states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLitecoinMwebWalletStatesView", title: "Blockhead Litecoin MWEB wallet states", },
 				},
 			}),
 
@@ -16820,7 +16558,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLitecoinMwebWalletState_TimestampsView", title: "Blockhead Litecoin MWEB wallet state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLitecoinMwebWalletState_TimestampsView", title: "Blockhead Litecoin MWEB wallet state observations", },
 				},
 			}),
 
@@ -16857,7 +16595,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadLogosBlockchainNodeState_TimestampsView", emptyText: "No Logos blockchain node observations." },
 						],
 					},
-					plural: { component: "BlockheadLogosBlockchainNodeStatesView", title: "Blockhead Logos blockchain node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLogosBlockchainNodeStatesView", title: "Blockhead Logos blockchain node states", },
 				},
 			}),
 
@@ -16895,7 +16633,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLogosBlockchainNodeState_TimestampsView", title: "Blockhead Logos blockchain node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLogosBlockchainNodeState_TimestampsView", title: "Blockhead Logos blockchain node state observations", },
 				},
 			}),
 
@@ -16927,7 +16665,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadLogosBlockchainWalletKeyState_TimestampsView", emptyText: "No Logos blockchain wallet-key observations." },
 						],
 					},
-					plural: { component: "BlockheadLogosBlockchainWalletKeyStatesView", title: "Blockhead Logos blockchain wallet key states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLogosBlockchainWalletKeyStatesView", title: "Blockhead Logos blockchain wallet key states", },
 				},
 			}),
 
@@ -16964,7 +16702,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadLogosBlockchainWalletKeyState_TimestampsView", title: "Blockhead Logos blockchain wallet key state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLogosBlockchainWalletKeyState_TimestampsView", title: "Blockhead Logos blockchain wallet key state observations", },
 				},
 			}),
 
@@ -17012,7 +16750,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadMoneroOutputState_TimestampsView", emptyText: "No Monero output observations." },
 						],
 					},
-					plural: { component: "BlockheadMoneroOutputStatesView", title: "Blockhead Monero output states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroOutputStatesView", title: "Blockhead Monero output states", },
 				},
 			}),
 
@@ -17051,7 +16789,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadMoneroOutputState_TimestampsView", title: "Blockhead Monero output state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroOutputState_TimestampsView", title: "Blockhead Monero output state observations", },
 				},
 			}),
 
@@ -17092,7 +16830,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadMoneroSubaddressState_TimestampsView", emptyText: "No Monero subaddress observations." },
 						],
 					},
-					plural: { component: "BlockheadMoneroSubaddressStatesView", title: "Blockhead Monero subaddress states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroSubaddressStatesView", title: "Blockhead Monero subaddress states", },
 				},
 			}),
 
@@ -17134,7 +16872,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadMoneroSubaddressState_TimestampsView", title: "Blockhead Monero subaddress state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroSubaddressState_TimestampsView", title: "Blockhead Monero subaddress state observations", },
 				},
 			}),
 
@@ -17185,7 +16923,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadMoneroTransferState_TimestampsView", emptyText: "No Monero transfer observations." },
 						],
 					},
-					plural: { component: "BlockheadMoneroTransferStatesView", title: "Blockhead Monero transfer states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroTransferStatesView", title: "Blockhead Monero transfer states", },
 				},
 			}),
 
@@ -17223,7 +16961,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadMoneroTransferState_TimestampsView", title: "Blockhead Monero transfer state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroTransferState_TimestampsView", title: "Blockhead Monero transfer state observations", },
 				},
 			}),
 
@@ -17286,7 +17024,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadMoneroWalletStatesView", title: "Blockhead Monero wallet states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroWalletStatesView", title: "Blockhead Monero wallet states", },
 				},
 			}),
 
@@ -17328,7 +17066,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadMoneroWalletState_TimestampsView", title: "Blockhead Monero wallet state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadMoneroWalletState_TimestampsView", title: "Blockhead Monero wallet state observations", },
 				},
 			}),
 
@@ -17364,7 +17102,7 @@ export const schema = {
 							dl: [["id", "name", "$activePanelTree"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]],
 						},
 					},
-					plural: { component: "BlockheadWorkspacesView", title: "Workspaces", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWorkspacesView", title: "Workspaces", },
 				},
 			}),
 
@@ -17400,7 +17138,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadPanelTreesView",
 						title: "Dashboards",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -17435,7 +17172,7 @@ export const schema = {
 						closed: ["$panelTree", "panelId", { field: "indexInParent", format: "number" }],
 						content: { dl: [["treeId", "panelId", "$panelTree", "parentPanelId"], [{ field: "indexInParent", format: "number" }, "kind", "entityType"]] },
 					},
-					plural: { component: "BlockheadPanelsView", title: "Panels", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadPanelsView", title: "Panels", },
 				},
 			}),
 
@@ -17491,7 +17228,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BlockheadPayjoinSessionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -17537,7 +17273,7 @@ export const schema = {
 							{ field: "$$pendingTransactions", component: "BlockheadQuilibriumPendingTransactionsView", emptyText: "No pending transactions." },
 						],
 					},
-					plural: { component: "BlockheadQuilibriumAccountStatesView", title: "Blockhead Quilibrium account states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadQuilibriumAccountStatesView", title: "Blockhead Quilibrium account states", },
 				},
 			}),
 
@@ -17573,7 +17309,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadQuilibriumAccountState_TimestampsView", title: "Blockhead Quilibrium account state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadQuilibriumAccountState_TimestampsView", title: "Blockhead Quilibrium account state observations", },
 				},
 			}),
 
@@ -17631,7 +17367,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadQuilibriumNodeStatesView", title: "Blockhead Quilibrium node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadQuilibriumNodeStatesView", title: "Blockhead Quilibrium node states", },
 				},
 			}),
 
@@ -17675,7 +17411,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadQuilibriumNodeState_TimestampsView", title: "Blockhead Quilibrium node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadQuilibriumNodeState_TimestampsView", title: "Blockhead Quilibrium node state observations", },
 				},
 			}),
 
@@ -17715,7 +17451,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadQuilibriumPendingTransactionsView", title: "Blockhead Quilibrium pending transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadQuilibriumPendingTransactionsView", title: "Blockhead Quilibrium pending transactions", },
 				},
 			}),
 
@@ -17754,7 +17490,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadRadicleNodeInventory_TimestampsView", title: "Blockhead Radicle node inventory observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadicleNodeInventory_TimestampsView", title: "Blockhead Radicle node inventory observations", },
 				},
 			}),
 
@@ -17822,7 +17558,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadRadicleNodeStatesView", title: "Blockhead Radicle node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadicleNodeStatesView", title: "Blockhead Radicle node states", },
 				},
 			}),
 
@@ -17862,7 +17598,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadRadicleNodeState_TimestampsView", title: "Blockhead Radicle node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadicleNodeState_TimestampsView", title: "Blockhead Radicle node state observations", },
 				},
 			}),
 
@@ -17899,7 +17635,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadRadiclePeersView", title: "Blockhead Radicle peers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadiclePeersView", title: "Blockhead Radicle peers", },
 				},
 			}),
 
@@ -17939,7 +17675,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadRadicleSeedObservation_TimestampsView", title: "Blockhead Radicle seed observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadicleSeedObservation_TimestampsView", title: "Blockhead Radicle seed observations", },
 				},
 			}),
 
@@ -17981,7 +17717,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadRadicleSyncSessionsView", title: "Blockhead Radicle sync sessions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadRadicleSyncSessionsView", title: "Blockhead Radicle sync sessions", },
 				},
 			}),
 
@@ -18022,7 +17758,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadRoomsView",
 						title: "Rooms",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18068,7 +17803,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadRoomPeersView",
 						title: "Contacts",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18107,6 +17841,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/components/BlockheadSessionActionsComposer.svelte", default: "BlockheadSessionActionsComposer" },
+						],
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["name", "status", "createdAt", "updatedAt"],
@@ -18130,7 +17867,17 @@ export const schema = {
 								label: "Work",
 								className: "network-view-collapsible-work",
 								sections: [
-									{ id: "blockhead-session-actions", field: "$$actions", List: "BlockheadSessionActionsView", label: "Actions", emptyText: "No actions." },
+									{
+										id: "blockhead-session-actions",
+										label: "Actions",
+										Content: dedent `
+											<BlockheadSessionActionsComposer
+												{selection}
+												{id}
+												{open}
+											/>
+										`,
+									},
 									{ id: "blockhead-session-intents", field: "$$intentInvocations", List: "BlockheadIntentInvocationsView", label: "Intent invocations", emptyText: "No intent invocations." },
 								],
 							},
@@ -18144,9 +17891,15 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadSessionsView",
+					plural: {
+						imports: [
+							{ from: "$/components/BlockheadSessionCreateControl.svelte", default: "BlockheadSessionCreateControl" },
+						],
+						component: "BlockheadSessionsView",
 						title: "Sessions",
-						entityRow: _ListEntityRow.Summary,
+						content: dedent `
+							<BlockheadSessionCreateControl />
+						`,
 					},
 				},
 			}),
@@ -18214,7 +17967,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadSessionActionsView", title: "Blockhead session actions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSessionActionsView", title: "Blockhead session actions", },
 				},
 			}),
 
@@ -18264,7 +18017,7 @@ export const schema = {
 							{ field: "$$logs", component: "BlockheadSessionSimulationLogsView", emptyText: "No logs." },
 						],
 					},
-					plural: { component: "BlockheadSessionSimulationsView", title: "Blockhead session simulations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSessionSimulationsView", title: "Blockhead session simulations", },
 				},
 			}),
 
@@ -18302,7 +18055,7 @@ export const schema = {
 						closed: ["$simulation", "callPath", "toAddress"],
 						content: { dl: [["$simulation", "callPath", "parentCallPath", { field: "depth", format: "number" }, { field: "callIndex", format: "number" }], ["callType", "fromAddress", "toAddress", { field: "value", format: "number" }, { field: "gasUsed", format: "number" }, "reverted", "error"], ["inputSelector", "inputDataHash", "outputDataHash"]] },
 					},
-					plural: { component: "BlockheadSessionSimulationCallsView", title: "Blockhead session simulation calls", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSessionSimulationCallsView", title: "Blockhead session simulation calls", },
 				},
 			}),
 
@@ -18335,7 +18088,7 @@ export const schema = {
 						closed: ["$simulation", { field: "logIndex", format: "number" }, "address"],
 						content: { dl: [["$simulation", { field: "logIndex", format: "number" }, "callPath", "address", "topic0"], ["topics", "dataHash", "decodedEventName", "removed"]] },
 					},
-					plural: { component: "BlockheadSessionSimulationLogsView", title: "Blockhead session simulation logs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSessionSimulationLogsView", title: "Blockhead session simulation logs", },
 				},
 			}),
 
@@ -18375,7 +18128,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadSharedAddressesView",
 						title: "Shared addresses",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18439,7 +18191,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadSiweChallengesView",
 						title: "SIWE challenges",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18474,7 +18225,7 @@ export const schema = {
 						content: { dl: [["ingestId", "fileName", "mimeType", { field: "size", format: "number" }, "sha256", "$media"], [{ field: "createdAt", format: "timestamp" }]] },
 						lists: [{ field: "$$timestamps", component: "BlockheadLocalMediaIngest_TimestampsView", emptyText: "No local media ingest observations." }],
 					},
-					plural: { component: "BlockheadLocalMediaIngestsView", title: "Local media ingests", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLocalMediaIngestsView", title: "Local media ingests", },
 				},
 			}),
 
@@ -18506,7 +18257,7 @@ export const schema = {
 						closed: ["$ingest", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$ingest", { field: "timestampMs", format: "timestamp" }, "source", "status", "uri", "error"]] },
 					},
-					plural: { component: "BlockheadLocalMediaIngest_TimestampsView", title: "Local media ingest observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadLocalMediaIngest_TimestampsView", title: "Local media ingest observations", },
 				},
 			}),
 
@@ -18579,7 +18330,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadSocialPostSessionsView",
 						title: "Social post sessions",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18628,7 +18378,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadSourcesView",
 						title: "Sources",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18665,7 +18414,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadSource_TimestampsView", title: "Source observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSource_TimestampsView", title: "Source observations", },
 				},
 			}),
 
@@ -18747,7 +18496,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadStateChannelsView",
 						title: "Channels",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18792,7 +18540,6 @@ export const schema = {
 					plural: {
 						component: "BlockheadStateChannel_TimestampsView",
 						title: "State channel observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18826,7 +18573,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadStateChannelDeposit_TimestampsView", emptyText: "No deposit observations." },
 						],
 					},
-					plural: { component: "BlockheadStateChannelDepositsView", title: "Blockhead state channel deposits", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadStateChannelDepositsView", title: "Blockhead state channel deposits", },
 				},
 			}),
 
@@ -18856,7 +18603,7 @@ export const schema = {
 						closed: ["$deposit", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$deposit", { field: "timestampMs", format: "timestamp" }, "source", { field: "availableBalance", format: "number" }, { field: "lockedBalance", format: "number" }]] },
 					},
-					plural: { component: "BlockheadStateChannelDeposit_TimestampsView", title: "Blockhead state channel deposit observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadStateChannelDeposit_TimestampsView", title: "Blockhead state channel deposit observations", },
 				},
 			}),
 
@@ -18898,7 +18645,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadStateChannelStatesView",
 						title: "State channel states",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18940,7 +18686,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadStateChannelTransfersView",
 						title: "State channel transfers",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -18992,7 +18737,7 @@ export const schema = {
 							{ field: "$$quotes", component: "BlockheadIntentQuotesView", emptyText: "No quotes." },
 						],
 					},
-					plural: { component: "BlockheadSwapIntentsView", title: "Blockhead swap intents", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadSwapIntentsView", title: "Blockhead swap intents", },
 				},
 			}),
 
@@ -19044,7 +18789,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadTransferIntentsView", title: "Blockhead transfer intents", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadTransferIntentsView", title: "Blockhead transfer intents", },
 				},
 			}),
 
@@ -19087,7 +18832,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadTransferRequestsView",
 						title: "Transfer requests",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19131,7 +18875,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadWakuMessageObservation_TimestampsView", title: "Blockhead Waku message observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWakuMessageObservation_TimestampsView", title: "Blockhead Waku message observations", },
 				},
 			}),
 
@@ -19170,7 +18914,7 @@ export const schema = {
 							{ field: "$$messageObservations", component: "BlockheadWakuMessageObservation_TimestampsView", emptyText: "No Waku message observations." },
 						],
 					},
-					plural: { component: "BlockheadWakuNodeStatesView", title: "Blockhead Waku node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWakuNodeStatesView", title: "Blockhead Waku node states", },
 				},
 			}),
 
@@ -19218,7 +18962,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadWakuNodeState_TimestampsView", title: "Blockhead Waku node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWakuNodeState_TimestampsView", title: "Blockhead Waku node state observations", },
 				},
 			}),
 
@@ -19266,7 +19010,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletsView",
 						title: "Blockhead wallets",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19315,7 +19058,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletAccountsView",
 						title: "Blockhead wallet accounts",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19368,7 +19110,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletAuthenticationsView",
 						title: "Wallet authentications",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19421,7 +19162,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletCapabilityGrantsView",
 						title: "Wallet capability grants",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19451,7 +19191,7 @@ export const schema = {
 				"transportKind": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"scopes": { label: "Scopes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "walletConnectionScopes" },
 				"selected": { label: "Selected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
-				"connectedAt": { label: "Connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"connectedAt": { label: "Connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"disconnectedAt": { label: "Disconnected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"sessionId": { label: "Session ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"sessionTopic": { label: "Session topic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -19483,7 +19223,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletConnectionsView",
 						title: "Wallet connections",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19534,7 +19273,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadWalletRequest_TimestampsView", emptyText: "No wallet request observations." },
 						],
 					},
-					plural: { component: "BlockheadWalletRequestsView", title: "Blockhead wallet requests", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWalletRequestsView", title: "Blockhead wallet requests", },
 				},
 			}),
 
@@ -19566,7 +19305,7 @@ export const schema = {
 						closed: ["$walletRequest", { field: "callIndex", format: "number" }],
 						content: { dl: [["$walletRequest", { field: "callIndex", format: "number" }, "caip2", "toAddress", { field: "value", format: "number" }, "inputDataHash"]] },
 					},
-					plural: { component: "BlockheadWalletRequestCallsView", title: "Blockhead wallet request calls", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWalletRequestCallsView", title: "Blockhead wallet request calls", },
 				},
 			}),
 
@@ -19605,7 +19344,7 @@ export const schema = {
 						closed: ["$walletRequest", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$walletRequest", { field: "timestampMs", format: "timestamp" }, "source", "status", { field: "walletStatusCode", format: "number" }, "walletCallBundleStatus"], ["atomic", { field: "receiptCount", format: "number" }, "transactionHash", "transactionId", "signatureHash", "statusPayloadHash", "error"]] },
 					},
-					plural: { component: "BlockheadWalletRequest_TimestampsView", title: "Blockhead wallet request observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadWalletRequest_TimestampsView", title: "Blockhead wallet request observations", },
 				},
 			}),
 
@@ -19658,7 +19397,6 @@ export const schema = {
 					},
 					plural: { component: "BlockheadWalletTransportSessionsView",
 						title: "Wallet transport sessions",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -19707,7 +19445,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadZcashNoteState_TimestampsView", emptyText: "No Zcash note observations." },
 						],
 					},
-					plural: { component: "BlockheadZcashNoteStatesView", title: "Blockhead Zcash note states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashNoteStatesView", title: "Blockhead Zcash note states", },
 				},
 			}),
 
@@ -19749,7 +19487,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZcashNoteState_TimestampsView", title: "Blockhead Zcash note state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashNoteState_TimestampsView", title: "Blockhead Zcash note state observations", },
 				},
 			}),
 
@@ -19798,7 +19536,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "BlockheadZcashViewingKey_TimestampsView", emptyText: "No Zcash viewing-key observations." },
 						],
 					},
-					plural: { component: "BlockheadZcashViewingKeysView", title: "Blockhead Zcash viewing keys", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashViewingKeysView", title: "Blockhead Zcash viewing keys", },
 				},
 			}),
 
@@ -19836,7 +19574,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZcashViewingKey_TimestampsView", title: "Blockhead Zcash viewing key observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashViewingKey_TimestampsView", title: "Blockhead Zcash viewing key observations", },
 				},
 			}),
 
@@ -19899,7 +19637,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadZcashWalletStatesView", title: "Blockhead Zcash wallet states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashWalletStatesView", title: "Blockhead Zcash wallet states", },
 				},
 			}),
 
@@ -19949,7 +19687,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZcashWalletState_TimestampsView", title: "Blockhead Zcash wallet state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZcashWalletState_TimestampsView", title: "Blockhead Zcash wallet state observations", },
 				},
 			}),
 
@@ -20006,7 +19744,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "BlockheadZeroGStorageNodeStatesView", title: "Blockhead 0G storage node states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZeroGStorageNodeStatesView", title: "Blockhead 0G storage node states", },
 				},
 			}),
 
@@ -20044,7 +19782,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZeroGStorageNodeState_TimestampsView", title: "Blockhead 0G storage node state observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZeroGStorageNodeState_TimestampsView", title: "Blockhead 0G storage node state observations", },
 				},
 			}),
 
@@ -20085,7 +19823,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZeroGStorageProofsView", title: "Blockhead 0G storage proofs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZeroGStorageProofsView", title: "Blockhead 0G storage proofs", },
 				},
 			}),
 
@@ -20126,7 +19864,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "BlockheadZeroGStoredChunksView", title: "Blockhead 0G stored chunks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "BlockheadZeroGStoredChunksView", title: "Blockhead 0G stored chunks", },
 				},
 			}),
 
@@ -20174,7 +19912,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbBeaconBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20241,7 +19978,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbBeaconNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20282,7 +20018,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BnbBeaconNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20339,7 +20074,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbBeaconTokensView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20378,7 +20112,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BnbBeaconToken_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20420,7 +20153,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbBeaconTokenMigrationsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20455,7 +20187,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BnbBeaconTokenMigration_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20493,7 +20224,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BnbBeaconTokenTransfersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20543,7 +20273,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbBeaconTransactionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20581,7 +20310,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BnbValidatorsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20619,7 +20347,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "BnbValidator_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20701,7 +20428,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BridgeRoutesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20778,7 +20504,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "BridgeRouteQuote_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20836,7 +20561,6 @@ export const schema = {
 					},
 					plural: { component: "BridgeRouteQuoteStepsView",
 						title: "Quote steps",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20887,7 +20611,6 @@ export const schema = {
 					},
 					plural: { component: "BridgeRouteStepsView",
 						title: "Steps",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20946,7 +20669,6 @@ export const schema = {
 					},
 					plural: { component: "BridgeTransfersView",
 						title: "Bridge transfers",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -20997,7 +20719,6 @@ export const schema = {
 					},
 					plural: { component: "BridgeTransfer_TimestampsView",
 						title: "Bridge transfer observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -21066,7 +20787,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoAddressesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoAddressesView", },
 				},
 			}),
 
@@ -21144,7 +20865,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoAddress_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoAddress_TimestampsView", },
 				},
 			}),
 
@@ -21220,7 +20941,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoBlocksView", },
 				},
 			}),
 
@@ -21317,7 +21038,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoCertificatesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoCertificatesView", },
 				},
 			}),
 
@@ -21325,7 +21046,7 @@ export const schema = {
 				entityType: EntityType.CardanoCommittee_Epoch,
 				labels: {
 					singular: 'cardano committee epoch',
-					plural: 'cardano committee epoches',
+					plural: 'cardano committee epochs',
 				},
 			})({
 				"$network": {
@@ -21337,7 +21058,7 @@ export const schema = {
 				"epoch": {
 					label: 'epoch',
 					type: EntityFieldType.Primitive,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"source": {
@@ -21353,35 +21074,67 @@ export const schema = {
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
+				"govActionId": {
+					label: 'governance action ID',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
+				"$seatingProposal": {
+					label: 'seating proposal',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.CardanoGovernanceProposal,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
+				"dissolved": {
+					label: 'dissolved',
+					type: EntityFieldType.Primitive,
+					valueType: "boolean",
+					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
 				"quorumNumerator": {
 					label: 'quorum numerator',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"quorumDenominator": {
 					label: 'quorum denominator',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"memberCount": {
 					label: 'member count',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"members": {
 					label: 'members',
 					type: EntityFieldType.Primitive,
-					valueType: "unknown",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "CardanoCommitteeMember",
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"threshold": {
 					label: 'threshold',
 					type: EntityFieldType.Primitive,
 					valueType: "unknown",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				"$$votes": {
+					label: 'votes',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.CardanoGovernanceVote,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -21392,7 +21145,20 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoCommittee_EpochsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ["$network", "epoch", "source"],
+							openFields: ["govActionId", "$seatingProposal", "dissolved", "quorumNumerator", "quorumDenominator", "memberCount", "members", "$$votes"],
+						},
+						summary: { title: [{ field: "epoch", prefix: "Epoch " }], value: ["memberCount"] },
+						closed: ["epoch", "memberCount"],
+						content: { dl: [["$network", "epoch", "source", "dissolved"], ["govActionId", "$seatingProposal", "quorumNumerator", "quorumDenominator", "memberCount"]] },
+						lists: [
+							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No committee votes." },
+						],
+					},
+					plural: { component: "CardanoCommittee_EpochsView", },
 				},
 			}),
 
@@ -21412,7 +21178,7 @@ export const schema = {
 				"epoch": {
 					label: 'epoch',
 					type: EntityFieldType.Primitive,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"source": {
@@ -21467,7 +21233,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoConstitution_EpochsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoConstitution_EpochsView", },
 				},
 			}),
 
@@ -21495,18 +21261,23 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
+				"anchorUrl": { label: 'anchor URL', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
+				"anchorHash": { label: 'anchor hash', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoDRep_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$votes": {
 					label: 'votes',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoGovernanceVote,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -21516,7 +21287,20 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoDRepsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ["$network", "drepCredential"],
+							openFields: ["credentialKind", "anchorUrl", "anchorHash", "$$votes"],
+						},
+						summary: { title: ["drepCredential"], value: ["credentialKind"] },
+						closed: ["drepCredential", "credentialKind"],
+						content: { dl: [["$network", "drepCredential", "credentialKind"], ["anchorUrl", "anchorHash"]] },
+						lists: [
+							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No votes." },
+						],
+					},
+					plural: { component: "CardanoDRepsView", },
 				},
 			}),
 
@@ -21603,7 +21387,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoDRep_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoDRep_TimestampsView", },
 				},
 			}),
 
@@ -21629,7 +21413,7 @@ export const schema = {
 				"proposalIndex": {
 					label: 'proposal index',
 					type: EntityFieldType.Primitive,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"proposalKind": {
@@ -21637,36 +21421,42 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$transaction": {
 					label: 'transaction',
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.CardanoTransaction,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"depositLovelace": {
 					label: 'deposit lovelace',
 					type: EntityFieldType.Primitive,
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"returnAddress": {
 					label: 'return address',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"anchorUrl": {
 					label: 'anchor URL',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"anchorHash": {
 					label: 'anchor hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"proposalPayload": {
 					label: 'proposal payload',
@@ -21679,12 +21469,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoGovernanceProposal_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$votes": {
 					label: 'votes',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoGovernanceVote,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -21695,7 +21487,21 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoGovernanceProposalsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ["$network", "proposalTxHash", "proposalIndex"],
+							openFields: ["proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "$$timestamps", "$$votes"],
+						},
+						summary: { title: ["proposalKind", { field: "proposalTxHash", prefix: "Proposal " }], value: [{ field: "proposalIndex", prefix: "#" }] },
+						closed: ["proposalKind", "proposalTxHash", "proposalIndex"],
+						content: { dl: [["$network", "$transaction", "proposalKind", { field: "depositLovelace", format: "number" }], ["returnAddress", "anchorUrl", "anchorHash"]] },
+						lists: [
+							{ field: "$$timestamps", component: "CardanoGovernanceProposal_TimestampsView", emptyText: "No proposal lifecycle observations." },
+							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No votes." },
+						],
+					},
+					plural: { component: "CardanoGovernanceProposalsView", },
 				},
 			}),
 
@@ -21757,6 +21563,12 @@ export const schema = {
 				},
 				"ratifiedEpoch": {
 					label: 'ratified epoch',
+					type: EntityFieldType.Primitive,
+					valueType: "number",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				"expirationEpoch": {
+					label: 'expiration epoch',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -21824,7 +21636,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoGovernanceProposal_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoGovernanceProposal_TimestampsView", },
 				},
 			}),
 
@@ -21888,7 +21700,7 @@ export const schema = {
 					label: 'vote transaction hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"voteIndex": {
 					label: 'vote index',
@@ -21920,17 +21732,24 @@ export const schema = {
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
+				"timestampMs": {
+					label: 'timestamp',
+					type: EntityFieldType.Primitive,
+					valueType: "NonNegativeInteger",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
 			})({
 				selectors: {
-					"ProposalVoterKindVoterCredentialSource": [
+					"ProposalVoterKindVoterCredentialVoteTxHashSource": [
 						'$proposal',
 						'voterKind',
 						'voterCredential',
+						'voteTxHash',
 						'source',
 					],
 				},
 				views: {
-					plural: { component: "CardanoGovernanceVotesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoGovernanceVotesView", },
 				},
 			}),
 
@@ -21980,7 +21799,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoNativeAssetsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoNativeAssetsView", },
 				},
 			}),
 
@@ -22057,7 +21876,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoNativeAsset_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoNativeAsset_TimestampsView", },
 				},
 			}),
 
@@ -22188,7 +22007,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoNetwork_TimestampsView", },
 				},
 			}),
 
@@ -22365,7 +22184,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoProtocolParameters_EpochsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoProtocolParameters_EpochsView", },
 				},
 			}),
 
@@ -22432,7 +22251,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoScriptWitnessesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoScriptWitnessesView", },
 				},
 			}),
 
@@ -22487,7 +22306,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoStakeCredentialsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoStakeCredentialsView", },
 				},
 			}),
 
@@ -22568,7 +22387,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoStakeDelegation_EpochsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoStakeDelegation_EpochsView", },
 				},
 			}),
 
@@ -22596,7 +22415,12 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
+				"name": { label: 'name', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
+				"ticker": { label: 'ticker', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
+				"description": { label: 'description', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
+				"homepage": { label: 'homepage', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
@@ -22611,7 +22435,17 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoStakePoolsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ["$network", "poolId"],
+							openFields: ["vrfKeyHash", "name", "ticker", "description", "homepage"],
+						},
+						summary: { title: ["poolId"], value: ["vrfKeyHash"] },
+						closed: ["poolId", "vrfKeyHash"],
+						content: { dl: [["$network", "poolId", "vrfKeyHash"], ["name", "ticker", "description", "homepage"]] },
+					},
+					plural: { component: "CardanoStakePoolsView", },
 				},
 			}),
 
@@ -22741,7 +22575,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoStakePool_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoStakePool_TimestampsView", },
 				},
 			}),
 
@@ -22882,7 +22716,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "CardanoTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoTransactionsView", },
 				},
 			}),
 
@@ -22943,7 +22777,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoTxInputsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoTxInputsView", },
 				},
 			}),
 
@@ -23030,7 +22864,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoTxOutputsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoTxOutputsView", },
 				},
 			}),
 
@@ -23067,7 +22901,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "CardanoTxOutputAssetsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CardanoTxOutputAssetsView", },
 				},
 			}),
 
@@ -23117,7 +22951,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CashuKeysetsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23155,7 +22988,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "CashuKeyset_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23210,7 +23042,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CashuMintsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23262,7 +23093,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "CashuMint_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23291,7 +23121,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CctpAllowancesView", title: "CCTP allowances", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpAllowancesView", title: "CCTP allowances", },
 				},
 			}),
 
@@ -23331,7 +23161,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CctpAttestation_TimestampsView", title: "CCTP attestation observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpAttestation_TimestampsView", title: "CCTP attestation observations", },
 				},
 			}),
 
@@ -23382,7 +23212,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CctpBurnFee_TimestampsView", title: "CCTP burn fee observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpBurnFee_TimestampsView", title: "CCTP burn fee observations", },
 				},
 			}),
 
@@ -23431,7 +23261,7 @@ export const schema = {
 							{ field: "$$burnFeeTimestamps", component: "CctpBurnFee_TimestampsView", emptyText: "No CCTP burn fee observations." },
 						],
 					},
-					plural: { component: "CctpDomainSupportsView", title: "CCTP domain supports", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpDomainSupportsView", title: "CCTP domain supports", },
 				},
 			}),
 
@@ -23461,7 +23291,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CctpFastBurnAllowance_TimestampsView", title: "CCTP fast burn allowance observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpFastBurnAllowance_TimestampsView", title: "CCTP fast burn allowance observations", },
 				},
 			}),
 
@@ -23490,7 +23320,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CctpFeesView", title: "CCTP fees", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpFeesView", title: "CCTP fees", },
 				},
 			}),
 
@@ -23551,7 +23381,7 @@ export const schema = {
 							{ field: "$$attestationTimestamps", component: "CctpAttestation_TimestampsView", emptyText: "No CCTP attestation observations." },
 						],
 					},
-					plural: { component: "CctpMessagesView", title: "CCTP messages", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CctpMessagesView", title: "CCTP messages", },
 				},
 			}),
 
@@ -23601,7 +23431,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "CelestiaBlobsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23648,7 +23477,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CelestiaBlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23688,7 +23516,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CelestiaNamespacesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23726,7 +23553,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "CelestiaNamespace_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23779,7 +23605,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CelestiaNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23823,7 +23648,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "CelestiaNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -23849,7 +23673,7 @@ export const schema = {
 						closed: ["$profile", "topicKey"],
 						content: { dl: [["$profile", "topicKey", "claimTopic", "countryScope"]] },
 					},
-					plural: { component: "ClaimTopicRequirementsView", title: "Claim topic requirements", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ClaimTopicRequirementsView", title: "Claim topic requirements", },
 				},
 			}),
 
@@ -23890,7 +23714,7 @@ export const schema = {
 							{ field: "$$localCopies", component: "BlockheadCodexStoredDataEntriesView", emptyText: "No local copies." },
 						],
 					},
-					plural: { component: "CodexDatasetsView", title: "Codex datasets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CodexDatasetsView", title: "Codex datasets", },
 				},
 			}),
 
@@ -24066,18 +23890,12 @@ export const schema = {
 						closed: ["coinId", "symbol", "name"],
 						carousels: [
 							{
-								id: "relationshipModel",
-								label: "Connection model",
+								id: "availability",
+								label: "Availability",
 								sections: [
 									{
 										id: "coin-instances",
 										label: "Instances",
-										field: "$$coinInstances",
-										List: "EvmCoinInstancesView",
-									},
-									{
-										id: "coin-wrapped",
-										label: "Wrapped",
 										field: "$$coinInstances",
 										List: "EvmCoinInstancesView",
 									},
@@ -24148,7 +23966,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "CoinsView",
-						entityRow: _ListEntityRow.Summary,
 						imports: [
 							{
 								from: "$/constants/Coin.ts",
@@ -24192,10 +24009,6 @@ export const schema = {
 																										]}
 																										class="coins-view-collapsible-quotes"
 																										data-card
-																										scrollContainerProps={{
-																											'data-row': 'start align-start',
-																											style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-																										}}
 																									>
 																										{#snippet Summary()}
 																											<header
@@ -24217,9 +24030,12 @@ export const schema = {
 																													EntityType._Global,
 																													{ scope: '$$marketPrices' }
 																												).$$marketPrices}
-																												{id}
-																												open={false}
-																												title={label}
+																		{id}
+																		open={true}
+																		title={label}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 																											/>
 																										{/snippet}
 																									</CollapsibleTabs>
@@ -24232,10 +24048,6 @@ export const schema = {
 																										]}
 																										class="coins-view-collapsible-ohlc"
 																										data-card
-																										scrollContainerProps={{
-																											'data-row': 'start align-start',
-																											style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-																										}}
 																									>
 																										{#snippet Summary()}
 																											<header
@@ -24267,9 +24079,12 @@ export const schema = {
 																													EntityType._Global,
 																													{ scope: '$$marketTimeIntervalTimestamps' }
 																												).$$marketTimeIntervalTimestamps}
-																												{id}
-																												open
-																												title={label}
+																		{id}
+																		open
+																		title={label}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 																											/>
 																										{/snippet}
 																									</CollapsibleTabs>
@@ -24282,10 +24097,6 @@ export const schema = {
 																										]}
 																										class="coins-view-collapsible-markets"
 																										data-card
-																										scrollContainerProps={{
-																											'data-row': 'start align-start',
-																											style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-																										}}
 																									>
 																										{#snippet Summary()}
 																											<header
@@ -24318,9 +24129,12 @@ export const schema = {
 																													EntityType._Global,
 																													{ scope: '$$markets' }
 																												).$$markets}
-																												{id}
-																												open={false}
-																												title={label}
+																		{id}
+																		open={true}
+																		title={label}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 																											/>
 																										{/snippet}
 																									</CollapsibleTabs>
@@ -24333,10 +24147,6 @@ export const schema = {
 																										]}
 																										class="coins-view-collapsible-deployments"
 																										data-card
-																										scrollContainerProps={{
-																											'data-row': 'start align-start',
-																											style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-																										}}
 																									>
 																										{#snippet Summary()}
 																											<header
@@ -24359,9 +24169,12 @@ export const schema = {
 																													EntityType.Coin,
 																													{ coinId: CoinId.ETH }
 																												).$$coinInstances}
-																												{id}
-																												open={false}
-																												title={label}
+																		{id}
+																		open={true}
+																		title={label}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 																											/>
 																										{/snippet}
 																									</CollapsibleTabs>
@@ -24443,7 +24256,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Coin_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -24528,7 +24340,6 @@ export const schema = {
 					},
 					plural: {
 						component: "CoinBridgeCapabilitiesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -24554,7 +24365,7 @@ export const schema = {
 						closed: ["$profile", "moduleKey"],
 						content: { dl: [["$profile", "moduleKey", "ruleKind"]] },
 					},
-					plural: { component: "ComplianceModulesView", title: "Compliance modules", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ComplianceModulesView", title: "Compliance modules", },
 				},
 			}),
 
@@ -24590,7 +24401,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ContractInterfaceMembersView", title: "Contract interface members", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ContractInterfaceMembersView", title: "Contract interface members", },
 				},
 			}),
 
@@ -24603,8 +24414,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp },
-				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction },
+				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -24620,10 +24430,9 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$timestamps", component: "CosmosAccount_TimestampsView", label: "Account snapshots", emptyText: "No Cosmos account observations." },
-							{ field: "$$transactions", component: "CosmosTransactionsView", label: "Transactions", emptyText: "No Cosmos transactions." },
 						],
 					},
-					plural: { component: "CosmosAccountsView", title: "Accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosAccountsView", title: "Accounts", },
 				},
 			}),
 
@@ -24649,7 +24458,7 @@ export const schema = {
 						closed: ["timestampMs", "source"],
 						content: { dl: [["timestampMs", "source", "accountNumber", "sequence", "$account"]] },
 					},
-					plural: { component: "CosmosAccount_TimestampsView", title: "Account snapshots", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosAccount_TimestampsView", title: "Account snapshots", },
 				},
 			}),
 
@@ -24666,7 +24475,6 @@ export const schema = {
 				"proposerConsensusAddress": { label: "Proposer consensus address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction },
 			})({
 				selectors: {
 					"NetworkHeight": ["$network", "height"],
@@ -24683,11 +24491,8 @@ export const schema = {
 							HeadingAfter: ["transactionCount"],
 						},
 						content: { dl: [["height", "hash", "proposerConsensusAddress", "timestampMs", "transactionCount", "$network"]] },
-						lists: [
-							{ field: "$$transactions", component: "CosmosTransactionsView", label: "Transactions", emptyText: "No Cosmos transactions." },
-						],
 					},
-					plural: { component: "CosmosBlocksView", title: "Blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosBlocksView", title: "Blocks", },
 				},
 			}),
 
@@ -24713,7 +24518,7 @@ export const schema = {
 						closed: [{ field: "address", format: "truncated" }, "codeId"],
 						content: { dl: [[{ field: "address", format: "truncated" }, "codeId", "$creator", "$admin", "$network"]] },
 					},
-					plural: { component: "CosmosContractsView", title: "Contracts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosContractsView", title: "Contracts", },
 				},
 			}),
 
@@ -24739,7 +24544,7 @@ export const schema = {
 						closed: ["denom", "display"],
 						content: { dl: [["denom", "display", "base", "symbol", "$network"]] },
 					},
-					plural: { component: "CosmosDenomsView", title: "Denoms", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosDenomsView", title: "Denoms", },
 				},
 			}),
 
@@ -24755,7 +24560,7 @@ export const schema = {
 				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"summary": { label: "Summary", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"metadata": { label: "Metadata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal_Timestamp },
+				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal_Timestamp, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
 					"NetworkProposalId": ["$network", "proposalId"],
@@ -24777,7 +24582,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "CosmosGovernanceProposal_TimestampsView", label: "Lifecycle snapshots", emptyText: "No Cosmos governance proposal observations." },
 						],
 					},
-					plural: { component: "CosmosGovernanceProposalsView", title: "Governance proposals", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosGovernanceProposalsView", title: "Governance proposals", },
 				},
 			}),
 
@@ -24812,7 +24617,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CosmosGovernanceProposal_TimestampsView", title: "Lifecycle snapshots", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosGovernanceProposal_TimestampsView", title: "Lifecycle snapshots", },
 				},
 			}),
 
@@ -24859,7 +24664,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CosmosMessagesView", title: "Messages", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosMessagesView", title: "Messages", },
 				},
 			}),
 
@@ -24883,7 +24688,7 @@ export const schema = {
 						closed: ["moduleName"],
 						content: { dl: [["moduleName", "$authority", "$network"]] },
 					},
-					plural: { component: "CosmosModulesView", title: "Modules", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosModulesView", title: "Modules", },
 				},
 			}),
 
@@ -24909,7 +24714,7 @@ export const schema = {
 				"signatures": { label: "Signatures", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
 				"rawLog": { label: "Raw log", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"eventTypes": { label: "Event types", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"$$messages": { label: "Messages", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosMessage },
+				"$$messages": { label: "Messages", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosMessage, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
 					"NetworkTxHash": ["$network", "txHash"],
@@ -24932,7 +24737,7 @@ export const schema = {
 							{ field: "$$messages", component: "CosmosMessagesView", label: "Messages", emptyText: "No Cosmos messages." },
 						],
 					},
-					plural: { component: "CosmosTransactionsView", title: "Transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosTransactionsView", title: "Transactions", },
 				},
 			}),
 
@@ -24951,7 +24756,7 @@ export const schema = {
 				"website": { label: "Website", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"securityContact": { label: "Security contact", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"details": { label: "Details", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator_Timestamp },
+				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator_Timestamp, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
 					"NetworkOperatorAddress": ["$network", "operatorAddress"],
@@ -24970,7 +24775,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "CosmosValidator_TimestampsView", label: "Validator snapshots", emptyText: "No Cosmos validator observations." },
 						],
 					},
-					plural: { component: "CosmosValidatorsView", title: "Validators", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosValidatorsView", title: "Validators", },
 				},
 			}),
 
@@ -25005,7 +24810,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "CosmosValidator_TimestampsView", title: "Validator snapshots", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CosmosValidator_TimestampsView", title: "Validator snapshots", },
 				},
 			}),
 
@@ -25045,7 +24850,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "Network_TimestampsView", emptyText: "No network observations." },
 						],
 					},
-					plural: { component: "CronosNetworkProfilesView", title: "Cronos network profiles", entityRow: _ListEntityRow.Summary },
+					plural: { component: "CronosNetworkProfilesView", title: "Cronos network profiles", },
 				},
 			}),
 
@@ -25183,7 +24988,6 @@ export const schema = {
 					plural: {
 						component: "CurrenciesView",
 						title: "Currencies",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -25240,7 +25044,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Currency_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -25279,7 +25082,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "DogecoinAuxPowMerkleBranchesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -25318,7 +25120,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "DogecoinAuxPowParentBlockHeadersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -25357,7 +25158,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "DogecoinBlockAuxPowsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -25391,7 +25191,7 @@ export const schema = {
 						content: { dl: [["$network", "ticker", "baseAsset", "quoteAsset", "marketKind"]] },
 						lists: [{ field: "$$timestamps", component: "DydxChainMarket_TimestampsView", emptyText: "No dYdX market observations." }],
 					},
-					plural: { component: "DydxChainMarketsView", title: "dYdX chain markets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainMarketsView", title: "dYdX chain markets", },
 				},
 			}),
 
@@ -25425,7 +25225,7 @@ export const schema = {
 						closed: ["$market", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$market", { field: "timestampMs", format: "timestamp" }, "source", "status"], ["oraclePrice", { field: "fundingRate", format: "number" }, "openInterest", { field: "nextFundingAtMs", format: "timestamp" }]] },
 					},
-					plural: { component: "DydxChainMarket_TimestampsView", title: "dYdX chain market observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainMarket_TimestampsView", title: "dYdX chain market observations", },
 				},
 			}),
 
@@ -25485,7 +25285,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "DydxChainNetworksView", title: "dYdX chain networks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainNetworksView", title: "dYdX chain networks", },
 				},
 			}),
 
@@ -25521,7 +25321,7 @@ export const schema = {
 						closed: ["$network", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$network", { field: "timestampMs", format: "timestamp" }, "source", "health"], ["blockHeight", "indexerHeight", { field: "marketCount", format: "number" }, { field: "subaccountCount", format: "number" }, { field: "openOrderCount", format: "number" }, { field: "openPositionCount", format: "number" }]] },
 					},
-					plural: { component: "DydxChainNetwork_TimestampsView", title: "dYdX chain network observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainNetwork_TimestampsView", title: "dYdX chain network observations", },
 				},
 			}),
 
@@ -25558,7 +25358,7 @@ export const schema = {
 						content: { dl: [["$subaccount", "orderId", "$market", "side", "orderType"], ["timeInForce", "clientId", "goodTilBlock", { field: "goodTilBlockTimeMs", format: "timestamp" }]] },
 						lists: [{ field: "$$timestamps", component: "DydxChainOrder_TimestampsView", emptyText: "No dYdX order observations." }],
 					},
-					plural: { component: "DydxChainOrdersView", title: "dYdX chain orders", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainOrdersView", title: "dYdX chain orders", },
 				},
 			}),
 
@@ -25594,7 +25394,7 @@ export const schema = {
 						closed: ["$order", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: { dl: [["$order", { field: "timestampMs", format: "timestamp" }, "source", "blockHeight", "status"], ["price", "size", "remainingSize", "filledSize", "totalFilled"]] },
 					},
-					plural: { component: "DydxChainOrder_TimestampsView", title: "dYdX chain order observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainOrder_TimestampsView", title: "dYdX chain order observations", },
 				},
 			}),
 
@@ -25631,7 +25431,7 @@ export const schema = {
 						closed: ["$subaccount", "$market", { field: "timestampMs", format: "timestamp" }],
 						content: { dl: [["$subaccount", "$market", { field: "timestampMs", format: "timestamp" }, "source", "blockHeight"], ["side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "fundingIndex"]] },
 					},
-					plural: { component: "DydxChainPerpetualPosition_TimestampsView", title: "dYdX chain perpetual position observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainPerpetualPosition_TimestampsView", title: "dYdX chain perpetual position observations", },
 				},
 			}),
 
@@ -25682,7 +25482,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "DydxChainSubaccountsView", title: "dYdX chain subaccounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainSubaccountsView", title: "dYdX chain subaccounts", },
 				},
 			}),
 
@@ -25717,7 +25517,7 @@ export const schema = {
 						closed: ["$subaccount", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$subaccount", { field: "timestampMs", format: "timestamp" }, "source", "blockHeight"], ["equity", "freeCollateral", { field: "marginUsage", format: "number" }, { field: "openPositionCount", format: "number" }, { field: "openOrderCount", format: "number" }]] },
 					},
-					plural: { component: "DydxChainSubaccount_TimestampsView", title: "dYdX chain subaccount observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "DydxChainSubaccount_TimestampsView", title: "dYdX chain subaccount observations", },
 				},
 			}),
 
@@ -25767,7 +25567,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "EasAttestation_TimestampsView", emptyText: "No EAS attestation observations." },
 						],
 					},
-					plural: { component: "EasAttestationsView", title: "EAS attestations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EasAttestationsView", title: "EAS attestations", },
 				},
 			}),
 
@@ -25810,7 +25610,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EasAttestation_TimestampsView", title: "EAS attestation observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EasAttestation_TimestampsView", title: "EAS attestation observations", },
 				},
 			}),
 
@@ -25856,7 +25656,7 @@ export const schema = {
 							{ field: "$$attestations", component: "EasAttestationsView", emptyText: "No EAS attestations." },
 						],
 					},
-					plural: { component: "EasSchemasView", title: "EAS schemas", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EasSchemasView", title: "EAS schemas", },
 				},
 			}),
 
@@ -25894,7 +25694,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerAllocation_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerAllocation_TimestampsView", },
 				},
 			}),
 
@@ -25956,7 +25756,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EigenLayerAVSsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerAVSsView", },
 				},
 			}),
 
@@ -25989,7 +25789,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerAvs_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerAvs_TimestampsView", },
 				},
 			}),
 
@@ -26027,7 +25827,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerDelegation_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerDelegation_TimestampsView", },
 				},
 			}),
 
@@ -26092,7 +25892,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EigenLayerOperatorsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerOperatorsView", },
 				},
 			}),
 
@@ -26157,7 +25957,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EigenLayerProtocolsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerProtocolsView", },
 				},
 			}),
 
@@ -26198,7 +25998,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerReward_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerReward_TimestampsView", },
 				},
 			}),
 
@@ -26240,7 +26040,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerSlashingEventsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerSlashingEventsView", },
 				},
 			}),
 
@@ -26299,7 +26099,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EigenLayerStrategiesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerStrategiesView", },
 				},
 			}),
 
@@ -26334,7 +26134,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EigenLayerStrategy_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EigenLayerStrategy_TimestampsView", },
 				},
 			}),
 
@@ -26368,7 +26168,7 @@ export const schema = {
 						closed: ["$transaction", "authorizationIndex", "delegationAddress"],
 						content: { dl: [["$transaction", "authorizationIndex", "chainId"], ["delegationAddress", "authority", "nonce", "yParity"], ["r", "s", "verificationStatus", { field: "verifiedAtMs", format: "timestamp" }], ["$authorityAccount", "$delegationContract"]] },
 					},
-					plural: { component: "Eip7702AuthorizationsView", title: "EIP-7702 authorizations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip7702AuthorizationsView", title: "EIP-7702 authorizations", },
 				},
 			}),
 
@@ -26410,7 +26210,7 @@ export const schema = {
 							{ field: "$$files", component: "Eip8004AgentRegistrationFilesView", emptyText: "No EIP-8004 registration files." },
 						],
 					},
-					plural: { component: "Eip8004AgentRegistrationsView", title: "EIP-8004 agent registrations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004AgentRegistrationsView", title: "EIP-8004 agent registrations", },
 				},
 			}),
 
@@ -26450,7 +26250,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "Eip8004AgentRegistration_TimestampsView", title: "EIP-8004 agent registration observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004AgentRegistration_TimestampsView", title: "EIP-8004 agent registration observations", },
 				},
 			}),
 
@@ -26473,7 +26273,7 @@ export const schema = {
 						closed: ["$registration", "fileUrl"],
 						content: { dl: [["$registration", { field: "fileUrl", format: "url" }]] },
 					},
-					plural: { component: "Eip8004AgentRegistrationFilesView", title: "EIP-8004 agent registration files", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004AgentRegistrationFilesView", title: "EIP-8004 agent registration files", },
 				},
 			}),
 
@@ -26516,7 +26316,7 @@ export const schema = {
 							{ field: "$$paymentRequirements", component: "AgentPaymentRequirement_TimestampsView", emptyText: "No payment requirement observations." },
 						],
 					},
-					plural: { component: "Eip8004AgentServiceEndpointsView", title: "EIP-8004 agent service endpoints", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004AgentServiceEndpointsView", title: "EIP-8004 agent service endpoints", },
 				},
 			}),
 
@@ -26554,7 +26354,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "Eip8004CrossRegistrationsView", title: "EIP-8004 cross registrations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004CrossRegistrationsView", title: "EIP-8004 cross registrations", },
 				},
 			}),
 
@@ -26586,7 +26386,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "Eip8004EndpointDomainVerification_TimestampsView", title: "EIP-8004 endpoint domain verifications", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004EndpointDomainVerification_TimestampsView", title: "EIP-8004 endpoint domain verifications", },
 				},
 			}),
 
@@ -26634,7 +26434,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "Eip8004ReputationFeedback_TimestampsView", title: "EIP-8004 reputation feedback observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004ReputationFeedback_TimestampsView", title: "EIP-8004 reputation feedback observations", },
 				},
 			}),
 
@@ -26681,7 +26481,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "Eip8004Validation_TimestampsView", title: "EIP-8004 validation observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "Eip8004Validation_TimestampsView", title: "EIP-8004 validation observations", },
 				},
 			}),
 
@@ -26739,7 +26539,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ElementsAssetsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -26784,7 +26583,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ElementsAsset_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -26835,7 +26633,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ElementsIssuancesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -26886,7 +26683,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ElementsNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -26947,7 +26743,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ElementsPegsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -26992,7 +26787,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ElementsPeg_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27009,7 +26803,7 @@ export const schema = {
 					description: "The human-readable name of the subject.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"normalizedName": {
 					label: "Normalized name",
@@ -27109,7 +26903,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EnsNamesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -27170,7 +26963,7 @@ export const schema = {
 				},
 			})({
 				"$name": { label: "Name", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EnsName },
-				"recordKey": { label: "Record key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"recordKey": { label: "Record key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
 				"recordKind": { label: "Record kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"coinType": { label: "Coin type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EnsRecord_Timestamp },
@@ -27265,7 +27058,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "EnsReverseRecord_TimestampsView", emptyText: "No ENS reverse record observations." },
 						],
 					},
-					plural: { component: "EnsReverseRecordsView", title: "ENS reverse records", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EnsReverseRecordsView", title: "ENS reverse records", },
 				},
 			}),
 
@@ -27296,7 +27089,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EnsReverseRecord_TimestampsView", title: "ENS reverse record observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EnsReverseRecord_TimestampsView", title: "ENS reverse record observations", },
 				},
 			}),
 
@@ -27380,7 +27173,6 @@ export const schema = {
 					},
 					plural: {
 						component: "Erc4337AccountFactoriesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27442,7 +27234,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337AccountFactory_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27501,7 +27292,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337BundlersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27558,7 +27348,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337Bundler_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27617,7 +27406,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337PaymastersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27674,7 +27462,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337Paymaster_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27764,7 +27551,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "Erc4337SmartAccountsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27821,7 +27607,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4337SmartAccount_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27870,7 +27655,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "Erc4626VaultsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27923,7 +27707,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4626Vault_BlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -27971,7 +27754,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Erc4626Vault_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28068,7 +27850,6 @@ export const schema = {
 					},
 					plural: { component: "EthereumBeaconFinality_TimestampsView",
 						title: "Finality",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28230,15 +28011,11 @@ export const schema = {
 							{
 								field: "$$proposals",
 								component: "SpecificationProposalsView",
-								query: {
-									sources: [Source.Constants_Internal],
-								},
 								emptyText: "No specification proposals for this upgrade.",
 							},
 						],
 					},
 					plural: { component: "EthereumConsensusUpgradesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28411,7 +28188,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EthereumExecutionUpgradesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28558,7 +28334,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EthereumNetworkUpgradesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28689,7 +28464,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmAccountsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -28733,7 +28507,6 @@ export const schema = {
 					},
 					plural: { component: "EvmActorCoinAllowancesView",
 						title: "Allowances",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -28765,7 +28538,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EvmActorCoinAllowance_BlocksView", title: "Allowance blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmActorCoinAllowance_BlocksView", title: "Allowance blocks", },
 				},
 			}),
 
@@ -28886,7 +28659,6 @@ export const schema = {
 																										Blob sidecars hold the opaque data payloads referenced by EIP-4844 blob transactions.
 																									</p>
 																								`,
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Voltaire_JsonRpc],
@@ -29155,7 +28927,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmCalldatasView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -29301,7 +29072,6 @@ export const schema = {
 					plural: {
 						component: "EvmCoinInstancesView",
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [["NativeCurrency", "symbol"], ["Erc20Token", "symbol"], ["NativeCurrency", "name"], ["Erc20Token", "name"]],
 						},
 					},
@@ -29437,7 +29207,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmContractsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -29477,7 +29246,7 @@ export const schema = {
 							},
 						},
 					},
-					plural: { component: "EvmContractCompilationsView", title: "Contract compilations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmContractCompilationsView", title: "Contract compilations", },
 				},
 			}),
 
@@ -29504,7 +29273,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EvmContractSourceBundlesView", title: "Contract source bundles", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmContractSourceBundlesView", title: "Contract source bundles", },
 				},
 			}),
 
@@ -29593,7 +29362,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmContractVerificationsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -29703,7 +29471,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmErrorsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -29864,7 +29631,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmError_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -30032,9 +29798,7 @@ export const schema = {
 																										Native currency sent by internal <code>CALL</code> frames during execution, distinct from the signed envelope <code>value</code>.
 																								</p>
 																							`,
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "indexInTransaction",
@@ -30100,7 +29864,7 @@ export const schema = {
 					label: "Topic 0",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "zeroExHex",
+					valueType: "EvmTopicHash",
 				},
 				"data": {
 					label: "Data",
@@ -30133,12 +29897,12 @@ export const schema = {
 							"0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb",
 						],
 					})({
-						signatureHash: {
-							label: "Signature hash",
-							type: EntityFieldType.Primitive,
-							cardinality: EntityFieldCardinality.One,
-							valueType: "zeroExHex",
-						},
+							signatureHash: {
+								label: "Signature hash",
+								type: EntityFieldType.Primitive,
+								cardinality: EntityFieldCardinality.One,
+								valueType: "EvmTopicHash",
+							},
 					})({
 						facets: {
 							TokenTransfer: facet({
@@ -30262,9 +30026,7 @@ export const schema = {
 																									Topic 0 often fingerprints an ABI log declaration; additional topics carry indexed arguments when the emitter used ABI-style indexing.
 																								</p>
 																							`,
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "indexInTransaction",
@@ -30373,7 +30135,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmNetwork_GasEstimate_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -30480,7 +30241,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmNetwork_GasFee_BlocksView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -30551,7 +30311,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -30628,7 +30387,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmNetwork_Txpool_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -30693,7 +30451,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EvmNetworkAccountsView", title: "EVM network accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmNetworkAccountsView", title: "EVM network accounts", },
 				},
 			}),
 
@@ -30736,7 +30494,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EvmNetworkAccount_TimestampsView", title: "EVM network account observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmNetworkAccount_TimestampsView", title: "EVM network account observations", },
 				},
 			}),
 
@@ -30785,7 +30543,6 @@ export const schema = {
 					},
 					plural: { component: "EvmNetworkActorCoinBalancesView",
 						title: "Balances",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -30799,7 +30556,12 @@ export const schema = {
 			})({
 				"$actorCoin": { label: "Actor coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkActorCoinBalance },
 				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
-				"balance": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"balance": {
+					label: "Balance",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "bigint",
+				},
 				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
@@ -30807,15 +30569,15 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						summary: { title: ["$block"], value: ["balance", "usdValue"], HeadingAfter: ["$actorCoin"] },
-						closed: ["$block", "balance"],
+						summary: { title: ["$block"], value: [{ field: "balance", format: "numberValue", decimalPlaces: routeProperty(routeField("$actorCoin"), "decimals"), suffix: routeProperty(routeField("$actorCoin"), "symbol") }, "usdValue"], HeadingAfter: ["$actorCoin"] },
+						closed: ["$block", { field: "balance", format: "numberValue", decimalPlaces: routeProperty(routeField("$actorCoin"), "decimals"), suffix: routeProperty(routeField("$actorCoin"), "symbol") }],
 						content: {
 							dl: [
-								["$block", "$actorCoin", "balance", "usdValue"],
+								["$block", "$actorCoin", { field: "balance", format: "numberValue", decimalPlaces: routeProperty(routeField("$actorCoin"), "decimals"), suffix: routeProperty(routeField("$actorCoin"), "symbol") }, "usdValue"],
 							],
 						},
 					},
-					plural: { component: "EvmNetworkActorCoinBalance_EvmBlocksView", title: "Balance blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmNetworkActorCoinBalance_EvmBlocksView", title: "Balance blocks", },
 				},
 			}),
 
@@ -30830,7 +30592,12 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"balance": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"balance": {
+					label: "Balance",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					valueType: "bigint",
+				},
 				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"tokenMetadata": { label: "Token metadata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
@@ -30840,16 +30607,16 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						summary: { title: ["source"], value: ["balance", "usdValue"], HeadingAfter: ["blockNumber"] },
+						summary: { title: ["source"], value: [{ field: "balance", format: "numberValue", decimalPlaces: routeProperty(routeField("$actorCoin"), "decimals"), suffix: routeProperty(routeField("$actorCoin"), "symbol") }, "usdValue"], HeadingAfter: ["blockNumber"] },
 						closed: ["timestampMs", "source"],
 						content: {
 							dl: [
-								["timestampMs", "source", "blockNumber", "balance"],
+								["timestampMs", "source", "blockNumber", { field: "balance", format: "numberValue", decimalPlaces: routeProperty(routeField("$actorCoin"), "decimals"), suffix: routeProperty(routeField("$actorCoin"), "symbol") }],
 								["usdValue", "priceUsd", "$actorCoin"],
 							],
 						},
 					},
-					plural: { component: "EvmNetworkActorCoinBalance_TimestampsView", title: "Balance observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmNetworkActorCoinBalance_TimestampsView", title: "Balance observations", },
 				},
 			}),
 
@@ -30911,7 +30678,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmNetworkBridgesView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -31031,7 +30797,6 @@ export const schema = {
 					},
 					plural: { component: "EvmNftsView",
 						title: "ERC-8004 Registrations",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Eip8004Scan_Rest],
@@ -31167,7 +30932,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmProtocolsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -31274,7 +31038,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmRollupsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -31371,7 +31134,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmRollup_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -31481,7 +31243,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmSelectorsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -31642,7 +31403,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmSelector_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -31680,7 +31440,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "EvmStorageRead_TimestampsView", title: "Storage reads", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmStorageRead_TimestampsView", title: "Storage reads", },
 				},
 			}),
 
@@ -31894,9 +31654,7 @@ export const schema = {
 																									ERC-20, ERC-721, and ERC-1155 movements indexed from receipt logs on this transaction.
 																								</p>
 																							`,
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "indexInLog",
@@ -31943,7 +31701,7 @@ export const schema = {
 					label: "Hex",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "zeroExHex",
+					valueType: "EvmTopicHash",
 				},
 				"signatures": {
 					label: "Signatures",
@@ -32037,7 +31795,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "EvmTopicsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -32198,7 +31955,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "EvmTopic_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							sources: {
 								default: [Source.Openchain_Rest],
@@ -32254,7 +32010,7 @@ export const schema = {
 							{ field: "$$children", component: "EvmTracesView", label: "Children", emptyText: "No child traces." },
 						],
 					},
-					plural: { component: "EvmTracesView", title: "Traces", entityRow: _ListEntityRow.Summary },
+					plural: { component: "EvmTracesView", title: "Traces", },
 				},
 			}),
 
@@ -33095,7 +32851,6 @@ export const schema = {
 																									ERC-4337 user operations are intent objects bundlers include in transactions to the entry point.
 																								</p>
 																							`,
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							selection: {
 								limit: 16,
@@ -33124,6 +32879,7 @@ export const schema = {
 				"text": { label: "Text", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$parentCast": { label: "Parent cast", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FarcasterCast },
 				"parentUrl": { label: "Parent URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"rootParentUrl": { label: "Root parent URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"timestamp": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"mentions": { label: "Mentions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "numberArray" },
 				"$$embeds": { label: "Embeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCastEmbed },
@@ -33143,9 +32899,9 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Snapchain_Rest, Source.Farcaster_Rest, Source.Neynar_Rest],
+							sources: [Source.Snapchain_Rest],
 							fields: ["text", "timestamp", "fid", "hash"],
-							openFields: ["$author", "$parentCast", "parentUrl", "$channel", "$$embeds", "$$timestamps"],
+							openFields: ["$author", "$parentCast", "parentUrl", "rootParentUrl", "$channel", "$$embeds", "$$timestamps"],
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "hash", format: "truncated" }],
@@ -33160,6 +32916,7 @@ export const schema = {
 								[{ field: "$channel" }],
 								[{ field: "$parentCast" }],
 								[{ field: "parentUrl", format: "url" }],
+								[{ field: "rootParentUrl", format: "url" }],
 								[{ field: "threadHash", format: "truncated" }],
 								[{ field: "clientUrl", format: "url" }],
 							],
@@ -33435,8 +33192,8 @@ export const schema = {
 				"registryName": { label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"relationshipModel": { label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$feeds": { label: "Feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
-				"$$users": { label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel },
+				"$$users": { label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Snapchain_Rest, Source.Neynar_Rest] },
+				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest] },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -33466,7 +33223,7 @@ export const schema = {
 								id: "farcaster-network-directory",
 								label: "Directory",
 								className: "network-view-collapsible-directory",
-								sections: [
+							sections: [
 									{ id: "farcaster-network-feeds", field: "$$feeds", List: "FarcasterFeedsView", label: "Feeds", emptyText: "No Farcaster feeds in this observed." },
 									{ id: "farcaster-network-users", field: "$$users", List: "FarcasterUsersView", label: "Users", emptyText: "No Farcaster users in this observed." },
 									{ id: "farcaster-network-channels", field: "$$channels", List: "FarcasterChannelsView", label: "Channels", emptyText: "No Farcaster channels in this observed." },
@@ -33660,7 +33417,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "FedimintFederationsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33702,7 +33458,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FedimintFederation_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33740,7 +33495,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "FedimintGatewaysView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33786,7 +33540,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FedimintGateway_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33800,9 +33553,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"actorCodeCid": { label: "Actor code CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
-				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
-				"balanceAttoFil": { label: "Balance attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinActor_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -33810,30 +33561,39 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
+							sources: [Source.Lotus_JsonRpc],
+							openFields: ["$$timestamps"],
 						},
+						latest: [
+							{
+								field: "$$timestamps",
+								label: "Latest observation",
+								query: {
+									sources: [Source.Lotus_JsonRpc],
+									limit: 16,
+								},
+								fields: ["height", "timestampMs", "balanceAttoFil", "source"],
+								sort: "height",
+								direction: "desc",
+								view: "FilecoinActor_TimestampView",
+							},
+						],
 						summary: {
 							title: ["address"],
-							value: [{ field: "balanceAttoFil", format: "numberValue" }],
-							HeadingAfter: ["actorCodeCid"],
 						},
 						content: {
 							dl: [
-								[
-									"$network",
-									"address",
-									"actorCodeCid",
-									{ field: "nonce", format: "number" },
-									{ field: "balanceAttoFil", format: "numberValue" },
-								],
+								["$network", "address"],
 							],
 						},
+						lists: [
+							{ field: "$$timestamps", component: "FilecoinActor_TimestampsView", label: "Observations" },
+						],
 					},
 					plural: { component: "FilecoinActorsView",
 						query: {
-							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
+							sources: [Source.Lotus_JsonRpc],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33848,16 +33608,17 @@ export const schema = {
 				"$actor": { label: "Actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinActor },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset },
+				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
+				"idAddress": { label: "ID address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
 				"actorCodeCid": { label: "Actor code CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
 				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
 				"balanceAttoFil": { label: "Balance attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
 				"stateRootCid": { label: "State root CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
-					"ActorTimestampMsSource": ["$actor", "timestampMs", "source"],
+					"ActorHeightTipsetKeySource": ["$actor", "height", "tipsetKey", "source"],
 				},
 				views: {
 					singular: {
@@ -33879,6 +33640,7 @@ export const schema = {
 									{ field: "height", format: "number" },
 									"tipsetKey",
 									"$tipset",
+									"idAddress",
 									"actorCodeCid",
 									{ field: "nonce", format: "number" },
 									{ field: "balanceAttoFil", format: "numberValue" },
@@ -33888,7 +33650,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinActor_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -33942,7 +33703,6 @@ export const schema = {
 						query: {
 							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34008,7 +33768,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "FilecoinDealsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34063,7 +33822,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinDeal_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34117,7 +33875,6 @@ export const schema = {
 						query: {
 							sources: [Source.Filfox_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34172,7 +33929,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinMessageReceiptsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34186,11 +33942,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"minerAddress": { label: "Miner address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$owner": { label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
-				"$worker": { label: "Worker", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
-				"peerId": { label: "Peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
-				"qualityAdjustedPower": { label: "Quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 				"$$sectors": { label: "Sectors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinSector, defaultSources: [Source.Lotus_JsonRpc] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMiner_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkMinerAddress": ["$network", "minerAddress"],
@@ -34198,35 +33951,40 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
-							openFields: ["$owner", "$worker", "$$sectors"],
+							sources: [Source.Lotus_JsonRpc],
+							openFields: ["$$timestamps", "$$sectors"],
 						},
+						latest: [
+							{
+								field: "$$timestamps",
+								label: "Latest observation",
+								query: {
+									sources: [Source.Lotus_JsonRpc],
+									limit: 16,
+								},
+								fields: ["height", "timestampMs", "qualityAdjustedPower", "liveSectorCount", "source"],
+								sort: "height",
+								direction: "desc",
+								view: "FilecoinMiner_TimestampView",
+							},
+						],
 						summary: {
 							title: ["minerAddress"],
-							value: [{ field: "qualityAdjustedPower", format: "numberValue" }],
-							HeadingAfter: ["peerId"],
 						},
 						content: {
 							dl: [
-								[
-									"$network",
-									"minerAddress",
-									"$owner",
-									"$worker",
-									"peerId",
-									{ field: "qualityAdjustedPower", format: "numberValue" },
-								],
+								["$network", "minerAddress"],
 							],
 						},
 						lists: [
+							{ field: "$$timestamps", component: "FilecoinMiner_TimestampsView", label: "Observations" },
 							{ field: "$$sectors", component: "FilecoinSectorsView", label: "Sectors" },
 						],
 					},
 					plural: { component: "FilecoinMinersView",
 						query: {
-							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
+							sources: [Source.Lotus_JsonRpc],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34241,9 +33999,9 @@ export const schema = {
 				"$miner": { label: "Miner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMiner },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset },
+				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
 				"$owner": { label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc] },
 				"$worker": { label: "Worker", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc] },
 				"peerId": { label: "Peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
@@ -34251,11 +34009,12 @@ export const schema = {
 				"qualityAdjustedPower": { label: "Quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
 				"networkRawBytePower": { label: "Network raw byte power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
 				"networkQualityAdjustedPower": { label: "Network quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
+				"activeSectorCount": { label: "Active sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
 				"liveSectorCount": { label: "Live sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
-				"faultySectorCount": { label: "Faulty sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"faultySectorCount": { label: "Faulty sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
-					"MinerTimestampMsSource": ["$miner", "timestampMs", "source"],
+					"MinerHeightTipsetKeySource": ["$miner", "height", "tipsetKey", "source"],
 				},
 				views: {
 					singular: {
@@ -34286,6 +34045,7 @@ export const schema = {
 									{ field: "qualityAdjustedPower", format: "numberValue" },
 									{ field: "networkRawBytePower", format: "numberValue" },
 									{ field: "networkQualityAdjustedPower", format: "numberValue" },
+									{ field: "activeSectorCount", format: "number" },
 									{ field: "liveSectorCount", format: "number" },
 									{ field: "faultySectorCount", format: "number" },
 								],
@@ -34293,7 +34053,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinMiner_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34341,7 +34100,6 @@ export const schema = {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34410,7 +34168,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "FilecoinNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34454,7 +34211,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinSectorsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34509,7 +34265,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "FilecoinSector_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34563,7 +34318,6 @@ export const schema = {
 						query: {
 							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34593,7 +34347,7 @@ export const schema = {
 						content: { dl: [[{ field: "objectId", format: "truncated" }, "objectFormat", "$object", "mime", { field: "byteSize", format: "number" }]], body: { field: "textSample", format: "longText" } },
 						lists: [{ field: "$$paths", component: "GitTreeEntriesView", emptyText: "No paths." }],
 					},
-					plural: { component: "GitBlobsView", title: "Git blobs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitBlobsView", title: "Git blobs", },
 				},
 			}),
 
@@ -34642,7 +34396,6 @@ export const schema = {
 					},
 					plural: { component: "GitCommitsView",
 						title: "Git commits",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34686,7 +34439,6 @@ export const schema = {
 					plural: {
 						component: "GitFetchObservationsView",
 						title: "Git fetch observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34717,7 +34469,7 @@ export const schema = {
 						closed: ["$forgeMirror", { field: "issueNumber", format: "number" }, "state"],
 						content: { dl: [["$forgeMirror", { field: "issueNumber", format: "number" }, "title", "state", "labels"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "closedAt", format: "timestamp" }]] },
 					},
-					plural: { component: "GitForgeIssuesView", title: "Git forge issues", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitForgeIssuesView", title: "Git forge issues", },
 				},
 			}),
 
@@ -34748,7 +34500,7 @@ export const schema = {
 						closed: ["forgeHost", "owner", "repositoryName"],
 						content: { dl: [["forgeHost", "owner", "repositoryName", "$gitRepository", "defaultBranch", "visibility", { field: "htmlUrl", format: "url" }, "providerRepositoryId", "source"], ["cloneUrls"]] },
 					},
-					plural: { component: "GitForgeMirrorsView", title: "Git forge mirrors", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitForgeMirrorsView", title: "Git forge mirrors", },
 				},
 			}),
 
@@ -34780,7 +34532,7 @@ export const schema = {
 						closed: ["$forgeMirror", { field: "pullRequestNumber", format: "number" }, "state"],
 						content: { dl: [["$forgeMirror", { field: "pullRequestNumber", format: "number" }, "title", "state", "baseRef", "headRef", { field: "headObjectId", format: "truncated" }], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, { field: "mergedAt", format: "timestamp" }]] },
 					},
-					plural: { component: "GitForgePullRequestsView", title: "Git forge pull requests", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitForgePullRequestsView", title: "Git forge pull requests", },
 				},
 			}),
 
@@ -34810,7 +34562,7 @@ export const schema = {
 						closed: ["$forgeMirror", "releaseTagName", "name"],
 						content: { dl: [["$forgeMirror", "releaseTagName", "name", { field: "targetObjectId", format: "truncated" }, "draft", "prerelease"], [{ field: "createdAt", format: "timestamp" }, { field: "publishedAt", format: "timestamp" }]] },
 					},
-					plural: { component: "GitForgeReleasesView", title: "Git forge releases", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitForgeReleasesView", title: "Git forge releases", },
 				},
 			}),
 
@@ -34838,7 +34590,7 @@ export const schema = {
 						closed: [{ field: "objectId", format: "truncated" }, "objectFormat", "byteSource"],
 						content: { dl: [[{ field: "objectId", format: "truncated" }, "objectFormat", "byteSource", "path", { field: "compressedSizeBytes", format: "number" }, { field: "observedAtMs", format: "timestamp" }, "$object"]] },
 					},
-					plural: { component: "GitLooseObjectsView", title: "Git loose objects", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitLooseObjectsView", title: "Git loose objects", },
 				},
 			}),
 
@@ -34873,7 +34625,6 @@ export const schema = {
 					},
 					plural: { component: "GitObjectsView",
 						title: "Git objects",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34920,7 +34671,6 @@ export const schema = {
 					plural: {
 						component: "GitObjectVerification_TimestampsView",
 						title: "Git object verification observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -34950,7 +34700,7 @@ export const schema = {
 						closed: [{ field: "objectId", format: "truncated" }, "objectFormat", "$packfile"],
 						content: { dl: [["packHash", { field: "objectId", format: "truncated" }, "objectFormat", { field: "offset", format: "number" }, "deltaBaseObjectId", "storedKind", "$packfile", "$object"]] },
 					},
-					plural: { component: "GitPackedObjectsView", title: "Git packed objects", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitPackedObjectsView", title: "Git packed objects", },
 				},
 			}),
 
@@ -34977,7 +34727,7 @@ export const schema = {
 						closed: [{ field: "packHash", format: "truncated" }, "objectFormat", { field: "objectCount", format: "number" }],
 						content: { dl: [[{ field: "packHash", format: "truncated" }, "objectFormat", { field: "objectCount", format: "number" }, { field: "packSizeBytes", format: "number" }, "indexHash", "$repository"]] },
 					},
-					plural: { component: "GitPackfilesView", title: "Git packfiles", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitPackfilesView", title: "Git packfiles", },
 				},
 			}),
 
@@ -35017,7 +34767,6 @@ export const schema = {
 					},
 					plural: { component: "GitRefsView",
 						title: "Git refs",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -35057,7 +34806,6 @@ export const schema = {
 					plural: {
 						component: "GitRefObservation_TimestampsView",
 						title: "Git ref observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -35088,7 +34836,7 @@ export const schema = {
 						closed: ["$repository", "refName", { field: "newObjectId", format: "truncated" }],
 						content: { dl: [["$repository", "refName", { field: "oldObjectId", format: "truncated" }, { field: "newObjectId", format: "truncated" }, "updateKind", { field: "timestampMs", format: "timestamp" }, "$signature", "source"]] },
 					},
-					plural: { component: "GitRefUpdatesView", title: "Git ref updates", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitRefUpdatesView", title: "Git ref updates", },
 				},
 			}),
 
@@ -35125,7 +34873,6 @@ export const schema = {
 					plural: {
 						component: "GitRemotesView",
 						title: "Git remotes",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -35185,7 +34932,6 @@ export const schema = {
 					},
 					plural: { component: "GitRepositoriesView",
 						title: "Git repositories",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -35227,7 +34973,6 @@ export const schema = {
 					},
 					plural: { component: "GitSignaturesView",
 						title: "Git signatures",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -35260,7 +35005,7 @@ export const schema = {
 						content: { dl: [[{ field: "objectId", format: "truncated" }, "objectFormat", "$object", { field: "targetObjectId", format: "truncated" }, "targetKind", "tagName", { field: "taggerTimestampMs", format: "timestamp" }]], body: { field: "message", format: "longText" } },
 						lists: [{ field: "$$signatures", component: "GitSignaturesView", emptyText: "No signatures." }],
 					},
-					plural: { component: "GitTagsView", title: "Git tags", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitTagsView", title: "Git tags", },
 				},
 			}),
 
@@ -35286,7 +35031,7 @@ export const schema = {
 						content: { dl: [[{ field: "objectId", format: "truncated" }, "objectFormat", "$object"]] },
 						lists: [{ field: "$$entries", component: "GitTreeEntriesView", emptyText: "No tree entries." }],
 					},
-					plural: { component: "GitTreesView", title: "Git trees", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitTreesView", title: "Git trees", },
 				},
 			}),
 
@@ -35313,7 +35058,7 @@ export const schema = {
 						closed: ["$tree", "path", "mode"],
 						content: { dl: [["$tree", "path", "mode", { field: "objectId", format: "truncated" }, "objectKind", "$object"]] },
 					},
-					plural: { component: "GitTreeEntriesView", title: "Git tree entries", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitTreeEntriesView", title: "Git tree entries", },
 				},
 			}),
 
@@ -35341,7 +35086,7 @@ export const schema = {
 						closed: ["$repository", { field: "commitObjectId", format: "truncated" }, "path"],
 						content: { dl: [["$repository", { field: "commitObjectId", format: "truncated" }, "path", "treeObjectIds", { field: "blobObjectId", format: "truncated" }, { field: "submoduleCommitId", format: "truncated" }, "status"]] },
 					},
-					plural: { component: "GitTreePathResolutionsView", title: "Git tree path resolutions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "GitTreePathResolutionsView", title: "Git tree path resolutions", },
 				},
 			}),
 
@@ -35432,7 +35177,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "HederaAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaAccountsView", },
 				},
 			}),
 
@@ -35550,7 +35295,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaAccount_TimestampsView", },
 				},
 			}),
 
@@ -35621,7 +35366,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaAllowancesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaAllowancesView", },
 				},
 			}),
 
@@ -35679,7 +35424,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaAllowance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaAllowance_TimestampsView", },
 				},
 			}),
 
@@ -35758,7 +35503,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaBlocksView", },
 				},
 			}),
 
@@ -35847,7 +35592,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "HederaContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContractsView", },
 				},
 			}),
 
@@ -35935,7 +35680,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaContract_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContract_TimestampsView", },
 				},
 			}),
 
@@ -36027,7 +35772,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaContractActionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContractActionsView", },
 				},
 			}),
 
@@ -36100,7 +35845,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaContractLogsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContractLogsView", },
 				},
 			}),
 
@@ -36202,7 +35947,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaContractResultsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContractResultsView", },
 				},
 			}),
 
@@ -36256,7 +36001,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaContractState_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaContractState_TimestampsView", },
 				},
 			}),
 
@@ -36312,7 +36057,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaHbarTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaHbarTransfersView", },
 				},
 			}),
 
@@ -36400,7 +36145,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNetwork_TimestampsView", },
 				},
 			}),
 
@@ -36476,7 +36221,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNetworkExchangeRate_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNetworkExchangeRate_TimestampsView", },
 				},
 			}),
 
@@ -36565,7 +36310,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNetworkFee_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNetworkFee_TimestampsView", },
 				},
 			}),
 
@@ -36683,7 +36428,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNetworkStake_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNetworkStake_TimestampsView", },
 				},
 			}),
 
@@ -36735,7 +36480,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNetworkSupply_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNetworkSupply_TimestampsView", },
 				},
 			}),
 
@@ -36790,7 +36535,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNftsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNftsView", },
 				},
 			}),
 
@@ -36860,7 +36605,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNft_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNft_TimestampsView", },
 				},
 			}),
 
@@ -36897,7 +36642,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNodesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNodesView", },
 				},
 			}),
 
@@ -37022,7 +36767,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaNode_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaNode_TimestampsView", },
 				},
 			}),
 
@@ -37083,7 +36828,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaSchedulesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaSchedulesView", },
 				},
 			}),
 
@@ -37159,7 +36904,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaSchedule_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaSchedule_TimestampsView", },
 				},
 			}),
 
@@ -37208,7 +36953,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaScheduleSignaturesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaScheduleSignaturesView", },
 				},
 			}),
 
@@ -37298,7 +37043,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "HederaTokensView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTokensView", },
 				},
 			}),
 
@@ -37442,7 +37187,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaToken_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaToken_TimestampsView", },
 				},
 			}),
 
@@ -37479,7 +37224,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTokenAssociationsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTokenAssociationsView", },
 				},
 			}),
 
@@ -37543,7 +37288,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTokenAssociation_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTokenAssociation_TimestampsView", },
 				},
 			}),
 
@@ -37646,7 +37391,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTokenCustomFeesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTokenCustomFeesView", },
 				},
 			}),
 
@@ -37728,7 +37473,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTokenTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTokenTransfersView", },
 				},
 			}),
 
@@ -37771,7 +37516,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTopicsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTopicsView", },
 				},
 			}),
 
@@ -37877,7 +37622,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTopic_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTopic_TimestampsView", },
 				},
 			}),
 
@@ -37938,7 +37683,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HederaTopicMessagesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTopicMessagesView", },
 				},
 			}),
 
@@ -38079,7 +37824,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "HederaTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "HederaTransactionsView", },
 				},
 			}),
 
@@ -39944,7 +39689,7 @@ export const schema = {
 							{ field: "$$packets", component: "IbcPacketsView", label: "Packets", emptyText: "No IBC packets." },
 						],
 					},
-					plural: { component: "IbcChannelsView", title: "IBC channels", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IbcChannelsView", title: "IBC channels", },
 				},
 			}),
 
@@ -39988,7 +39733,7 @@ export const schema = {
 							{ field: "$$channels", component: "IbcChannelsView", label: "Channels", emptyText: "No IBC channels." },
 						],
 					},
-					plural: { component: "IbcClientsView", title: "IBC clients", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IbcClientsView", title: "IBC clients", },
 				},
 			}),
 
@@ -40026,7 +39771,7 @@ export const schema = {
 							{ field: "$$channels", component: "IbcChannelsView", label: "Channels", emptyText: "No IBC channels." },
 						],
 					},
-					plural: { component: "IbcConnectionsView", title: "IBC connections", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IbcConnectionsView", title: "IBC connections", },
 				},
 			}),
 
@@ -40063,7 +39808,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "IbcDenomTracesView", title: "IBC denom traces", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IbcDenomTracesView", title: "IBC denom traces", },
 				},
 			}),
 
@@ -40116,7 +39861,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "IbcPacketsView", title: "IBC packets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IbcPacketsView", title: "IBC packets", },
 				},
 			}),
 
@@ -40217,7 +39962,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "IcpCanistersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanistersView", },
 				},
 			}),
 
@@ -40335,7 +40080,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanister_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanister_TimestampsView", },
 				},
 			}),
 
@@ -40399,7 +40144,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanisterLog_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanisterLog_TimestampsView", },
 				},
 			}),
 
@@ -40436,7 +40181,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanisterMetadataEntriesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanisterMetadataEntriesView", },
 				},
 			}),
 
@@ -40501,7 +40246,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanisterMetadata_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanisterMetadata_TimestampsView", },
 				},
 			}),
 
@@ -40545,7 +40290,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanisterMethodsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanisterMethodsView", },
 				},
 			}),
 
@@ -40603,7 +40348,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCanisterMethod_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCanisterMethod_TimestampsView", },
 				},
 			}),
 
@@ -40678,7 +40423,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpCertifiedStatesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpCertifiedStatesView", },
 				},
 			}),
 
@@ -40744,7 +40489,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpLedgerAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpLedgerAccount_TimestampsView", },
 				},
 			}),
 
@@ -40812,7 +40557,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpLedgerBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpLedgerBlocksView", },
 				},
 			}),
 
@@ -40888,7 +40633,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "IcpLedgerCanistersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpLedgerCanistersView", },
 				},
 			}),
 
@@ -40973,7 +40718,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpLedgerCanister_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpLedgerCanister_TimestampsView", },
 				},
 			}),
 
@@ -41064,7 +40809,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpLedgerTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpLedgerTransactionsView", },
 				},
 			}),
 
@@ -41164,7 +40909,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "IcpNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpNetworksView", },
 				},
 			}),
 
@@ -41234,7 +40979,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpNetwork_TimestampsView", },
 				},
 			}),
 
@@ -41301,7 +41046,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpRequestStatusesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpRequestStatusesView", },
 				},
 			}),
 
@@ -41383,7 +41128,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpRequestStatus_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpRequestStatus_TimestampsView", },
 				},
 			}),
 
@@ -41453,7 +41198,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "IcpSubnetsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpSubnetsView", },
 				},
 			}),
 
@@ -41535,7 +41280,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpSubnet_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpSubnet_TimestampsView", },
 				},
 			}),
 
@@ -41595,7 +41340,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "IcpSubnetCanisterRange_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IcpSubnetCanisterRange_TimestampsView", },
 				},
 			}),
 
@@ -41649,7 +41394,7 @@ export const schema = {
 			})({
 				"namespace": { label: "Namespace", description: "The namespace that qualifies the identifier.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "IpfsNamespace" },
 				"target": { label: "Target", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "routeContentPath" },
 				"canonicalUri": { label: "Canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayOrigin": { label: "Gateway origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayUrl": { label: "Gateway URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
@@ -41719,7 +41464,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "IpfsResourcesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -41746,7 +41490,7 @@ export const schema = {
 						closed: ["issuerActionId", "actionKind", "$assetInstance"],
 						content: { dl: [["issuerActionId", "actionKind", "$assetInstance"], ["amount", "$issuerPower"]] },
 					},
-					plural: { component: "IssuerActionsView", title: "Issuer actions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IssuerActionsView", title: "Issuer actions", },
 				},
 			}),
 
@@ -41774,7 +41518,7 @@ export const schema = {
 						closed: ["$profile", "powerKind", "actorKey", "source"],
 						content: { dl: [["$profile", "powerKind", "actorKey", "source"], ["ledgerCoordinateKind", "ledgerCoordinateValue"]] },
 					},
-					plural: { component: "IssuerPowersView", title: "Issuer powers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "IssuerPowersView", title: "Issuer powers", },
 				},
 			}),
 
@@ -41800,7 +41544,7 @@ export const schema = {
 						closed: ["$acceptingBlock", "$transaction", { field: "acceptedIndex", format: "number" }],
 						content: { dl: [["$acceptingBlock", "$transaction", { field: "acceptedIndex", format: "number" }, "acceptingBlockHash", "transactionId"]] },
 					},
-					plural: { component: "KaspaAcceptedTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaAcceptedTransactionsView", },
 				},
 			}),
 
@@ -41845,7 +41589,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "KaspaAddressesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaAddressesView", },
 				},
 			}),
 
@@ -41872,7 +41616,7 @@ export const schema = {
 						closed: ["$address", { field: "timestampMs", format: "timestamp" }, "source", { field: "balanceSompi", format: "number" }],
 						content: { dl: [["$address", { field: "timestampMs", format: "timestamp" }, "source", { field: "balanceSompi", format: "number" }, { field: "utxoCount", format: "number" }, { field: "transactionCount", format: "number" }]] },
 					},
-					plural: { component: "KaspaAddress_TimestampsView", title: "Kaspa address observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaAddress_TimestampsView", title: "Kaspa address observations", },
 				},
 			}),
 
@@ -41909,7 +41653,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "KaspaAddressUtxo_TimestampsView", title: "Kaspa address UTXO observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaAddressUtxo_TimestampsView", title: "Kaspa address UTXO observations", },
 				},
 			}),
 
@@ -41954,7 +41698,7 @@ export const schema = {
 							{ field: "$$acceptedTransactions", component: "KaspaAcceptedTransactionsView", emptyText: "No Kaspa accepted transactions." },
 						],
 					},
-					plural: { component: "KaspaBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaBlocksView", },
 				},
 			}),
 
@@ -42011,7 +41755,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "KaspaNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaNetworksView", },
 				},
 			}),
 
@@ -42051,7 +41795,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "KaspaNetwork_TimestampsView", title: "Kaspa network observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaNetwork_TimestampsView", title: "Kaspa network observations", },
 				},
 			}),
 
@@ -42104,7 +41848,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "KaspaTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaTransactionsView", },
 				},
 			}),
 
@@ -42139,7 +41883,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "KaspaVirtualChain_TimestampsView", title: "Kaspa virtual-chain observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "KaspaVirtualChain_TimestampsView", title: "Kaspa virtual-chain observations", },
 				},
 			}),
 
@@ -42162,7 +41906,6 @@ export const schema = {
 				"iconUrl": { label: "Icon URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensAccount_Timestamp },
-				"$$managers": { label: "Managers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensAccountManager },
 				"$$posts": {
 					label: "Posts",
 					type: EntityFieldType.EntitiesReference,
@@ -42181,7 +41924,7 @@ export const schema = {
 						query: {
 							sources: [Source.Lens_Graphql],
 							fields: ["address", "displayName", "localName", "bio", "createdAt", "$icon"],
-							openFields: ["legacyProfileId", "owner", "score", "isMemberOf", "iconUrl", "$$posts", "$$timestamps", "$$managers"],
+							openFields: ["legacyProfileId", "owner", "score", "isMemberOf", "iconUrl", "$$posts", "$$timestamps"],
 						},
 						summary: {
 							icon: "$icon",
@@ -42211,7 +41954,6 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "lens-account-posts", field: "$$posts", List: "LensPostsView", label: "Posts", emptyText: "No Lens posts for this account." },
-									{ id: "lens-account-managers", field: "$$managers", List: "LensAccountManagersView", label: "Managers", emptyText: "No Lens account managers." },
 								],
 							},
 							{
@@ -42295,7 +42037,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LensAccountManagersView", title: "Account managers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LensAccountManagersView", title: "Account managers", },
 				},
 			}),
 
@@ -42331,7 +42073,7 @@ export const schema = {
 							{ field: "$$posts", component: "LensPostsView", label: "Posts", emptyText: "No Lens posts for this feed." },
 						],
 					},
-					plural: { component: "LensFeedsView", title: "Feeds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LensFeedsView", title: "Feeds", },
 				},
 			}),
 
@@ -42369,8 +42111,6 @@ export const schema = {
 					entityType: EntityType.LensPost,
 					defaultSources: [Source.Lens_Graphql],
 				},
-				"$$lensFeeds": { label: "Feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensFeed },
-				"$$lensUsernameNamespaces": { label: "Username namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsernameNamespace },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -42380,7 +42120,7 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "relationshipModel", "homeUrl", "docsUrl", "registryName"],
-							openFields: ["$$lensAccounts", "$$lensPosts", "$$lensFeeds", "$$lensUsernameNamespaces"],
+							openFields: ["$$lensAccounts", "$$lensPosts"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -42402,8 +42142,6 @@ export const schema = {
 								className: "network-view-collapsible-directory",
 								sections: [
 									{ id: "lens-network-accounts", field: "$$lensAccounts", List: "LensAccountsView", label: "Accounts", emptyText: "No Lens accounts in this observed." },
-									{ id: "lens-network-feeds", field: "$$lensFeeds", List: "LensFeedsView", label: "Feeds", emptyText: "No Lens feeds in this observed." },
-									{ id: "lens-network-username-namespaces", field: "$$lensUsernameNamespaces", List: "LensUsernameNamespacesView", label: "Username namespaces", emptyText: "No Lens username namespaces in this observed." },
 								],
 							},
 							{
@@ -42568,7 +42306,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LensUsernamesView", title: "Usernames", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LensUsernamesView", title: "Usernames", },
 				},
 			}),
 
@@ -42608,7 +42346,7 @@ export const schema = {
 							{ field: "$$usernames", component: "LensUsernamesView", label: "Usernames", emptyText: "No Lens usernames in this namespace." },
 						],
 					},
-					plural: { component: "LensUsernameNamespacesView", title: "Username namespaces", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LensUsernameNamespacesView", title: "Username namespaces", },
 				},
 			}),
 
@@ -42647,7 +42385,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LeveragesView", title: "Leverage", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LeveragesView", title: "Leverage", },
 				},
 			}),
 
@@ -42709,7 +42447,6 @@ export const schema = {
 					},
 					plural: { component: "LightningChannelsView",
 						title: "Lightning channels",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -42743,7 +42480,7 @@ export const schema = {
 							value: ["status", { field: "capacitySats", format: "number" }],
 						},
 					},
-					plural: { component: "LightningChannel_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LightningChannel_TimestampsView", },
 				},
 			}),
 
@@ -42762,7 +42499,6 @@ export const schema = {
 				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel },
 				"$$invoices": { label: "Invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
 				"$$payments": { label: "Payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
-				"$$localNodeStates": { label: "Local node states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningNodeState },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -42772,7 +42508,7 @@ export const schema = {
 						query: {
 							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
 							fields: ["name", "$settlementNetwork"],
-							openFields: ["$$timestamps", "$$nodes", "$$channels", "$$invoices", "$$payments", "$$localNodeStates"],
+							openFields: ["$$timestamps", "$$nodes", "$$channels", "$$invoices", "$$payments"],
 						},
 						summary: {
 							title: ["name"],
@@ -42804,19 +42540,10 @@ export const schema = {
 									{ id: "lightning-payment-list", field: "$$payments", List: "BlockheadLightningPaymentsView", label: "Payments", emptyText: "No payments yet." },
 								],
 							},
-							{
-								id: "lightning-local-state",
-								label: "Local node state",
-								className: "network-view-collapsible-local-state",
-								sections: [
-									{ id: "lightning-local-node-states", field: "$$localNodeStates", List: "BlockheadLightningNodeStatesView", label: "Local node states", emptyText: "No local node states." },
-								],
-							},
 						],
 					},
 					plural: { component: "LightningNetworksView",
 						title: "Lightning networks",
-						entityRow: _ListEntityRow.Summary,
 						rowHref: {
 							route: "/(explore)/(networks)/network/[network]",
 							params: {
@@ -42858,7 +42585,7 @@ export const schema = {
 							value: [{ field: "nodeCount", format: "number" }, { field: "channelCount", format: "number" }],
 						},
 					},
-					plural: { component: "LightningNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LightningNetwork_TimestampsView", },
 				},
 			}),
 
@@ -42873,7 +42600,6 @@ export const schema = {
 				"publicKey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningNode_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel },
-				"$$localNodeStates": { label: "Local node states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningNodeState },
 			})({
 				selectors: {
 					"NetworkPublicKey": ["$network", "publicKey"],
@@ -42883,7 +42609,7 @@ export const schema = {
 						query: {
 							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
 							fields: ["$$timestamps"],
-							openFields: ["$$channels", "$$localNodeStates"],
+						openFields: ["$$channels"],
 						},
 						summary: {
 							title: [{ field: "publicKey", format: "truncated" }],
@@ -42901,7 +42627,6 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "lightning-node-channels", field: "$$channels", List: "LightningChannelsView", label: "Channels", emptyText: "No channels." },
-									{ id: "lightning-node-local-node-states", field: "$$localNodeStates", List: "BlockheadLightningNodeStatesView", label: "Local Node States", emptyText: "No local node states." },
 								],
 							},
 							{
@@ -42916,7 +42641,6 @@ export const schema = {
 					},
 					plural: { component: "LightningNodesView",
 						title: "Lightning nodes",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -42951,7 +42675,7 @@ export const schema = {
 							value: [{ field: "capacitySats", format: "number" }],
 						},
 					},
-					plural: { component: "LightningNode_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LightningNode_TimestampsView", },
 				},
 			}),
 
@@ -43089,7 +42813,6 @@ export const schema = {
 																									Dexscreener-backed liquidity pools are token-pair pool rows, not an exhaustive on-chain registry.
 																								</p>
 																							`,
-						entityRow: _ListEntityRow.Summary,
 						query: {
 							selection: { limit: 300 },
 							sources: { default: [Source.Dexscreener_OpenApi] },
@@ -43162,7 +42885,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "LiquidityPool_BlocksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -43187,7 +42909,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
-				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
 				"$parentLiquidityPool": {
 					label: "Parent liquidity pool",
 					type: EntityFieldType.EntityReference,
@@ -43273,7 +42995,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "LiquidityPool_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -43311,7 +43032,7 @@ export const schema = {
 							{ field: "$$transactions", component: "LitecoinMwebTransactionsView", emptyText: "No Litecoin MWEB transactions." },
 						],
 					},
-					plural: { component: "LitecoinMwebBlocksView", title: "Litecoin MWEB blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LitecoinMwebBlocksView", title: "Litecoin MWEB blocks", },
 				},
 			}),
 
@@ -43346,7 +43067,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LitecoinMwebOutputsView", title: "Litecoin MWEB outputs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LitecoinMwebOutputsView", title: "Litecoin MWEB outputs", },
 				},
 			}),
 
@@ -43380,7 +43101,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LitecoinMwebPegInsView", title: "Litecoin MWEB peg ins", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LitecoinMwebPegInsView", title: "Litecoin MWEB peg ins", },
 				},
 			}),
 
@@ -43414,7 +43135,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LitecoinMwebPegOutsView", title: "Litecoin MWEB peg outs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LitecoinMwebPegOutsView", title: "Litecoin MWEB peg outs", },
 				},
 			}),
 
@@ -43469,7 +43190,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "LitecoinMwebTransactionsView", title: "Litecoin MWEB transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LitecoinMwebTransactionsView", title: "Litecoin MWEB transactions", },
 				},
 			}),
 
@@ -43495,7 +43216,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "LogosBlockchainNetwork_TimestampsView", emptyText: "No Logos blockchain consensus observations." },
 						],
 					},
-					plural: { component: "LogosBlockchainNetworksView", title: "Logos blockchain networks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LogosBlockchainNetworksView", title: "Logos blockchain networks", },
 				},
 			}),
 
@@ -43531,7 +43252,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "LogosBlockchainNetwork_TimestampsView", title: "Logos blockchain network observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "LogosBlockchainNetwork_TimestampsView", title: "Logos blockchain network observations", },
 				},
 			}),
 
@@ -43573,7 +43294,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MagnetLinksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -43613,7 +43333,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MagnetResolution_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -43697,7 +43416,6 @@ export const schema = {
 					},
 					plural: {
 						component: "MarketAssetsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -43770,6 +43488,43 @@ export const schema = {
 			})({
 				selectors: {
 					"BaseQuoteMarketVenueKind": ["$base", "$quote", "$marketVenue", "marketKind"],
+				},
+				facets: {
+					Spot: facet({
+						path: ["marketKind"],
+						is: "Spot",
+					})({})({
+						singularView: {
+							carousels: [
+								{
+									id: "market-spot",
+									label: "Spot",
+									className: "network-view-collapsible-spot",
+									sections: [
+										{ id: "market-prices", field: "$$marketPrices", List: "MarketPricesView", label: "Spot", emptyText: "No spot market prices.", href: "/(assets)/markets" },
+										{ id: "market-ohlc", field: "$$marketTimeIntervalTimestamps", List: "Market_TimeInterval_TimestampsView", label: "Candles", emptyText: "No OHLC candles." },
+									],
+								},
+							],
+						},
+					}),
+					Derivative: facet({
+						path: ["marketKind"],
+						isOneOf: ["Perpetual", "Futures"],
+					})({})({
+						singularView: {
+							carousels: [
+								{
+									id: "market-derivatives",
+									label: "Derivative observations",
+									className: "network-view-collapsible-derivatives",
+									sections: [
+										{ id: "market-derivative-timestamps", field: "$$derivativeTimestamps", List: "Market_Derivative_TimestampsView", label: "Derivative observations", emptyText: "No derivative observations." },
+									],
+								},
+							],
+						},
+					}),
 				},
 				views: {
 					singular: {
@@ -43907,25 +43662,6 @@ export const schema = {
 								],
 							],
 						},
-						carousels: [
-							{
-								id: "market-spot",
-								label: "Spot",
-								className: "network-view-collapsible-spot",
-								sections: [
-									{ id: "market-prices", field: "$$marketPrices", List: "MarketPricesView", label: "Spot", emptyText: "No spot market prices.", href: "/(assets)/markets", conditions: [{ field: "marketKind", equals: "Spot" }] },
-									{ id: "market-ohlc", field: "$$marketTimeIntervalTimestamps", List: "Market_TimeInterval_TimestampsView", label: "Candles", emptyText: "No OHLC candles.", conditions: [{ field: "marketKind", equals: "Spot" }] },
-								],
-							},
-							{
-								id: "market-derivatives",
-								label: "Derivative observations",
-								className: "network-view-collapsible-derivatives",
-								sections: [
-									{ id: "market-derivative-timestamps", field: "$$derivativeTimestamps", List: "Market_Derivative_TimestampsView", label: "Derivative observations", emptyText: "No derivative observations.", conditions: [{ field: "marketKind", notEquals: "Spot" }] },
-								],
-							},
-						],
 					},
 					plural: { component: "MarketsView",
 						query: {
@@ -43960,7 +43696,6 @@ export const schema = {
 								selectorPath: "marketKind",
 							},
 						],
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -43985,7 +43720,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
-				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
 				"$parentMarket": {
 					label: "Parent market",
 					type: EntityFieldType.EntityReference,
@@ -44040,7 +43775,6 @@ export const schema = {
 					},
 					plural: { component: "Market_Derivative_TimestampsView",
 						title: "Derivative observations",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -44230,7 +43964,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
-				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"feedKey": { label: "Feed key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
 				"price": { label: "Price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"transport": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"providerAssetId": { label: "Provider asset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -44265,7 +43999,6 @@ export const schema = {
 					},
 					plural: { component: "Market_TimestampsView",
 						title: "Spot stream",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -44520,7 +44253,7 @@ export const schema = {
 							{ field: "$$results", component: "McpPromptResultsView", emptyText: "No MCP prompt results." },
 						],
 					},
-					plural: { component: "McpPromptsView", title: "MCP prompts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpPromptsView", title: "MCP prompts", },
 				},
 			}),
 
@@ -44560,7 +44293,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpPromptResultsView", title: "MCP prompt results", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpPromptResultsView", title: "MCP prompt results", },
 				},
 			}),
 
@@ -44602,7 +44335,7 @@ export const schema = {
 							{ field: "$$contentTimestamps", component: "McpResourceContent_TimestampsView", emptyText: "No MCP resource content observations." },
 						],
 					},
-					plural: { component: "McpResourcesView", title: "MCP resources", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpResourcesView", title: "MCP resources", },
 				},
 			}),
 
@@ -44645,7 +44378,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpResourceContent_TimestampsView", title: "MCP resource content observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpResourceContent_TimestampsView", title: "MCP resource content observations", },
 				},
 			}),
 
@@ -44682,7 +44415,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpResourceTemplatesView", title: "MCP resource templates", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpResourceTemplatesView", title: "MCP resource templates", },
 				},
 			}),
 
@@ -44750,7 +44483,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "McpServersView", title: "MCP servers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpServersView", title: "MCP servers", },
 				},
 			}),
 
@@ -44797,7 +44530,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpServer_TimestampsView", title: "MCP server observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpServer_TimestampsView", title: "MCP server observations", },
 				},
 			}),
 
@@ -44822,7 +44555,7 @@ export const schema = {
 						closed: ["registryServerName", "repositoryUrl", "label"],
 						content: { dl: [["registryServerName", "repositoryUrl", "label"]] },
 					},
-					plural: { component: "McpServerPackagesView", title: "MCP server packages", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpServerPackagesView", title: "MCP server packages", },
 				},
 			}),
 
@@ -44873,7 +44606,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpServerPackageVersionsView", title: "MCP server package versions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpServerPackageVersionsView", title: "MCP server package versions", },
 				},
 			}),
 
@@ -44910,7 +44643,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpToolsView", title: "MCP tools", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpToolsView", title: "MCP tools", },
 				},
 			}),
 
@@ -44954,7 +44687,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "McpToolCall_TimestampsView", emptyText: "No MCP tool call observations." },
 						],
 					},
-					plural: { component: "McpToolCallsView", title: "MCP tool calls", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpToolCallsView", title: "MCP tool calls", },
 				},
 			}),
 
@@ -44998,7 +44731,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "McpToolCall_TimestampsView", title: "MCP tool call observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "McpToolCall_TimestampsView", title: "MCP tool call observations", },
 				},
 			}),
 
@@ -45202,7 +44935,6 @@ export const schema = {
 					},
 					plural: {
 						component: "MediaListView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -45275,7 +45007,6 @@ export const schema = {
 					},
 					plural: {
 						component: "MevBuildersView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -45379,7 +45110,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MevBuilder_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -45449,7 +45179,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MevRelaysView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -45558,7 +45287,6 @@ export const schema = {
 					},
 						plural: {
 							component: "MevRelay_ProposerPayloadDeliveredsView",
-							entityRow: _ListEntityRow.Title,
 						},
 				},
 			}),
@@ -45673,7 +45401,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MevRelay_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -45730,7 +45457,6 @@ export const schema = {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc, Source.ThreeXpl_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -45773,7 +45499,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoneroKeyImagesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -45821,7 +45546,6 @@ export const schema = {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -45925,7 +45649,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoneroNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -45965,7 +45688,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MoneroRingsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46004,7 +45726,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoneroRingMembersView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46046,7 +45767,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoneroStealthOutputsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46099,7 +45819,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MoneroTransactionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46138,7 +45857,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoveFunctionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46193,7 +45911,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MoveModulesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46245,7 +45962,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "MoveModule_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46282,7 +45998,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MoveStructsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46324,7 +46039,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearAccessKeysView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46378,7 +46092,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearAccessKey_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46430,7 +46143,6 @@ export const schema = {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46484,7 +46196,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearAccount_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46528,7 +46239,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearActionsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46583,7 +46293,6 @@ export const schema = {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46632,7 +46341,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "NearChunksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46674,7 +46382,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearContractsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46726,7 +46433,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearContract_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46778,7 +46484,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearContractStorageEntriesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46825,7 +46530,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "NearExecutionOutcomesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46892,7 +46596,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -46962,7 +46665,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearNetwork_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -47005,7 +46707,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearReceiptsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -47062,7 +46763,6 @@ export const schema = {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -47119,7 +46819,6 @@ export const schema = {
 						query: {
 							sources: [Source.NearRpc_JsonRpc],
 						},
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -47186,7 +46885,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NearValidator_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -47204,7 +46902,7 @@ export const schema = {
 					description: "The chain identifier in CAIP-2 namespace and reference form.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "knownCaip2",
+					valueType: "caip2",
 				},
 				"slug": {
 					label: "Slug",
@@ -47233,7 +46931,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "NetworkLedgerModel",
-					defaultSources: [Source.Constants_Internal],
+					defaultSources: [Source.Constants_Internal, Source.L2Beat_Rest],
 				},
 				"executionModels": {
 					label: "Execution models",
@@ -47241,14 +46939,14 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "NetworkExecutionModel",
-					defaultSources: [Source.Constants_Internal],
+					defaultSources: [Source.Constants_Internal, Source.L2Beat_Rest],
 				},
 				"$networkStack": {
 					label: "Network stack",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NetworkStack,
-					defaultSources: [Source.Constants_Internal],
+					defaultSources: [Source.Constants_Internal, Source.L2Beat_Rest],
 				},
 				"environment": {
 					label: "Environment",
@@ -47319,6 +47017,7 @@ export const schema = {
 						"$$txpoolTimestamps": { label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
 						"$$gasFeeBlocks": { label: "Gas fee blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasFee_Block, defaultSources: [Source.Voltaire_JsonRpc] },
 						"$$gasEstimateTimestamps": { label: "Gas estimate timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasEstimate_Timestamp, defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest] },
+						"$$activityDays": { label: "Activity days", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network_Activity_Day, defaultSources: [Source.SpaceAndTime_MakeInfinite] },
 						"$$rpcUrls": { label: "RPC URLs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Url },
 						"consensusEndpoints": { label: "Consensus endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "BeaconConsensusEndpoint", defaultSources: [Source.Constants_Internal] },
 						"$$beaconFinalityTimestamps": { label: "Beacon finality timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumBeaconFinality_Timestamp, defaultSources: [Source.Beacon_Rest] },
@@ -47351,6 +47050,81 @@ export const schema = {
 						"$$siblingShardNetworks": { label: "Sibling shard networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 						"$$settledRollups": { label: "Settled rollups", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmRollup }
 					})({
+						facets: {
+							EthereumBeacon: facet({
+								path: ["Evm", "consensusProtocol"],
+								is: "EthereumBeacon",
+							})({})({
+								singularView: {
+									latest: [
+										{
+											field: ["Evm", "$$beaconEpochs"],
+											label: "Epoch",
+											query: {
+												sources: [Source.Beacon_Rest],
+												limit: 16,
+											},
+											fields: [
+												"epoch",
+												"startSlot",
+												"endSlot",
+											],
+											sort: "epoch",
+											direction: "desc",
+											view: "BeaconEpochView",
+										},
+										{
+											field: ["Evm", "$$beaconSlots"],
+											label: "Slot",
+											query: {
+												sources: [Source.Beacon_Rest],
+												limit: 16,
+											},
+											fields: [
+												"slot",
+												"epoch",
+											],
+											sort: "slot",
+											direction: "desc",
+											view: "BeaconSlotView",
+										},
+									],
+									carousels: [
+										{
+											id: "evm-consensus-block-production",
+											after: "evm-execution",
+											label: "Consensus and block production",
+											className: "network-view-collapsible-consensus",
+											sections: [
+												{ id: "evm-consensus-upgrades", field: ["Evm", "$$consensusUpgrades"], List: "EthereumConsensusUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+												{ id: "evm-consensus-finality", field: ["Evm", "$$beaconFinalityTimestamps"], List: "EthereumBeaconFinality_TimestampsView", label: "Finality", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-committees", field: ["Evm", "$$beaconCommittees"], List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-sync-committees", field: ["Evm", "$$beaconSyncCommittees"], List: "BeaconSyncCommitteesView", label: "Sync committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-attestations", field: ["Evm", "$$beaconAttestations"], List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-withdrawals", field: ["Evm", "$$beaconWithdrawals"], List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-slashings", field: ["Evm", "$$beaconSlashings"], List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-validators", field: ["Evm", "$$beaconValidators"], List: "BeaconValidatorsView", label: "Validators", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-epochs", field: ["Evm", "$$beaconEpochs"], List: "BeaconEpochsView", label: "Epochs", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-slots", field: ["Evm", "$$beaconSlots"], List: "BeaconSlotsView", label: "Slots", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+												{ id: "evm-consensus-mev-relays", field: ["Evm", "$$mevRelays"], List: "MevRelaysView", label: "Relays", selection: { sources: [Source.Constants_Internal], limit: 64 } },
+												{ id: "evm-consensus-mev-builders", field: ["Evm", "$$mevBuilders"], List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+												{ id: "evm-consensus-mev-boost", field: ["Evm", "$$mevProposerPayloadDelivered"], List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+												{
+													id: "evm-consensus-endpoints",
+													field: ["Evm", "consensusEndpoints"],
+													label: "Endpoints",
+													emptyText: "Consensus endpoints are not listed for this network.",
+													items: [
+														{ field: "restBaseUrl", label: "REST" },
+														{ field: "consensusProtocol", label: "Protocol", enumConstantMap: "consensusProtocolByProtocol", enumConstantFrom: "$/constants/EvmNetwork.ts" },
+													],
+												},
+											],
+										},
+									],
+								},
+							}),
+						},
 						singularView: {
 							latestDlClassName: "network-summary-head",
 							latest: [
@@ -47385,35 +47159,36 @@ export const schema = {
 									view: "EvmBlockView",
 								},
 								{
-									field: ["Evm", "$$beaconEpochs"],
-									label: "Epoch",
+									field: ["Evm", "$$gasFeeBlocks"],
+									label: "Fee market",
 									query: {
-										sources: [Source.Beacon_Rest],
+										sources: [Source.Voltaire_JsonRpc],
 										limit: 16,
 									},
 									fields: [
-										"epoch",
-										"startSlot",
-										"endSlot",
+										"blockNumber",
+										"baseFeePerGas",
+										"gasUsedRatio",
 									],
-									sort: "epoch",
+									sort: "blockNumber",
 									direction: "desc",
-									view: "BeaconEpochView",
+									view: "EvmNetwork_GasFee_BlockView",
 								},
 								{
-									field: ["Evm", "$$beaconSlots"],
-									label: "Slot",
+									field: ["Evm", "$$txpoolTimestamps"],
+									label: "Mempool",
 									query: {
-										sources: [Source.Beacon_Rest],
+										sources: [Source.Voltaire_JsonRpc],
 										limit: 16,
 									},
 									fields: [
-										"slot",
-										"epoch",
+										"timestampMs",
+										"pendingCount",
+										"queuedCount",
 									],
-									sort: "slot",
+									sort: "timestampMs",
 									direction: "desc",
-									view: "BeaconSlotView",
+									view: "EvmNetwork_Txpool_TimestampView",
 								},
 							],
 							content: {
@@ -47424,15 +47199,34 @@ export const schema = {
 										{ field: ["Evm", "shortName"], when: "open" },
 										{ field: ["Evm", "peeringId"], format: "number", when: "open" },
 										{ field: ["Evm", "slip44"], format: "number", when: "open" },
+										{ field: ["Evm", "$nativeCoinInstance"], label: "Native currency", when: "open" },
+										{ field: ["Evm", "$nativeCoin"], label: "Native coin", when: "open" },
+										{ field: ["Evm", "$parent"], label: "Parent", when: "open" },
+										{ field: ["Evm", "$mainnet"], label: "Mainnet", when: "open" },
 									],
 								],
 							},
 							carousels: [
 								{
+									id: "evm-network-topology",
+									label: "Topology",
+									className: "network-view-collapsible-network-relationships",
+									sections: [
+										{ id: "evm-network-topology-upgrades", field: ["Evm", "$$upgrades"], List: "EthereumNetworkUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+										{ id: "evm-network-topology-parent-layer", field: ["Evm", "$parent"], List: "NetworkView", label: "Parent", emptyText: "Parent network is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest] } },
+										{ id: "evm-network-topology-rollup", field: ["Evm", "$rollup"], List: "EvmRollupView", label: "Rollup", emptyText: "Rollup is not listed for this network.", selection: { sources: [Source.L2Beat_Rest] } },
+										{ id: "evm-network-topology-sibling-shards", field: ["Evm", "$$siblingShardNetworks"], List: "NetworksView", label: "Shards", emptyText: "No sibling shard networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
+										{ id: "evm-network-topology-testnets", field: ["Evm", "$$testnets"], List: "NetworksView", label: "Testnets", emptyText: "No testnets listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
+										{ id: "evm-network-topology-mainnet", field: ["Evm", "$mainnet"], List: "NetworkView", label: "Mainnet", emptyText: "Mainnet is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
+										{ id: "evm-network-topology-child-layers", field: ["Evm", "$$childLayers"], List: "NetworksView", label: "Layers", emptyText: "No child layer networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest], limit: 16 } },
+										{ id: "evm-network-topology-settled-rollups", field: ["Evm", "$$settledRollups"], List: "EvmRollupsView", label: "Settled rollups", emptyText: "No settled rollups listed for this network yet.", selection: { sources: [Source.L2Beat_Rest], limit: 16 } },
+									],
+								},
+								{
 									id: "evm-execution",
 									label: "Execution",
+									description: "Blocks, transactions, mempool activity, fee markets, gas estimates, upgrades, and the RPC endpoints used to execute and inspect this EVM network.",
 									className: "network-view-collapsible-execution",
-									scrollContainerClassName: "network-carousel-execution",
 									sections: [
 										{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
 										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
@@ -47441,44 +47235,6 @@ export const schema = {
 										{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-estimates", field: ["Evm", "$$gasEstimateTimestamps"], List: "EvmNetwork_GasEstimate_TimestampsView", label: "Gas estimates", selection: { sources: [Source.Blockscout_Rest, Source.Etherscan_Rest], limit: 16 } },
 										{ id: "evm-execution-endpoints", field: ["Evm", "$$rpcUrls"], List: "UrlsView", label: "Endpoints", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
-									],
-								},
-								{
-									id: "evm-consensus-block-production",
-									label: "Consensus and block production",
-									className: "network-view-collapsible-consensus",
-									conditions: [
-										{ field: ["Evm", "consensusProtocol"], equals: "EthereumBeacon" },
-									],
-									sections: [
-										{ id: "evm-consensus-upgrades", field: ["Evm", "$$consensusUpgrades"], List: "EthereumConsensusUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-consensus-finality", field: ["Evm", "$$beaconFinalityTimestamps"], List: "EthereumBeaconFinality_TimestampsView", label: "Finality", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-committees", field: ["Evm", "$$beaconCommittees"], List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-sync-committees", field: ["Evm", "$$beaconSyncCommittees"], List: "BeaconSyncCommitteesView", label: "Sync committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-attestations", field: ["Evm", "$$beaconAttestations"], List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-withdrawals", field: ["Evm", "$$beaconWithdrawals"], List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-slashings", field: ["Evm", "$$beaconSlashings"], List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-validators", field: ["Evm", "$$beaconValidators"], List: "BeaconValidatorsView", label: "Validators", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-epochs", field: ["Evm", "$$beaconEpochs"], List: "BeaconEpochsView", label: "Epochs", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-slots", field: ["Evm", "$$beaconSlots"], List: "BeaconSlotsView", label: "Slots", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-										{ id: "evm-consensus-mev-relays", field: ["Evm", "$$mevRelays"], List: "MevRelaysView", label: "Relays", selection: { sources: [Source.Constants_Internal], limit: 64 } },
-										{ id: "evm-consensus-mev-builders", field: ["Evm", "$$mevBuilders"], List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
-										{ id: "evm-consensus-mev-boost", field: ["Evm", "$$mevProposerPayloadDelivered"], List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
-										{
-											id: "evm-consensus-endpoints",
-											field: ["Evm", "consensusEndpoints"],
-											label: "Endpoints",
-											emptyText: "Consensus endpoints are not listed for this network.",
-											items: [
-												{ field: "restBaseUrl", label: "REST" },
-												{
-													field: "consensusProtocol",
-													label: "Protocol",
-													enumConstantMap: "consensusProtocolByProtocol",
-													enumConstantFrom: "$/constants/EvmNetwork.ts",
-												},
-											],
-										},
 									],
 								},
 								{
@@ -47508,9 +47264,9 @@ export const schema = {
 									label: "Assets",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "evm-assets-native-coin", field: ["Evm", "$nativeCoin"], label: "Native coin", List: "CoinView", layout: EntityLayout.SummaryInline, selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
-										{ id: "evm-assets-native-instance", field: ["Evm", "$nativeCoinInstance"], label: "Native coin instance", List: "EvmCoinInstanceView", layout: EntityLayout.SummaryInline, selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
-										{ id: "evm-assets-native-assets", field: "$$nativeAssets", label: "Native assets", List: "AssetInstancesView" },
+										{ id: "evm-assets-native-coin", field: ["Evm", "$nativeCoin"], label: "Native coin", List: "CoinView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
+										{ id: "evm-assets-native-instance", field: ["Evm", "$nativeCoinInstance"], label: "Native coin instance", List: "EvmCoinInstanceView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
+										{ id: "evm-assets-native-assets", field: "$$nativeAssets", label: "Native assets", List: "AssetInstancesView", selection: { sources: [Source.Constants_Internal], limit: 16 } },
 										{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
 										{ id: "evm-assets-erc20-transfers", field: ["Evm", "$$erc20TokenTransfers"], List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-assets-nft-transfers", field: ["Evm", "$$nftTokenTransfers"], List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
@@ -47525,38 +47281,24 @@ export const schema = {
 										{ id: "evm-resources-block-explorers", field: "$$blockExplorerUrls", List: "UrlsView", label: "Block explorers", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
 									],
 								},
-								{
-									id: "evm-network-relationships",
-									label: "Relationships",
-									className: "network-view-collapsible-network-relationships",
-									sections: [
-										{ id: "evm-network-relationships-upgrades", field: ["Evm", "$$upgrades"], List: "EthereumNetworkUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-network-relationships-parent-layer", field: ["Evm", "$parent"], List: "NetworkView", label: "Parent", emptyText: "Parent network is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest] } },
-										{ id: "evm-network-relationships-rollup", field: ["Evm", "$rollup"], List: "EvmRollupView", label: "Rollup", emptyText: "Rollup is not listed for this network.", selection: { sources: [Source.L2Beat_Rest] } },
-										{ id: "evm-network-relationships-sibling-shards", field: ["Evm", "$$siblingShardNetworks"], List: "NetworksView", label: "Shards", emptyText: "No sibling shard networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
-										{ id: "evm-network-relationships-testnets", field: ["Evm", "$$testnets"], List: "NetworksView", label: "Testnets", emptyText: "No testnets listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
-										{ id: "evm-network-relationships-mainnet", field: ["Evm", "$mainnet"], List: "NetworkView", label: "Mainnet", emptyText: "Mainnet is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
-										{ id: "evm-network-relationships-child-layers", field: ["Evm", "$$childLayers"], List: "NetworksView", label: "Layers", emptyText: "No child layer networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest], limit: 16 } },
-										{ id: "evm-network-relationships-settled-rollups", field: ["Evm", "$$settledRollups"], List: "EvmRollupsView", label: "Settled rollups", emptyText: "No settled rollups listed for this network yet.", selection: { sources: [Source.L2Beat_Rest], limit: 16 } },
-									],
-								},
 							],
 						} }),
 					"Cosmos": facet({
 						path: ["executionModels"],
 						includes: "CosmosSdk",
 					})({
-						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock },
-						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator },
-						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal }
+						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CosmosSdk_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal, defaultSources: [Source.CosmosSdk_Rest] }
 					})({
 						singularView: {
 							carousels: [
 								{
 									id: "cosmos-consensus-block-production",
 									label: "Consensus and block production",
+									description: "CometBFT block production and validator state exposed by this Cosmos SDK network.",
 									className: "network-view-collapsible-consensus",
 									sections: [
 										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
@@ -47574,6 +47316,7 @@ export const schema = {
 								{
 									id: "cosmos-governance",
 									label: "Governance",
+									description: "On-chain Cosmos SDK proposals and their current governance lifecycle.",
 									className: "network-view-collapsible-governance",
 									sections: [
 										{ id: "cosmos-governance-proposals", field: ["Cosmos", "$$governanceProposals"], List: "CosmosGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
@@ -47603,12 +47346,9 @@ export const schema = {
 						path: ["executionModels"],
 						includes: "PolkadotRuntime",
 					})({
-						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotBlock },
-						"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAsset },
-						"$$assetBalanceTimestamps": { label: "Asset balance observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAssetBalance_Timestamp },
-						"$$referendums": { label: "Referendums", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotValidator }
+						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Polkadot_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotBlock, defaultSources: [Source.Polkadot_JsonRpc] },
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotValidator, defaultSources: [Source.SubstrateSidecar_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47617,8 +47357,8 @@ export const schema = {
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
-										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
+										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc], limit: 16 } },
+										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47627,16 +47367,6 @@ export const schema = {
 									className: "network-view-collapsible-assets",
 									sections: [
 										{ id: "polkadot-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
-										{ id: "polkadot-assets-registered", field: ["Polkadot", "$$assets"], List: "PolkadotAssetsView", label: "Assets", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
-										{ id: "polkadot-assets-balances", field: ["Polkadot", "$$assetBalanceTimestamps"], List: "PolkadotAssetBalance_TimestampsView", label: "Asset balance observations", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
-									],
-								},
-								{
-									id: "polkadot-governance",
-									label: "Governance",
-									className: "network-view-collapsible-governance",
-									sections: [
-										{ id: "polkadot-governance-referendums", field: ["Polkadot", "$$referendums"], List: "PolkadotReferendumsView", label: "Referendums", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47663,42 +47393,44 @@ export const schema = {
 						path: ["executionModels"],
 						includes: "SolanaRuntime",
 					})({
-						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaBlock },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction },
-						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount },
-						"$$programs": { label: "Programs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaProgram },
-						"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount },
-						"$$tokenMints": { label: "Token mints", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenMint },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaValidator }
+						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Solana_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaBlock, defaultSources: [Source.Solana_JsonRpc] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction, defaultSources: [Source.Solana_JsonRpc] },
+						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount, defaultSources: [Source.Solana_JsonRpc] },
+						"$$programs": { label: "Programs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaProgram, defaultSources: [Source.Solana_JsonRpc] },
+						"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount, defaultSources: [Source.Solana_JsonRpc] },
+						"$$tokenMints": { label: "Token mints", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenMint, defaultSources: [Source.Solana_JsonRpc] },
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaValidator, defaultSources: [Source.Solana_JsonRpc] }
 					})({
 						singularView: {
 							carousels: [
 								{
 									id: "solana-execution",
 									label: "Execution",
+									description: "Recent slots, blocks, and transactions executed by the Solana runtime.",
 									className: "network-view-collapsible-execution",
-									scrollContainerClassName: "network-carousel-execution",
 									sections: [
-										{ id: "solana-execution-blocks", field: ["Solana", "$$blocks"], List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
-										{ id: "solana-execution-transactions", field: ["Solana", "$$transactions"], List: "SolanaTransactionsView", label: "Transactions", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-execution-blocks", field: ["Solana", "$$blocks"], List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
+										{ id: "solana-execution-transactions", field: ["Solana", "$$transactions"], List: "SolanaTransactionsView", label: "Transactions", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 									],
 								},
 								{
 									id: "solana-consensus-block-production",
 									label: "Consensus and block production",
+									description: "Validator participation and block production for Solana's proof-of-history coordinated consensus.",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "solana-consensus-validators", field: ["Solana", "$$validators"], List: "SolanaValidatorsView", label: "Validators", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-consensus-validators", field: ["Solana", "$$validators"], List: "SolanaValidatorsView", label: "Validators", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 									],
 								},
 								{
 									id: "solana-contracts-accounts",
 									label: "Contracts and accounts",
+									description: "Executable programs and state-bearing accounts on the Solana virtual machine.",
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
-										{ id: "solana-contracts-accounts-accounts", field: ["Solana", "$$accounts"], List: "SolanaAccountsView", label: "Accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
-										{ id: "solana-contracts-accounts-programs", field: ["Solana", "$$programs"], List: "SolanaProgramsView", label: "Programs", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-contracts-accounts-accounts", field: ["Solana", "$$accounts"], List: "SolanaAccountsView", label: "Accounts", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
+										{ id: "solana-contracts-accounts-programs", field: ["Solana", "$$programs"], List: "SolanaProgramsView", label: "Programs", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -47707,8 +47439,8 @@ export const schema = {
 									className: "network-view-collapsible-assets",
 									sections: [
 										{ id: "solana-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
-										{ id: "solana-assets-token-accounts", field: ["Solana", "$$tokenAccounts"], List: "SolanaTokenAccountsView", label: "Token accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
-										{ id: "solana-assets-token-mints", field: ["Solana", "$$tokenMints"], List: "SolanaTokenMintsView", label: "Token mints", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-assets-token-accounts", field: ["Solana", "$$tokenAccounts"], List: "SolanaTokenAccountsView", label: "Token accounts", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
+										{ id: "solana-assets-token-mints", field: ["Solana", "$$tokenMints"], List: "SolanaTokenMintsView", label: "Token mints", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -47744,7 +47476,6 @@ export const schema = {
 									id: "utxo-chain-activity",
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
-									scrollContainerClassName: "network-carousel-chain-activity",
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
 										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
@@ -47754,7 +47485,6 @@ export const schema = {
 									id: "utxo-transaction-graph",
 									label: "Transactions",
 									className: "network-view-collapsible-transactions",
-									scrollContainerClassName: "network-carousel-transactions",
 									sections: [
 										{ id: "utxo-execution-transactions", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Transactions", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.Zcashd_JsonRpc], limit: 16 } },
 										{ id: "utxo-execution-mempool", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Mempool", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
@@ -47778,7 +47508,7 @@ export const schema = {
 						path: ["executionModels"],
 						includes: "ZcashShielded",
 					})({
-						"$$shieldedPools": { label: "Shielded pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedPool, defaultSources: [Source.Zcashd_JsonRpc] }
+						"$$shieldedPools": { label: "Shielded pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedPool, defaultSources: [Source.Constants_Internal] }
 					})({
 						singularView: {
 							carousels: [
@@ -47787,7 +47517,7 @@ export const schema = {
 									label: "Shielded protocol",
 									className: "network-view-collapsible-shielded-protocol",
 									sections: [
-										{ id: "zcash-shielded-pools", field: ["Zcash", "$$shieldedPools"], List: "ZcashShieldedPoolsView", label: "Shielded pools", selection: { sources: [Source.Zcashd_JsonRpc] } },
+										{ id: "zcash-shielded-pools", field: ["Zcash", "$$shieldedPools"], List: "ZcashShieldedPoolsView", label: "Shielded pools", selection: { sources: [Source.Constants_Internal] } },
 									],
 								},
 							],
@@ -47849,37 +47579,6 @@ export const schema = {
 										{ id: "zero-g-storage-nodes", field: ["ZeroG", "$$storageNodes"], List: "ZeroGStorageNodesView", label: "Storage nodes", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
 										{ id: "zero-g-storage-data-blobs", field: ["ZeroG", "$$dataBlobs"], List: "ZeroGDataBlobsView", label: "Data blobs", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
 										{ id: "zero-g-storage-log-entries", field: ["ZeroG", "$$storageLogEntries"], List: "ZeroGStorageLogEntriesView", label: "Storage log entries", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
-									],
-								},
-							],
-						} }),
-					"Quilibrium": facet({
-						path: ["namespace"],
-						is: "Quilibrium",
-					})({
-						"$$frames": { label: "Frames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumFrame },
-						"$$provers": { label: "Provers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumProver },
-						"$$shards": { label: "Shards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumShard },
-						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumAccount }
-					})({
-						singularView: {
-							carousels: [
-								{
-									id: "quilibrium-consensus",
-									label: "Consensus",
-									className: "network-view-collapsible-consensus",
-									sections: [
-										{ id: "quilibrium-consensus-frames", field: ["Quilibrium", "$$frames"], List: "QuilibriumFramesView", label: "Frames", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
-										{ id: "quilibrium-consensus-provers", field: ["Quilibrium", "$$provers"], List: "QuilibriumProversView", label: "Provers", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
-									],
-								},
-								{
-									id: "quilibrium-state",
-									label: "State",
-									className: "network-view-collapsible-state",
-									sections: [
-										{ id: "quilibrium-state-shards", field: ["Quilibrium", "$$shards"], List: "QuilibriumShardsView", label: "Shards", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
-										{ id: "quilibrium-state-accounts", field: ["Quilibrium", "$$accounts"], List: "QuilibriumAccountsView", label: "Accounts", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
 									],
 								},
 							],
@@ -48018,10 +47717,6 @@ export const schema = {
 						"$settlementNetwork": { label: "Settlement network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNetwork_Timestamp },
 						"$$nodes": { label: "Nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNode },
-						"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel },
-						"$$invoices": { label: "Invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
-						"$$payments": { label: "Payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
-						"$$localNodeStates": { label: "Local node states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningNodeState }
 					})({
 						singularView: {
 							content: {
@@ -48039,17 +47734,6 @@ export const schema = {
 									sections: [
 										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest], limit: 16 } },
 										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-network-channels", field: ["Lightning", "$$channels"], List: "LightningChannelsView", label: "Channels", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
-									],
-								},
-								{
-									id: "lightning-local",
-									label: "Local node activity",
-									className: "network-view-collapsible-local-node-activity",
-									sections: [
-										{ id: "lightning-local-invoices", field: ["Lightning", "$$invoices"], List: "BlockheadLightningInvoicesView", label: "Invoices", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-local-payments", field: ["Lightning", "$$payments"], List: "BlockheadLightningPaymentsView", label: "Payments", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-local-node-states", field: ["Lightning", "$$localNodeStates"], List: "BlockheadLightningNodeStatesView", label: "Node states", selection: { sources: [Source.Local_Internal, Source.LightningLnd_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -48058,19 +47742,16 @@ export const schema = {
 						path: ["namespace"],
 						is: "Cardano",
 					})({
-						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Blockfrost_Rest] },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.Blockfrost_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.Blockfrost_Rest] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction },
-						"$$addresses": { label: "Addresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoAddress },
-						"$$stakeCredentials": { label: "Stake credentials", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakeCredential },
-						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool },
-						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep },
-						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal },
-						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset },
-						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch },
-						"$$constitutionEpochs": { label: "Constitution epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoConstitution_Epoch },
-						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch }
+						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CardanoKoios_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.Blockfrost_Rest] },
+						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.Blockfrost_Rest] },
+						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.Blockfrost_Rest] },
+						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.Blockfrost_Rest] },
+						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.Blockfrost_Rest] },
+						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.Blockfrost_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -48079,9 +47760,9 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
-										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
-										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions" },
+										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48089,9 +47770,7 @@ export const schema = {
 									label: "Stake and delegation",
 									className: "network-view-collapsible-stake-delegation",
 									sections: [
-										{ id: "cardano-stake-addresses", field: ["Cardano", "$$addresses"], List: "CardanoAddressesView", label: "Addresses" },
-										{ id: "cardano-stake-credentials", field: ["Cardano", "$$stakeCredentials"], List: "CardanoStakeCredentialsView", label: "Stake credentials" },
-										{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools" },
+						{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48099,10 +47778,9 @@ export const schema = {
 									label: "Governance",
 									className: "network-view-collapsible-governance",
 									sections: [
-										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps" },
-										{ id: "cardano-governance-proposals", field: ["Cardano", "$$governanceProposals"], List: "CardanoGovernanceProposalsView", label: "Proposals" },
-										{ id: "cardano-governance-constitution", field: ["Cardano", "$$constitutionEpochs"], List: "CardanoConstitution_EpochsView", label: "Constitution epochs" },
-										{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs" },
+										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+						{ id: "cardano-governance-proposals", field: ["Cardano", "$$governanceProposals"], List: "CardanoGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+						{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48110,8 +47788,8 @@ export const schema = {
 									label: "Assets and protocol",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets" },
-										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters" },
+										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48192,37 +47870,46 @@ export const schema = {
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp },
 					})({
 						singularView: {
+						},
+					}),
+					"Xrpl": facet({
+						path: ["namespace"],
+						is: "Xrpl",
+					})({
+						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAccount, defaultSources: [Source.Xrpl_Rippled] },
+						"$$amendments": { label: "Amendments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmendment, defaultSources: [Source.Xrpl_Rippled] },
+						"$$amms": { label: "AMMs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmm, defaultSources: [Source.Xrpl_Rippled] },
+						"$$ledgerEntries": { label: "Ledger entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedgerEntry, defaultSources: [Source.Xrpl_Rippled] },
+						"$$ledgers": { label: "Ledgers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedger, defaultSources: [Source.Xrpl_Rippled] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplTransaction, defaultSources: [Source.Xrpl_Rippled] },
+					})({
+						singularView: {
 							carousels: [
 								{
-									id: "ton-chain-activity",
+									id: "xrpl-chain-activity",
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "ton-chain-observations", field: ["Ton", "$$timestamps"], List: "TonNetwork_TimestampsView", label: "Observations", emptyText: "No TON network observations." },
-										{ id: "ton-chain-workchains", field: ["Ton", "$$workchains"], List: "TonWorkchainsView", label: "Workchains", emptyText: "No TON workchains." },
-										{ id: "ton-chain-blocks", field: ["Ton", "$$blocks"], List: "TonBlocksView", label: "Blocks", emptyText: "No TON blocks." },
-										{ id: "ton-chain-transactions", field: ["Ton", "$$transactions"], List: "TonTransactionsView", label: "Transactions", emptyText: "No TON transactions." },
-										{ id: "ton-chain-traces", field: ["Ton", "$$traces"], List: "TonTracesView", label: "Traces", emptyText: "No TON traces." },
+										{ id: "xrpl-chain-ledgers", field: ["Xrpl", "$$ledgers"], List: "XrplLedgersView", label: "Ledgers", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL ledgers." },
+										{ id: "xrpl-chain-transactions", field: ["Xrpl", "$$transactions"], List: "XrplTransactionsView", label: "Transactions", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL transactions." },
 									],
 								},
 								{
-									id: "ton-accounts-contracts",
-									label: "Accounts and contracts",
-									className: "network-view-collapsible-accounts-contracts",
+									id: "xrpl-ledger-state",
+									label: "Ledger state",
+									className: "network-view-collapsible-ledger-state",
 									sections: [
-										{ id: "ton-accounts", field: ["Ton", "$$accounts"], List: "TonAccountsView", label: "Accounts", emptyText: "No TON accounts." },
-										{ id: "ton-contracts", field: ["Ton", "$$contracts"], List: "TonContractsView", label: "Contracts", emptyText: "No TON contracts." },
-										{ id: "ton-messages", field: ["Ton", "$$messages"], List: "TonMessagesView", label: "Messages", emptyText: "No TON messages." },
+										{ id: "xrpl-ledger-state-accounts", field: ["Xrpl", "$$accounts"], List: "XrplAccountsView", label: "Accounts", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL accounts." },
+										{ id: "xrpl-ledger-state-entries", field: ["Xrpl", "$$ledgerEntries"], List: "XrplLedgerEntriesView", label: "Ledger entries", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL ledger entries." },
 									],
 								},
 								{
-									id: "ton-assets",
-									label: "Jettons and NFTs",
-									className: "network-view-collapsible-assets",
+									id: "xrpl-protocol-liquidity",
+									label: "Protocol and liquidity",
+									className: "network-view-collapsible-protocol-liquidity",
 									sections: [
-										{ id: "ton-jettons", field: ["Ton", "$$jettons"], List: "TonJettonsView", label: "Jettons", emptyText: "No TON jettons." },
-										{ id: "ton-nft-collections", field: ["Ton", "$$nftCollections"], List: "TonNftCollectionsView", label: "NFT collections", emptyText: "No TON NFT collections." },
-										{ id: "ton-nft-items", field: ["Ton", "$$nftItems"], List: "TonNftItemsView", label: "NFT items", emptyText: "No TON NFT items." },
+										{ id: "xrpl-protocol-amendments", field: ["Xrpl", "$$amendments"], List: "XrplAmendmentsView", label: "Amendments", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL amendments." },
+										{ id: "xrpl-liquidity-amms", field: ["Xrpl", "$$amms"], List: "XrplAmmsView", label: "AMMs", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL AMMs." },
 									],
 								},
 							],
@@ -48234,29 +47921,15 @@ export const schema = {
 					})({
 						"shard": { label: "Shard", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						"realm": { label: "Realm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaBlock },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaTransaction },
-						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaAccount },
-						"$$tokens": { label: "Tokens", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaToken },
-						"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNft },
-						"$$contracts": { label: "Contracts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaContract },
-						"$$topics": { label: "Topics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaTopic },
-						"$$schedules": { label: "Schedules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaSchedule },
-						"$$nodes": { label: "Nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNode },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNetwork_Timestamp },
-						"$$feeTimestamps": { label: "Fee observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNetworkFee_Timestamp },
-						"$$exchangeRateTimestamps": { label: "Exchange rate observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNetworkExchangeRate_Timestamp },
-						"$$stakeTimestamps": { label: "Stake observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNetworkStake_Timestamp },
-						"$$supplyTimestamps": { label: "Supply observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaNetworkSupply_Timestamp },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaBlock, defaultSources: [Source.HederaMirrorNode_Rest] },
+						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HederaAccount, defaultSources: [Source.HederaMirrorNode_Rest] },
 					})({
 						singularView: {
 							content: {
-								dl: [
-									[
-										{ field: ["Hedera", "shard"], format: "number" },
-										{ field: ["Hedera", "realm"], format: "number" },
-									],
-								],
+								dl: [[
+									{ field: ["Hedera", "shard"], format: "number" },
+									{ field: ["Hedera", "realm"], format: "number" },
+								]],
 							},
 							carousels: [
 								{
@@ -48264,41 +47937,15 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "hedera-chain-observations", field: ["Hedera", "$$timestamps"], List: "HederaNetwork_TimestampsView", label: "Observations", emptyText: "No Hedera network observations." },
-										{ id: "hedera-chain-blocks", field: ["Hedera", "$$blocks"], List: "HederaBlocksView", label: "Blocks", emptyText: "No Hedera blocks." },
-										{ id: "hedera-chain-transactions", field: ["Hedera", "$$transactions"], List: "HederaTransactionsView", label: "Transactions", emptyText: "No Hedera transactions." },
+										{ id: "hedera-chain-blocks", field: ["Hedera", "$$blocks"], List: "HederaBlocksView", label: "Blocks", selection: { sources: [Source.HederaMirrorNode_Rest], limit: 16 }, emptyText: "No Hedera blocks." },
 									],
 								},
 								{
 									id: "hedera-accounts-tokens",
-									label: "Accounts and tokens",
+									label: "Accounts",
 									className: "network-view-collapsible-accounts-tokens",
 									sections: [
-										{ id: "hedera-accounts", field: ["Hedera", "$$accounts"], List: "HederaAccountsView", label: "Accounts", emptyText: "No Hedera accounts." },
-										{ id: "hedera-tokens", field: ["Hedera", "$$tokens"], List: "HederaTokensView", label: "Tokens", emptyText: "No Hedera tokens." },
-										{ id: "hedera-nfts", field: ["Hedera", "$$nfts"], List: "HederaNftsView", label: "NFTs", emptyText: "No Hedera NFTs." },
-									],
-								},
-								{
-									id: "hedera-contracts-messaging",
-									label: "Contracts and messaging",
-									className: "network-view-collapsible-contracts-messaging",
-									sections: [
-										{ id: "hedera-contracts", field: ["Hedera", "$$contracts"], List: "HederaContractsView", label: "Contracts", emptyText: "No Hedera contracts." },
-										{ id: "hedera-topics", field: ["Hedera", "$$topics"], List: "HederaTopicsView", label: "Topics", emptyText: "No Hedera topics." },
-										{ id: "hedera-schedules", field: ["Hedera", "$$schedules"], List: "HederaSchedulesView", label: "Schedules", emptyText: "No Hedera schedules." },
-										{ id: "hedera-nodes", field: ["Hedera", "$$nodes"], List: "HederaNodesView", label: "Nodes", emptyText: "No Hedera nodes." },
-									],
-								},
-								{
-									id: "hedera-network-observations",
-									label: "Fees, exchange, stake, and supply",
-									className: "network-view-collapsible-network-observations",
-									sections: [
-										{ id: "hedera-fee-observations", field: ["Hedera", "$$feeTimestamps"], List: "HederaNetworkFee_TimestampsView", label: "Fees", emptyText: "No Hedera fee observations." },
-										{ id: "hedera-exchange-observations", field: ["Hedera", "$$exchangeRateTimestamps"], List: "HederaNetworkExchangeRate_TimestampsView", label: "Exchange rates", emptyText: "No Hedera exchange-rate observations." },
-										{ id: "hedera-stake-observations", field: ["Hedera", "$$stakeTimestamps"], List: "HederaNetworkStake_TimestampsView", label: "Stake", emptyText: "No Hedera stake observations." },
-										{ id: "hedera-supply-observations", field: ["Hedera", "$$supplyTimestamps"], List: "HederaNetworkSupply_TimestampsView", label: "Supply", emptyText: "No Hedera supply observations." },
+										{ id: "hedera-accounts", field: ["Hedera", "$$accounts"], List: "HederaAccountsView", label: "Accounts", selection: { sources: [Source.HederaMirrorNode_Rest], limit: 16 }, emptyText: "No Hedera accounts." },
 									],
 								},
 							],
@@ -48308,16 +47955,14 @@ export const schema = {
 						path: ["namespace"],
 						is: "Hyperliquid",
 					})({
-						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
-						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidNetwork_Timestamp },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidBlock },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidTransaction },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidValidator },
-						"$$spotAssets": { label: "Spot assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotAsset },
-						"$$spotPairs": { label: "Spot pairs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotPair },
-						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket },
-						"$$vaults": { label: "Vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidVault }
+						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid_JsonRpc] },
+						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidNetwork_Timestamp, defaultSources: [Source.Hyperliquid_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidBlock, defaultSources: [Source.Hyperliquid_JsonRpc] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidTransaction, defaultSources: [Source.Hyperliquid_JsonRpc] },
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidValidator, defaultSources: [Source.Hyperliquid_Rest] },
+						"$$spotAssets": { label: "Spot assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotAsset, defaultSources: [Source.Hyperliquid_Rest] },
+						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -48346,8 +47991,6 @@ export const schema = {
 									sections: [
 										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
 										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-spot-pairs", field: ["Hyperliquid", "$$spotPairs"], List: "HyperliquidSpotPairsView", label: "Spot pairs", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-vaults", field: ["Hyperliquid", "$$vaults"], List: "HyperliquidVaultsView", label: "Vaults", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48412,15 +48055,17 @@ export const schema = {
 										:
 											undefined
 									)
+									const caip2 = base.caip2 ?? catalog?.caip2
 									const beacon = (
-										base.caip2 == null ?
+										caip2 == null ?
 											undefined
 										:
-											beaconRestBaseByExecutionChainId[Number(base.caip2.reference)]
+											beaconRestBaseByExecutionChainId[Number(caip2.reference)]
 									)
 
 									return {
 										...base,
+										...(base.caip2 == null && caip2 != null && { caip2 }),
 										...(base.name == null && catalog != null && { name: catalog.name }),
 										...(base.namespace == null && catalog != null && { namespace: catalog.namespace }),
 										...(base.environment == null && catalog != null && { environment: catalog.environment }),
@@ -48484,8 +48129,44 @@ export const schema = {
 						},
 					},
 					plural: { component: "NetworksView",
-						entityRow: _ListEntityRow.Title,
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.Network_Activity_Day,
+				labels: {
+					singular: "network activity day",
+					plural: "network activity days",
+				},
+				description: "A completed UTC day of provider-reported network activity aggregates.",
+				enums: [
+					{
+						name: "OptimisticProviderResult",
+						members: [{ name: "OptimisticProviderResult", value: "OptimisticProviderResult" }],
+					},
+				],
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"dayStartTimestampMs": { label: "Day start", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"blockCount": { label: "Block count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+				"endBlockNumber": { label: "End block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+				"indexedThroughTimestampMs": { label: "Indexed through", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+				"resolvedAtMs": { label: "Resolved at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+				"trustModel": { label: "Trust model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "OptimisticProviderResult", defaultSources: [Source.SpaceAndTime_MakeInfinite] },
+			})({
+				selectors: {
+					"NetworkDayStartTimestampMsSource": ["$network", "dayStartTimestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.SpaceAndTime_MakeInfinite] },
+						summary: { title: [{ field: "dayStartTimestampMs", format: "timestamp" }], value: [{ field: "transactionCount", format: "number" }], HeadingAfter: ["trustModel"] },
+						content: { dl: [["$network", { field: "dayStartTimestampMs", format: "timestamp" }, "source", { field: "blockCount", format: "number" }, { field: "transactionCount", format: "number" }, { field: "endBlockNumber", format: "number" }, { field: "indexedThroughTimestampMs", format: "timestamp" }, { field: "resolvedAtMs", format: "timestamp" }, "trustModel"]] },
+					},
+					plural: { component: "Network_Activity_DaysView" },
 				},
 			}),
 
@@ -48604,7 +48285,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "Network_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -48646,7 +48326,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NetworkEndpointObservation_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -48697,7 +48376,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NetworkStacksView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -48744,7 +48422,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "NetworkUpgradesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -48787,7 +48464,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NetworkUpgrade_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -48815,7 +48491,7 @@ export const schema = {
 							{ field: "$$royaltyTimestamps", component: "RoyaltyRight_TimestampsView", emptyText: "No royalty right observations." },
 						],
 					},
-					plural: { component: "NftCollectionsView", title: "NFT collections", entityRow: _ListEntityRow.Summary },
+					plural: { component: "NftCollectionsView", title: "NFT collections", },
 				},
 			}),
 
@@ -48842,7 +48518,7 @@ export const schema = {
 						content: { dl: [["$collection", "tokenKey", "tokenId"], ["$assetObject", "$metadata", "$$usageRightTimestamps"]] },
 						lists: [{ field: "$$usageRightTimestamps", component: "UsageRight_TimestampsView", emptyText: "No usage right observations." }],
 					},
-					plural: { component: "NftTokensView", title: "NFT tokens", entityRow: _ListEntityRow.Summary },
+					plural: { component: "NftTokensView", title: "NFT tokens", },
 				},
 			}),
 
@@ -48898,6 +48574,8 @@ export const schema = {
 					valueType: "string",
 					defaultSources: [Source.NostrBand_Rest],
 				},
+				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
+				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
 				"publishedAt": {
 					label: "Published",
 					type: EntityFieldType.Primitive,
@@ -48924,8 +48602,13 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						contentWarning: {
+							sensitiveField: "sensitive",
+							textField: "contentWarning",
+							fallbackText: "Sensitive content",
+						},
 						query: {
-							sources: [Source.NostrBand_Rest],
+							sources: [Source.NostrBand_Rest, Source.Primal_Rest],
 							fields: [
 								"kind",
 								"pubkey",
@@ -48973,9 +48656,7 @@ export const schema = {
 						},
 					},
 					plural: { component: "NostrArticlesView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{ field: "identifier" },
 								{ field: "pubkey", format: "truncated" },
@@ -49019,7 +48700,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "NostrNetworksView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -49059,6 +48739,8 @@ export const schema = {
 					valueType: "string",
 					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
+				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
+				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
 				"createdAt": {
 					label: "Created",
 					description: "The event creation time normalized to Unix milliseconds.",
@@ -49099,7 +48781,14 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+				},
+				"$rootNote": {
+					label: "Root note",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.NostrNote,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$$replies": {
 					label: "Replies",
@@ -49121,8 +48810,13 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						contentWarning: {
+							sensitiveField: "sensitive",
+							textField: "contentWarning",
+							fallbackText: "Sensitive content",
+						},
 						query: {
-							sources: [Source.Constants_Internal],
+							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
 							fields: [
 								"eventId",
 								"kind",
@@ -49131,7 +48825,7 @@ export const schema = {
 								"createdAt",
 								"$author",
 							],
-							openFields: ["$$replies", "$$reactions"],
+							openFields: ["$replyToNote", "$rootNote", "$$replies", "$$reactions"],
 						},
 						summary: {
 							title: [{ field: "content", format: "longText" }],
@@ -49166,15 +48860,13 @@ export const schema = {
 										when: "open",
 									},
 									{
-										field: "replyToEventId",
+										field: "$replyToNote",
 										label: "Reply to",
-										format: "truncated",
 										when: "open",
 									},
 									{
-										field: "rootEventId",
+										field: "$rootNote",
 										label: "Root note",
-										format: "truncated",
 										when: "open",
 									},
 								],
@@ -49194,9 +48886,7 @@ export const schema = {
 						],
 					},
 					plural: { component: "NostrNotesView",
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{ field: "content", format: "longText" },
 								{ field: "eventId", format: "truncated" },
@@ -49389,18 +49079,11 @@ export const schema = {
 						],
 					},
 					plural: { component: "NostrProfilesView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{ field: "displayName" },
 								{ field: "pubkey", format: "truncated" },
 							],
-						},
-						query: {
-							sources: {
-								default: [Source.Constants_Internal],
-							},
 						},
 					},
 				},
@@ -49579,9 +49262,7 @@ export const schema = {
 						},
 					},
 					plural: { component: "NostrReactionsView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{ field: "content" },
 								{ field: "eventId", format: "truncated" },
@@ -49589,6 +49270,51 @@ export const schema = {
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.NostrSearchQuery,
+				labels: {
+					singular: "Nostr profile search",
+					plural: "Nostr profile searches",
+				},
+				description: "A bounded NostrBand profile search addressed by its normalized query.",
+			})({
+				"query": { label: "Query", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"resultCount": { label: "Results", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.NostrBand_Rest] },
+				"completed": { label: "Completed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.NostrBand_Rest] },
+				"$$profiles": { label: "Profiles", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NostrProfile, defaultSources: [Source.NostrBand_Rest] },
+			})({
+				selectors: {
+					"Query": ["query"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.NostrBand_Rest],
+							fields: ["query", "resultCount", "completed"],
+							openFields: ["$$profiles"],
+						},
+						summary: {
+							title: [{ text: "Search: " }, { field: "query" }],
+							value: [{ field: "resultCount", format: "number" }],
+						},
+						content: {
+							dl: [["query", { field: "resultCount", format: "number" }, "completed"]],
+						},
+						carousels: [
+							{
+								id: "nostr-search-results",
+								label: "Profile results",
+								className: "network-view-collapsible-results",
+								sections: [
+									{ id: "nostr-search-profiles", field: "$$profiles", List: "NostrProfilesView", label: "Profiles", emptyText: "No matching Nostr profiles." },
+								],
+							},
+						],
+					},
+					plural: { component: "NostrSearchQueriesView" },
 				},
 			}),
 
@@ -49604,7 +49330,16 @@ export const schema = {
 					label: "Relay URL",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
+				},
+				"$$notes": {
+					label: "Live notes",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.NostrNote,
+					defaultSources: [
+						Source.NostrRelay_WebSocket,
+					],
 				},
 				"$$timestamps": {
 					label: "Observations",
@@ -49623,7 +49358,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["relayUrl", "$$timestamps"],
+							fields: ["relayUrl", "$$notes", "$$timestamps"],
 						},
 						latest: [
 							{
@@ -49656,6 +49391,16 @@ export const schema = {
 								],
 							],
 						},
+						carousels: [
+							{
+								id: "nostr-relay-live",
+								label: "Live relay activity",
+								className: "network-view-collapsible-live",
+								sections: [
+									{ id: "nostr-relay-live-notes", field: "$$notes", List: "NostrNotesView", label: "Live notes", emptyText: "No live notes received." },
+								],
+							},
+						],
 						lists: [
 							{
 								field: "$$timestamps",
@@ -49673,9 +49418,7 @@ export const schema = {
 						],
 					},
 					plural: { component: "NostrRelaysView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [{ field: "relayUrl", format: "truncated" }],
 						},
 						query: {
@@ -49781,7 +49524,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "NostrRelay_TimestampsView", title: "Relay observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "NostrRelay_TimestampsView", title: "Relay observations", },
 				},
 			}),
 
@@ -49941,9 +49684,7 @@ export const schema = {
 						},
 					},
 					plural: { component: "NostrRepostsView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [{ field: "eventId", format: "truncated" }],
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
@@ -49988,7 +49729,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "OracleFeedsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50031,7 +49771,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "OracleFeed_RoundsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50076,7 +49815,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "OracleFeed_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50119,7 +49857,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "PayjoinDirectoriesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50158,7 +49895,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "PayjoinEndpointsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50199,7 +49935,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "PayjoinEndpoint_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -50235,7 +49970,7 @@ export const schema = {
 						content: { dl: [["source", "payoutId", "$assetInstance", "$assetClass", "$network", "$distributorContract"], ["snapshotCoordinate", "merkleRoot", "totalAmount", "recipientCount"], [{ field: "openedAt", format: "timestamp" }, { field: "closedAt", format: "timestamp" }, "$$claims"]] },
 						lists: [{ field: "$$claims", component: "PayoutClaim_TimestampsView", emptyText: "No payout claim observations." }],
 					},
-					plural: { component: "PayoutsView", title: "Payouts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PayoutsView", title: "Payouts", },
 				},
 			}),
 
@@ -50266,7 +50001,7 @@ export const schema = {
 						closed: ["$payout", "$account", { field: "timestampMs", format: "timestamp" }],
 						content: { dl: [["$payout", "$account", { field: "timestampMs", format: "timestamp" }, "source"], ["eligibleAmount", "claimedAmount", "claimStatus", "proofHash", "$claimTransaction", { field: "expiresAt", format: "timestamp" }], ["error"]] },
 					},
-					plural: { component: "PayoutClaim_TimestampsView", title: "Payout claim observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PayoutClaim_TimestampsView", title: "Payout claim observations", },
 				},
 			}),
 
@@ -50296,7 +50031,7 @@ export const schema = {
 							{ field: "$$assetBalanceTimestamps", component: "PolkadotAssetBalance_TimestampsView", label: "Asset balances", emptyText: "No Polkadot asset balance observations." },
 						],
 					},
-					plural: { component: "PolkadotAccountsView", title: "Accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotAccountsView", title: "Accounts", },
 				},
 			}),
 
@@ -50322,7 +50057,7 @@ export const schema = {
 						closed: ["timestampMs", "source"],
 						content: { dl: [["timestampMs", "source", "nonce", "freeBalancePlancks", "$account"]] },
 					},
-					plural: { component: "PolkadotAccount_TimestampsView", title: "Account snapshots", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotAccount_TimestampsView", title: "Account snapshots", },
 				},
 			}),
 
@@ -50352,7 +50087,7 @@ export const schema = {
 							{ field: "$$balanceTimestamps", component: "PolkadotAssetBalance_TimestampsView", label: "Balances", emptyText: "No Polkadot asset balance observations." },
 						],
 					},
-					plural: { component: "PolkadotAssetsView", title: "Assets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotAssetsView", title: "Assets", },
 				},
 			}),
 
@@ -50396,7 +50131,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PolkadotAsset_TimestampsView", title: "Asset observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotAsset_TimestampsView", title: "Asset observations", },
 				},
 			}),
 
@@ -50436,7 +50171,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PolkadotAssetBalance_TimestampsView", title: "Asset balance observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotAssetBalance_TimestampsView", title: "Asset balance observations", },
 				},
 			}),
 
@@ -50453,8 +50188,8 @@ export const schema = {
 				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.PolkadotBlock },
 				"stateRoot": { label: "State root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"extrinsicsRoot": { label: "Extrinsics root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$extrinsics": { label: "Extrinsics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotExtrinsic },
-				"$$events": { label: "Events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotEvent },
+				"$$extrinsics": { label: "Extrinsics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotExtrinsic, defaultSources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest] },
+				"$$events": { label: "Events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotEvent, defaultSources: [Source.SubstrateSidecar_Rest] },
 			})({
 				selectors: {
 					"NetworkBlockNumber": ["$network", "blockNumber"],
@@ -50482,7 +50217,7 @@ export const schema = {
 							{ field: "$$events", component: "PolkadotEventsView", label: "Events", emptyText: "No Polkadot events." },
 						],
 					},
-					plural: { component: "PolkadotBlocksView", title: "Blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotBlocksView", title: "Blocks", },
 				},
 			}),
 
@@ -50508,7 +50243,7 @@ export const schema = {
 						closed: ["indexInBlock", "eventName"],
 						content: { dl: [["indexInBlock", "eventName", "$pallet", "$extrinsic", "$block"]] },
 					},
-					plural: { component: "PolkadotEventsView", title: "Events", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotEventsView", title: "Events", },
 				},
 			}),
 
@@ -50547,7 +50282,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PolkadotExtrinsicsView", title: "Extrinsics", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotExtrinsicsView", title: "Extrinsics", },
 				},
 			}),
 
@@ -50571,7 +50306,7 @@ export const schema = {
 						closed: ["palletName", "index"],
 						content: { dl: [["palletName", "index", "$network"]] },
 					},
-					plural: { component: "PolkadotPalletsView", title: "Pallets", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotPalletsView", title: "Pallets", },
 				},
 			}),
 
@@ -50600,7 +50335,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "PolkadotReferendum_TimestampsView", label: "Lifecycle observations", emptyText: "No Polkadot referendum observations." },
 						],
 					},
-					plural: { component: "PolkadotReferendumsView", title: "Referendums", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotReferendumsView", title: "Referendums", },
 				},
 			}),
 
@@ -50640,7 +50375,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PolkadotReferendum_TimestampsView", title: "Referendum observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotReferendum_TimestampsView", title: "Referendum observations", },
 				},
 			}),
 
@@ -50663,7 +50398,7 @@ export const schema = {
 						closed: [{ field: "stashAccountId", format: "truncated" }],
 						content: { dl: [[{ field: "stashAccountId", format: "truncated" }, "$network"]] },
 					},
-					plural: { component: "PolkadotValidatorsView", title: "Validators", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotValidatorsView", title: "Validators", },
 				},
 			}),
 
@@ -50701,7 +50436,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PolkadotValidator_ErasView", title: "Validator eras", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PolkadotValidator_ErasView", title: "Validator eras", },
 				},
 			}),
 
@@ -50743,7 +50478,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "PythPriceFeed_TimestampsView", emptyText: "No Pyth price feed observations." },
 						],
 					},
-					plural: { component: "PythPriceFeedsView", title: "Pyth price feeds", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PythPriceFeedsView", title: "Pyth price feeds", },
 				},
 			}),
 
@@ -50791,7 +50526,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "PythPriceFeed_TimestampsView", title: "Pyth price feed observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "PythPriceFeed_TimestampsView", title: "Pyth price feed observations", },
 				},
 			}),
 
@@ -50824,7 +50559,7 @@ export const schema = {
 							{ field: "$$blockheadAccountStates", component: "BlockheadQuilibriumAccountStatesView", emptyText: "No connected account states." },
 						],
 					},
-					plural: { component: "QuilibriumAccountsView", title: "Quilibrium accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "QuilibriumAccountsView", title: "Quilibrium accounts", },
 				},
 			}),
 
@@ -50863,7 +50598,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "QuilibriumFramesView", title: "Quilibrium frames", entityRow: _ListEntityRow.Summary },
+					plural: { component: "QuilibriumFramesView", title: "Quilibrium frames", },
 				},
 			}),
 
@@ -50902,7 +50637,7 @@ export const schema = {
 							{ field: "$$frames", component: "QuilibriumFramesView", emptyText: "No Quilibrium frames." },
 						],
 					},
-					plural: { component: "QuilibriumProversView", title: "Quilibrium provers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "QuilibriumProversView", title: "Quilibrium provers", },
 				},
 			}),
 
@@ -50936,7 +50671,7 @@ export const schema = {
 							{ field: "$$frames", component: "QuilibriumFramesView", emptyText: "No Quilibrium frames." },
 						],
 					},
-					plural: { component: "QuilibriumShardsView", title: "Quilibrium shards", entityRow: _ListEntityRow.Summary },
+					plural: { component: "QuilibriumShardsView", title: "Quilibrium shards", },
 				},
 			}),
 
@@ -51735,7 +51470,7 @@ export const schema = {
 					label: "Fullname",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"body": {
 					label: "Body",
@@ -51798,8 +51533,11 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
-							openFields: ["$$replies", "$link", "$parentComment"],
+							sources: [
+								Source.Constants_Internal,
+								Source.Reddit_PublicJson,
+							],
+							openFields: ["$$replies", "$$timestamps", "$link", "$parentComment"],
 						},
 						summary: {
 							title: [
@@ -51851,12 +51589,13 @@ export const schema = {
 								],
 							],
 						},
-						lists: [{ field: "$$replies", component: "RedditCommentsView" }],
+						lists: [
+							{ field: "$$replies", component: "RedditCommentsView" },
+							{ field: "$$timestamps", component: "RedditComment_TimestampsView" },
+						],
 					},
 					plural: { component: "RedditCommentsView",
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "body",
@@ -51876,7 +51615,10 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Constants_Internal],
+								default: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
 							},
 						},
 					},
@@ -51945,7 +51687,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "RedditComment_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -51961,7 +51702,7 @@ export const schema = {
 					label: "Fullname",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"title": {
 					label: "Title",
@@ -52031,8 +51772,11 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
-							openFields: ["$$comments", "$subreddit"],
+							sources: [
+								Source.Constants_Internal,
+								Source.Reddit_PublicJson,
+							],
+							openFields: ["$$comments", "$$timestamps", "$subreddit"],
 						},
 						summary: {
 							title: [
@@ -52091,12 +51835,13 @@ export const schema = {
 								],
 							],
 						},
-						lists: [{ field: "$$comments", component: "RedditCommentsView" }],
+						lists: [
+							{ field: "$$comments", component: "RedditCommentsView" },
+							{ field: "$$timestamps", component: "RedditLink_TimestampsView" },
+						],
 					},
 					plural: { component: "RedditLinksView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{
 									field: "title",
@@ -52115,7 +51860,10 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Constants_Internal],
+								default: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
 							},
 						},
 					},
@@ -52194,7 +51942,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "RedditLink_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -52259,7 +52006,7 @@ export const schema = {
 					description: "The human-readable subreddit name.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"title": {
 					label: "Title",
@@ -52316,8 +52063,11 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
-							openFields: ["$$links"],
+							sources: [
+								Source.Constants_Internal,
+								Source.Reddit_PublicJson,
+							],
+							openFields: ["$$links", "$$timestamps"],
 						},
 						summary: {
 							icon: "$icon",
@@ -52362,12 +52112,13 @@ export const schema = {
 								],
 							],
 						},
-						lists: [{ field: "$$links", component: "RedditLinksView" }],
+						lists: [
+							{ field: "$$links", component: "RedditLinksView" },
+							{ field: "$$timestamps", component: "RedditSubreddit_TimestampsView" },
+						],
 					},
 					plural: { component: "RedditSubredditsView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{
 									field: "title",
@@ -52380,7 +52131,10 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Constants_Internal],
+								default: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
 							},
 						},
 					},
@@ -52459,7 +52213,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "RedditSubreddit_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -52518,7 +52271,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "RegulatedAssetProfilesView", title: "Regulated asset profiles", entityRow: _ListEntityRow.Summary },
+					plural: { component: "RegulatedAssetProfilesView", title: "Regulated asset profiles", },
 				},
 			}),
 
@@ -52549,7 +52302,7 @@ export const schema = {
 						closed: ["$profile", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["$profile", { field: "timestampMs", format: "timestamp" }, "source"], ["ledgerCoordinateKind", "ledgerCoordinateValue", "paused", "registryVersion"], ["$identityRegistry", "$compliance", "$trustedIssuersRegistry", "$claimTopicsRegistry"]] },
 					},
-					plural: { component: "RegulatedAssetProfile_TimestampsView", title: "Regulated asset profile observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "RegulatedAssetProfile_TimestampsView", title: "Regulated asset profile observations", },
 				},
 			}),
 
@@ -52584,7 +52337,7 @@ export const schema = {
 						closed: ["targetKey", "rightKey", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["targetKey", "rightKey", { field: "timestampMs", format: "timestamp" }, "source", "sourceKind"], ["$collection", "$token", "basisPoints", "calculationKind"], ["salePriceDenominationPolicy", "enforcementKind", "ledgerCoordinateKind", "ledgerCoordinateValue", "contractAddress"]] },
 					},
-					plural: { component: "RoyaltyRight_TimestampsView", title: "Royalty right observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "RoyaltyRight_TimestampsView", title: "Royalty right observations", },
 				},
 			}),
 
@@ -52858,14 +52611,17 @@ export const schema = {
 								[{ field: "registryName" }],
 								[{ field: "relationshipModel" }],
 							],
-							lists: [
-								{
-									field: "$$rssFeeds",
-									component: "RssFeedsView",
-									emptyText: "No RSS feeds in this hub yet.",
-								},
-							],
 						},
+						carousels: [
+							{
+								id: "rss-network-feeds",
+								label: "Feeds",
+								className: "network-view-collapsible-directory",
+								sections: [
+									{ id: "rss-network-feeds", field: "$$rssFeeds", List: "RssFeedsView", label: "Feeds", emptyText: "No RSS feeds in this hub yet." },
+								],
+							},
+						],
 					},
 					plural: { component: "RssNetworksView" },
 				},
@@ -52960,7 +52716,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "ScalingDeploymentClaimsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -53186,7 +52941,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "ScalingDeploymentClaim_TimestampsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -53201,7 +52955,6 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"pubkey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SolanaPubkey" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount_Timestamp, defaultSources: [Source.Solana_JsonRpc] },
-				"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount },
 			})({
 				selectors: {
 					"NetworkPubkey": ["$network", "pubkey"],
@@ -53211,19 +52964,10 @@ export const schema = {
 						query: {
 							sources: [Source.Solana_JsonRpc],
 							fields: ["$$timestamps"],
-							openFields: ["$$tokenAccounts"],
 						},
 						summary: { title: [{ field: "pubkey", format: "truncated" }], value: ["$network"] },
 						content: { dl: [[{ field: "pubkey", format: "truncated" }, "$network"]] },
 						carousels: [
-							{
-								id: "solana-account-assets",
-								label: "Assets",
-								className: "network-view-collapsible-assets",
-								sections: [
-									{ id: "solana-account-token-accounts", field: "$$tokenAccounts", List: "SolanaTokenAccountsView", label: "Token accounts", emptyText: "No token accounts." },
-								],
-							},
 							{
 								id: "solana-account-observations",
 								label: "Observations",
@@ -53234,7 +52978,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SolanaAccountsView", title: "Accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaAccountsView", title: "Accounts", },
 				},
 			}),
 
@@ -53264,7 +53008,7 @@ export const schema = {
 					singular: {
 						summary: { title: [{ field: "slot", format: "number" }], value: [{ field: "lamports", format: "numberValue" }], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 					},
-					plural: { component: "SolanaAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaAccount_TimestampsView", },
 				},
 			}),
 
@@ -53284,7 +53028,7 @@ export const schema = {
 				"parentSlot": { label: "Parent slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction },
+				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
 					"Slot": ["$network", "slot"],
@@ -53300,7 +53044,7 @@ export const schema = {
 						},
 						content: { dl: [["slot", "blockHeight", "blockHash", "previousBlockHash"], ["parentSlot", "timestampMs", "transactionCount", "$parent", "$network"]] },
 					},
-					plural: { component: "SolanaBlocksView", title: "Blocks", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaBlocksView", title: "Blocks", },
 				},
 			}),
 
@@ -53328,7 +53072,7 @@ export const schema = {
 				"parsedType": { label: "Parsed type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"data": { label: "Data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"stackHeight": { label: "Stack height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount },
+				"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
 					"SolanaTransactionIndexInTransaction": ["$transaction", "instructionKind", "indexInTransaction"],
@@ -53367,7 +53111,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SolanaInstructionsView", title: "Instructions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaInstructionsView", title: "Instructions", },
 				},
 			}),
 
@@ -53405,7 +53149,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "SolanaProgramsView", title: "Programs", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaProgramsView", title: "Programs", },
 				},
 			}),
 
@@ -53433,7 +53177,7 @@ export const schema = {
 						summary: { title: [{ field: "tokenAccountPubkey", format: "truncated" }], value: [{ field: "tokenAccountPubkey", format: "truncated" }], HeadingAfter: ["$mint"] },
 						content: { dl: [[{ field: "tokenAccountPubkey", format: "truncated" }, "$mint", "$account", "$owner"], ["$delegate", "$closeAuthority", "$network"]] },
 					},
-					plural: { component: "SolanaTokenAccountsView", title: "Token accounts", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTokenAccountsView", title: "Token accounts", },
 				},
 			}),
 
@@ -53465,9 +53209,13 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						summary: { title: [{ field: "slot", format: "number" }], value: [{ field: "amount", format: "numberValue" }], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
+						summary: {
+							title: [{ field: "slot", format: "number" }],
+							value: [{ field: "amount", format: "numberValue" }],
+							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
+						},
 					},
-					plural: { component: "SolanaTokenAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTokenAccount_TimestampsView", },
 				},
 			}),
 
@@ -53481,7 +53229,6 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"mintAddress": { label: "Mint address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenMint_Timestamp, defaultSources: [Source.Solana_JsonRpc] },
-				"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount },
 			})({
 				selectors: {
 					"NetworkMintAddress": ["$network", "mintAddress"],
@@ -53490,19 +53237,10 @@ export const schema = {
 					singular: {
 						query: {
 							fields: ["$network", "mintAddress", "$$timestamps"],
-							openFields: ["$$tokenAccounts"],
 						},
 						summary: { title: [{ field: "mintAddress", format: "truncated" }], value: [{ field: "mintAddress", format: "truncated" }], HeadingAfter: ["$network"] },
 						content: { dl: [[{ field: "mintAddress", format: "truncated" }, "$network"]] },
 						carousels: [
-							{
-								id: "solana-token-mint-accounts",
-								label: "Token accounts",
-								className: "network-view-collapsible-assets",
-								sections: [
-									{ id: "solana-token-mint-token-accounts", field: "$$tokenAccounts", List: "SolanaTokenAccountsView", label: "Token accounts", emptyText: "No token accounts." },
-								],
-							},
 							{
 								id: "solana-token-mint-observations",
 								label: "Observations",
@@ -53513,7 +53251,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SolanaTokenMintsView", title: "Token mints", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTokenMintsView", title: "Token mints", },
 				},
 			}),
 
@@ -53541,7 +53279,7 @@ export const schema = {
 					singular: {
 						summary: { title: [{ field: "slot", format: "number" }], value: [{ field: "supply", format: "numberValue" }], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 					},
-					plural: { component: "SolanaTokenMint_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTokenMint_TimestampsView", },
 				},
 			}),
 
@@ -53560,8 +53298,8 @@ export const schema = {
 				"feeLamports": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"computeUnitsConsumed": { label: "Compute units consumed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction_Timestamp },
-				"$$instructions": { label: "Instructions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaInstruction },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTransaction_Timestamp, defaultSources: [Source.Solana_JsonRpc] },
+				"$$instructions": { label: "Instructions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaInstruction, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkSignature": ["$network", "signature"],
@@ -53578,7 +53316,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SolanaTransactionsView", title: "Transactions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTransactionsView", title: "Transactions", },
 				},
 			}),
 
@@ -53606,7 +53344,7 @@ export const schema = {
 					singular: {
 						summary: { title: [{ field: "slot", format: "number" }], value: ["status"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 					},
-					plural: { component: "SolanaTransaction_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaTransaction_TimestampsView", },
 				},
 			}),
 
@@ -53642,7 +53380,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SolanaValidatorsView", title: "Validators", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaValidatorsView", title: "Validators", },
 				},
 			}),
 
@@ -53672,7 +53410,7 @@ export const schema = {
 					singular: {
 						summary: { title: [{ field: "slot", format: "number" }], value: ["delinquent"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 					},
-					plural: { component: "SolanaValidator_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SolanaValidator_TimestampsView", },
 				},
 			}),
 
@@ -53742,7 +53480,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SorobanContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanContractsView", },
 				},
 			}),
 
@@ -53823,7 +53561,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SorobanContract_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanContract_TimestampsView", },
 				},
 			}),
 
@@ -53866,7 +53604,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SorobanContractStorageEntriesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanContractStorageEntriesView", },
 				},
 			}),
 
@@ -53948,7 +53686,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SorobanContractStorageEntry_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanContractStorageEntry_TimestampsView", },
 				},
 			}),
 
@@ -53991,7 +53729,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SorobanWasmModulesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanWasmModulesView", },
 				},
 			}),
 
@@ -54072,7 +53810,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SorobanWasm_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SorobanWasm_TimestampsView", },
 				},
 			}),
 
@@ -54439,7 +54177,6 @@ export const schema = {
 								selectorPath: "category",
 							},
 						],
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -54557,138 +54294,9 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SpecificationProposalKindsView",
+					plural: {
+						component: "SpecificationProposalKindsView",
 						title: "Proposal kinds",
-						entityRow: _ListEntityRow.Summary,
-						imports: [
-							{
-								from: "$/sources/Source.ts",
-								names: ["Source"],
-							},
-							{
-								from: "$/components/CollapsibleTabs.svelte",
-								default: "CollapsibleTabs",
-							},
-							{
-								from: "$/components/Heading.svelte",
-								default: "Heading",
-							},
-							{
-								from: "$/components/Tooltip.svelte",
-								default: "Tooltip",
-							},
-							{
-								from: "$/views/SpecificationProposalsView.svelte",
-								default: "SpecificationProposalsView",
-							},
-							{
-								from: "$/views/SpecificationProposalKindView.svelte",
-								default: "SpecificationProposalKindView",
-							},
-						],
-						content: dedent `
-																								<ResourceBoundary
-																									resource={selection({
-																										limit: 512,
-																										fields: {
-																											label: true,
-																											labelPlural: true,
-																										},
-																									})}
-																									{placeholderText}
-																								>
-																									{#snippet children(kinds)}
-																										{#if kinds.values.length === 0}
-																											<p data-text="muted">{emptyText}</p>
-																										{:else}
-																											<CollapsibleTabs
-																												id={id}
-																												{open}
-																												sectionIdPrefix="proposal-kind"
-																												sections={[
-																													{ id: 'kinds', label: title },
-																												]}
-																												data-card
-																												scrollContainerProps={{
-																													'data-scroll-container': 'block',
-																												}}
-																											>
-																												{#snippet Summary()}
-																													<div data-column="gap-1">
-																														<header
-																															data-row-item="flexible"
-																															data-row="wrap gap-4"
-																														>
-																															<Heading>
-																																{title}
-																															</Heading>
-																														</header>
-
-																														<div data-row="wrap align-center gap-2">
-																															<Tooltip contentProps={{ side: 'top' }}>
-																																{#snippet Content()}
-																																	<p>
-																																		Specifications are grouped by steward realm and document family, then numbered drafts from public repositories.
-																																	</p>
-																																{/snippet}
-																																<abbr
-																																	class="entity-heading-tip"
-																																	aria-label="How proposals are grouped"
-																																>i</abbr>
-																															</Tooltip>
-																														</div>
-																													</div>
-																												{/snippet}
-
-																												{#snippet SectionKinds()}
-																													<div data-column="gap-4 layout-flex">
-																														{#each kinds.values.toSorted((first, second) => (
-																															String(first.entitySelector.category).localeCompare(String(second.entitySelector.category))
-																														)) as kind (String(kind.entitySelector.realm) + ':' + String(kind.entitySelector.category))}
-																															<section data-scroll-marker-label={String(kind.entitySelector.category)}>
-																																<SpecificationProposalKindView
-																																	selection={select(
-																																		EntityType.SpecificationProposalKind,
-																																		{
-																																			realm: kind.entitySelector.realm,
-																																			category: kind.entitySelector.category,
-																																		}
-																																	)}
-																																					href={resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-																																		specificationRealmSlug: String(specificationRealmById[String(kind.entitySelector.realm)].slug),
-																																		proposalKindSlug: String(proposalCategoryById[String(kind.entitySelector.category)].slug),
-																																	})}
-																																	layout={EntityLayout.Title}
-																																	open={false}
-																																	prefetched={kind}
-																																/>
-
-																																<SpecificationProposalsView
-																																	collapsible={false}
-																																	selection={select(
-																																		EntityType.SpecificationProposalKind,
-																																		{
-																																			realm: kind.entitySelector.realm,
-																																			category: kind.entitySelector.category,
-																																		}
-																																	).$$proposals({
-																																		sources: [Source.Constants_Internal],
-																																	})}
-																																	filterCategory={kind.entitySelector.category}
-																																	filterRealm={kind.entitySelector.realm}
-																																	id={\`proposal-kind:\${String(kind.entitySelector.realm)}:\${String(kind.entitySelector.category)}:proposals\`}
-																																	open
-																																	title={String(kind.entitySelector.category)}
-																																/>
-																															</section>
-																														{/each}
-																													</div>
-																												{/snippet}
-																											</CollapsibleTabs>
-																										{/if}
-																									{/snippet}
-																								</ResourceBoundary>
-																							`,
 					},
 				},
 			}),
@@ -54769,127 +54377,8 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SpecificationRealmsView",
-						entityRow: _ListEntityRow.Summary,
-						imports: [
-							{
-								from: "$/sources/Source.ts",
-								names: ["Source"],
-							},
-							{
-								from: "$/components/CollapsibleTabs.svelte",
-								default: "CollapsibleTabs",
-							},
-							{
-								from: "$/components/Heading.svelte",
-								default: "Heading",
-							},
-							{
-								from: "$/components/Tooltip.svelte",
-								default: "Tooltip",
-							},
-							{
-								from: "$/views/SpecificationProposalKindsView.svelte",
-								default: "SpecificationProposalKindsView",
-							},
-							{
-								from: "$/views/SpecificationRealmView.svelte",
-								default: "SpecificationRealmView",
-							},
-						],
-						content: dedent `
-																								<ResourceBoundary
-																									resource={selection({
-																										limit: 512,
-																										fields: {
-																											label: true,
-																										},
-																									})}
-																									{placeholderText}
-																								>
-																									{#snippet children(realms)}
-																										{#if realms.values.length === 0}
-																											<p data-text="muted">{emptyText}</p>
-																										{:else}
-																											<CollapsibleTabs
-																												id={id}
-																												{open}
-																												sectionIdPrefix="proposal-realm"
-																												sections={[
-																													{ id: 'realms', label: title },
-																												]}
-																												data-card
-																												scrollContainerProps={{
-																													'data-scroll-container': 'block',
-																												}}
-																											>
-																												{#snippet Summary()}
-																													<div data-column="gap-1">
-																														<header
-																															data-row-item="flexible"
-																															data-row="wrap gap-4"
-																														>
-																															<Heading>
-																																{title}
-																															</Heading>
-																														</header>
-
-																														<div data-row="wrap align-center gap-2">
-																															<Tooltip contentProps={{ side: 'top' }}>
-																																{#snippet Content()}
-																																	<p>
-																																		Realms are top-level stewards for specification catalogs. Open a realm for document families, then numbered drafts.
-																																	</p>
-																																{/snippet}
-																																<abbr
-																																	class="entity-heading-tip"
-																																	aria-label="How realms are grouped"
-																																>i</abbr>
-																															</Tooltip>
-																														</div>
-																													</div>
-																												{/snippet}
-
-																												{#snippet SectionRealms()}
-																													<div data-column="gap-4 layout-flex">
-																														{#each realms.values.toSorted((first, second) => (
-																															String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
-																														)) as realm (String(realm.entitySelector.realm))}
-																															<section data-scroll-marker-label={String(realm.entitySelector.realm)}>
-																																<SpecificationRealmView
-																																	selection={select(
-																																		EntityType.SpecificationRealm,
-																																		{ realm: realm.entitySelector.realm }
-																																	)}
-																																				href={resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-																																		specificationRealmSlug: String(specificationRealmById[String(realm.entitySelector.realm)].slug),
-																																	})}
-																																	layout={EntityLayout.Title}
-																																	open={false}
-																																	prefetched={realm}
-																																/>
-
-																																<SpecificationProposalKindsView
-																																	collapsible={false}
-																																	selection={select(
-																																		EntityType.SpecificationRealm,
-																																		{ realm: realm.entitySelector.realm }
-																																	).$$proposalKinds({
-																																		sources: [Source.Constants_Internal],
-																																	})}
-																																	id={\`proposal-realm:\${String(realm.entitySelector.realm)}:proposal-kinds\`}
-																																	open
-																																	title={String(realm.entitySelector.realm)}
-																																/>
-																															</section>
-																														{/each}
-																													</div>
-																												{/snippet}
-																											</CollapsibleTabs>
-																										{/if}
-																									{/snippet}
-																								</ResourceBoundary>
-																							`,
+					plural: {
+						component: "SpecificationRealmsView",
 					},
 				},
 			}),
@@ -54922,7 +54411,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "StarknetAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetAccount_TimestampsView", },
 				},
 			}),
 
@@ -54964,7 +54453,7 @@ export const schema = {
 							{ field: "$$transactions", component: "StarknetTransactionsView", emptyText: "No Starknet transactions." },
 						],
 					},
-					plural: { component: "StarknetBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetBlocksView", },
 				},
 			}),
 
@@ -55003,7 +54492,7 @@ export const schema = {
 							{ field: "$$contracts", component: "StarknetContractsView", emptyText: "No Starknet contracts." },
 						],
 					},
-					plural: { component: "StarknetClassesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetClassesView", },
 				},
 			}),
 
@@ -55055,7 +54544,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "StarknetContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetContractsView", },
 				},
 			}),
 
@@ -55086,7 +54575,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "StarknetEventsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetEventsView", },
 				},
 			}),
 
@@ -55144,7 +54633,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "StarknetNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetNetworksView", },
 				},
 			}),
 
@@ -55179,7 +54668,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "StarknetNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetNetwork_TimestampsView", },
 				},
 			}),
 
@@ -55211,7 +54700,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "StarknetStorageEntry_TimestampsView", emptyText: "No Starknet storage observations." },
 						],
 					},
-					plural: { component: "StarknetStorageEntriesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetStorageEntriesView", },
 				},
 			}),
 
@@ -55242,7 +54731,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "StarknetStorageEntry_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetStorageEntry_TimestampsView", },
 				},
 			}),
 
@@ -55287,7 +54776,7 @@ export const schema = {
 							{ field: "$$timestamps", component: "StarknetTransaction_TimestampsView", emptyText: "No Starknet transaction observations." },
 						],
 					},
-					plural: { component: "StarknetTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetTransactionsView", },
 				},
 			}),
 
@@ -55324,7 +54813,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "StarknetTransaction_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StarknetTransaction_TimestampsView", },
 				},
 			}),
 
@@ -55422,7 +54911,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "StellarAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarAccountsView", },
 				},
 			}),
 
@@ -55498,7 +54987,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarAccount_TimestampsView", },
 				},
 			}),
 
@@ -55542,7 +55031,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarAccountSignersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarAccountSignersView", },
 				},
 			}),
 
@@ -55606,7 +55095,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarAccountSigner_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarAccountSigner_TimestampsView", },
 				},
 			}),
 
@@ -55714,7 +55203,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "StellarAssetsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarAssetsView", },
 				},
 			}),
 
@@ -55751,7 +55240,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarClaimableBalancesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarClaimableBalancesView", },
 				},
 			}),
 
@@ -55833,7 +55322,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarClaimableBalance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarClaimableBalance_TimestampsView", },
 				},
 			}),
 
@@ -55919,7 +55408,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarLedgersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarLedgersView", },
 				},
 			}),
 
@@ -55980,7 +55469,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarLiquidityPoolsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarLiquidityPoolsView", },
 				},
 			}),
 
@@ -56050,7 +55539,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarLiquidityPool_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarLiquidityPool_TimestampsView", },
 				},
 			}),
 
@@ -56198,7 +55687,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "StellarNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarNetworksView", },
 				},
 			}),
 
@@ -56262,7 +55751,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarNetwork_TimestampsView", },
 				},
 			}),
 
@@ -56323,7 +55812,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarOffersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarOffersView", },
 				},
 			}),
 
@@ -56411,7 +55900,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarOffer_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarOffer_TimestampsView", },
 				},
 			}),
 
@@ -56466,7 +55955,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarOperationsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarOperationsView", },
 				},
 			}),
 
@@ -56595,7 +56084,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarTradesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarTradesView", },
 				},
 			}),
 
@@ -56645,7 +56134,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarTransactionsView", },
 				},
 			}),
 
@@ -56751,7 +56240,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarTransaction_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarTransaction_TimestampsView", },
 				},
 			}),
 
@@ -56788,7 +56277,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarTrustlinesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarTrustlinesView", },
 				},
 			}),
 
@@ -56876,7 +56365,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "StellarTrustline_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "StellarTrustline_TimestampsView", },
 				},
 			}),
 
@@ -56947,7 +56436,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SuiAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiAccountsView", },
 				},
 			}),
 
@@ -57002,7 +56491,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiBalanceChangesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiBalanceChangesView", },
 				},
 			}),
 
@@ -57068,7 +56557,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiCheckpointsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiCheckpointsView", },
 				},
 			}),
 
@@ -57133,7 +56622,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiCoinBalance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiCoinBalance_TimestampsView", },
 				},
 			}),
 
@@ -57255,7 +56744,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SuiCoinTypesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiCoinTypesView", },
 				},
 			}),
 
@@ -57305,7 +56794,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiDynamicFieldEdgesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiDynamicFieldEdgesView", },
 				},
 			}),
 
@@ -57369,7 +56858,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiDynamicFieldEdge_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiDynamicFieldEdge_TimestampsView", },
 				},
 			}),
 
@@ -57438,7 +56927,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiEventsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiEventsView", },
 				},
 			}),
 
@@ -57552,7 +57041,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SuiNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiNetworksView", },
 				},
 			}),
 
@@ -57622,7 +57111,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiNetwork_TimestampsView", },
 				},
 			}),
 
@@ -57665,7 +57154,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiObjectsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiObjectsView", },
 				},
 			}),
 
@@ -57732,7 +57221,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiObjectChangesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiObjectChangesView", },
 				},
 			}),
 
@@ -57807,7 +57296,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiObjectVersionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiObjectVersionsView", },
 				},
 			}),
 
@@ -57850,7 +57339,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiPackagesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiPackagesView", },
 				},
 			}),
 
@@ -57930,7 +57419,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiPackageUpgradesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiPackageUpgradesView", },
 				},
 			}),
 
@@ -58005,7 +57494,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiPackageVersionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiPackageVersionsView", },
 				},
 			}),
 
@@ -58072,7 +57561,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiProgrammableTransactionCommandsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiProgrammableTransactionCommandsView", },
 				},
 			}),
 
@@ -58148,7 +57637,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiRegulatedCoinState_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiRegulatedCoinState_TimestampsView", },
 				},
 			}),
 
@@ -58251,7 +57740,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "SuiTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiTransactionsView", },
 				},
 			}),
 
@@ -58333,7 +57822,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiTransaction_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "SuiTransaction_TimestampsView", },
 				},
 			}),
 
@@ -58669,7 +58158,7 @@ export const schema = {
 				},
 			})({
 				"reference": { label: "Reference", description: "The namespace-specific reference value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "routeContentPath" },
 				"canonicalUri": { label: "Canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayOrigin": { label: "Gateway origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayUrl": { label: "Gateway URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
@@ -58724,7 +58213,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "SwarmResourcesView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -58809,7 +58297,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TezosAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosAccountsView", },
 				},
 			}),
 
@@ -58885,7 +58373,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosAccount_TimestampsView", },
 				},
 			}),
 
@@ -58935,7 +58423,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBakersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBakersView", },
 				},
 			}),
 
@@ -59034,7 +58522,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBaker_Cycle_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBaker_Cycle_TimestampsView", },
 				},
 			}),
 
@@ -59116,7 +58604,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBaker_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBaker_TimestampsView", },
 				},
 			}),
 
@@ -59206,7 +58694,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBakingRightsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBakingRightsView", },
 				},
 			}),
 
@@ -59264,7 +58752,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBakingRight_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBakingRight_TimestampsView", },
 				},
 			}),
 
@@ -59352,7 +58840,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TezosBigMapsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBigMapsView", },
 				},
 			}),
 
@@ -59416,7 +58904,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBigMap_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBigMap_TimestampsView", },
 				},
 			}),
 
@@ -59479,7 +58967,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBigMapDiffsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBigMapDiffsView", },
 				},
 			}),
 
@@ -59522,7 +59010,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBigMapKeysView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBigMapKeysView", },
 				},
 			}),
 
@@ -59605,7 +59093,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBigMapKey_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBigMapKey_TimestampsView", },
 				},
 			}),
 
@@ -59714,7 +59202,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosBlocksView", },
 				},
 			}),
 
@@ -59828,7 +59316,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TezosContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosContractsView", },
 				},
 			}),
 
@@ -59898,7 +59386,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosContract_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosContract_TimestampsView", },
 				},
 			}),
 
@@ -59959,7 +59447,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosCyclesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosCyclesView", },
 				},
 			}),
 
@@ -60002,7 +59490,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosEntrypointsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosEntrypointsView", },
 				},
 			}),
 
@@ -60081,7 +59569,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosInternalOperationsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosInternalOperationsView", },
 				},
 			}),
 
@@ -60166,7 +59654,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosMichelsonScriptsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosMichelsonScriptsView", },
 				},
 			}),
 
@@ -60343,7 +59831,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TezosNetworksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosNetworksView", },
 				},
 			}),
 
@@ -60419,7 +59907,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosNetwork_TimestampsView", },
 				},
 			}),
 
@@ -60565,7 +60053,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosOperationsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosOperationsView", },
 				},
 			}),
 
@@ -60632,7 +60120,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosOperationGroupsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosOperationGroupsView", },
 				},
 			}),
 
@@ -60723,7 +60211,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TezosTokensView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosTokensView", },
 				},
 			}),
 
@@ -60832,7 +60320,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosToken_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosToken_TimestampsView", },
 				},
 			}),
 
@@ -60923,7 +60411,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosTokenBalance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosTokenBalance_TimestampsView", },
 				},
 			}),
 
@@ -61031,7 +60519,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TezosTokenTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TezosTokenTransfersView", },
 				},
 			}),
 
@@ -61075,7 +60563,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "TokenMetadataDocumentsView", title: "Token metadata", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TokenMetadataDocumentsView", title: "Token metadata", },
 				},
 			}),
 
@@ -61110,7 +60598,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "TokenProgramExtension_TimestampsView", title: "Token program extensions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TokenProgramExtension_TimestampsView", title: "Token program extensions", },
 				},
 			}),
 
@@ -61146,35 +60634,12 @@ export const schema = {
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
-				"$$transactions": {
-					label: 'transactions',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.TonTransaction,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$messages": {
-					label: 'messages',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.TonMessage,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$jettonBalanceTimestamps": {
-					label: 'jetton balance timestamps',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.TonJettonBalance_Timestamp,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$nftItems": {
-					label: 'NFT items',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.TonNftItem,
-					cardinality: EntityFieldCardinality.Many,
-				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TonAccount_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.TonApi_Rest],
 				},
 			})({
 				selectors: {
@@ -61187,27 +60652,16 @@ export const schema = {
 					singular: {
 						carousels: [
 							{
-								id: "ton-account-activity",
-								label: "Activity",
-								className: "network-view-collapsible-activity",
-								sections: [
-									{ id: "ton-account-transactions", field: "$$transactions", List: "TonTransactionsView", label: "Transactions", emptyText: "No transactions." },
-									{ id: "ton-account-messages", field: "$$messages", List: "TonMessagesView", label: "Messages", emptyText: "No messages." },
-									{ id: "ton-account-nft-items", field: "$$nftItems", List: "TonNftItemsView", label: "Nft Items", emptyText: "No nft items." },
-								],
-							},
-							{
 								id: "ton-account-observations",
 								label: "Observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "ton-account-jetton-balance-timestamps", field: "$$jettonBalanceTimestamps", List: "TonJettonBalance_TimestampsView", label: "Jetton Balance Timestamps", emptyText: "No jetton balance timestamps." },
-									{ id: "ton-account-timestamps", field: "$$timestamps", List: "TonAccount_TimestampsView", label: "Timestamps", emptyText: "No timestamps." },
+									{ id: "ton-account-timestamps", field: "$$timestamps", List: "TonAccount_TimestampsView", label: "Observations", selection: { sources: [Source.TonApi_Rest], limit: 16 }, emptyText: "No observations." },
 								],
 							},
 						],
 					},
-					plural: { component: "TonAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonAccountsView", },
 				},
 			}),
 
@@ -61248,6 +60702,12 @@ export const schema = {
 					label: 'status',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				"lastActivityTimestampMs": {
+					label: 'last activity',
+					type: EntityFieldType.Primitive,
+					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 				"codeHash": {
@@ -61295,7 +60755,31 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						summary: {
+							title: [{ field: "balanceNano", format: "number" }],
+							HeadingAfter: ["status"],
+						},
+						closed: [
+							{ field: "timestampMs", format: "timestamp" },
+							"source",
+						],
+						content: {
+							dl: [
+								[
+									{ field: "balanceNano", format: "number" },
+									"status",
+									{ field: "lastActivityTimestampMs", format: "timestamp" },
+								],
+								[
+									{ field: "timestampMs", format: "timestamp" },
+									"source",
+									"$account",
+								],
+							],
+						},
+					},
+					plural: { component: "TonAccount_TimestampsView", },
 				},
 			}),
 
@@ -61393,7 +60877,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonBlocksView", },
 				},
 			}),
 
@@ -61429,7 +60913,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonContractsView", },
 				},
 			}),
 
@@ -61505,7 +60989,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonContract_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonContract_TimestampsView", },
 				},
 			}),
 
@@ -61542,7 +61026,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonContractGetMethodsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonContractGetMethodsView", },
 				},
 			}),
 
@@ -61636,7 +61120,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonContractGetMethod_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonContractGetMethod_TimestampsView", },
 				},
 			}),
 
@@ -61712,7 +61196,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TonJettonsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonJettonsView", },
 				},
 			}),
 
@@ -61846,7 +61330,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonJetton_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonJetton_TimestampsView", },
 				},
 			}),
 
@@ -61929,7 +61413,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonJettonBalance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonJettonBalance_TimestampsView", },
 				},
 			}),
 
@@ -62047,7 +61531,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonJettonTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonJettonTransfersView", },
 				},
 			}),
 
@@ -62178,7 +61662,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonMessagesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonMessagesView", },
 				},
 			}),
 
@@ -62254,7 +61738,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNetwork_TimestampsView", },
 				},
 			}),
 
@@ -62330,7 +61814,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TonNftCollectionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNftCollectionsView", },
 				},
 			}),
 
@@ -62444,7 +61928,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonNftCollection_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNftCollection_TimestampsView", },
 				},
 			}),
 
@@ -62509,7 +61993,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonNftItemsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNftItemsView", },
 				},
 			}),
 
@@ -62629,7 +62113,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonNftItem_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNftItem_TimestampsView", },
 				},
 			}),
 
@@ -62747,7 +62231,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonNftTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonNftTransfersView", },
 				},
 			}),
 
@@ -62830,7 +62314,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonShard_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonShard_TimestampsView", },
 				},
 			}),
 
@@ -62930,7 +62414,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TonTracesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonTracesView", },
 				},
 			}),
 
@@ -62994,7 +62478,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonTrace_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonTrace_TimestampsView", },
 				},
 			}),
 
@@ -63115,7 +62599,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonTransactionsView", },
 				},
 			}),
 
@@ -63194,7 +62678,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonTransactionPhasesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonTransactionPhasesView", },
 				},
 			}),
 
@@ -63262,7 +62746,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "TonWorkchainsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TonWorkchainsView", },
 				},
 			}),
 
@@ -63291,7 +62775,7 @@ export const schema = {
 						content: { dl: [["$assetInstance", "restrictionKey", "source", "restrictionKind"], ["$profile", "message", "$$checks"]] },
 						lists: [{ field: "$$checks", component: "TransferRestrictionCheck_TimestampsView", emptyText: "No transfer restriction checks." }],
 					},
-					plural: { component: "TransferRestrictionsView", title: "Transfer restrictions", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TransferRestrictionsView", title: "Transfer restrictions", },
 				},
 			}),
 
@@ -63323,7 +62807,7 @@ export const schema = {
 						closed: ["$restriction", { field: "timestampMs", format: "timestamp" }, "source", "subjectKey"],
 						content: { dl: [["$restriction", { field: "timestampMs", format: "timestamp" }, "source", "subjectKey"], ["$account", "amount", "canTransfer", "reason"], ["ledgerCoordinateKind", "ledgerCoordinateValue", { field: "validFromMs", format: "timestamp" }, { field: "validToMs", format: "timestamp" }]] },
 					},
-					plural: { component: "TransferRestrictionCheck_TimestampsView", title: "Transfer restriction check observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TransferRestrictionCheck_TimestampsView", title: "Transfer restriction check observations", },
 				},
 			}),
 
@@ -63367,7 +62851,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "TronAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronAccountsView", },
 				},
 			}),
 
@@ -63400,7 +62884,7 @@ export const schema = {
 					"AccountTimestampMsSource": ["$account", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronAccount_TimestampsView", },
 				},
 			}),
 
@@ -63429,7 +62913,7 @@ export const schema = {
 					"AccountTokenTimestampMsSource": ["$account", "$token", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronAccountTokenBalance_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronAccountTokenBalance_TimestampsView", },
 				},
 			}),
 
@@ -63457,7 +62941,7 @@ export const schema = {
 					"NetworkHeightHash": ["$network", "height", "hash"],
 				},
 				views: {
-					plural: { component: "TronBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronBlocksView", },
 				},
 			}),
 
@@ -63481,7 +62965,7 @@ export const schema = {
 					"NetworkAddress": ["$network", "address"],
 				},
 				views: {
-					plural: { component: "TronContractsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronContractsView", },
 				},
 			}),
 
@@ -63504,7 +62988,7 @@ export const schema = {
 					"ContractTimestampMsSource": ["$contract", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronContract_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronContract_TimestampsView", },
 				},
 			}),
 
@@ -63535,7 +63019,7 @@ export const schema = {
 					"NetworkTimestampMsSource": ["$network", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronNetwork_TimestampsView", },
 				},
 			}),
 
@@ -63559,7 +63043,7 @@ export const schema = {
 					"NetworkTokenId": ["$network", "tokenId"],
 				},
 				views: {
-					plural: { component: "TronTokensView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronTokensView", },
 				},
 			}),
 
@@ -63586,7 +63070,24 @@ export const schema = {
 					"TokenTimestampMsSource": ["$token", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronToken_TimestampsView", entityRow: _ListEntityRow.Summary },
+					singular: {
+						content: {
+							dl: [[
+								"$token",
+								{ field: "timestampMs", format: "timestamp" },
+								"source",
+								"blockHeight",
+								"name",
+								"symbol",
+								"decimals",
+								{ field: "totalSupply", format: "numberValue", decimalPlaces: routeField("decimals"), suffix: routeField("symbol") },
+								"holderCount",
+								"transferCount",
+								"contractVerified",
+							]],
+						},
+					},
+					plural: { component: "TronToken_TimestampsView", },
 				},
 			}),
 
@@ -63612,7 +63113,7 @@ export const schema = {
 					"NetworkTransactionIdTransferIndex": ["$network", "transactionId", "transferIndex"],
 				},
 				views: {
-					plural: { component: "TronTokenTransfersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronTokenTransfersView", },
 				},
 			}),
 
@@ -63646,7 +63147,7 @@ export const schema = {
 					"NetworkTransactionId": ["$network", "transactionId"],
 				},
 				views: {
-					plural: { component: "TronTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronTransactionsView", },
 				},
 			}),
 
@@ -63677,7 +63178,7 @@ export const schema = {
 					"Transaction": ["$transaction"],
 				},
 				views: {
-					plural: { component: "TronTransactionReceiptsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronTransactionReceiptsView", },
 				},
 			}),
 
@@ -63696,7 +63197,7 @@ export const schema = {
 					"NetworkAddress": ["$network", "address"],
 				},
 				views: {
-					plural: { component: "TronWitnessesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronWitnessesView", },
 				},
 			}),
 
@@ -63722,7 +63223,7 @@ export const schema = {
 					"WitnessTimestampMsSource": ["$witness", "timestampMs", "source"],
 				},
 				views: {
-					plural: { component: "TronWitness_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TronWitness_TimestampsView", },
 				},
 			}),
 
@@ -63746,7 +63247,7 @@ export const schema = {
 						closed: ["$profile", "issuerKey"],
 						content: { dl: [["$profile", "issuerKey", "claimTopics"]] },
 					},
-					plural: { component: "TrustedIssuersView", title: "Trusted issuers", entityRow: _ListEntityRow.Summary },
+					plural: { component: "TrustedIssuersView", title: "Trusted issuers", },
 				},
 			}),
 
@@ -63791,7 +63292,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "UrlsView",
-						entityRow: _ListEntityRow.Title,
 					},
 				},
 			}),
@@ -63893,7 +63393,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "UrlPreview_TimestampsView",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -63928,7 +63427,7 @@ export const schema = {
 						closed: ["subjectKey", "rightKey", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: { dl: [["subjectKey", "rightKey", { field: "timestampMs", format: "timestamp" }, "source", "sourceKind", "rightKind"], ["$object", "$token", "$user", { field: "expiresAt", format: "timestamp" }], ["ledgerCoordinateKind", "ledgerCoordinateValue", "contractAddress"]] },
 					},
-					plural: { component: "UsageRight_TimestampsView", title: "Usage right observations", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UsageRight_TimestampsView", title: "Usage right observations", },
 				},
 			}),
 
@@ -63980,7 +63479,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "UtxoAddressesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoAddressesView", },
 				},
 			}),
 
@@ -64018,7 +63517,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "UtxoAddress_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoAddress_TimestampsView", },
 				},
 			}),
 
@@ -64041,6 +63540,7 @@ export const schema = {
 				"weightUnits": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction },
+				"$$zcashShieldedPoolStates": { label: "Zcash shielded pool states", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedPoolBlockState, defaultSources: [Source.Zcashd_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkHeight": ["$network", "height"],
@@ -64066,7 +63566,7 @@ export const schema = {
 							{ field: "$$transactions", component: "UtxoTransactionsView", label: "Transactions" },
 						],
 					},
-					plural: { component: "UtxoBlocksView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoBlocksView", },
 				},
 			}),
 
@@ -64104,7 +63604,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "UtxoInputsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoInputsView", },
 				},
 			}),
 
@@ -64152,7 +63652,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "UtxoOutputsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoOutputsView", },
 				},
 			}),
 
@@ -64199,17 +63699,9 @@ export const schema = {
 									{ id: "utxo-transaction-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs." },
 								],
 							},
-							{
-								id: "utxo-transaction-activity-b",
-								label: "Activity continued",
-								className: "network-view-collapsible-activity-b",
-								sections: [
-									{ id: "utxo-transaction-zcash-shielded-actions", field: "$$zcashShieldedActions", List: "ZcashShieldedActionsView", label: "Zcash Shielded Actions", emptyText: "No zcash shielded actions." },
-								],
-							},
 						],
 					},
-					plural: { component: "UtxoTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "UtxoTransactionsView", },
 				},
 			}),
 
@@ -64264,7 +63756,6 @@ export const schema = {
 					},
 					plural: { component: "WalletConnectionMethodsView",
 						title: "Wallet connection methods",
-						entityRow: _ListEntityRow.Summary,
 					},
 				},
 			}),
@@ -64446,19 +63937,18 @@ export const schema = {
 								[{ field: "homeUrl", format: "url" }],
 								[{ field: "docsUrl", format: "url" }],
 							],
-							lists: [
-								{
-									field: "$$xUsers",
-									component: "XUsersView",
-									emptyText: "No X users here yet.",
-								},
-								{
-									field: "$$xPosts",
-									component: "XPostsView",
-									emptyText: "No X posts here yet.",
-								},
-							],
 						},
+						carousels: [
+							{
+								id: "x-network-directory",
+								label: "Directory",
+								className: "network-view-collapsible-directory",
+								sections: [
+									{ id: "x-network-users", field: "$$xUsers", List: "XUsersView", label: "Users", emptyText: "No X users here yet." },
+									{ id: "x-network-posts", field: "$$xPosts", List: "XPostsView", label: "Posts", emptyText: "No X posts here yet." },
+								],
+							},
+						],
 					},
 					plural: { component: "XNetworksView" },
 				},
@@ -64583,7 +64073,7 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"account": {
@@ -64646,7 +64136,7 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "XrplAccountsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAccountsView", },
 				},
 			}),
 
@@ -64666,7 +64156,7 @@ export const schema = {
 				"ledgerIndex": {
 					label: 'ledger index',
 					type: EntityFieldType.Primitive,
-					valueType: "bigint",
+					valueType: "NonNegativeBigInt",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"source": {
@@ -64716,7 +64206,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplAccount_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAccount_TimestampsView", },
 				},
 			}),
 
@@ -64730,7 +64220,7 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"amendmentId": {
@@ -64760,7 +64250,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplAmendmentsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAmendmentsView", },
 				},
 			}),
 
@@ -64830,7 +64320,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplAmendment_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAmendment_TimestampsView", },
 				},
 			}),
 
@@ -64844,7 +64334,7 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"ammAccount": {
@@ -64897,7 +64387,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplAmmsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAmmsView", },
 				},
 			}),
 
@@ -64985,7 +64475,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplAmm_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplAmm_TimestampsView", },
 				},
 			}),
 
@@ -64999,13 +64489,13 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"ledgerIndex": {
 					label: 'ledger index',
 					type: EntityFieldType.Primitive,
-					valueType: "bigint",
+					valueType: "NonNegativeBigInt",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"ledgerHash": {
@@ -65074,7 +64564,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplLedgersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplLedgersView", },
 				},
 			}),
 
@@ -65135,178 +64625,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplLedgerEntriesView", entityRow: _ListEntityRow.Summary },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.XrplNetwork,
-				labels: {
-					singular: 'xrpl network',
-					plural: 'xrpl networks',
-				},
-			})({
-				"$network": {
-					label: 'network',
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.Network,
-					cardinality: EntityFieldCardinality.One,
-				},
-				"$$ledgers": {
-					label: 'ledgers',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplLedger,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$transactions": {
-					label: 'transactions',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplTransaction,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$accounts": {
-					label: 'accounts',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplAccount,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$ledgerEntries": {
-					label: 'ledger entries',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplLedgerEntry,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$amendments": {
-					label: 'amendments',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplAmendment,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$amms": {
-					label: 'amms',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplAmm,
-					cardinality: EntityFieldCardinality.Many,
-				},
-				"$$timestamps": {
-					label: 'timestamps',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.XrplNetwork_Timestamp,
-					cardinality: EntityFieldCardinality.Many,
-				},
-			})({
-				selectors: {
-					"Network": [
-						'$network',
-					],
-				},
-				views: {
-					singular: {
-						summary: {
-							title: ["$network"],
-							value: ["$$timestamps"],
-						},
-						content: {
-							dl: [
-								["$network"],
-							],
-						},
-						carousels: [
-							{
-								id: "xrpl-chain-activity",
-								label: "Chain activity",
-								className: "network-view-collapsible-chain-activity",
-								sections: [
-									{ id: "xrpl-chain-observations", field: "$$timestamps", List: "XrplNetwork_TimestampsView", label: "Observations", emptyText: "No XRPL network observations." },
-									{ id: "xrpl-chain-ledgers", field: "$$ledgers", List: "XrplLedgersView", label: "Ledgers", emptyText: "No XRPL ledgers." },
-									{ id: "xrpl-chain-transactions", field: "$$transactions", List: "XrplTransactionsView", label: "Transactions", emptyText: "No XRPL transactions." },
-								],
-							},
-							{
-								id: "xrpl-accounts",
-								label: "Accounts and ledger entries",
-								className: "network-view-collapsible-accounts",
-								sections: [
-									{ id: "xrpl-account-list", field: "$$accounts", List: "XrplAccountsView", label: "Accounts", emptyText: "No XRPL accounts." },
-									{ id: "xrpl-ledger-entries", field: "$$ledgerEntries", List: "XrplLedgerEntriesView", label: "Ledger entries", emptyText: "No XRPL ledger entries." },
-								],
-							},
-							{
-								id: "xrpl-amm-amendments",
-								label: "AMMs and amendments",
-								className: "network-view-collapsible-amm-amendments",
-								sections: [
-									{ id: "xrpl-amms", field: "$$amms", List: "XrplAmmsView", label: "AMMs", emptyText: "No XRPL AMMs." },
-									{ id: "xrpl-amendments", field: "$$amendments", List: "XrplAmendmentsView", label: "Amendments", emptyText: "No XRPL amendments." },
-								],
-							},
-						],
-					},
-					plural: { component: "XrplNetworksView", entityRow: _ListEntityRow.Summary },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.XrplNetwork_Timestamp,
-				labels: {
-					singular: 'xrpl network timestamp',
-					plural: 'xrpl network observations',
-				},
-			})({
-				"$network": {
-					label: 'network',
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
-					cardinality: EntityFieldCardinality.One,
-				},
-				"timestampMs": {
-					label: 'Timestamp',
-					description: 'The observation time in Unix milliseconds.',
-					type: EntityFieldType.Primitive,
-					valueType: "number",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"source": {
-					label: 'Source',
-					description: 'The source that produced this observation.',
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"validatedLedgerIndex": {
-					label: 'validated ledger index',
-					type: EntityFieldType.Primitive,
-					valueType: "bigint",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"completeLedgers": {
-					label: 'complete ledgers',
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"loadFactor": {
-					label: 'load factor',
-					type: EntityFieldType.Primitive,
-					valueType: "number",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"peerCount": {
-					label: 'peer count',
-					type: EntityFieldType.Primitive,
-					valueType: "number",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-			})({
-				selectors: {
-					"NetworkTimestampMsSource": [
-						'$network',
-						'timestampMs',
-						'source',
-					],
-				},
-				views: {
-					plural: { component: "XrplNetwork_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplLedgerEntriesView", },
 				},
 			}),
 
@@ -65320,7 +64639,7 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"hash": {
@@ -65368,7 +64687,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplTransactionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplTransactionsView", },
 				},
 			}),
 
@@ -65444,7 +64763,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplTransaction_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplTransaction_TimestampsView", },
 				},
 			}),
 
@@ -65458,7 +64777,7 @@ export const schema = {
 				"$network": {
 					label: 'network',
 					type: EntityFieldType.EntityReference,
-					entityType: EntityType.XrplNetwork,
+					entityType: EntityType.Network,
 					cardinality: EntityFieldCardinality.One,
 				},
 				"account": {
@@ -65507,7 +64826,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplTrustlinesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplTrustlinesView", },
 				},
 			}),
 
@@ -65595,7 +64914,7 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "XrplTrustline_TimestampsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "XrplTrustline_TimestampsView", },
 				},
 			}),
 
@@ -65634,7 +64953,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.XPost,
-					defaultSources: [Source.X_Rest],
+					defaultSources: [Source.X_Rest, Source.X_FxEmbed_Rest],
 				},
 			})({
 				selectors: {
@@ -65735,7 +65054,7 @@ export const schema = {
 					label: "Channel ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"title": {
 					label: "Title",
@@ -65801,7 +65120,11 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+								Source.Constants_Internal,
+							],
 						},
 						summary: {
 							icon: "$icon",
@@ -65862,9 +65185,7 @@ export const schema = {
 						],
 					},
 					plural: { component: "YoutubeChannelsView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{
 									field: "title",
@@ -65874,11 +65195,6 @@ export const schema = {
 									format: "truncated",
 								},
 							],
-						},
-						query: {
-							sources: {
-								default: [Source.Constants_Internal],
-							},
 						},
 					},
 				},
@@ -65903,6 +65219,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
+				"source": {
+					label: "Source",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
 				"subscriberCount": {
 					label: "Subscribers",
 					type: EntityFieldType.Primitive,
@@ -65923,7 +65245,7 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"YoutubeChannelTimestampMs": ["$channel", "timestampMs"],
+					"YoutubeChannelTimestampMsSource": ["$channel", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -65931,13 +65253,15 @@ export const schema = {
 							title: [
 								"$channel",
 								{ field: "timestampMs", format: "timestamp" },
+								"source",
 							],
 						},
-						closed: ["timestampMs"],
+						closed: ["timestampMs", "source"],
 						content: {
 							dl: [
 								[
 									{ field: "timestampMs", format: "timestamp" },
+									"source",
 								],
 							],
 						},
@@ -65958,13 +65282,13 @@ export const schema = {
 					label: "Video ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"commentId": {
 					label: "Comment ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"text": {
 					label: "Text",
@@ -66020,7 +65344,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubeComment,
-					defaultSources: [Source.Youtube_Rest, Source.Piped_Rest],
+					defaultSources: [Source.Youtube_Rest],
 				},
 			})({
 				selectors: {
@@ -66133,10 +65457,7 @@ export const schema = {
 								field: "$$replies",
 								component: "YoutubeCommentsView",
 								query: {
-									sources: [
-										Source.Youtube_Rest,
-										Source.Piped_Rest,
-									],
+									sources: [Source.Youtube_Rest],
 									limit: 50,
 								},
 								emptyText: "No replies yet.",
@@ -66157,9 +65478,7 @@ export const schema = {
 						],
 					},
 					plural: { component: "YoutubeCommentsView",
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "authorDisplayName",
@@ -66199,6 +65518,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
+				"source": {
+					label: "Source",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
 				"likeCount": {
 					label: "Likes",
 					type: EntityFieldType.Primitive,
@@ -66213,7 +65538,7 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"YoutubeCommentTimestampMs": ["$comment", "timestampMs"],
+					"YoutubeCommentTimestampMsSource": ["$comment", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -66221,13 +65546,15 @@ export const schema = {
 							title: [
 								"$comment",
 								{ field: "timestampMs", format: "timestamp" },
+								"source",
 							],
 						},
-						closed: ["timestampMs"],
+						closed: ["timestampMs", "source"],
 						content: {
 							dl: [
 								[
 									{ field: "timestampMs", format: "timestamp" },
+									"source",
 								],
 							],
 						},
@@ -66307,7 +65634,7 @@ export const schema = {
 					label: "Playlist ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"title": {
 					label: "Title",
@@ -66339,6 +65666,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.YoutubeChannel,
 				},
+				"$thumbnail": {
+					label: "Thumbnail",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.Media,
+				},
 				"$$timestamps": {
 					label: "Observations",
 					type: EntityFieldType.EntitiesReference,
@@ -66351,11 +65684,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubeVideo,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
+					defaultSources: [Source.Youtube_Rest, Source.Piped_Rest],
 				},
 			})({
 				selectors: {
@@ -66364,10 +65693,15 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+								Source.Constants_Internal,
+							],
 							openFields: ["$$videos", "$channel"],
 						},
 						summary: {
+							icon: "$thumbnail",
 							title: [
 								{
 									field: "title",
@@ -66385,6 +65719,7 @@ export const schema = {
 									format: "timestamp",
 								},
 							],
+							value: ["$channel"],
 						},
 						closed: ["title", "playlistId"],
 						content: {
@@ -66412,9 +65747,7 @@ export const schema = {
 						lists: [{ field: "$$videos", component: "YoutubeVideosView" }],
 					},
 					plural: { component: "YoutubePlaylistsView",
-						entityRow: _ListEntityRow.Title,
 						row: {
-							layout: _ListEntityRow.Title,
 							title: [
 								{
 									field: "title",
@@ -66424,11 +65757,7 @@ export const schema = {
 									format: "truncated",
 								},
 							],
-						},
-						query: {
-							sources: {
-								default: [Source.Constants_Internal],
-							},
+							value: ["$channel"],
 						},
 					},
 				},
@@ -66453,6 +65782,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
+				"source": {
+					label: "Source",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
 				"itemCount": {
 					label: "Items",
 					type: EntityFieldType.Primitive,
@@ -66461,7 +65796,7 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"YoutubePlaylistTimestampMs": ["$playlist", "timestampMs"],
+					"YoutubePlaylistTimestampMsSource": ["$playlist", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -66469,13 +65804,15 @@ export const schema = {
 							title: [
 								"$playlist",
 								{ field: "timestampMs", format: "timestamp" },
+								"source",
 							],
 						},
-						closed: ["timestampMs"],
+						closed: ["timestampMs", "source"],
 						content: {
 							dl: [
 								[
 									{ field: "timestampMs", format: "timestamp" },
+									"source",
 								],
 							],
 						},
@@ -66506,7 +65843,7 @@ export const schema = {
 					label: "Video ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
-					valueType: "string",
+					valueType: "opaqueRouteIdentifier",
 				},
 				"title": {
 					label: "Title",
@@ -66568,6 +65905,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.YoutubeChannel,
 				},
+				"$thumbnail": {
+					label: "Thumbnail",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.Media,
+				},
 				"$$timestamps": {
 					label: "Observations",
 					type: EntityFieldType.EntitiesReference,
@@ -66589,9 +65932,14 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+								Source.Constants_Internal,
+							],
 						},
 						summary: {
+							icon: "$thumbnail",
 							title: [
 								{
 									field: "title",
@@ -66609,6 +65957,7 @@ export const schema = {
 									format: "timestamp",
 								},
 							],
+							value: ["$author"],
 						},
 						closed: ["title", "videoId"],
 						content: {
@@ -66636,9 +65985,7 @@ export const schema = {
 						lists: [{ field: "$$comments", component: "YoutubeCommentsView" }],
 					},
 					plural: { component: "YoutubeVideosView",
-						entityRow: _ListEntityRow.Summary,
 						row: {
-							layout: _ListEntityRow.Summary,
 							title: [
 								{
 									field: "title",
@@ -66648,17 +65995,13 @@ export const schema = {
 									format: "truncated",
 								},
 							],
+							value: ["$author"],
 							HeadingAfter: [
 								{
 									field: "publishedAtMs",
 									format: "timestamp",
 								},
 							],
-						},
-						query: {
-							sources: {
-								default: [Source.Constants_Internal],
-							},
 						},
 					},
 				},
@@ -66683,6 +66026,12 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "NonNegativeInteger",
 				},
+				"source": {
+					label: "Source",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
 				"viewCount": {
 					label: "Views",
 					type: EntityFieldType.Primitive,
@@ -66703,7 +66052,7 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"YoutubeVideoTimestampMs": ["$video", "timestampMs"],
+					"YoutubeVideoTimestampMsSource": ["$video", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -66711,13 +66060,15 @@ export const schema = {
 							title: [
 								"$video",
 								{ field: "timestampMs", format: "timestamp" },
+								"source",
 							],
 						},
-						closed: ["timestampMs"],
+						closed: ["timestampMs", "source"],
 						content: {
 							dl: [
 								[
 									{ field: "timestampMs", format: "timestamp" },
+									"source",
 								],
 							],
 						},
@@ -66737,6 +66088,7 @@ export const schema = {
 					{
 						name: "ZcashShieldedActionKind",
 						members: [
+							{ name: "JoinSplit", value: "joinSplit" },
 							{ name: "Spend", value: "spend" },
 							{ name: "Output", value: "output" },
 							{ name: "Action", value: "action" },
@@ -66746,7 +66098,7 @@ export const schema = {
 			})({
 				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoTransaction },
 				"pool": { label: "Pool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "ZcashShieldedPoolKind" },
-				"actionKind": { label: "Action kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"actionKind": { label: "Action kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "ZcashShieldedActionKind" },
 				"indexInTransaction": { label: "Index in transaction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ZcashShieldedPool },
 				"nullifier": { label: "Nullifier", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -66779,7 +66131,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZcashShieldedActionsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZcashShieldedActionsView", },
 				},
 			}),
 
@@ -66793,6 +66145,7 @@ export const schema = {
 					{
 						name: "ZcashShieldedPoolKind",
 						members: [
+							{ name: "Sprout", value: "sprout" },
 							{ name: "Sapling", value: "sapling" },
 							{ name: "Orchard", value: "orchard" },
 						],
@@ -66801,8 +66154,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"pool": { label: "Pool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "ZcashShieldedPoolKind" },
-				"activationNetworkUpgrade": { label: "Activation network upgrade", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"noteProtocol": { label: "Note protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"activationNetworkUpgrade": { label: "Activation network upgrade", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
+				"noteProtocol": { label: "Note protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
 			})({
 				selectors: {
 					"NetworkPool": ["$network", "pool"],
@@ -66820,7 +66173,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZcashShieldedPoolsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZcashShieldedPoolsView", },
 				},
 			}),
 
@@ -66832,24 +66185,24 @@ export const schema = {
 				},
 			})({
 				"$block": { label: "block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoBlock },
-				"pool": { label: "pool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "ZcashShieldedPoolKind" },
-				"finalRoot": { label: "final root", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"blockCommitments": { label: "block commitments", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$pool": { label: "pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ZcashShieldedPool },
+				"saplingTree": { label: "Sapling tree", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "ZcashCommitmentTree" },
+				"orchardTree": { label: "Orchard tree", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "ZcashCommitmentTree" },
 			})({
 				selectors: {
-					"BlockPool": ["$block", "pool"],
+					"BlockPool": ["$block", "$pool"],
 				},
 				views: {
 					singular: {
-						summary: { title: ["pool"], value: [{ field: "finalRoot", format: "truncated" }] },
-						closed: ["pool"],
+						summary: { title: ["$pool"], value: ["saplingTree", "orchardTree"] },
+						closed: ["$pool"],
 						content: {
 							dl: [
-								["$block", "pool", "finalRoot", "blockCommitments"],
+								["$block", "$pool", "saplingTree", "orchardTree"],
 							],
 						},
 					},
-					plural: { component: "ZcashShieldedPoolBlockStatesView", title: "Zcash shielded pool block states", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZcashShieldedPoolBlockStatesView", title: "Zcash shielded pool block states", },
 				},
 			}),
 
@@ -66947,7 +66300,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGDaNodesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGDaNodesView", },
 				},
 			}),
 
@@ -66984,7 +66337,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGDaQuorumsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGDaQuorumsView", },
 				},
 			}),
 
@@ -67081,7 +66434,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGKvEntriesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGKvEntriesView", },
 				},
 			}),
 
@@ -67245,7 +66598,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGServiceProvidersView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGServiceProvidersView", },
 				},
 			}),
 
@@ -67280,7 +66633,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGServiceRequestsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGServiceRequestsView", },
 				},
 			}),
 
@@ -67314,7 +66667,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGSettlementTracesView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGSettlementTracesView", },
 				},
 			}),
 
@@ -67461,13 +66814,5857 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "ZeroGStorageProofsView", entityRow: _ListEntityRow.Summary },
+					plural: { component: "ZeroGStorageProofsView", },
 				},
 			}),
 		],
 	} as const
 
 export const routes = defineRoutes(schema)({
+	outcomes: {
+		[EntityType._Global]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain _Global.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_global",
+			},
+		},
+		[EntityType._GlobalActivityPubNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalActivityPubNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalactivitypubnetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalAgentNetwork]: {
+			"NetworkId": {
+				kind: "Research",
+				decision: "Retain _GlobalAgentNetwork.NetworkId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalagentnetwork",
+			},
+		},
+		[EntityType._GlobalAgentNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalAgentNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalagentnetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalAiArtifactCatalog]: {
+			"CatalogId": {
+				kind: "Research",
+				decision: "Retain _GlobalAiArtifactCatalog.CatalogId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalaiartifactcatalog",
+			},
+		},
+		[EntityType._GlobalAiArtifactCatalog_Timestamp]: {
+			"CatalogTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalAiArtifactCatalog_Timestamp.CatalogTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalaiartifactcatalog_timestamp",
+			},
+		},
+		[EntityType._GlobalAiModelCatalog]: {
+			"CatalogId": {
+				kind: "Research",
+				decision: "Retain _GlobalAiModelCatalog.CatalogId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalaimodelcatalog",
+			},
+		},
+		[EntityType._GlobalAiModelCatalog_Timestamp]: {
+			"CatalogTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalAiModelCatalog_Timestamp.CatalogTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalaimodelcatalog_timestamp",
+			},
+		},
+		[EntityType._GlobalArweaveNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain _GlobalArweaveNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalarweavenetwork",
+			},
+		},
+		[EntityType._GlobalArweaveNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalArweaveNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalarweavenetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalAtprotoNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalAtprotoNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalatprotonetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalEvmAbiCatalog]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain _GlobalEvmAbiCatalog.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalevmabicatalog",
+			},
+		},
+		[EntityType._GlobalEvmAbiCatalog_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalEvmAbiCatalog_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalevmabicatalog_timestamp",
+			},
+		},
+		[EntityType._GlobalNostrNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalNostrNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalnostrnetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalRedditNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalRedditNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalredditnetwork_timestamp",
+			},
+		},
+		[EntityType._GlobalXNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain _GlobalXNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalxnetwork",
+			},
+		},
+		[EntityType._GlobalYoutubeNetwork_Timestamp]: {
+			"HubTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain _GlobalYoutubeNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#_globalyoutubenetwork_timestamp",
+			},
+		},
+		[EntityType.A2aAgentCard]: {
+			"AgentCardUrl": {
+				kind: "Research",
+				decision: "Retain A2aAgentCard.AgentCardUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentcard",
+			},
+		},
+		[EntityType.A2aAgentCard_Snapshot]: {
+			"CardContentHash": {
+				kind: "Research",
+				decision: "Retain A2aAgentCard_Snapshot.CardContentHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentcard_snapshot",
+			},
+		},
+		[EntityType.A2aAgentInterface]: {
+			"CardSnapshotProtocolBindingUrl": {
+				kind: "Research",
+				decision: "Retain A2aAgentInterface.CardSnapshotProtocolBindingUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentinterface",
+			},
+		},
+		[EntityType.A2aAgentService]: {
+			"CardProtocolBindingEndpointUrl": {
+				kind: "Research",
+				decision: "Retain A2aAgentService.CardProtocolBindingEndpointUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentservice",
+			},
+		},
+		[EntityType.A2aAgentService_Timestamp]: {
+			"ServiceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain A2aAgentService_Timestamp.ServiceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentservice_timestamp",
+			},
+		},
+		[EntityType.A2aAgentSkill]: {
+			"CardSnapshotSkillId": {
+				kind: "Research",
+				decision: "Retain A2aAgentSkill.CardSnapshotSkillId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aagentskill",
+			},
+		},
+		[EntityType.A2aArtifact]: {
+			"TaskArtifactId": {
+				kind: "Research",
+				decision: "Retain A2aArtifact.TaskArtifactId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2aartifact",
+			},
+		},
+		[EntityType.A2aMessage]: {
+			"TaskMessageId": {
+				kind: "Research",
+				decision: "Retain A2aMessage.TaskMessageId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2amessage",
+			},
+		},
+		[EntityType.A2aMessagePart]: {
+			"MessagePartIndex": {
+				kind: "Research",
+				decision: "Retain A2aMessagePart.MessagePartIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2amessagepart",
+			},
+			"ArtifactPartIndex": {
+				kind: "Research",
+				decision: "Retain A2aMessagePart.ArtifactPartIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2amessagepart",
+			},
+		},
+		[EntityType.A2aPushNotificationConfig]: {
+			"TaskConfigId": {
+				kind: "Research",
+				decision: "Retain A2aPushNotificationConfig.TaskConfigId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2apushnotificationconfig",
+			},
+		},
+		[EntityType.A2aTask]: {
+			"TaskId": {
+				kind: "Research",
+				decision: "Retain A2aTask.TaskId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2atask",
+			},
+			"ServiceProviderTaskId": {
+				kind: "Research",
+				decision: "Retain A2aTask.ServiceProviderTaskId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2atask",
+			},
+		},
+		[EntityType.A2aTask_Timestamp]: {
+			"TaskTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain A2aTask_Timestamp.TaskTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2atask_timestamp",
+			},
+		},
+		[EntityType.A2aTaskEvent]: {
+			"TaskSequence": {
+				kind: "Research",
+				decision: "Retain A2aTaskEvent.TaskSequence as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#a2ataskevent",
+			},
+		},
+		[EntityType.Account]: {
+			"Caip10": {
+				kind: "Research",
+				decision: "Retain Account.Caip10 as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#account",
+			},
+		},
+		[EntityType.AcpAgentProgram]: {
+			"RegistryAgentId": {
+				kind: "Research",
+				decision: "Retain AcpAgentProgram.RegistryAgentId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentprogram",
+			},
+			"PackageName": {
+				kind: "Research",
+				decision: "Retain AcpAgentProgram.PackageName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentprogram",
+			},
+			"RepositoryUrl": {
+				kind: "Research",
+				decision: "Retain AcpAgentProgram.RepositoryUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentprogram",
+			},
+		},
+		[EntityType.AcpAgentProgramVersion]: {
+			"ProgramVersion": {
+				kind: "Research",
+				decision: "Retain AcpAgentProgramVersion.ProgramVersion as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentprogramversion",
+			},
+			"Artifact": {
+				kind: "Research",
+				decision: "Retain AcpAgentProgramVersion.Artifact as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentprogramversion",
+			},
+		},
+		[EntityType.AcpAgentRuntime]: {
+			"RuntimeId": {
+				kind: "Research",
+				decision: "Retain AcpAgentRuntime.RuntimeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentruntime",
+			},
+		},
+		[EntityType.AcpAgentRuntime_Timestamp]: {
+			"RuntimeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AcpAgentRuntime_Timestamp.RuntimeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpagentruntime_timestamp",
+			},
+		},
+		[EntityType.AcpFileOperation]: {
+			"SessionOperationId": {
+				kind: "Research",
+				decision: "Retain AcpFileOperation.SessionOperationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpfileoperation",
+			},
+		},
+		[EntityType.AcpMessage]: {
+			"SessionMessageId": {
+				kind: "Research",
+				decision: "Retain AcpMessage.SessionMessageId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpmessage",
+			},
+		},
+		[EntityType.AcpMessagePart]: {
+			"MessagePartIndex": {
+				kind: "Research",
+				decision: "Retain AcpMessagePart.MessagePartIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpmessagepart",
+			},
+		},
+		[EntityType.AcpPermissionRequest]: {
+			"SessionRequestId": {
+				kind: "Research",
+				decision: "Retain AcpPermissionRequest.SessionRequestId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acppermissionrequest",
+			},
+		},
+		[EntityType.AcpPromptTurn]: {
+			"SessionTurnId": {
+				kind: "Research",
+				decision: "Retain AcpPromptTurn.SessionTurnId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acppromptturn",
+			},
+		},
+		[EntityType.AcpSession]: {
+			"SessionId": {
+				kind: "Research",
+				decision: "Retain AcpSession.SessionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpsession",
+			},
+		},
+		[EntityType.AcpSessionUpdate]: {
+			"SessionSequence": {
+				kind: "Research",
+				decision: "Retain AcpSessionUpdate.SessionSequence as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpsessionupdate",
+			},
+		},
+		[EntityType.AcpTerminal]: {
+			"SessionTerminalId": {
+				kind: "Research",
+				decision: "Retain AcpTerminal.SessionTerminalId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpterminal",
+			},
+		},
+		[EntityType.AcpTerminal_Timestamp]: {
+			"TerminalTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AcpTerminal_Timestamp.TerminalTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acpterminal_timestamp",
+			},
+		},
+		[EntityType.AcpToolCall]: {
+			"PromptTurnToolCallId": {
+				kind: "Research",
+				decision: "Retain AcpToolCall.PromptTurnToolCallId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acptoolcall",
+			},
+		},
+		[EntityType.AcpToolCall_Timestamp]: {
+			"ToolCallTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AcpToolCall_Timestamp.ToolCallTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#acptoolcall_timestamp",
+			},
+		},
+		[EntityType.ActivityPubActor]: {
+			"ActivityStreamsUri": {
+				kind: "Research",
+				decision: "Retain ActivityPubActor.ActivityStreamsUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubactor",
+			},
+			"Acct": {
+				kind: "Research",
+				decision: "Retain ActivityPubActor.Acct as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubactor",
+			},
+		},
+		[EntityType.ActivityPubInstanceModeratedDomain]: {
+			"ObservationDomain": {
+				kind: "Research",
+				decision: "Retain ActivityPubInstanceModeratedDomain.ObservationDomain as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubinstancemoderateddomain",
+			},
+		},
+		[EntityType.ActivityPubInstancePeer]: {
+			"ObservationPeerDomain": {
+				kind: "Research",
+				decision: "Retain ActivityPubInstancePeer.ObservationPeerDomain as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubinstancepeer",
+			},
+		},
+		[EntityType.ActivityPubNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain ActivityPubNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubnetwork",
+			},
+		},
+		[EntityType.ActivityPubNote]: {
+			"ActivityStreamsUri": {
+				kind: "Research",
+				decision: "Retain ActivityPubNote.ActivityStreamsUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#activitypubnote",
+			},
+		},
+		[EntityType.AgentIdentityClaim]: {
+			"SubjectKindSubjectSelectorIdentityKindObjectKindObjectSelectorSourceTimestampMs": {
+				kind: "Research",
+				decision: "Retain AgentIdentityClaim.SubjectKindSubjectSelectorIdentityKindObjectKindObjectSelectorSourceTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#agentidentityclaim",
+			},
+		},
+		[EntityType.AgentPaymentRequirement_Timestamp]: {
+			"SubjectKindSubjectSelectorPaymentProtocolTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AgentPaymentRequirement_Timestamp.SubjectKindSubjectSelectorPaymentProtocolTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#agentpaymentrequirement_timestamp",
+			},
+		},
+		[EntityType.AiArtifact]: {
+			"ProviderArtifactId": {
+				kind: "Research",
+				decision: "Retain AiArtifact.ProviderArtifactId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+			"Digest": {
+				kind: "Research",
+				decision: "Retain AiArtifact.Digest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+			"OciDigest": {
+				kind: "Research",
+				decision: "Retain AiArtifact.OciDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+			"IpfsCid": {
+				kind: "Research",
+				decision: "Retain AiArtifact.IpfsCid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+			"ArweaveId": {
+				kind: "Research",
+				decision: "Retain AiArtifact.ArweaveId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+			"GitObject": {
+				kind: "Research",
+				decision: "Retain AiArtifact.GitObject as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifact",
+			},
+		},
+		[EntityType.AiArtifactAttestation]: {
+			"ArtifactAttestationKindLogEntryId": {
+				kind: "Research",
+				decision: "Retain AiArtifactAttestation.ArtifactAttestationKindLogEntryId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifactattestation",
+			},
+			"ArtifactAttestationKindSignatureHashAlgorithmSignatureHash": {
+				kind: "Research",
+				decision: "Retain AiArtifactAttestation.ArtifactAttestationKindSignatureHashAlgorithmSignatureHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiartifactattestation",
+			},
+		},
+		[EntityType.AiBenchmark]: {
+			"BenchmarkId": {
+				kind: "Research",
+				decision: "Retain AiBenchmark.BenchmarkId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aibenchmark",
+			},
+			"BenchmarkUri": {
+				kind: "Research",
+				decision: "Retain AiBenchmark.BenchmarkUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aibenchmark",
+			},
+			"SourceSourceBenchmarkId": {
+				kind: "Research",
+				decision: "Retain AiBenchmark.SourceSourceBenchmarkId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aibenchmark",
+			},
+		},
+		[EntityType.AiDataset]: {
+			"DatasetUri": {
+				kind: "Research",
+				decision: "Retain AiDataset.DatasetUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidataset",
+			},
+			"HuggingFaceDatasetIdRevision": {
+				kind: "Research",
+				decision: "Retain AiDataset.HuggingFaceDatasetIdRevision as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidataset",
+			},
+			"SourceDatasetNameDatasetDigest": {
+				kind: "Research",
+				decision: "Retain AiDataset.SourceDatasetNameDatasetDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidataset",
+			},
+			"Artifact": {
+				kind: "Research",
+				decision: "Retain AiDataset.Artifact as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidataset",
+			},
+		},
+		[EntityType.AiDocument]: {
+			"KindContentHash": {
+				kind: "Research",
+				decision: "Retain AiDocument.KindContentHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidocument",
+			},
+			"KindArtifact": {
+				kind: "Research",
+				decision: "Retain AiDocument.KindArtifact as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidocument",
+			},
+			"DocumentUrl": {
+				kind: "Research",
+				decision: "Retain AiDocument.DocumentUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidocument",
+			},
+		},
+		[EntityType.AiDocumentClaim]: {
+			"DocumentExtractorIdClaimPath": {
+				kind: "Research",
+				decision: "Retain AiDocumentClaim.DocumentExtractorIdClaimPath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aidocumentclaim",
+			},
+		},
+		[EntityType.AiEvaluation_Timestamp]: {
+			"SubjectKindSubjectSelectorBenchmarkMetricNameTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AiEvaluation_Timestamp.SubjectKindSubjectSelectorBenchmarkMetricNameTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aievaluation_timestamp",
+			},
+		},
+		[EntityType.AiModel]: {
+			"ProviderModelId": {
+				kind: "Research",
+				decision: "Retain AiModel.ProviderModelId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodel",
+			},
+		},
+		[EntityType.AiModel_Timestamp]: {
+			"ModelTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AiModel_Timestamp.ModelTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodel_timestamp",
+			},
+		},
+		[EntityType.AiModelProvider]: {
+			"Domain": {
+				kind: "Research",
+				decision: "Retain AiModelProvider.Domain as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodelprovider",
+			},
+			"ProviderId": {
+				kind: "Research",
+				decision: "Retain AiModelProvider.ProviderId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodelprovider",
+			},
+		},
+		[EntityType.AiModelVersion]: {
+			"ModelVersionId": {
+				kind: "Research",
+				decision: "Retain AiModelVersion.ModelVersionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodelversion",
+			},
+			"Artifact": {
+				kind: "Research",
+				decision: "Retain AiModelVersion.Artifact as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodelversion",
+			},
+			"HuggingFaceRepoRevision": {
+				kind: "Research",
+				decision: "Retain AiModelVersion.HuggingFaceRepoRevision as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aimodelversion",
+			},
+		},
+		[EntityType.AiProviderApiOperation]: {
+			"ProviderOperationId": {
+				kind: "Research",
+				decision: "Retain AiProviderApiOperation.ProviderOperationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiproviderapioperation",
+			},
+		},
+		[EntityType.AiProviderApiOperation_Timestamp]: {
+			"OperationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AiProviderApiOperation_Timestamp.OperationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiproviderapioperation_timestamp",
+			},
+		},
+		[EntityType.AiProviderCatalogEntry]: {
+			"ProviderCatalogKindProviderEntryId": {
+				kind: "Research",
+				decision: "Retain AiProviderCatalogEntry.ProviderCatalogKindProviderEntryId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiprovidercatalogentry",
+			},
+		},
+		[EntityType.AiProviderCatalogEntry_Timestamp]: {
+			"EntryTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AiProviderCatalogEntry_Timestamp.EntryTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aiprovidercatalogentry_timestamp",
+			},
+		},
+		[EntityType.AiRelationshipClaim]: {
+			"SubjectKindSubjectSelectorRelationshipKindObjectKindObjectSelectorSourceTimestampMs": {
+				kind: "Research",
+				decision: "Retain AiRelationshipClaim.SubjectKindSubjectSelectorRelationshipKindObjectKindObjectSelectorSourceTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#airelationshipclaim",
+			},
+		},
+		[EntityType.AlgorandAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain AlgorandAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandaccount",
+			},
+		},
+		[EntityType.AlgorandAccount_Timestamp]: {
+			"AccountRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandAccount_Timestamp.AccountRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandaccount_timestamp",
+			},
+		},
+		[EntityType.AlgorandApplication]: {
+			"NetworkApplicationId": {
+				kind: "Research",
+				decision: "Retain AlgorandApplication.NetworkApplicationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandapplication",
+			},
+		},
+		[EntityType.AlgorandApplication_Timestamp]: {
+			"ApplicationRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandApplication_Timestamp.ApplicationRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandapplication_timestamp",
+			},
+		},
+		[EntityType.AlgorandApplicationLocalState_Round]: {
+			"AccountApplicationRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandApplicationLocalState_Round.AccountApplicationRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandapplicationlocalstate_round",
+			},
+		},
+		[EntityType.AlgorandAsset]: {
+			"NetworkAssetId": {
+				kind: "Research",
+				decision: "Retain AlgorandAsset.NetworkAssetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandasset",
+			},
+		},
+		[EntityType.AlgorandAsset_Timestamp]: {
+			"AssetRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandAsset_Timestamp.AssetRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandasset_timestamp",
+			},
+		},
+		[EntityType.AlgorandAssetHolding_Round]: {
+			"AccountAssetRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandAssetHolding_Round.AccountAssetRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandassetholding_round",
+			},
+		},
+		[EntityType.AlgorandBox]: {
+			"ApplicationBoxName": {
+				kind: "Research",
+				decision: "Retain AlgorandBox.ApplicationBoxName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandbox",
+			},
+		},
+		[EntityType.AlgorandBox_Round]: {
+			"BoxRoundSource": {
+				kind: "Research",
+				decision: "Retain AlgorandBox_Round.BoxRoundSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandbox_round",
+			},
+		},
+		[EntityType.AlgorandNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain AlgorandNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandnetwork",
+			},
+		},
+		[EntityType.AlgorandNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AlgorandNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandnetwork_timestamp",
+			},
+		},
+		[EntityType.AlgorandRound]: {
+			"NetworkRound": {
+				kind: "Research",
+				decision: "Retain AlgorandRound.NetworkRound as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandround",
+			},
+		},
+		[EntityType.AlgorandTealProgram]: {
+			"NetworkProgramHash": {
+				kind: "Research",
+				decision: "Retain AlgorandTealProgram.NetworkProgramHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandtealprogram",
+			},
+		},
+		[EntityType.AlgorandTealProgram_Timestamp]: {
+			"ProgramTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AlgorandTealProgram_Timestamp.ProgramTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandtealprogram_timestamp",
+			},
+		},
+		[EntityType.AlgorandTransaction]: {
+			"NetworkTxId": {
+				kind: "Research",
+				decision: "Retain AlgorandTransaction.NetworkTxId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandtransaction",
+			},
+		},
+		[EntityType.AlgorandTransactionGroup]: {
+			"NetworkGroup": {
+				kind: "Research",
+				decision: "Retain AlgorandTransactionGroup.NetworkGroup as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandtransactiongroup",
+			},
+		},
+		[EntityType.AlgorandTransactionProof]: {
+			"TransactionRoundHashTypeSource": {
+				kind: "Research",
+				decision: "Retain AlgorandTransactionProof.TransactionRoundHashTypeSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#algorandtransactionproof",
+			},
+		},
+		[EntityType.AptosAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain AptosAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosaccount",
+			},
+		},
+		[EntityType.AptosAccount_Timestamp]: {
+			"AccountLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosAccount_Timestamp.AccountLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosaccount_timestamp",
+			},
+		},
+		[EntityType.AptosAccountResource]: {
+			"AccountResourceType": {
+				kind: "Research",
+				decision: "Retain AptosAccountResource.AccountResourceType as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosaccountresource",
+			},
+		},
+		[EntityType.AptosAccountResource_Timestamp]: {
+			"ResourceLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosAccountResource_Timestamp.ResourceLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosaccountresource_timestamp",
+			},
+		},
+		[EntityType.AptosBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain AptosBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosblock",
+			},
+			"NetworkVersion": {
+				kind: "Research",
+				decision: "Retain AptosBlock.NetworkVersion as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosblock",
+			},
+		},
+		[EntityType.AptosCoinBalance_Timestamp]: {
+			"AccountStorageIdLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosCoinBalance_Timestamp.AccountStorageIdLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptoscoinbalance_timestamp",
+			},
+		},
+		[EntityType.AptosEvent]: {
+			"NetworkTransactionVersionEventIndex": {
+				kind: "Research",
+				decision: "Retain AptosEvent.NetworkTransactionVersionEventIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosevent",
+			},
+		},
+		[EntityType.AptosNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain AptosNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosnetwork",
+			},
+		},
+		[EntityType.AptosNetwork_Timestamp]: {
+			"NetworkLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosNetwork_Timestamp.NetworkLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosnetwork_timestamp",
+			},
+		},
+		[EntityType.AptosStateChange]: {
+			"TransactionChangeIndex": {
+				kind: "Research",
+				decision: "Retain AptosStateChange.TransactionChangeIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptosstatechange",
+			},
+		},
+		[EntityType.AptosTableItem]: {
+			"NetworkTableHandleKeyHash": {
+				kind: "Research",
+				decision: "Retain AptosTableItem.NetworkTableHandleKeyHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptostableitem",
+			},
+		},
+		[EntityType.AptosTableItem_Timestamp]: {
+			"TableItemLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosTableItem_Timestamp.TableItemLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptostableitem_timestamp",
+			},
+		},
+		[EntityType.AptosTransaction]: {
+			"NetworkVersion": {
+				kind: "Research",
+				decision: "Retain AptosTransaction.NetworkVersion as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptostransaction",
+			},
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain AptosTransaction.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptostransaction",
+			},
+		},
+		[EntityType.AptosTransaction_Timestamp]: {
+			"TransactionLedgerVersionSource": {
+				kind: "Research",
+				decision: "Retain AptosTransaction_Timestamp.TransactionLedgerVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aptostransaction_timestamp",
+			},
+		},
+		[EntityType.ArweaveBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain ArweaveBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweaveblock",
+			},
+			"NetworkIndepHash": {
+				kind: "Research",
+				decision: "Retain ArweaveBlock.NetworkIndepHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweaveblock",
+			},
+		},
+		[EntityType.ArweaveNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain ArweaveNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweavenetwork",
+			},
+		},
+		[EntityType.ArweaveNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ArweaveNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweavenetwork_timestamp",
+			},
+		},
+		[EntityType.ArweaveResource]: {
+			"TransactionIdContentPath": {
+				kind: "Research",
+				decision: "Retain ArweaveResource.TransactionIdContentPath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweaveresource",
+			},
+		},
+		[EntityType.ArweaveResource_Timestamp]: {
+			"ResourceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ArweaveResource_Timestamp.ResourceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweaveresource_timestamp",
+			},
+		},
+		[EntityType.ArweaveTransaction]: {
+			"NetworkTransactionId": {
+				kind: "Research",
+				decision: "Retain ArweaveTransaction.NetworkTransactionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#arweavetransaction",
+			},
+		},
+		[EntityType.AssetClass]: {
+			"AssetInstanceClassKindClassKey": {
+				kind: "Research",
+				decision: "Retain AssetClass.AssetInstanceClassKindClassKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#assetclass",
+			},
+		},
+		[EntityType.AssetEligibility]: {
+			"AssetInstanceAccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AssetEligibility.AssetInstanceAccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#asseteligibility",
+			},
+		},
+		[EntityType.AssetFormatSupport_Timestamp]: {
+			"AssetInstanceFormatIdTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AssetFormatSupport_Timestamp.AssetInstanceFormatIdTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#assetformatsupport_timestamp",
+			},
+		},
+		[EntityType.AssetObject]: {
+			"AssetInstanceObjectKey": {
+				kind: "Research",
+				decision: "Retain AssetObject.AssetInstanceObjectKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#assetobject",
+			},
+		},
+		[EntityType.AssetSupply_LedgerCoordinate]: {
+			"AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource": {
+				kind: "Research",
+				decision: "Retain AssetSupply_LedgerCoordinate.AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#assetsupply_ledgercoordinate",
+			},
+		},
+		[EntityType.AssetSupply_Timestamp]: {
+			"AssetInstanceSupplyScopeKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AssetSupply_Timestamp.AssetInstanceSupplyScopeKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#assetsupply_timestamp",
+			},
+		},
+		[EntityType.AtprotoNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain AtprotoNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#atprotonetwork",
+			},
+		},
+		[EntityType.AtprotoRepoCommit]: {
+			"RepoDidRevSource": {
+				kind: "Research",
+				decision: "Retain AtprotoRepoCommit.RepoDidRevSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#atprotorepocommit",
+			},
+			"RepoDidCommitCidSource": {
+				kind: "Research",
+				decision: "Retain AtprotoRepoCommit.RepoDidCommitCidSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#atprotorepocommit",
+			},
+		},
+		[EntityType.AvailAppId]: {
+			"NetworkAppId": {
+				kind: "Research",
+				decision: "Retain AvailAppId.NetworkAppId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availappid",
+			},
+		},
+		[EntityType.AvailAppId_Timestamp]: {
+			"AppIdTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AvailAppId_Timestamp.AppIdTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availappid_timestamp",
+			},
+		},
+		[EntityType.AvailBlock]: {
+			"NetworkBlockNumber": {
+				kind: "Research",
+				decision: "Retain AvailBlock.NetworkBlockNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availblock",
+			},
+			"NetworkBlockHash": {
+				kind: "Research",
+				decision: "Retain AvailBlock.NetworkBlockHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availblock",
+			},
+		},
+		[EntityType.AvailDataSubmission]: {
+			"NetworkSourceSubmissionKey": {
+				kind: "Research",
+				decision: "Retain AvailDataSubmission.NetworkSourceSubmissionKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availdatasubmission",
+			},
+		},
+		[EntityType.AvailNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain AvailNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availnetwork",
+			},
+		},
+		[EntityType.AvailNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AvailNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#availnetwork_timestamp",
+			},
+		},
+		[EntityType.AvalancheBlockchain]: {
+			"BlockchainId": {
+				kind: "Research",
+				decision: "Retain AvalancheBlockchain.BlockchainId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalancheblockchain",
+			},
+		},
+		[EntityType.AvalancheDelegator]: {
+			"ValidatorTxId": {
+				kind: "Research",
+				decision: "Retain AvalancheDelegator.ValidatorTxId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchedelegator",
+			},
+		},
+		[EntityType.AvalanchePChainBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain AvalanchePChainBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchainblock",
+			},
+			"NetworkBlockId": {
+				kind: "Research",
+				decision: "Retain AvalanchePChainBlock.NetworkBlockId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchainblock",
+			},
+		},
+		[EntityType.AvalanchePChainTransaction]: {
+			"NetworkTxId": {
+				kind: "Research",
+				decision: "Retain AvalanchePChainTransaction.NetworkTxId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchaintransaction",
+			},
+		},
+		[EntityType.AvalanchePChainTransaction_Timestamp]: {
+			"TransactionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AvalanchePChainTransaction_Timestamp.TransactionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchaintransaction_timestamp",
+			},
+		},
+		[EntityType.AvalancheSubnet]: {
+			"SubnetId": {
+				kind: "Research",
+				decision: "Retain AvalancheSubnet.SubnetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchesubnet",
+			},
+		},
+		[EntityType.AvalancheSubnet_Timestamp]: {
+			"SubnetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AvalancheSubnet_Timestamp.SubnetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchesubnet_timestamp",
+			},
+		},
+		[EntityType.AvalancheValidator]: {
+			"NodeIdSubnetIdStartTimeMs": {
+				kind: "Research",
+				decision: "Retain AvalancheValidator.NodeIdSubnetIdStartTimeMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchevalidator",
+			},
+		},
+		[EntityType.AvalancheValidator_Timestamp]: {
+			"ValidatorTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain AvalancheValidator_Timestamp.ValidatorTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#avalanchevalidator_timestamp",
+			},
+		},
+		[EntityType.BeaconValidator]: {
+			"NetworkPubkey": {
+				kind: "Research",
+				decision: "Retain BeaconValidator.NetworkPubkey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#beaconvalidator",
+			},
+		},
+		[EntityType.BitcoinCashBcmrMetadata]: {
+			"NetworkCategoryIdRegistryUrl": {
+				kind: "Research",
+				decision: "Retain BitcoinCashBcmrMetadata.NetworkCategoryIdRegistryUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoincashbcmrmetadata",
+			},
+		},
+		[EntityType.BitcoinCashCashTokenCategory]: {
+			"NetworkCategoryId": {
+				kind: "Research",
+				decision: "Retain BitcoinCashCashTokenCategory.NetworkCategoryId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoincashcashtokencategory",
+			},
+		},
+		[EntityType.BitcoinCashCashTokenCommitment]: {
+			"UtxoOutput": {
+				kind: "CuratedParent",
+				target: {
+					entityType: EntityType.UtxoOutput,
+					selectorName: "TransactionIndexInTransaction",
+				},
+			},
+		},
+		[EntityType.BitcoinCashCashTokenFungibleAmount]: {
+			"UtxoOutput": {
+				kind: "CuratedParent",
+				target: {
+					entityType: EntityType.UtxoOutput,
+					selectorName: "TransactionIndexInTransaction",
+				},
+			},
+		},
+		[EntityType.BitcoinCashCashTokenNft]: {
+			"UtxoOutput": {
+				kind: "CuratedParent",
+				target: {
+					entityType: EntityType.UtxoOutput,
+					selectorName: "TransactionIndexInTransaction",
+				},
+			},
+		},
+		[EntityType.BittensorBlock]: {
+			"NetworkBlockNumberHash": {
+				kind: "Research",
+				decision: "Retain BittensorBlock.NetworkBlockNumberHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensorblock",
+			},
+		},
+		[EntityType.BittensorMetagraph_Timestamp]: {
+			"SubnetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BittensorMetagraph_Timestamp.SubnetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensormetagraph_timestamp",
+			},
+		},
+		[EntityType.BittensorNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain BittensorNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensornetwork",
+			},
+		},
+		[EntityType.BittensorNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BittensorNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensornetwork_timestamp",
+			},
+		},
+		[EntityType.BittensorNeuron]: {
+			"BittensorSubnetUid": {
+				kind: "Research",
+				decision: "Retain BittensorNeuron.BittensorSubnetUid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensorneuron",
+			},
+		},
+		[EntityType.BittensorSubnet]: {
+			"NetworkNetuid": {
+				kind: "Research",
+				decision: "Retain BittensorSubnet.NetworkNetuid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittensorsubnet",
+			},
+		},
+		[EntityType.BitTorrentAnnounce_Timestamp]: {
+			"TorrentTrackerTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BitTorrentAnnounce_Timestamp.TorrentTrackerTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentannounce_timestamp",
+			},
+		},
+		[EntityType.BitTorrentDhtLookup_Timestamp]: {
+			"InfoHashObserverKeyTimestampMs": {
+				kind: "Research",
+				decision: "Retain BitTorrentDhtLookup_Timestamp.InfoHashObserverKeyTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentdhtlookup_timestamp",
+			},
+		},
+		[EntityType.BitTorrentDhtNode_Timestamp]: {
+			"NodeIdTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BitTorrentDhtNode_Timestamp.NodeIdTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentdhtnode_timestamp",
+			},
+		},
+		[EntityType.BitTorrentFile]: {
+			"TorrentFileIndex": {
+				kind: "Research",
+				decision: "Retain BitTorrentFile.TorrentFileIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentfile",
+			},
+		},
+		[EntityType.BitTorrentFileTreeEntry]: {
+			"TorrentPath": {
+				kind: "Research",
+				decision: "Retain BitTorrentFileTreeEntry.TorrentPath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentfiletreeentry",
+			},
+		},
+		[EntityType.BitTorrentMetainfo]: {
+			"InfoHashHashVersion": {
+				kind: "Research",
+				decision: "Retain BitTorrentMetainfo.InfoHashHashVersion as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentmetainfo",
+			},
+		},
+		[EntityType.BitTorrentPeer_Timestamp]: {
+			"TorrentPeerIdTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BitTorrentPeer_Timestamp.TorrentPeerIdTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentpeer_timestamp",
+			},
+		},
+		[EntityType.BitTorrentPiece]: {
+			"TorrentPieceIndex": {
+				kind: "Research",
+				decision: "Retain BitTorrentPiece.TorrentPieceIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentpiece",
+			},
+		},
+		[EntityType.BitTorrentSwarmObservation_Timestamp]: {
+			"TorrentTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BitTorrentSwarmObservation_Timestamp.TorrentTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrentswarmobservation_timestamp",
+			},
+		},
+		[EntityType.BitTorrentTracker]: {
+			"TrackerUrl": {
+				kind: "Research",
+				decision: "Retain BitTorrentTracker.TrackerUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrenttracker",
+			},
+		},
+		[EntityType.BitTorrentTrackerScrape_Timestamp]: {
+			"TrackerInfoHashTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BitTorrentTrackerScrape_Timestamp.TrackerInfoHashTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bittorrenttrackerscrape_timestamp",
+			},
+		},
+		[EntityType.BlockheadActionOutcome]: {
+			"SessionIdActionIdOutcomeId": {
+				kind: "Research",
+				decision: "Retain BlockheadActionOutcome.SessionIdActionIdOutcomeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadactionoutcome",
+			},
+		},
+		[EntityType.BlockheadActionOutcome_Timestamp]: {
+			"OutcomeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadActionOutcome_Timestamp.OutcomeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadactionoutcome_timestamp",
+			},
+		},
+		[EntityType.BlockheadActionReadinessCheck]: {
+			"SessionIdActionIdCheckId": {
+				kind: "Research",
+				decision: "Retain BlockheadActionReadinessCheck.SessionIdActionIdCheckId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadactionreadinesscheck",
+			},
+		},
+		[EntityType.BlockheadActionReadinessCheck_Timestamp]: {
+			"ReadinessCheckTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadActionReadinessCheck_Timestamp.ReadinessCheckTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadactionreadinesscheck_timestamp",
+			},
+		},
+		[EntityType.BlockheadAgentConnection]: {
+			"ConnectionId": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentConnection.ConnectionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentconnection",
+			},
+		},
+		[EntityType.BlockheadAgentConnection_Timestamp]: {
+			"ConnectionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentConnection_Timestamp.ConnectionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentconnection_timestamp",
+			},
+		},
+		[EntityType.BlockheadAgentConversationTurn]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentConversationTurn.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentconversationturn",
+			},
+		},
+		[EntityType.BlockheadAgentCredentialState]: {
+			"CredentialId": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentCredentialState.CredentialId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentcredentialstate",
+			},
+		},
+		[EntityType.BlockheadAgentCredentialState_Timestamp]: {
+			"CredentialTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentCredentialState_Timestamp.CredentialTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentcredentialstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadAgentProfile]: {
+			"ProfileId": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentProfile.ProfileId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentprofile",
+			},
+		},
+		[EntityType.BlockheadAgentProgramInstall]: {
+			"InstallId": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentProgramInstall.InstallId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentprograminstall",
+			},
+		},
+		[EntityType.BlockheadAgentProgramInstall_Timestamp]: {
+			"InstallTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentProgramInstall_Timestamp.InstallTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentprograminstall_timestamp",
+			},
+		},
+		[EntityType.BlockheadAgentProviderCall]: {
+			"TurnIndexInTurn": {
+				kind: "Research",
+				decision: "Retain BlockheadAgentProviderCall.TurnIndexInTurn as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadagentprovidercall",
+			},
+		},
+		[EntityType.BlockheadAlgorandParticipationKey]: {
+			"NodeIdParticipationId": {
+				kind: "Research",
+				decision: "Retain BlockheadAlgorandParticipationKey.NodeIdParticipationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadalgorandparticipationkey",
+			},
+		},
+		[EntityType.BlockheadAlgorandPendingTransaction]: {
+			"NodeIdTxIdObservedAtMs": {
+				kind: "Research",
+				decision: "Retain BlockheadAlgorandPendingTransaction.NodeIdTxIdObservedAtMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadalgorandpendingtransaction",
+			},
+		},
+		[EntityType.BlockheadAvalancheNodeState]: {
+			"NodeId": {
+				kind: "Research",
+				decision: "Retain BlockheadAvalancheNodeState.NodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadavalanchenodestate",
+			},
+		},
+		[EntityType.BlockheadAvalancheNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadAvalancheNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadavalanchenodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadBitTorrentClientState]: {
+			"ClientId": {
+				kind: "Research",
+				decision: "Retain BlockheadBitTorrentClientState.ClientId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadbittorrentclientstate",
+			},
+		},
+		[EntityType.BlockheadBitTorrentClientState_Timestamp]: {
+			"ClientStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadBitTorrentClientState_Timestamp.ClientStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadbittorrentclientstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadBitTorrentTransfer_Timestamp]: {
+			"ClientTorrentTimestampMs": {
+				kind: "Research",
+				decision: "Retain BlockheadBitTorrentTransfer_Timestamp.ClientTorrentTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadbittorrenttransfer_timestamp",
+			},
+		},
+		[EntityType.BlockheadBridgeIntent]: {
+			"SessionIdActionId": {
+				kind: "Research",
+				decision: "Retain BlockheadBridgeIntent.SessionIdActionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadbridgeintent",
+			},
+		},
+		[EntityType.BlockheadCashuMeltQuote]: {
+			"MintMethodQuoteId": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuMeltQuote.MintMethodQuoteId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashumeltquote",
+			},
+		},
+		[EntityType.BlockheadCashuMeltQuote_Timestamp]: {
+			"MeltQuoteTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuMeltQuote_Timestamp.MeltQuoteTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashumeltquote_timestamp",
+			},
+		},
+		[EntityType.BlockheadCashuMintQuote]: {
+			"MintMethodQuoteId": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuMintQuote.MintMethodQuoteId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashumintquote",
+			},
+		},
+		[EntityType.BlockheadCashuMintQuote_Timestamp]: {
+			"MintQuoteTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuMintQuote_Timestamp.MintQuoteTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashumintquote_timestamp",
+			},
+		},
+		[EntityType.BlockheadCashuProof]: {
+			"WalletIdMintUrlKeysetIdSecretHash": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuProof.WalletIdMintUrlKeysetIdSecretHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashuproof",
+			},
+		},
+		[EntityType.BlockheadCashuProof_Timestamp]: {
+			"ProofTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuProof_Timestamp.ProofTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashuproof_timestamp",
+			},
+		},
+		[EntityType.BlockheadCashuToken]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuToken.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashutoken",
+			},
+		},
+		[EntityType.BlockheadCashuWalletState]: {
+			"WalletIdMintUrlUnit": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuWalletState.WalletIdMintUrlUnit as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashuwalletstate",
+			},
+		},
+		[EntityType.BlockheadCashuWalletState_Timestamp]: {
+			"WalletStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCashuWalletState_Timestamp.WalletStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcashuwalletstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadCodexStorageNodeState]: {
+			"ConnectionIdPeerId": {
+				kind: "Research",
+				decision: "Retain BlockheadCodexStorageNodeState.ConnectionIdPeerId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcodexstoragenodestate",
+			},
+		},
+		[EntityType.BlockheadCodexStorageNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCodexStorageNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcodexstoragenodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadCodexStoredData]: {
+			"NodeStateCid": {
+				kind: "Research",
+				decision: "Retain BlockheadCodexStoredData.NodeStateCid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcodexstoreddata",
+			},
+		},
+		[EntityType.BlockheadCodexStoredData_Timestamp]: {
+			"StoredDataTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadCodexStoredData_Timestamp.StoredDataTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadcodexstoreddata_timestamp",
+			},
+		},
+		[EntityType.BlockheadEnsNameSearch]: {
+			"Query": {
+				kind: "Research",
+				decision: "Retain BlockheadEnsNameSearch.Query as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadensnamesearch",
+			},
+		},
+		[EntityType.BlockheadFedimintClientState]: {
+			"ClientIdFederationId": {
+				kind: "Research",
+				decision: "Retain BlockheadFedimintClientState.ClientIdFederationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadfedimintclientstate",
+			},
+		},
+		[EntityType.BlockheadFedimintClientState_Timestamp]: {
+			"ClientStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadFedimintClientState_Timestamp.ClientStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadfedimintclientstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadFilecoinPendingMessage]: {
+			"NodeIdMessageCidObservedAtMs": {
+				kind: "Research",
+				decision: "Retain BlockheadFilecoinPendingMessage.NodeIdMessageCidObservedAtMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadfilecoinpendingmessage",
+			},
+		},
+		[EntityType.BlockheadIntentInvocation]: {
+			"SessionIdInvocationId": {
+				kind: "Research",
+				decision: "Retain BlockheadIntentInvocation.SessionIdInvocationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadintentinvocation",
+			},
+		},
+		[EntityType.BlockheadIntentOrder]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadIntentOrder.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadintentorder",
+			},
+		},
+		[EntityType.BlockheadIntentOrder_Timestamp]: {
+			"OrderTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadIntentOrder_Timestamp.OrderTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadintentorder_timestamp",
+			},
+		},
+		[EntityType.BlockheadIntentQuote]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadIntentQuote.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadintentquote",
+			},
+		},
+		[EntityType.BlockheadIntentQuote_Timestamp]: {
+			"QuoteTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadIntentQuote_Timestamp.QuoteTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadintentquote_timestamp",
+			},
+		},
+		[EntityType.BlockheadKaspaNodeState]: {
+			"ConnectionIdNetwork": {
+				kind: "Research",
+				decision: "Retain BlockheadKaspaNodeState.ConnectionIdNetwork as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadkaspanodestate",
+			},
+		},
+		[EntityType.BlockheadKaspaNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadKaspaNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadkaspanodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLightningChannelState]: {
+			"LocalNodeStateChannel": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningChannelState.LocalNodeStateChannel as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightningchannelstate",
+			},
+		},
+		[EntityType.BlockheadLightningChannelState_Timestamp]: {
+			"ChannelStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningChannelState_Timestamp.ChannelStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightningchannelstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLightningHtlc]: {
+			"ChannelStateHtlcIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningHtlc.ChannelStateHtlcIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightninghtlc",
+			},
+		},
+		[EntityType.BlockheadLightningInvoice_Timestamp]: {
+			"InvoiceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningInvoice_Timestamp.InvoiceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightninginvoice_timestamp",
+			},
+		},
+		[EntityType.BlockheadLightningNodeState]: {
+			"ConnectionIdNetwork": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningNodeState.ConnectionIdNetwork as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightningnodestate",
+			},
+		},
+		[EntityType.BlockheadLightningNodeState_Timestamp]: {
+			"LocalNodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningNodeState_Timestamp.LocalNodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightningnodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLightningPayment_Timestamp]: {
+			"PaymentTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLightningPayment_Timestamp.PaymentTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlightningpayment_timestamp",
+			},
+		},
+		[EntityType.BlockheadLitecoinMwebOutputState]: {
+			"WalletIdCommitment": {
+				kind: "Research",
+				decision: "Retain BlockheadLitecoinMwebOutputState.WalletIdCommitment as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlitecoinmweboutputstate",
+			},
+		},
+		[EntityType.BlockheadLitecoinMwebOutputState_Timestamp]: {
+			"OutputStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLitecoinMwebOutputState_Timestamp.OutputStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlitecoinmweboutputstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLitecoinMwebWalletState]: {
+			"WalletIdNetwork": {
+				kind: "Research",
+				decision: "Retain BlockheadLitecoinMwebWalletState.WalletIdNetwork as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlitecoinmwebwalletstate",
+			},
+		},
+		[EntityType.BlockheadLitecoinMwebWalletState_Timestamp]: {
+			"WalletStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLitecoinMwebWalletState_Timestamp.WalletStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlitecoinmwebwalletstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLogosBlockchainNodeState]: {
+			"ConnectionIdPeerId": {
+				kind: "Research",
+				decision: "Retain BlockheadLogosBlockchainNodeState.ConnectionIdPeerId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlogosblockchainnodestate",
+			},
+		},
+		[EntityType.BlockheadLogosBlockchainNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLogosBlockchainNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlogosblockchainnodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadLogosBlockchainWalletKeyState]: {
+			"NodeStatePublicKey": {
+				kind: "Research",
+				decision: "Retain BlockheadLogosBlockchainWalletKeyState.NodeStatePublicKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlogosblockchainwalletkeystate",
+			},
+		},
+		[EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp]: {
+			"WalletKeyStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLogosBlockchainWalletKeyState_Timestamp.WalletKeyStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlogosblockchainwalletkeystate_timestamp",
+			},
+		},
+		[EntityType.BlockheadMoneroOutputState]: {
+			"WalletIdTxHashOutputIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroOutputState.WalletIdTxHashOutputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerooutputstate",
+			},
+		},
+		[EntityType.BlockheadMoneroOutputState_Timestamp]: {
+			"OutputStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroOutputState_Timestamp.OutputStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerooutputstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadMoneroSubaddressState]: {
+			"WalletIdAccountIndexAddressIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroSubaddressState.WalletIdAccountIndexAddressIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerosubaddressstate",
+			},
+		},
+		[EntityType.BlockheadMoneroSubaddressState_Timestamp]: {
+			"SubaddressStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroSubaddressState_Timestamp.SubaddressStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerosubaddressstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadMoneroTransferState]: {
+			"WalletIdTxHashTransferIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroTransferState.WalletIdTxHashTransferIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerotransferstate",
+			},
+		},
+		[EntityType.BlockheadMoneroTransferState_Timestamp]: {
+			"TransferStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroTransferState_Timestamp.TransferStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerotransferstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadMoneroWalletState]: {
+			"WalletId": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroWalletState.WalletId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerowalletstate",
+			},
+		},
+		[EntityType.BlockheadMoneroWalletState_Timestamp]: {
+			"WalletStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadMoneroWalletState_Timestamp.WalletStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadmonerowalletstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadWorkspace]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadWorkspace.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadworkspace",
+			},
+		},
+		[EntityType.BlockheadPanel]: {
+			"TreeIdPanelId": {
+				kind: "Research",
+				decision: "Retain BlockheadPanel.TreeIdPanelId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadpanel",
+			},
+		},
+		[EntityType.BlockheadPayjoinSession]: {
+			"SessionId": {
+				kind: "Research",
+				decision: "Retain BlockheadPayjoinSession.SessionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadpayjoinsession",
+			},
+		},
+		[EntityType.BlockheadQuilibriumAccountState]: {
+			"ConnectionIdNetworkAccountAddress": {
+				kind: "Research",
+				decision: "Retain BlockheadQuilibriumAccountState.ConnectionIdNetworkAccountAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumaccountstate",
+			},
+		},
+		[EntityType.BlockheadQuilibriumAccountState_Timestamp]: {
+			"AccountStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadQuilibriumAccountState_Timestamp.AccountStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumaccountstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadQuilibriumNodeState]: {
+			"ConnectionIdNetwork": {
+				kind: "Research",
+				decision: "Retain BlockheadQuilibriumNodeState.ConnectionIdNetwork as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumnodestate",
+			},
+		},
+		[EntityType.BlockheadQuilibriumNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadQuilibriumNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumnodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadQuilibriumPendingTransaction]: {
+			"AccountStateTransactionAddress": {
+				kind: "Research",
+				decision: "Retain BlockheadQuilibriumPendingTransaction.AccountStateTransactionAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumpendingtransaction",
+			},
+		},
+		[EntityType.BlockheadRadicleNodeInventory_Timestamp]: {
+			"NodeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadRadicleNodeInventory_Timestamp.NodeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradiclenodeinventory_timestamp",
+			},
+		},
+		[EntityType.BlockheadRadicleNodeState]: {
+			"ConnectionIdNodeId": {
+				kind: "Research",
+				decision: "Retain BlockheadRadicleNodeState.ConnectionIdNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradiclenodestate",
+			},
+		},
+		[EntityType.BlockheadRadicleNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadRadicleNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradiclenodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadRadiclePeer]: {
+			"NodePeerNodeId": {
+				kind: "Research",
+				decision: "Retain BlockheadRadiclePeer.NodePeerNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradiclepeer",
+			},
+		},
+		[EntityType.BlockheadRadicleSeedObservation_Timestamp]: {
+			"RepositoryNodeIdTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadRadicleSeedObservation_Timestamp.RepositoryNodeIdTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradicleseedobservation_timestamp",
+			},
+		},
+		[EntityType.BlockheadRadicleSyncSession]: {
+			"SessionId": {
+				kind: "Research",
+				decision: "Retain BlockheadRadicleSyncSession.SessionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadradiclesyncsession",
+			},
+		},
+		[EntityType.BlockheadSessionAction]: {
+			"SessionIdActionId": {
+				kind: "Research",
+				decision: "Retain BlockheadSessionAction.SessionIdActionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsessionaction",
+			},
+		},
+		[EntityType.BlockheadSessionSimulation]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadSessionSimulation.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsessionsimulation",
+			},
+		},
+		[EntityType.BlockheadSessionSimulationCall]: {
+			"SimulationIdCallPath": {
+				kind: "Research",
+				decision: "Retain BlockheadSessionSimulationCall.SimulationIdCallPath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsessionsimulationcall",
+			},
+		},
+		[EntityType.BlockheadSessionSimulationLog]: {
+			"SimulationIdLogIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadSessionSimulationLog.SimulationIdLogIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsessionsimulationlog",
+			},
+		},
+		[EntityType.BlockheadSharedAddress]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadSharedAddress.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsharedaddress",
+			},
+		},
+		[EntityType.BlockheadSiweChallenge]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadSiweChallenge.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsiwechallenge",
+			},
+		},
+		[EntityType.BlockheadLocalMediaIngest]: {
+			"IngestId": {
+				kind: "Research",
+				decision: "Retain BlockheadLocalMediaIngest.IngestId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlocalmediaingest",
+			},
+		},
+		[EntityType.BlockheadLocalMediaIngest_Timestamp]: {
+			"IngestTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadLocalMediaIngest_Timestamp.IngestTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadlocalmediaingest_timestamp",
+			},
+		},
+		[EntityType.BlockheadSocialPostSession]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadSocialPostSession.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsocialpostsession",
+			},
+		},
+		[EntityType.BlockheadSource_Timestamp]: {
+			"SourceTimestampMs": {
+				kind: "Research",
+				decision: "Retain BlockheadSource_Timestamp.SourceTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadsource_timestamp",
+			},
+		},
+		[EntityType.BlockheadStateChannel_Timestamp]: {
+			"ChannelTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadStateChannel_Timestamp.ChannelTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadstatechannel_timestamp",
+			},
+		},
+		[EntityType.BlockheadStateChannelDeposit]: {
+			"ChannelAccount": {
+				kind: "Research",
+				decision: "Retain BlockheadStateChannelDeposit.ChannelAccount as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadstatechanneldeposit",
+			},
+		},
+		[EntityType.BlockheadStateChannelDeposit_Timestamp]: {
+			"DepositTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadStateChannelDeposit_Timestamp.DepositTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadstatechanneldeposit_timestamp",
+			},
+		},
+		[EntityType.BlockheadStateChannelState]: {
+			"ChannelVersionStateData": {
+				kind: "Research",
+				decision: "Retain BlockheadStateChannelState.ChannelVersionStateData as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadstatechannelstate",
+			},
+		},
+		[EntityType.BlockheadStateChannelTransfer]: {
+			"ChannelTurnNumFromToAmount": {
+				kind: "Research",
+				decision: "Retain BlockheadStateChannelTransfer.ChannelTurnNumFromToAmount as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadstatechanneltransfer",
+			},
+		},
+		[EntityType.BlockheadSwapIntent]: {
+			"SessionIdActionId": {
+				kind: "Research",
+				decision: "Retain BlockheadSwapIntent.SessionIdActionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadswapintent",
+			},
+		},
+		[EntityType.BlockheadTransferIntent]: {
+			"SessionIdActionId": {
+				kind: "Research",
+				decision: "Retain BlockheadTransferIntent.SessionIdActionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadtransferintent",
+			},
+		},
+		[EntityType.BlockheadTransferRequest]: {
+			"IdEvmNetwork": {
+				kind: "Research",
+				decision: "Retain BlockheadTransferRequest.IdEvmNetwork as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadtransferrequest",
+			},
+		},
+		[EntityType.BlockheadWakuMessageObservation_Timestamp]: {
+			"NodeStateMessageHashTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadWakuMessageObservation_Timestamp.NodeStateMessageHashTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwakumessageobservation_timestamp",
+			},
+		},
+		[EntityType.BlockheadWakuNodeState]: {
+			"ConnectionIdNodeId": {
+				kind: "Research",
+				decision: "Retain BlockheadWakuNodeState.ConnectionIdNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwakunodestate",
+			},
+		},
+		[EntityType.BlockheadWakuNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadWakuNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwakunodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadWallet]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadWallet.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwallet",
+			},
+		},
+		[EntityType.BlockheadWalletAccount]: {
+			"Caip10": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletAccount.Caip10 as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletaccount",
+			},
+		},
+		[EntityType.BlockheadWalletAuthentication]: {
+			"AuthenticationId": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletAuthentication.AuthenticationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletauthentication",
+			},
+		},
+		[EntityType.BlockheadWalletCapabilityGrant]: {
+			"GrantId": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletCapabilityGrant.GrantId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletcapabilitygrant",
+			},
+		},
+		[EntityType.BlockheadWalletRequest]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletRequest.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletrequest",
+			},
+		},
+		[EntityType.BlockheadWalletRequestCall]: {
+			"WalletRequestCallIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletRequestCall.WalletRequestCallIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletrequestcall",
+			},
+		},
+		[EntityType.BlockheadWalletRequest_Timestamp]: {
+			"WalletRequestTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletRequest_Timestamp.WalletRequestTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletrequest_timestamp",
+			},
+		},
+		[EntityType.BlockheadWalletTransportSession]: {
+			"ConnectionKeyTransportSessionId": {
+				kind: "Research",
+				decision: "Retain BlockheadWalletTransportSession.ConnectionKeyTransportSessionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadwallettransportsession",
+			},
+		},
+		[EntityType.BlockheadZcashNoteState]: {
+			"WalletIdPoolNoteCommitment": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashNoteState.WalletIdPoolNoteCommitment as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashnotestate",
+			},
+		},
+		[EntityType.BlockheadZcashNoteState_Timestamp]: {
+			"NoteStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashNoteState_Timestamp.NoteStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashnotestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadZcashViewingKey]: {
+			"WalletIdKeyFingerprint": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashViewingKey.WalletIdKeyFingerprint as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashviewingkey",
+			},
+		},
+		[EntityType.BlockheadZcashViewingKey_Timestamp]: {
+			"ViewingKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashViewingKey_Timestamp.ViewingKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashviewingkey_timestamp",
+			},
+		},
+		[EntityType.BlockheadZcashWalletState]: {
+			"WalletId": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashWalletState.WalletId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashwalletstate",
+			},
+		},
+		[EntityType.BlockheadZcashWalletState_Timestamp]: {
+			"WalletStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadZcashWalletState_Timestamp.WalletStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzcashwalletstate_timestamp",
+			},
+		},
+		[EntityType.BlockheadZeroGStorageNodeState]: {
+			"ConnectionIdNetworkNodeId": {
+				kind: "Research",
+				decision: "Retain BlockheadZeroGStorageNodeState.ConnectionIdNetworkNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzerogstoragenodestate",
+			},
+		},
+		[EntityType.BlockheadZeroGStorageNodeState_Timestamp]: {
+			"NodeStateTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BlockheadZeroGStorageNodeState_Timestamp.NodeStateTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzerogstoragenodestate_timestamp",
+			},
+		},
+		[EntityType.BlockheadZeroGStorageProof]: {
+			"NodeStateProofId": {
+				kind: "Research",
+				decision: "Retain BlockheadZeroGStorageProof.NodeStateProofId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzerogstorageproof",
+			},
+		},
+		[EntityType.BlockheadZeroGStoredChunk]: {
+			"NodeStateDataRootChunkIndex": {
+				kind: "Research",
+				decision: "Retain BlockheadZeroGStoredChunk.NodeStateDataRootChunkIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#blockheadzerogstoredchunk",
+			},
+		},
+		[EntityType.BnbBeaconBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain BnbBeaconBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeaconblock",
+			},
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain BnbBeaconBlock.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeaconblock",
+			},
+		},
+		[EntityType.BnbBeaconNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain BnbBeaconNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeaconnetwork",
+			},
+		},
+		[EntityType.BnbBeaconNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BnbBeaconNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeaconnetwork_timestamp",
+			},
+		},
+		[EntityType.BnbBeaconToken]: {
+			"NetworkSymbol": {
+				kind: "Research",
+				decision: "Retain BnbBeaconToken.NetworkSymbol as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontoken",
+			},
+		},
+		[EntityType.BnbBeaconToken_Timestamp]: {
+			"TokenTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BnbBeaconToken_Timestamp.TokenTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontoken_timestamp",
+			},
+		},
+		[EntityType.BnbBeaconTokenMigration]: {
+			"TokenTargetNetworkTargetAddress": {
+				kind: "Research",
+				decision: "Retain BnbBeaconTokenMigration.TokenTargetNetworkTargetAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontokenmigration",
+			},
+		},
+		[EntityType.BnbBeaconTokenMigration_Timestamp]: {
+			"MigrationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BnbBeaconTokenMigration_Timestamp.MigrationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontokenmigration_timestamp",
+			},
+		},
+		[EntityType.BnbBeaconTokenTransfer]: {
+			"TransactionTransferIndex": {
+				kind: "Research",
+				decision: "Retain BnbBeaconTokenTransfer.TransactionTransferIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontokentransfer",
+			},
+		},
+		[EntityType.BnbBeaconTransaction]: {
+			"NetworkTxHash": {
+				kind: "Research",
+				decision: "Retain BnbBeaconTransaction.NetworkTxHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbbeacontransaction",
+			},
+		},
+		[EntityType.BnbValidator]: {
+			"NetworkOperatorAddress": {
+				kind: "Research",
+				decision: "Retain BnbValidator.NetworkOperatorAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbvalidator",
+			},
+		},
+		[EntityType.BnbValidator_Timestamp]: {
+			"ValidatorTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BnbValidator_Timestamp.ValidatorTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bnbvalidator_timestamp",
+			},
+		},
+		[EntityType.BridgeRouteQuote_Timestamp]: {
+			"SourceQuoteRequestHashTimestampMs": {
+				kind: "Research",
+				decision: "Retain BridgeRouteQuote_Timestamp.SourceQuoteRequestHashTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bridgeroutequote_timestamp",
+			},
+		},
+		[EntityType.BridgeRouteQuoteStep]: {
+			"QuoteIndexInQuote": {
+				kind: "Research",
+				decision: "Retain BridgeRouteQuoteStep.QuoteIndexInQuote as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bridgeroutequotestep",
+			},
+		},
+		[EntityType.BridgeTransfer]: {
+			"SourceTransferId": {
+				kind: "Research",
+				decision: "Retain BridgeTransfer.SourceTransferId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bridgetransfer",
+			},
+			"SourceTxSourceLogIndex": {
+				kind: "Research",
+				decision: "Retain BridgeTransfer.SourceTxSourceLogIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bridgetransfer",
+			},
+		},
+		[EntityType.BridgeTransfer_Timestamp]: {
+			"TransferTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain BridgeTransfer_Timestamp.TransferTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bridgetransfer_timestamp",
+			},
+		},
+		[EntityType.CardanoAddress]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain CardanoAddress.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoaddress",
+			},
+		},
+		[EntityType.CardanoAddress_Timestamp]: {
+			"AddressBlockSlotSource": {
+				kind: "Research",
+				decision: "Retain CardanoAddress_Timestamp.AddressBlockSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoaddress_timestamp",
+			},
+		},
+		[EntityType.CardanoBlock]: {
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain CardanoBlock.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoblock",
+			},
+			"NetworkSlot": {
+				kind: "Research",
+				decision: "Retain CardanoBlock.NetworkSlot as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoblock",
+			},
+			"NetworkBlockNo": {
+				kind: "Research",
+				decision: "Retain CardanoBlock.NetworkBlockNo as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoblock",
+			},
+		},
+		[EntityType.CardanoCertificate]: {
+			"TransactionCertificateIndex": {
+				kind: "Research",
+				decision: "Retain CardanoCertificate.TransactionCertificateIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanocertificate",
+			},
+		},
+		[EntityType.CardanoConstitution_Epoch]: {
+			"NetworkEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoConstitution_Epoch.NetworkEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoconstitution_epoch",
+			},
+		},
+		[EntityType.CardanoDRep_Timestamp]: {
+			"DrepEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoDRep_Timestamp.DrepEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanodrep_timestamp",
+			},
+		},
+		[EntityType.CardanoGovernanceProposal_Timestamp]: {
+			"ProposalEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoGovernanceProposal_Timestamp.ProposalEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanogovernanceproposal_timestamp",
+			},
+		},
+		[EntityType.CardanoGovernanceVote]: {
+			"ProposalVoterKindVoterCredentialVoteTxHashSource": {
+				kind: "Research",
+				decision: "Retain CardanoGovernanceVote.ProposalVoterKindVoterCredentialVoteTxHashSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanogovernancevote",
+			},
+		},
+		[EntityType.CardanoNativeAsset]: {
+			"NetworkPolicyIdAssetName": {
+				kind: "Research",
+				decision: "Retain CardanoNativeAsset.NetworkPolicyIdAssetName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanonativeasset",
+			},
+		},
+		[EntityType.CardanoNativeAsset_Timestamp]: {
+			"AssetSlotSource": {
+				kind: "Research",
+				decision: "Retain CardanoNativeAsset_Timestamp.AssetSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanonativeasset_timestamp",
+			},
+		},
+		[EntityType.CardanoNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CardanoNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanonetwork_timestamp",
+			},
+		},
+		[EntityType.CardanoProtocolParameters_Epoch]: {
+			"NetworkEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoProtocolParameters_Epoch.NetworkEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoprotocolparameters_epoch",
+			},
+		},
+		[EntityType.CardanoScriptWitness]: {
+			"TransactionWitnessIndex": {
+				kind: "Research",
+				decision: "Retain CardanoScriptWitness.TransactionWitnessIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanoscriptwitness",
+			},
+		},
+		[EntityType.CardanoStakeCredential]: {
+			"NetworkCredential": {
+				kind: "Research",
+				decision: "Retain CardanoStakeCredential.NetworkCredential as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanostakecredential",
+			},
+		},
+		[EntityType.CardanoStakeDelegation_Epoch]: {
+			"StakeCredentialEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoStakeDelegation_Epoch.StakeCredentialEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanostakedelegation_epoch",
+			},
+		},
+		[EntityType.CardanoStakePool_Timestamp]: {
+			"PoolEpochSource": {
+				kind: "Research",
+				decision: "Retain CardanoStakePool_Timestamp.PoolEpochSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanostakepool_timestamp",
+			},
+		},
+		[EntityType.CardanoTransaction]: {
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain CardanoTransaction.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanotransaction",
+			},
+		},
+		[EntityType.CardanoTxInput]: {
+			"TransactionInputIndex": {
+				kind: "Research",
+				decision: "Retain CardanoTxInput.TransactionInputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanotxinput",
+			},
+		},
+		[EntityType.CardanoTxOutput]: {
+			"TransactionOutputIndex": {
+				kind: "Research",
+				decision: "Retain CardanoTxOutput.TransactionOutputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanotxoutput",
+			},
+		},
+		[EntityType.CardanoTxOutputAsset]: {
+			"OutputAsset": {
+				kind: "Research",
+				decision: "Retain CardanoTxOutputAsset.OutputAsset as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cardanotxoutputasset",
+			},
+		},
+		[EntityType.CashuKeyset]: {
+			"CashuMintKeysetId": {
+				kind: "Research",
+				decision: "Retain CashuKeyset.CashuMintKeysetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cashukeyset",
+			},
+		},
+		[EntityType.CashuKeyset_Timestamp]: {
+			"KeysetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CashuKeyset_Timestamp.KeysetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cashukeyset_timestamp",
+			},
+		},
+		[EntityType.CashuMint]: {
+			"MintUrl": {
+				kind: "Research",
+				decision: "Retain CashuMint.MintUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cashumint",
+			},
+		},
+		[EntityType.CashuMint_Timestamp]: {
+			"MintTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CashuMint_Timestamp.MintTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cashumint_timestamp",
+			},
+		},
+		[EntityType.CctpAllowance]: {
+			"ApiHost": {
+				kind: "Research",
+				decision: "Retain CctpAllowance.ApiHost as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpallowance",
+			},
+		},
+		[EntityType.CctpAttestation_Timestamp]: {
+			"MessageTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CctpAttestation_Timestamp.MessageTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpattestation_timestamp",
+			},
+		},
+		[EntityType.CctpBurnFee_Timestamp]: {
+			"SourceDomainDestinationDomainTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CctpBurnFee_Timestamp.SourceDomainDestinationDomainTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpburnfee_timestamp",
+			},
+		},
+		[EntityType.CctpDomainSupport]: {
+			"CctpVersionDomainId": {
+				kind: "Research",
+				decision: "Retain CctpDomainSupport.CctpVersionDomainId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpdomainsupport",
+			},
+		},
+		[EntityType.CctpFastBurnAllowance_Timestamp]: {
+			"TimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CctpFastBurnAllowance_Timestamp.TimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpfastburnallowance_timestamp",
+			},
+		},
+		[EntityType.CctpFee]: {
+			"ApiHostFromDomainToDomain": {
+				kind: "Research",
+				decision: "Retain CctpFee.ApiHostFromDomainToDomain as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpfee",
+			},
+		},
+		[EntityType.CctpMessage]: {
+			"SourceDomainNonce": {
+				kind: "Research",
+				decision: "Retain CctpMessage.SourceDomainNonce as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cctpmessage",
+			},
+		},
+		[EntityType.CelestiaBlob]: {
+			"NamespaceHeightCommitment": {
+				kind: "Research",
+				decision: "Retain CelestiaBlob.NamespaceHeightCommitment as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestiablob",
+			},
+		},
+		[EntityType.CelestiaBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain CelestiaBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestiablock",
+			},
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain CelestiaBlock.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestiablock",
+			},
+		},
+		[EntityType.CelestiaNamespace]: {
+			"NetworkNamespaceId": {
+				kind: "Research",
+				decision: "Retain CelestiaNamespace.NetworkNamespaceId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestianamespace",
+			},
+		},
+		[EntityType.CelestiaNamespace_Timestamp]: {
+			"NamespaceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CelestiaNamespace_Timestamp.NamespaceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestianamespace_timestamp",
+			},
+		},
+		[EntityType.CelestiaNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain CelestiaNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestianetwork",
+			},
+		},
+		[EntityType.CelestiaNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CelestiaNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#celestianetwork_timestamp",
+			},
+		},
+		[EntityType.ClaimTopicRequirement]: {
+			"ProfileTopicKey": {
+				kind: "Research",
+				decision: "Retain ClaimTopicRequirement.ProfileTopicKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#claimtopicrequirement",
+			},
+		},
+		[EntityType.CodexDataset]: {
+			"Cid": {
+				kind: "Research",
+				decision: "Retain CodexDataset.Cid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#codexdataset",
+			},
+		},
+		[EntityType.ComplianceModule]: {
+			"ProfileModuleKey": {
+				kind: "Research",
+				decision: "Retain ComplianceModule.ProfileModuleKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#compliancemodule",
+			},
+		},
+		[EntityType.ContractInterfaceMember]: {
+			"InterfaceIdMemberKey": {
+				kind: "Research",
+				decision: "Retain ContractInterfaceMember.InterfaceIdMemberKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#contractinterfacemember",
+			},
+		},
+		[EntityType.CosmosAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CosmosAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosaccount_timestamp",
+			},
+		},
+		[EntityType.CosmosBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain CosmosBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosblock",
+			},
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain CosmosBlock.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosblock",
+			},
+		},
+		[EntityType.CosmosContract]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain CosmosContract.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmoscontract",
+			},
+		},
+		[EntityType.CosmosDenom]: {
+			"NetworkDenom": {
+				kind: "Research",
+				decision: "Retain CosmosDenom.NetworkDenom as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosdenom",
+			},
+		},
+		[EntityType.CosmosGovernanceProposal]: {
+			"NetworkProposalId": {
+				kind: "Research",
+				decision: "Retain CosmosGovernanceProposal.NetworkProposalId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosgovernanceproposal",
+			},
+		},
+		[EntityType.CosmosGovernanceProposal_Timestamp]: {
+			"ProposalTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CosmosGovernanceProposal_Timestamp.ProposalTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosgovernanceproposal_timestamp",
+			},
+		},
+		[EntityType.CosmosMessage]: {
+			"TransactionIndexInTransaction": {
+				kind: "Research",
+				decision: "Retain CosmosMessage.TransactionIndexInTransaction as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosmessage",
+			},
+		},
+		[EntityType.CosmosModule]: {
+			"NetworkModuleName": {
+				kind: "Research",
+				decision: "Retain CosmosModule.NetworkModuleName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosmodule",
+			},
+		},
+		[EntityType.CosmosTransaction]: {
+			"NetworkTxHash": {
+				kind: "Research",
+				decision: "Retain CosmosTransaction.NetworkTxHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmostransaction",
+			},
+		},
+		[EntityType.CosmosValidator]: {
+			"NetworkOperatorAddress": {
+				kind: "Research",
+				decision: "Retain CosmosValidator.NetworkOperatorAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosvalidator",
+			},
+		},
+		[EntityType.CosmosValidator_Timestamp]: {
+			"ValidatorTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain CosmosValidator_Timestamp.ValidatorTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cosmosvalidator_timestamp",
+			},
+		},
+		[EntityType.CronosNetworkProfile]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain CronosNetworkProfile.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#cronosnetworkprofile",
+			},
+		},
+		[EntityType.DogecoinAuxPowMerkleBranch]: {
+			"AuxPowBranchKind": {
+				kind: "Research",
+				decision: "Retain DogecoinAuxPowMerkleBranch.AuxPowBranchKind as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dogecoinauxpowmerklebranch",
+			},
+		},
+		[EntityType.DogecoinAuxPowParentBlockHeader]: {
+			"AuxPow": {
+				kind: "Research",
+				decision: "Retain DogecoinAuxPowParentBlockHeader.AuxPow as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dogecoinauxpowparentblockheader",
+			},
+		},
+		[EntityType.DogecoinBlockAuxPow]: {
+			"Block": {
+				kind: "Research",
+				decision: "Retain DogecoinBlockAuxPow.Block as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dogecoinblockauxpow",
+			},
+		},
+		[EntityType.DydxChainMarket]: {
+			"NetworkTicker": {
+				kind: "Research",
+				decision: "Retain DydxChainMarket.NetworkTicker as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainmarket",
+			},
+		},
+		[EntityType.DydxChainMarket_Timestamp]: {
+			"MarketTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain DydxChainMarket_Timestamp.MarketTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainmarket_timestamp",
+			},
+		},
+		[EntityType.DydxChainNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain DydxChainNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainnetwork",
+			},
+		},
+		[EntityType.DydxChainNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain DydxChainNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainnetwork_timestamp",
+			},
+		},
+		[EntityType.DydxChainOrder]: {
+			"SubaccountOrderId": {
+				kind: "Research",
+				decision: "Retain DydxChainOrder.SubaccountOrderId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainorder",
+			},
+		},
+		[EntityType.DydxChainOrder_Timestamp]: {
+			"OrderTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain DydxChainOrder_Timestamp.OrderTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainorder_timestamp",
+			},
+		},
+		[EntityType.DydxChainPerpetualPosition_Timestamp]: {
+			"SubaccountMarketTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain DydxChainPerpetualPosition_Timestamp.SubaccountMarketTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainperpetualposition_timestamp",
+			},
+		},
+		[EntityType.DydxChainSubaccount]: {
+			"NetworkAccountSubaccountNumber": {
+				kind: "Research",
+				decision: "Retain DydxChainSubaccount.NetworkAccountSubaccountNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainsubaccount",
+			},
+		},
+		[EntityType.DydxChainSubaccount_Timestamp]: {
+			"SubaccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain DydxChainSubaccount_Timestamp.SubaccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#dydxchainsubaccount_timestamp",
+			},
+		},
+		[EntityType.EasAttestation]: {
+			"NetworkUid": {
+				kind: "Research",
+				decision: "Retain EasAttestation.NetworkUid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#easattestation",
+			},
+		},
+		[EntityType.EasAttestation_Timestamp]: {
+			"AttestationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EasAttestation_Timestamp.AttestationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#easattestation_timestamp",
+			},
+		},
+		[EntityType.EasSchema]: {
+			"NetworkSchemaUid": {
+				kind: "Research",
+				decision: "Retain EasSchema.NetworkSchemaUid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#easschema",
+			},
+		},
+		[EntityType.EigenLayerAllocation_Timestamp]: {
+			"OperatorAvsStrategyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EigenLayerAllocation_Timestamp.OperatorAvsStrategyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerallocation_timestamp",
+			},
+		},
+		[EntityType.EigenLayerAvs]: {
+			"NetworkAvsAddress": {
+				kind: "Research",
+				decision: "Retain EigenLayerAvs.NetworkAvsAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayeravs",
+			},
+		},
+		[EntityType.EigenLayerAvs_Timestamp]: {
+			"AvsTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EigenLayerAvs_Timestamp.AvsTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayeravs_timestamp",
+			},
+		},
+		[EntityType.EigenLayerDelegation_Timestamp]: {
+			"StakerOperatorStrategyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EigenLayerDelegation_Timestamp.StakerOperatorStrategyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerdelegation_timestamp",
+			},
+		},
+		[EntityType.EigenLayerOperator]: {
+			"NetworkOperatorAddress": {
+				kind: "Research",
+				decision: "Retain EigenLayerOperator.NetworkOperatorAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayeroperator",
+			},
+		},
+		[EntityType.EigenLayerProtocol]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain EigenLayerProtocol.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerprotocol",
+			},
+		},
+		[EntityType.EigenLayerReward_Timestamp]: {
+			"EarnerRewardContextKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EigenLayerReward_Timestamp.EarnerRewardContextKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerreward_timestamp",
+			},
+		},
+		[EntityType.EigenLayerSlashingEvent]: {
+			"NetworkTransactionHashLogIndex": {
+				kind: "Research",
+				decision: "Retain EigenLayerSlashingEvent.NetworkTransactionHashLogIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerslashingevent",
+			},
+			"OperatorAvsSourceSlashId": {
+				kind: "Research",
+				decision: "Retain EigenLayerSlashingEvent.OperatorAvsSourceSlashId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerslashingevent",
+			},
+		},
+		[EntityType.EigenLayerStrategy]: {
+			"NetworkStrategyAddress": {
+				kind: "Research",
+				decision: "Retain EigenLayerStrategy.NetworkStrategyAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerstrategy",
+			},
+		},
+		[EntityType.EigenLayerStrategy_Timestamp]: {
+			"StrategyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EigenLayerStrategy_Timestamp.StrategyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eigenlayerstrategy_timestamp",
+			},
+		},
+		[EntityType.Eip7702Authorization]: {
+			"TransactionAuthorizationIndex": {
+				kind: "Research",
+				decision: "Retain Eip7702Authorization.TransactionAuthorizationIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip7702authorization",
+			},
+		},
+		[EntityType.Eip8004AgentRegistration]: {
+			"NamespaceChainIdIdentityRegistryAgentId": {
+				kind: "Research",
+				decision: "Retain Eip8004AgentRegistration.NamespaceChainIdIdentityRegistryAgentId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004agentregistration",
+			},
+		},
+		[EntityType.Eip8004AgentRegistration_Timestamp]: {
+			"RegistrationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain Eip8004AgentRegistration_Timestamp.RegistrationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004agentregistration_timestamp",
+			},
+		},
+		[EntityType.Eip8004AgentRegistrationFile]: {
+			"RegistrationFileUrl": {
+				kind: "Research",
+				decision: "Retain Eip8004AgentRegistrationFile.RegistrationFileUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004agentregistrationfile",
+			},
+		},
+		[EntityType.Eip8004AgentServiceEndpoint]: {
+			"RegistrationFileEndpointKindEndpointUrl": {
+				kind: "Research",
+				decision: "Retain Eip8004AgentServiceEndpoint.RegistrationFileEndpointKindEndpointUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004agentserviceendpoint",
+			},
+		},
+		[EntityType.Eip8004CrossRegistration]: {
+			"RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash": {
+				kind: "Research",
+				decision: "Retain Eip8004CrossRegistration.RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004crossregistration",
+			},
+		},
+		[EntityType.Eip8004EndpointDomainVerification_Timestamp]: {
+			"EndpointUrlTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain Eip8004EndpointDomainVerification_Timestamp.EndpointUrlTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004endpointdomainverification_timestamp",
+			},
+		},
+		[EntityType.Eip8004ReputationFeedback_Timestamp]: {
+			"RegistrationClientAddressFeedbackIndexTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain Eip8004ReputationFeedback_Timestamp.RegistrationClientAddressFeedbackIndexTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004reputationfeedback_timestamp",
+			},
+		},
+		[EntityType.Eip8004Validation_Timestamp]: {
+			"RequestHashAlgorithmRequestHashTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain Eip8004Validation_Timestamp.RequestHashAlgorithmRequestHashTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eip8004validation_timestamp",
+			},
+		},
+		[EntityType.ElementsAsset]: {
+			"ElementsNetworkAssetId": {
+				kind: "Research",
+				decision: "Retain ElementsAsset.ElementsNetworkAssetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementsasset",
+			},
+		},
+		[EntityType.ElementsAsset_Timestamp]: {
+			"AssetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ElementsAsset_Timestamp.AssetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementsasset_timestamp",
+			},
+		},
+		[EntityType.ElementsIssuance]: {
+			"UtxoTransactionInputIndex": {
+				kind: "Research",
+				decision: "Retain ElementsIssuance.UtxoTransactionInputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementsissuance",
+			},
+		},
+		[EntityType.ElementsNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain ElementsNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementsnetwork",
+			},
+		},
+		[EntityType.ElementsPeg]: {
+			"ElementsNetworkPegTransactionIdDirection": {
+				kind: "Research",
+				decision: "Retain ElementsPeg.ElementsNetworkPegTransactionIdDirection as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementspeg",
+			},
+		},
+		[EntityType.ElementsPeg_Timestamp]: {
+			"PegTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ElementsPeg_Timestamp.PegTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#elementspeg_timestamp",
+			},
+		},
+		[EntityType.EnsReverseRecord]: {
+			"AccountName": {
+				kind: "Research",
+				decision: "Retain EnsReverseRecord.AccountName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ensreverserecord",
+			},
+		},
+		[EntityType.EnsReverseRecord_Timestamp]: {
+			"ReverseRecordTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EnsReverseRecord_Timestamp.ReverseRecordTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ensreverserecord_timestamp",
+			},
+		},
+		[EntityType.Erc4626Vault]: {
+			"Contract": {
+				kind: "Research",
+				decision: "Retain Erc4626Vault.Contract as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#erc4626vault",
+			},
+		},
+		[EntityType.Erc4626Vault_Block]: {
+			"VaultBlockNumberSource": {
+				kind: "Research",
+				decision: "Retain Erc4626Vault_Block.VaultBlockNumberSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#erc4626vault_block",
+			},
+		},
+		[EntityType.Erc4626Vault_Timestamp]: {
+			"VaultTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain Erc4626Vault_Timestamp.VaultTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#erc4626vault_timestamp",
+			},
+		},
+		[EntityType.EthereumConsensusUpgrade]: {
+			"EvmNetworkUpgradeId": {
+				kind: "Research",
+				decision: "Retain EthereumConsensusUpgrade.EvmNetworkUpgradeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ethereumconsensusupgrade",
+			},
+		},
+		[EntityType.EthereumExecutionUpgrade]: {
+			"EvmNetworkUpgradeId": {
+				kind: "Research",
+				decision: "Retain EthereumExecutionUpgrade.EvmNetworkUpgradeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ethereumexecutionupgrade",
+			},
+		},
+		[EntityType.EthereumNetworkUpgrade]: {
+			"EvmNetworkUpgradeId": {
+				kind: "Research",
+				decision: "Retain EthereumNetworkUpgrade.EvmNetworkUpgradeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ethereumnetworkupgrade",
+			},
+		},
+		[EntityType.EvmAccount]: {
+			"AddressInteropAddress": {
+				kind: "Research",
+				decision: "Retain EvmAccount.AddressInteropAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmaccount",
+			},
+		},
+		[EntityType.EvmActorCoinAllowance_Block]: {
+			"AllowanceBlockNumberSource": {
+				kind: "Research",
+				decision: "Retain EvmActorCoinAllowance_Block.AllowanceBlockNumberSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmactorcoinallowance_block",
+			},
+		},
+		[EntityType.EvmBlock]: {
+			"EvmNetworkBlockHash": {
+				kind: "Research",
+				decision: "Retain EvmBlock.EvmNetworkBlockHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmblock",
+			},
+		},
+		[EntityType.EvmContractCompilation]: {
+			"EvmContract": {
+				kind: "Research",
+				decision: "Retain EvmContractCompilation.EvmContract as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmcontractcompilation",
+			},
+		},
+		[EntityType.EvmContractSourceBundle]: {
+			"EvmContract": {
+				kind: "Research",
+				decision: "Retain EvmContractSourceBundle.EvmContract as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmcontractsourcebundle",
+			},
+		},
+		[EntityType.EvmNetworkAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EvmNetworkAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmnetworkaccount_timestamp",
+			},
+		},
+		[EntityType.EvmNetworkActorCoinBalance]: {
+			"EvmAccountNativeCoinInstance": {
+				kind: "Research",
+				decision: "Retain EvmNetworkActorCoinBalance.EvmAccountNativeCoinInstance as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmnetworkactorcoinbalance",
+			},
+		},
+		[EntityType.EvmNetworkActorCoinBalance_EvmBlock]: {
+			"EvmNetworkActorCoinBalanceEvmBlock": {
+				kind: "Research",
+				decision: "Retain EvmNetworkActorCoinBalance_EvmBlock.EvmNetworkActorCoinBalanceEvmBlock as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmnetworkactorcoinbalance_evmblock",
+			},
+		},
+		[EntityType.EvmNetworkActorCoinBalance_Timestamp]: {
+			"ActorCoinTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EvmNetworkActorCoinBalance_Timestamp.ActorCoinTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmnetworkactorcoinbalance_timestamp",
+			},
+		},
+		[EntityType.EvmStorageRead_Timestamp]: {
+			"ContractSlotTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain EvmStorageRead_Timestamp.ContractSlotTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmstorageread_timestamp",
+			},
+		},
+		[EntityType.EvmTrace]: {
+			"TransactionTraceAddress": {
+				kind: "Research",
+				decision: "Retain EvmTrace.TransactionTraceAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#evmtrace",
+			},
+		},
+		[EntityType.FarcasterCast]: {
+			"Hash": {
+				kind: "Research",
+				decision: "Retain FarcasterCast.Hash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#farcastercast",
+			},
+			"ClientUrl": {
+				kind: "Research",
+				decision: "Retain FarcasterCast.ClientUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#farcastercast",
+			},
+		},
+		[EntityType.FedimintFederation]: {
+			"FederationId": {
+				kind: "Research",
+				decision: "Retain FedimintFederation.FederationId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#fedimintfederation",
+			},
+		},
+		[EntityType.FedimintFederation_Timestamp]: {
+			"FederationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain FedimintFederation_Timestamp.FederationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#fedimintfederation_timestamp",
+			},
+		},
+		[EntityType.FedimintGateway]: {
+			"GatewayId": {
+				kind: "Research",
+				decision: "Retain FedimintGateway.GatewayId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#fedimintgateway",
+			},
+		},
+		[EntityType.FedimintGateway_Timestamp]: {
+			"GatewayTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain FedimintGateway_Timestamp.GatewayTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#fedimintgateway_timestamp",
+			},
+		},
+		[EntityType.FilecoinBlock]: {
+			"NetworkCid": {
+				kind: "Research",
+				decision: "Retain FilecoinBlock.NetworkCid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinblock",
+			},
+		},
+		[EntityType.FilecoinDeal]: {
+			"NetworkDealId": {
+				kind: "Research",
+				decision: "Retain FilecoinDeal.NetworkDealId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoindeal",
+			},
+		},
+		[EntityType.FilecoinDeal_Timestamp]: {
+			"DealTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain FilecoinDeal_Timestamp.DealTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoindeal_timestamp",
+			},
+		},
+		[EntityType.FilecoinMessage]: {
+			"NetworkCid": {
+				kind: "Research",
+				decision: "Retain FilecoinMessage.NetworkCid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessage",
+			},
+		},
+		[EntityType.FilecoinMessageReceipt]: {
+			"MessageTipsetKeySource": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageReceipt.MessageTipsetKeySource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessagereceipt",
+			},
+		},
+		[EntityType.FilecoinNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain FilecoinNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinnetwork",
+			},
+		},
+		[EntityType.FilecoinNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain FilecoinNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinnetwork_timestamp",
+			},
+		},
+		[EntityType.FilecoinSector]: {
+			"FilecoinMinerSectorNumber": {
+				kind: "Research",
+				decision: "Retain FilecoinSector.FilecoinMinerSectorNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinsector",
+			},
+		},
+		[EntityType.FilecoinSector_Timestamp]: {
+			"SectorTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain FilecoinSector_Timestamp.SectorTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinsector_timestamp",
+			},
+		},
+		[EntityType.FilecoinTipset]: {
+			"NetworkHeightTipsetKey": {
+				kind: "Research",
+				decision: "Retain FilecoinTipset.NetworkHeightTipsetKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecointipset",
+			},
+		},
+		[EntityType.GitBlob]: {
+			"ObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitBlob.ObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitblob",
+			},
+		},
+		[EntityType.GitCommit]: {
+			"ObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitCommit.ObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitcommit",
+			},
+		},
+		[EntityType.GitFetchObservation]: {
+			"RepositoryRemoteNameTimestampSource": {
+				kind: "Research",
+				decision: "Retain GitFetchObservation.RepositoryRemoteNameTimestampSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitfetchobservation",
+			},
+		},
+		[EntityType.GitForgeIssue]: {
+			"ForgeMirrorIssueNumber": {
+				kind: "Research",
+				decision: "Retain GitForgeIssue.ForgeMirrorIssueNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitforgeissue",
+			},
+		},
+		[EntityType.GitForgeMirror]: {
+			"ForgeHostOwnerRepositoryName": {
+				kind: "Research",
+				decision: "Retain GitForgeMirror.ForgeHostOwnerRepositoryName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitforgemirror",
+			},
+		},
+		[EntityType.GitForgePullRequest]: {
+			"ForgeMirrorPullRequestNumber": {
+				kind: "Research",
+				decision: "Retain GitForgePullRequest.ForgeMirrorPullRequestNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitforgepullrequest",
+			},
+		},
+		[EntityType.GitForgeRelease]: {
+			"ForgeMirrorReleaseTagName": {
+				kind: "Research",
+				decision: "Retain GitForgeRelease.ForgeMirrorReleaseTagName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitforgerelease",
+			},
+		},
+		[EntityType.GitLooseObject]: {
+			"ObjectIdObjectFormatByteSource": {
+				kind: "Research",
+				decision: "Retain GitLooseObject.ObjectIdObjectFormatByteSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitlooseobject",
+			},
+		},
+		[EntityType.GitObject]: {
+			"ObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitObject.ObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitobject",
+			},
+		},
+		[EntityType.GitObjectVerification_Timestamp]: {
+			"ObjectIdObjectFormatByteSourceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain GitObjectVerification_Timestamp.ObjectIdObjectFormatByteSourceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitobjectverification_timestamp",
+			},
+		},
+		[EntityType.GitPackedObject]: {
+			"PackHashObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitPackedObject.PackHashObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitpackedobject",
+			},
+		},
+		[EntityType.GitPackfile]: {
+			"PackHash": {
+				kind: "Research",
+				decision: "Retain GitPackfile.PackHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitpackfile",
+			},
+		},
+		[EntityType.GitRef]: {
+			"RepositoryRefName": {
+				kind: "Research",
+				decision: "Retain GitRef.RepositoryRefName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitref",
+			},
+		},
+		[EntityType.GitRefObservation_Timestamp]: {
+			"RefTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain GitRefObservation_Timestamp.RefTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitrefobservation_timestamp",
+			},
+		},
+		[EntityType.GitRefUpdate]: {
+			"RepositoryRefNameOldObjectIdNewObjectId": {
+				kind: "Research",
+				decision: "Retain GitRefUpdate.RepositoryRefNameOldObjectIdNewObjectId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitrefupdate",
+			},
+		},
+		[EntityType.GitRemote]: {
+			"RepositoryRemoteName": {
+				kind: "Research",
+				decision: "Retain GitRemote.RepositoryRemoteName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitremote",
+			},
+		},
+		[EntityType.GitRepository]: {
+			"RepositoryId": {
+				kind: "Research",
+				decision: "Retain GitRepository.RepositoryId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitrepository",
+			},
+			"CanonicalRemoteUrl": {
+				kind: "Research",
+				decision: "Retain GitRepository.CanonicalRemoteUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitrepository",
+			},
+		},
+		[EntityType.GitSignature]: {
+			"SignatureId": {
+				kind: "Research",
+				decision: "Retain GitSignature.SignatureId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gitsignature",
+			},
+		},
+		[EntityType.GitTag]: {
+			"ObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitTag.ObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gittag",
+			},
+		},
+		[EntityType.GitTree]: {
+			"ObjectIdObjectFormat": {
+				kind: "Research",
+				decision: "Retain GitTree.ObjectIdObjectFormat as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gittree",
+			},
+		},
+		[EntityType.GitTreeEntry]: {
+			"TreePath": {
+				kind: "Research",
+				decision: "Retain GitTreeEntry.TreePath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gittreeentry",
+			},
+		},
+		[EntityType.GitTreePathResolution]: {
+			"RepositoryCommitObjectIdPath": {
+				kind: "Research",
+				decision: "Retain GitTreePathResolution.RepositoryCommitObjectIdPath as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gittreepathresolution",
+			},
+		},
+		[EntityType.HederaAccount]: {
+			"NetworkAccountId": {
+				kind: "Research",
+				decision: "Retain HederaAccount.NetworkAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaaccount",
+			},
+		},
+		[EntityType.HederaAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaaccount_timestamp",
+			},
+		},
+		[EntityType.HederaAllowance]: {
+			"OwnerSpenderAllowanceKindTokenIdSerialNumber": {
+				kind: "Research",
+				decision: "Retain HederaAllowance.OwnerSpenderAllowanceKindTokenIdSerialNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaallowance",
+			},
+		},
+		[EntityType.HederaAllowance_Timestamp]: {
+			"AllowanceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaAllowance_Timestamp.AllowanceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaallowance_timestamp",
+			},
+		},
+		[EntityType.HederaBlock]: {
+			"NetworkBlockNumber": {
+				kind: "Research",
+				decision: "Retain HederaBlock.NetworkBlockNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederablock",
+			},
+			"NetworkBlockHash": {
+				kind: "Research",
+				decision: "Retain HederaBlock.NetworkBlockHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederablock",
+			},
+		},
+		[EntityType.HederaContract]: {
+			"NetworkContractId": {
+				kind: "Research",
+				decision: "Retain HederaContract.NetworkContractId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontract",
+			},
+		},
+		[EntityType.HederaContract_Timestamp]: {
+			"ContractTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaContract_Timestamp.ContractTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontract_timestamp",
+			},
+		},
+		[EntityType.HederaContractAction]: {
+			"ResultCallDepthCallIndex": {
+				kind: "Research",
+				decision: "Retain HederaContractAction.ResultCallDepthCallIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontractaction",
+			},
+		},
+		[EntityType.HederaContractLog]: {
+			"ResultLogIndex": {
+				kind: "Research",
+				decision: "Retain HederaContractLog.ResultLogIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontractlog",
+			},
+			"ContractConsensusTimestampLogIndex": {
+				kind: "Research",
+				decision: "Retain HederaContractLog.ContractConsensusTimestampLogIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontractlog",
+			},
+		},
+		[EntityType.HederaContractResult]: {
+			"Transaction": {
+				kind: "Research",
+				decision: "Retain HederaContractResult.Transaction as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontractresult",
+			},
+		},
+		[EntityType.HederaContractState_Timestamp]: {
+			"ContractSlotTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaContractState_Timestamp.ContractSlotTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederacontractstate_timestamp",
+			},
+		},
+		[EntityType.HederaHbarTransfer]: {
+			"TransactionAccountIdTransferIndex": {
+				kind: "Research",
+				decision: "Retain HederaHbarTransfer.TransactionAccountIdTransferIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederahbartransfer",
+			},
+		},
+		[EntityType.HederaNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanetwork_timestamp",
+			},
+		},
+		[EntityType.HederaNetworkExchangeRate_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNetworkExchangeRate_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanetworkexchangerate_timestamp",
+			},
+		},
+		[EntityType.HederaNetworkFee_Timestamp]: {
+			"NetworkTransactionTypeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNetworkFee_Timestamp.NetworkTransactionTypeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanetworkfee_timestamp",
+			},
+		},
+		[EntityType.HederaNetworkStake_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNetworkStake_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanetworkstake_timestamp",
+			},
+		},
+		[EntityType.HederaNetworkSupply_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNetworkSupply_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanetworksupply_timestamp",
+			},
+		},
+		[EntityType.HederaNft]: {
+			"TokenSerialNumber": {
+				kind: "Research",
+				decision: "Retain HederaNft.TokenSerialNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanft",
+			},
+		},
+		[EntityType.HederaNft_Timestamp]: {
+			"NftTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNft_Timestamp.NftTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanft_timestamp",
+			},
+		},
+		[EntityType.HederaNode]: {
+			"NetworkNodeId": {
+				kind: "Research",
+				decision: "Retain HederaNode.NetworkNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanode",
+			},
+		},
+		[EntityType.HederaNode_Timestamp]: {
+			"NodeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaNode_Timestamp.NodeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederanode_timestamp",
+			},
+		},
+		[EntityType.HederaSchedule]: {
+			"NetworkScheduleId": {
+				kind: "Research",
+				decision: "Retain HederaSchedule.NetworkScheduleId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaschedule",
+			},
+		},
+		[EntityType.HederaSchedule_Timestamp]: {
+			"ScheduleTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaSchedule_Timestamp.ScheduleTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaschedule_timestamp",
+			},
+		},
+		[EntityType.HederaScheduleSignature]: {
+			"SchedulePublicKeyPrefix": {
+				kind: "Research",
+				decision: "Retain HederaScheduleSignature.SchedulePublicKeyPrefix as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaschedulesignature",
+			},
+		},
+		[EntityType.HederaToken]: {
+			"NetworkTokenId": {
+				kind: "Research",
+				decision: "Retain HederaToken.NetworkTokenId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatoken",
+			},
+		},
+		[EntityType.HederaToken_Timestamp]: {
+			"TokenTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaToken_Timestamp.TokenTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatoken_timestamp",
+			},
+		},
+		[EntityType.HederaTokenAssociation]: {
+			"AccountToken": {
+				kind: "Research",
+				decision: "Retain HederaTokenAssociation.AccountToken as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatokenassociation",
+			},
+		},
+		[EntityType.HederaTokenAssociation_Timestamp]: {
+			"AssociationTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaTokenAssociation_Timestamp.AssociationTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatokenassociation_timestamp",
+			},
+		},
+		[EntityType.HederaTokenCustomFee]: {
+			"TokenTimestampFeeIndex": {
+				kind: "Research",
+				decision: "Retain HederaTokenCustomFee.TokenTimestampFeeIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatokencustomfee",
+			},
+		},
+		[EntityType.HederaTokenTransfer]: {
+			"TransactionTokenIdAccountIdTransferIndex": {
+				kind: "Research",
+				decision: "Retain HederaTokenTransfer.TransactionTokenIdAccountIdTransferIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatokentransfer",
+			},
+		},
+		[EntityType.HederaTopic]: {
+			"NetworkTopicId": {
+				kind: "Research",
+				decision: "Retain HederaTopic.NetworkTopicId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatopic",
+			},
+		},
+		[EntityType.HederaTopic_Timestamp]: {
+			"TopicTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HederaTopic_Timestamp.TopicTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatopic_timestamp",
+			},
+		},
+		[EntityType.HederaTopicMessage]: {
+			"TopicSequenceNumber": {
+				kind: "Research",
+				decision: "Retain HederaTopicMessage.TopicSequenceNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatopicmessage",
+			},
+		},
+		[EntityType.HederaTransaction]: {
+			"NetworkConsensusTimestamp": {
+				kind: "Research",
+				decision: "Retain HederaTransaction.NetworkConsensusTimestamp as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatransaction",
+			},
+			"NetworkTransactionIdNonce": {
+				kind: "Research",
+				decision: "Retain HederaTransaction.NetworkTransactionIdNonce as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederatransaction",
+			},
+		},
+		[EntityType.HyperliquidAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain HyperliquidAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidaccount",
+			},
+		},
+		[EntityType.HyperliquidAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidaccount_timestamp",
+			},
+		},
+		[EntityType.HyperliquidBlock]: {
+			"Height": {
+				kind: "Research",
+				decision: "Retain HyperliquidBlock.Height as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidblock",
+			},
+		},
+		[EntityType.HyperliquidFill]: {
+			"AccountTid": {
+				kind: "Research",
+				decision: "Retain HyperliquidFill.AccountTid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidfill",
+			},
+		},
+		[EntityType.HyperliquidMarket_TimeInterval_Timestamp]: {
+			"NetworkMarketKeyTimeIntervalTimestampMs": {
+				kind: "Research",
+				decision: "Retain HyperliquidMarket_TimeInterval_Timestamp.NetworkMarketKeyTimeIntervalTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidmarket_timeinterval_timestamp",
+			},
+		},
+		[EntityType.HyperliquidNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain HyperliquidNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidnetwork",
+			},
+		},
+		[EntityType.HyperliquidNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidnetwork_timestamp",
+			},
+		},
+		[EntityType.HyperliquidOrder]: {
+			"AccountOid": {
+				kind: "Research",
+				decision: "Retain HyperliquidOrder.AccountOid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidorder",
+			},
+			"AccountCloid": {
+				kind: "Research",
+				decision: "Retain HyperliquidOrder.AccountCloid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidorder",
+			},
+		},
+		[EntityType.HyperliquidOrder_Timestamp]: {
+			"OrderTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidOrder_Timestamp.OrderTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidorder_timestamp",
+			},
+		},
+		[EntityType.HyperliquidOrderbook_Timestamp]: {
+			"NetworkBookKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidOrderbook_Timestamp.NetworkBookKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidorderbook_timestamp",
+			},
+		},
+		[EntityType.HyperliquidPerpMarket]: {
+			"NetworkCoin": {
+				kind: "Research",
+				decision: "Retain HyperliquidPerpMarket.NetworkCoin as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidperpmarket",
+			},
+		},
+		[EntityType.HyperliquidPerpMarket_Timestamp]: {
+			"PerpMarketTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidPerpMarket_Timestamp.PerpMarketTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidperpmarket_timestamp",
+			},
+		},
+		[EntityType.HyperliquidSpotAsset]: {
+			"NetworkAssetId": {
+				kind: "Research",
+				decision: "Retain HyperliquidSpotAsset.NetworkAssetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidspotasset",
+			},
+		},
+		[EntityType.HyperliquidSpotPair]: {
+			"NetworkPairIndex": {
+				kind: "Research",
+				decision: "Retain HyperliquidSpotPair.NetworkPairIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidspotpair",
+			},
+		},
+		[EntityType.HyperliquidSpotPair_Timestamp]: {
+			"SpotPairTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidSpotPair_Timestamp.SpotPairTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidspotpair_timestamp",
+			},
+		},
+		[EntityType.HyperliquidTransaction]: {
+			"NetworkTxHash": {
+				kind: "Research",
+				decision: "Retain HyperliquidTransaction.NetworkTxHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidtransaction",
+			},
+		},
+		[EntityType.HyperliquidTransaction_Timestamp]: {
+			"TransactionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidTransaction_Timestamp.TransactionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidtransaction_timestamp",
+			},
+		},
+		[EntityType.HyperliquidValidator]: {
+			"NetworkValidator": {
+				kind: "Research",
+				decision: "Retain HyperliquidValidator.NetworkValidator as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvalidator",
+			},
+		},
+		[EntityType.HyperliquidValidator_Timestamp]: {
+			"ValidatorTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidValidator_Timestamp.ValidatorTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvalidator_timestamp",
+			},
+		},
+		[EntityType.HyperliquidVault]: {
+			"NetworkVaultAddress": {
+				kind: "Research",
+				decision: "Retain HyperliquidVault.NetworkVaultAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvault",
+			},
+		},
+		[EntityType.HyperliquidVault_Timestamp]: {
+			"VaultTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidVault_Timestamp.VaultTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvault_timestamp",
+			},
+		},
+		[EntityType.HyperliquidVaultEquity_Timestamp]: {
+			"AccountVaultTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain HyperliquidVaultEquity_Timestamp.AccountVaultTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvaultequity_timestamp",
+			},
+		},
+		[EntityType.IbcChannel]: {
+			"NetworkPortIdChannelId": {
+				kind: "Research",
+				decision: "Retain IbcChannel.NetworkPortIdChannelId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ibcchannel",
+			},
+		},
+		[EntityType.IbcClient]: {
+			"NetworkClientId": {
+				kind: "Research",
+				decision: "Retain IbcClient.NetworkClientId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ibcclient",
+			},
+		},
+		[EntityType.IbcConnection]: {
+			"NetworkConnectionId": {
+				kind: "Research",
+				decision: "Retain IbcConnection.NetworkConnectionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ibcconnection",
+			},
+		},
+		[EntityType.IbcDenomTrace]: {
+			"NetworkTraceKey": {
+				kind: "Research",
+				decision: "Retain IbcDenomTrace.NetworkTraceKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ibcdenomtrace",
+			},
+		},
+		[EntityType.IbcPacket]: {
+			"ChannelSequenceDirection": {
+				kind: "Research",
+				decision: "Retain IbcPacket.ChannelSequenceDirection as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#ibcpacket",
+			},
+		},
+		[EntityType.IcpCanister]: {
+			"NetworkCanisterId": {
+				kind: "Research",
+				decision: "Retain IcpCanister.NetworkCanisterId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanister",
+			},
+		},
+		[EntityType.IcpCanister_Timestamp]: {
+			"CanisterTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpCanister_Timestamp.CanisterTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanister_timestamp",
+			},
+		},
+		[EntityType.IcpCanisterLog_Timestamp]: {
+			"CanisterTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpCanisterLog_Timestamp.CanisterTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanisterlog_timestamp",
+			},
+		},
+		[EntityType.IcpCanisterMetadata]: {
+			"CanisterMetadataName": {
+				kind: "Research",
+				decision: "Retain IcpCanisterMetadata.CanisterMetadataName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanistermetadata",
+			},
+		},
+		[EntityType.IcpCanisterMetadata_Timestamp]: {
+			"MetadataTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpCanisterMetadata_Timestamp.MetadataTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanistermetadata_timestamp",
+			},
+		},
+		[EntityType.IcpCanisterMethod]: {
+			"CanisterMethodNameMethodKind": {
+				kind: "Research",
+				decision: "Retain IcpCanisterMethod.CanisterMethodNameMethodKind as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanistermethod",
+			},
+		},
+		[EntityType.IcpCanisterMethod_Timestamp]: {
+			"MethodTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpCanisterMethod_Timestamp.MethodTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcanistermethod_timestamp",
+			},
+		},
+		[EntityType.IcpCertifiedState]: {
+			"CanisterCertificateHashPathHash": {
+				kind: "Research",
+				decision: "Retain IcpCertifiedState.CanisterCertificateHashPathHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpcertifiedstate",
+			},
+		},
+		[EntityType.IcpLedgerAccount_Timestamp]: {
+			"LedgerOwnerSubaccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpLedgerAccount_Timestamp.LedgerOwnerSubaccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpledgeraccount_timestamp",
+			},
+		},
+		[EntityType.IcpLedgerBlock]: {
+			"LedgerBlockIndex": {
+				kind: "Research",
+				decision: "Retain IcpLedgerBlock.LedgerBlockIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpledgerblock",
+			},
+		},
+		[EntityType.IcpLedgerCanister]: {
+			"Canister": {
+				kind: "Research",
+				decision: "Retain IcpLedgerCanister.Canister as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpledgercanister",
+			},
+		},
+		[EntityType.IcpLedgerCanister_Timestamp]: {
+			"LedgerTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpLedgerCanister_Timestamp.LedgerTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpledgercanister_timestamp",
+			},
+		},
+		[EntityType.IcpLedgerTransaction]: {
+			"BlockTransactionIndex": {
+				kind: "Research",
+				decision: "Retain IcpLedgerTransaction.BlockTransactionIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpledgertransaction",
+			},
+		},
+		[EntityType.IcpNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain IcpNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpnetwork",
+			},
+		},
+		[EntityType.IcpNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpnetwork_timestamp",
+			},
+		},
+		[EntityType.IcpRequestStatus]: {
+			"NetworkRequestId": {
+				kind: "Research",
+				decision: "Retain IcpRequestStatus.NetworkRequestId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icprequeststatus",
+			},
+		},
+		[EntityType.IcpRequestStatus_Timestamp]: {
+			"RequestStatusTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpRequestStatus_Timestamp.RequestStatusTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icprequeststatus_timestamp",
+			},
+		},
+		[EntityType.IcpSubnet]: {
+			"NetworkSubnetId": {
+				kind: "Research",
+				decision: "Retain IcpSubnet.NetworkSubnetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpsubnet",
+			},
+		},
+		[EntityType.IcpSubnet_Timestamp]: {
+			"SubnetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain IcpSubnet_Timestamp.SubnetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpsubnet_timestamp",
+			},
+		},
+		[EntityType.IcpSubnetCanisterRange_Timestamp]: {
+			"SubnetRangeStartRangeEndRegistryVersionSource": {
+				kind: "Research",
+				decision: "Retain IcpSubnetCanisterRange_Timestamp.SubnetRangeStartRangeEndRegistryVersionSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#icpsubnetcanisterrange_timestamp",
+			},
+		},
+		[EntityType.IssuerAction]: {
+			"IssuerActionId": {
+				kind: "Research",
+				decision: "Retain IssuerAction.IssuerActionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#issueraction",
+			},
+		},
+		[EntityType.IssuerPower]: {
+			"ProfilePowerKindActorKeySource": {
+				kind: "Research",
+				decision: "Retain IssuerPower.ProfilePowerKindActorKeySource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#issuerpower",
+			},
+		},
+		[EntityType.KaspaAcceptedTransaction]: {
+			"AcceptingBlockTransaction": {
+				kind: "Research",
+				decision: "Retain KaspaAcceptedTransaction.AcceptingBlockTransaction as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspaacceptedtransaction",
+			},
+		},
+		[EntityType.KaspaAddress]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain KaspaAddress.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspaaddress",
+			},
+		},
+		[EntityType.KaspaAddress_Timestamp]: {
+			"AddressTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain KaspaAddress_Timestamp.AddressTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspaaddress_timestamp",
+			},
+		},
+		[EntityType.KaspaAddressUtxo_Timestamp]: {
+			"AddressOutpointTransactionIdOutpointIndexTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain KaspaAddressUtxo_Timestamp.AddressOutpointTransactionIdOutpointIndexTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspaaddressutxo_timestamp",
+			},
+		},
+		[EntityType.KaspaBlock]: {
+			"NetworkBlockHash": {
+				kind: "Research",
+				decision: "Retain KaspaBlock.NetworkBlockHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspablock",
+			},
+		},
+		[EntityType.KaspaNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain KaspaNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspanetwork",
+			},
+		},
+		[EntityType.KaspaNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain KaspaNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspanetwork_timestamp",
+			},
+		},
+		[EntityType.KaspaTransaction]: {
+			"NetworkTransactionId": {
+				kind: "Research",
+				decision: "Retain KaspaTransaction.NetworkTransactionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspatransaction",
+			},
+		},
+		[EntityType.KaspaVirtualChain_Timestamp]: {
+			"NetworkStartHashTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain KaspaVirtualChain_Timestamp.NetworkStartHashTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#kaspavirtualchain_timestamp",
+			},
+		},
+		[EntityType.LensAccount]: {
+			"LocalName": {
+				kind: "Research",
+				decision: "Retain LensAccount.LocalName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensaccount",
+			},
+			"LegacyProfileId": {
+				kind: "Research",
+				decision: "Retain LensAccount.LegacyProfileId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensaccount",
+			},
+		},
+		[EntityType.LensAccountManager]: {
+			"AccountManager": {
+				kind: "Research",
+				decision: "Retain LensAccountManager.AccountManager as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensaccountmanager",
+			},
+		},
+		[EntityType.LensFeed]: {
+			"Address": {
+				kind: "Research",
+				decision: "Retain LensFeed.Address as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensfeed",
+			},
+		},
+		[EntityType.LensUsername]: {
+			"NamespaceLocalName": {
+				kind: "Research",
+				decision: "Retain LensUsername.NamespaceLocalName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensusername",
+			},
+			"Id": {
+				kind: "Research",
+				decision: "Retain LensUsername.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensusername",
+			},
+		},
+		[EntityType.LensUsernameNamespace]: {
+			"Address": {
+				kind: "Research",
+				decision: "Retain LensUsernameNamespace.Address as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lensusernamenamespace",
+			},
+		},
+		[EntityType.Leverage]: {
+			"EvmNetworkId": {
+				kind: "Research",
+				decision: "Retain Leverage.EvmNetworkId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#leverage",
+			},
+		},
+		[EntityType.LightningChannel_Timestamp]: {
+			"ChannelTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain LightningChannel_Timestamp.ChannelTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lightningchannel_timestamp",
+			},
+		},
+		[EntityType.LightningNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain LightningNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lightningnetwork",
+			},
+		},
+		[EntityType.LightningNetwork_Timestamp]: {
+			"LightningNetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain LightningNetwork_Timestamp.LightningNetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lightningnetwork_timestamp",
+			},
+		},
+		[EntityType.LightningNode_Timestamp]: {
+			"NodeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain LightningNode_Timestamp.NodeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#lightningnode_timestamp",
+			},
+		},
+		[EntityType.LitecoinMwebBlock]: {
+			"UtxoBlock": {
+				kind: "Research",
+				decision: "Retain LitecoinMwebBlock.UtxoBlock as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#litecoinmwebblock",
+			},
+		},
+		[EntityType.LitecoinMwebOutput]: {
+			"LitecoinMwebTransactionOutputIndex": {
+				kind: "Research",
+				decision: "Retain LitecoinMwebOutput.LitecoinMwebTransactionOutputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#litecoinmweboutput",
+			},
+		},
+		[EntityType.LitecoinMwebPegIn]: {
+			"LitecoinMwebTransactionPegInIndex": {
+				kind: "Research",
+				decision: "Retain LitecoinMwebPegIn.LitecoinMwebTransactionPegInIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#litecoinmwebpegin",
+			},
+		},
+		[EntityType.LitecoinMwebPegOut]: {
+			"LitecoinMwebTransactionPegOutIndex": {
+				kind: "Research",
+				decision: "Retain LitecoinMwebPegOut.LitecoinMwebTransactionPegOutIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#litecoinmwebpegout",
+			},
+		},
+		[EntityType.LitecoinMwebTransaction]: {
+			"LitecoinMwebBlockTransactionIndex": {
+				kind: "Research",
+				decision: "Retain LitecoinMwebTransaction.LitecoinMwebBlockTransactionIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#litecoinmwebtransaction",
+			},
+		},
+		[EntityType.LogosBlockchainNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain LogosBlockchainNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#logosblockchainnetwork",
+			},
+		},
+		[EntityType.LogosBlockchainNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain LogosBlockchainNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#logosblockchainnetwork_timestamp",
+			},
+		},
+		[EntityType.MagnetLink]: {
+			"MagnetUri": {
+				kind: "Research",
+				decision: "Retain MagnetLink.MagnetUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#magnetlink",
+			},
+		},
+		[EntityType.MagnetResolution_Timestamp]: {
+			"MagnetUriTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain MagnetResolution_Timestamp.MagnetUriTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#magnetresolution_timestamp",
+			},
+		},
+		[EntityType.McpPrompt]: {
+			"ServerName": {
+				kind: "Research",
+				decision: "Retain McpPrompt.ServerName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpprompt",
+			},
+		},
+		[EntityType.McpPromptResult]: {
+			"PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain McpPromptResult.PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcppromptresult",
+			},
+		},
+		[EntityType.McpResource]: {
+			"ServerUri": {
+				kind: "Research",
+				decision: "Retain McpResource.ServerUri as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpresource",
+			},
+		},
+		[EntityType.McpResourceContent_Timestamp]: {
+			"ResourceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain McpResourceContent_Timestamp.ResourceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpresourcecontent_timestamp",
+			},
+		},
+		[EntityType.McpResourceTemplate]: {
+			"ServerUriTemplate": {
+				kind: "Research",
+				decision: "Retain McpResourceTemplate.ServerUriTemplate as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpresourcetemplate",
+			},
+		},
+		[EntityType.McpServer]: {
+			"ServerKey": {
+				kind: "Research",
+				decision: "Retain McpServer.ServerKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserver",
+			},
+		},
+		[EntityType.McpServer_Timestamp]: {
+			"ServerTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain McpServer_Timestamp.ServerTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserver_timestamp",
+			},
+		},
+		[EntityType.McpServerPackage]: {
+			"RegistryServerName": {
+				kind: "Research",
+				decision: "Retain McpServerPackage.RegistryServerName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserverpackage",
+			},
+			"RepositoryUrl": {
+				kind: "Research",
+				decision: "Retain McpServerPackage.RepositoryUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserverpackage",
+			},
+		},
+		[EntityType.McpServerPackageVersion]: {
+			"PackageVersion": {
+				kind: "Research",
+				decision: "Retain McpServerPackageVersion.PackageVersion as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserverpackageversion",
+			},
+			"Artifact": {
+				kind: "Research",
+				decision: "Retain McpServerPackageVersion.Artifact as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcpserverpackageversion",
+			},
+		},
+		[EntityType.McpTool]: {
+			"ServerName": {
+				kind: "Research",
+				decision: "Retain McpTool.ServerName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcptool",
+			},
+		},
+		[EntityType.McpToolCall]: {
+			"ServerCallId": {
+				kind: "Research",
+				decision: "Retain McpToolCall.ServerCallId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcptoolcall",
+			},
+		},
+		[EntityType.McpToolCall_Timestamp]: {
+			"ToolCallTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain McpToolCall_Timestamp.ToolCallTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#mcptoolcall_timestamp",
+			},
+		},
+		[EntityType.MoneroBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain MoneroBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneroblock",
+			},
+			"NetworkHeightHash": {
+				kind: "Research",
+				decision: "Retain MoneroBlock.NetworkHeightHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneroblock",
+			},
+		},
+		[EntityType.MoneroKeyImage]: {
+			"MoneroTransactionInputIndexKeyImage": {
+				kind: "Research",
+				decision: "Retain MoneroKeyImage.MoneroTransactionInputIndexKeyImage as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#monerokeyimage",
+			},
+		},
+		[EntityType.MoneroNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain MoneroNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneronetwork",
+			},
+		},
+		[EntityType.MoneroNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain MoneroNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneronetwork_timestamp",
+			},
+		},
+		[EntityType.MoneroRing]: {
+			"MoneroKeyImage": {
+				kind: "Research",
+				decision: "Retain MoneroRing.MoneroKeyImage as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneroring",
+			},
+		},
+		[EntityType.MoneroRingMember]: {
+			"MoneroRingMemberIndex": {
+				kind: "Research",
+				decision: "Retain MoneroRingMember.MoneroRingMemberIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#moneroringmember",
+			},
+		},
+		[EntityType.MoneroStealthOutput]: {
+			"MoneroTransactionOutputIndex": {
+				kind: "Research",
+				decision: "Retain MoneroStealthOutput.MoneroTransactionOutputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#monerostealthoutput",
+			},
+		},
+		[EntityType.MoneroTransaction]: {
+			"NetworkTxHash": {
+				kind: "Research",
+				decision: "Retain MoneroTransaction.NetworkTxHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#monerotransaction",
+			},
+		},
+		[EntityType.MoveFunction]: {
+			"ModuleFunctionName": {
+				kind: "Research",
+				decision: "Retain MoveFunction.ModuleFunctionName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#movefunction",
+			},
+		},
+		[EntityType.MoveModule]: {
+			"NetworkAddressModuleName": {
+				kind: "Research",
+				decision: "Retain MoveModule.NetworkAddressModuleName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#movemodule",
+			},
+		},
+		[EntityType.MoveModule_Timestamp]: {
+			"ModuleTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain MoveModule_Timestamp.ModuleTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#movemodule_timestamp",
+			},
+		},
+		[EntityType.MoveStruct]: {
+			"ModuleStructName": {
+				kind: "Research",
+				decision: "Retain MoveStruct.ModuleStructName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#movestruct",
+			},
+		},
+		[EntityType.NearAccessKey]: {
+			"NearAccountPublicKey": {
+				kind: "Research",
+				decision: "Retain NearAccessKey.NearAccountPublicKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearaccesskey",
+			},
+		},
+		[EntityType.NearAccessKey_Timestamp]: {
+			"AccessKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NearAccessKey_Timestamp.AccessKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearaccesskey_timestamp",
+			},
+		},
+		[EntityType.NearAccount]: {
+			"NetworkAccountId": {
+				kind: "Research",
+				decision: "Retain NearAccount.NetworkAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearaccount",
+			},
+		},
+		[EntityType.NearAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NearAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearaccount_timestamp",
+			},
+		},
+		[EntityType.NearAction]: {
+			"NearTransactionActionIndex": {
+				kind: "Research",
+				decision: "Retain NearAction.NearTransactionActionIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearaction",
+			},
+		},
+		[EntityType.NearBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain NearBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearblock",
+			},
+			"NetworkHeightHash": {
+				kind: "Research",
+				decision: "Retain NearBlock.NetworkHeightHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearblock",
+			},
+		},
+		[EntityType.NearChunk]: {
+			"NetworkChunkHash": {
+				kind: "Research",
+				decision: "Retain NearChunk.NetworkChunkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearchunk",
+			},
+		},
+		[EntityType.NearContract]: {
+			"NetworkAccountId": {
+				kind: "Research",
+				decision: "Retain NearContract.NetworkAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearcontract",
+			},
+		},
+		[EntityType.NearContract_Timestamp]: {
+			"ContractTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NearContract_Timestamp.ContractTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearcontract_timestamp",
+			},
+		},
+		[EntityType.NearContractStorageEntry]: {
+			"ContractKeyBlockHeightSource": {
+				kind: "Research",
+				decision: "Retain NearContractStorageEntry.ContractKeyBlockHeightSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearcontractstorageentry",
+			},
+		},
+		[EntityType.NearExecutionOutcome]: {
+			"NearTransactionOutcomeId": {
+				kind: "Research",
+				decision: "Retain NearExecutionOutcome.NearTransactionOutcomeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearexecutionoutcome",
+			},
+		},
+		[EntityType.NearNetwork]: {
+			"Slug": {
+				kind: "Research",
+				decision: "Retain NearNetwork.Slug as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearnetwork",
+			},
+		},
+		[EntityType.NearNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NearNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearnetwork_timestamp",
+			},
+		},
+		[EntityType.NearReceipt]: {
+			"NetworkReceiptId": {
+				kind: "Research",
+				decision: "Retain NearReceipt.NetworkReceiptId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearreceipt",
+			},
+		},
+		[EntityType.NearTransaction]: {
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain NearTransaction.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#neartransaction",
+			},
+			"NetworkHashSignerAccountId": {
+				kind: "Research",
+				decision: "Retain NearTransaction.NetworkHashSignerAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#neartransaction",
+			},
+		},
+		[EntityType.NearValidator]: {
+			"NetworkAccountId": {
+				kind: "Research",
+				decision: "Retain NearValidator.NetworkAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearvalidator",
+			},
+		},
+		[EntityType.NearValidator_Timestamp]: {
+			"ValidatorEpochIdSource": {
+				kind: "Research",
+				decision: "Retain NearValidator_Timestamp.ValidatorEpochIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nearvalidator_timestamp",
+			},
+		},
+		[EntityType.NetworkEndpointObservation_Timestamp]: {
+			"NetworkEndpointUrlEndpointKindTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NetworkEndpointObservation_Timestamp.NetworkEndpointUrlEndpointKindTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#networkendpointobservation_timestamp",
+			},
+		},
+		[EntityType.NetworkUpgrade]: {
+			"NetworkUpgradeId": {
+				kind: "Research",
+				decision: "Retain NetworkUpgrade.NetworkUpgradeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#networkupgrade",
+			},
+		},
+		[EntityType.NetworkUpgrade_Timestamp]: {
+			"UpgradeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain NetworkUpgrade_Timestamp.UpgradeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#networkupgrade_timestamp",
+			},
+		},
+		[EntityType.NftCollection]: {
+			"AssetInstance": {
+				kind: "Research",
+				decision: "Retain NftCollection.AssetInstance as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nftcollection",
+			},
+		},
+		[EntityType.NftToken]: {
+			"CollectionTokenKey": {
+				kind: "Research",
+				decision: "Retain NftToken.CollectionTokenKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nfttoken",
+			},
+		},
+		[EntityType.NostrNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain NostrNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#nostrnetwork",
+			},
+		},
+		[EntityType.OracleFeed]: {
+			"EvmNetworkAddress": {
+				kind: "Research",
+				decision: "Retain OracleFeed.EvmNetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#oraclefeed",
+			},
+		},
+		[EntityType.OracleFeed_Round]: {
+			"OracleFeedRoundId": {
+				kind: "Research",
+				decision: "Retain OracleFeed_Round.OracleFeedRoundId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#oraclefeed_round",
+			},
+		},
+		[EntityType.OracleFeed_Timestamp]: {
+			"OracleFeedTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain OracleFeed_Timestamp.OracleFeedTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#oraclefeed_timestamp",
+			},
+		},
+		[EntityType.PayjoinDirectory]: {
+			"DirectoryUrl": {
+				kind: "Research",
+				decision: "Retain PayjoinDirectory.DirectoryUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#payjoindirectory",
+			},
+		},
+		[EntityType.PayjoinEndpoint]: {
+			"EndpointUrl": {
+				kind: "Research",
+				decision: "Retain PayjoinEndpoint.EndpointUrl as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#payjoinendpoint",
+			},
+		},
+		[EntityType.PayjoinEndpoint_Timestamp]: {
+			"EndpointTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain PayjoinEndpoint_Timestamp.EndpointTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#payjoinendpoint_timestamp",
+			},
+		},
+		[EntityType.Payout]: {
+			"SourcePayoutId": {
+				kind: "Research",
+				decision: "Retain Payout.SourcePayoutId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#payout",
+			},
+		},
+		[EntityType.PayoutClaim_Timestamp]: {
+			"PayoutAccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain PayoutClaim_Timestamp.PayoutAccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#payoutclaim_timestamp",
+			},
+		},
+		[EntityType.PolkadotAsset]: {
+			"NetworkAssetKindAssetId": {
+				kind: "Research",
+				decision: "Retain PolkadotAsset.NetworkAssetKindAssetId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotasset",
+			},
+		},
+		[EntityType.PolkadotAsset_Timestamp]: {
+			"AssetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain PolkadotAsset_Timestamp.AssetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotasset_timestamp",
+			},
+		},
+		[EntityType.PolkadotAssetBalance_Timestamp]: {
+			"AccountAssetTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain PolkadotAssetBalance_Timestamp.AccountAssetTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotassetbalance_timestamp",
+			},
+		},
+		[EntityType.PolkadotReferendum]: {
+			"NetworkReferendumId": {
+				kind: "Research",
+				decision: "Retain PolkadotReferendum.NetworkReferendumId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotreferendum",
+			},
+		},
+		[EntityType.PolkadotReferendum_Timestamp]: {
+			"ReferendumTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain PolkadotReferendum_Timestamp.ReferendumTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotreferendum_timestamp",
+			},
+		},
+		[EntityType.PolkadotValidator]: {
+			"NetworkStashAccountId": {
+				kind: "Research",
+				decision: "Retain PolkadotValidator.NetworkStashAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotvalidator",
+			},
+		},
+		[EntityType.PolkadotValidator_Era]: {
+			"ValidatorEraIndexSource": {
+				kind: "Research",
+				decision: "Retain PolkadotValidator_Era.ValidatorEraIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#polkadotvalidator_era",
+			},
+		},
+		[EntityType.PythPriceFeed]: {
+			"PriceFeedIdChannel": {
+				kind: "Research",
+				decision: "Retain PythPriceFeed.PriceFeedIdChannel as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#pythpricefeed",
+			},
+		},
+		[EntityType.PythPriceFeed_Timestamp]: {
+			"FeedPublishTimeMsSource": {
+				kind: "Research",
+				decision: "Retain PythPriceFeed_Timestamp.FeedPublishTimeMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#pythpricefeed_timestamp",
+			},
+		},
+		[EntityType.QuilibriumAccount]: {
+			"NetworkAccountAddress": {
+				kind: "Research",
+				decision: "Retain QuilibriumAccount.NetworkAccountAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#quilibriumaccount",
+			},
+		},
+		[EntityType.QuilibriumFrame]: {
+			"NetworkFrameNumberShardKey": {
+				kind: "Research",
+				decision: "Retain QuilibriumFrame.NetworkFrameNumberShardKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#quilibriumframe",
+			},
+		},
+		[EntityType.QuilibriumProver]: {
+			"NetworkProverPeerId": {
+				kind: "Research",
+				decision: "Retain QuilibriumProver.NetworkProverPeerId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#quilibriumprover",
+			},
+		},
+		[EntityType.QuilibriumShard]: {
+			"NetworkShardKey": {
+				kind: "Research",
+				decision: "Retain QuilibriumShard.NetworkShardKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#quilibriumshard",
+			},
+		},
+		[EntityType.RadicleCollaborationEvent]: {
+			"RepositoryEventId": {
+				kind: "Research",
+				decision: "Retain RadicleCollaborationEvent.RepositoryEventId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclecollaborationevent",
+			},
+		},
+		[EntityType.RadicleDelegate]: {
+			"RepositoryDid": {
+				kind: "Research",
+				decision: "Retain RadicleDelegate.RepositoryDid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radicledelegate",
+			},
+		},
+		[EntityType.RadicleDiscussionComment]: {
+			"DiscussionSelectorCommentId": {
+				kind: "Research",
+				decision: "Retain RadicleDiscussionComment.DiscussionSelectorCommentId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclediscussioncomment",
+			},
+		},
+		[EntityType.RadicleIdentityDocument]: {
+			"RidRevision": {
+				kind: "Research",
+				decision: "Retain RadicleIdentityDocument.RidRevision as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radicleidentitydocument",
+			},
+		},
+		[EntityType.RadicleIdentityRevision]: {
+			"RidRevision": {
+				kind: "Research",
+				decision: "Retain RadicleIdentityRevision.RidRevision as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radicleidentityrevision",
+			},
+		},
+		[EntityType.RadicleIssue]: {
+			"RepositoryIssueId": {
+				kind: "Research",
+				decision: "Retain RadicleIssue.RepositoryIssueId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radicleissue",
+			},
+		},
+		[EntityType.RadiclePatch]: {
+			"RepositoryPatchId": {
+				kind: "Research",
+				decision: "Retain RadiclePatch.RepositoryPatchId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclepatch",
+			},
+		},
+		[EntityType.RadicleRepository]: {
+			"Rid": {
+				kind: "Research",
+				decision: "Retain RadicleRepository.Rid as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclerepository",
+			},
+		},
+		[EntityType.RadicleSignedRef]: {
+			"RepositoryNodeIdRefName": {
+				kind: "Research",
+				decision: "Retain RadicleSignedRef.RepositoryNodeIdRefName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclesignedref",
+			},
+		},
+		[EntityType.RadicleSignedRef_Timestamp]: {
+			"SignedRefTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain RadicleSignedRef_Timestamp.SignedRefTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#radiclesignedref_timestamp",
+			},
+		},
+		[EntityType.RedditNetwork]: {
+			"Scope": {
+				kind: "Research",
+				decision: "Retain RedditNetwork.Scope as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#redditnetwork",
+			},
+		},
+		[EntityType.RegulatedAssetProfile]: {
+			"AssetInstance": {
+				kind: "Research",
+				decision: "Retain RegulatedAssetProfile.AssetInstance as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#regulatedassetprofile",
+			},
+		},
+		[EntityType.RegulatedAssetProfile_Timestamp]: {
+			"ProfileTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain RegulatedAssetProfile_Timestamp.ProfileTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#regulatedassetprofile_timestamp",
+			},
+		},
+		[EntityType.RoyaltyRight_Timestamp]: {
+			"TargetKeyRightKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain RoyaltyRight_Timestamp.TargetKeyRightKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#royaltyright_timestamp",
+			},
+		},
+		[EntityType.ScalingDeploymentClaim]: {
+			"NetworkSourceSourceProjectId": {
+				kind: "Research",
+				decision: "Retain ScalingDeploymentClaim.NetworkSourceSourceProjectId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#scalingdeploymentclaim",
+			},
+		},
+		[EntityType.ScalingDeploymentClaim_Timestamp]: {
+			"ClaimTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ScalingDeploymentClaim_Timestamp.ClaimTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#scalingdeploymentclaim_timestamp",
+			},
+		},
+		[EntityType.SolanaAccount_Timestamp]: {
+			"AccountSlotSource": {
+				kind: "Research",
+				decision: "Retain SolanaAccount_Timestamp.AccountSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#solanaaccount_timestamp",
+			},
+		},
+		[EntityType.SolanaTokenAccount_Timestamp]: {
+			"TokenAccountSlotSource": {
+				kind: "Research",
+				decision: "Retain SolanaTokenAccount_Timestamp.TokenAccountSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#solanatokenaccount_timestamp",
+			},
+		},
+		[EntityType.SolanaTokenMint_Timestamp]: {
+			"MintSlotSource": {
+				kind: "Research",
+				decision: "Retain SolanaTokenMint_Timestamp.MintSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#solanatokenmint_timestamp",
+			},
+		},
+		[EntityType.SolanaTransaction_Timestamp]: {
+			"TransactionSlotSource": {
+				kind: "Research",
+				decision: "Retain SolanaTransaction_Timestamp.TransactionSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#solanatransaction_timestamp",
+			},
+		},
+		[EntityType.SolanaValidator_Timestamp]: {
+			"ValidatorSlotSource": {
+				kind: "Research",
+				decision: "Retain SolanaValidator_Timestamp.ValidatorSlotSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#solanavalidator_timestamp",
+			},
+		},
+		[EntityType.SorobanContract]: {
+			"NetworkContractId": {
+				kind: "Research",
+				decision: "Retain SorobanContract.NetworkContractId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobancontract",
+			},
+		},
+		[EntityType.SorobanContract_Timestamp]: {
+			"ContractLedgerSequenceSource": {
+				kind: "Research",
+				decision: "Retain SorobanContract_Timestamp.ContractLedgerSequenceSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobancontract_timestamp",
+			},
+		},
+		[EntityType.SorobanContractStorageEntry]: {
+			"ContractKeyHash": {
+				kind: "Research",
+				decision: "Retain SorobanContractStorageEntry.ContractKeyHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobancontractstorageentry",
+			},
+		},
+		[EntityType.SorobanContractStorageEntry_Timestamp]: {
+			"EntryLedgerSequenceSource": {
+				kind: "Research",
+				decision: "Retain SorobanContractStorageEntry_Timestamp.EntryLedgerSequenceSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobancontractstorageentry_timestamp",
+			},
+		},
+		[EntityType.SorobanWasm]: {
+			"NetworkWasmHash": {
+				kind: "Research",
+				decision: "Retain SorobanWasm.NetworkWasmHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobanwasm",
+			},
+		},
+		[EntityType.SorobanWasm_Timestamp]: {
+			"WasmLedgerSequenceSource": {
+				kind: "Research",
+				decision: "Retain SorobanWasm_Timestamp.WasmLedgerSequenceSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#sorobanwasm_timestamp",
+			},
+		},
+		[EntityType.StarknetAccount_Timestamp]: {
+			"ContractBlockNumberSource": {
+				kind: "Research",
+				decision: "Retain StarknetAccount_Timestamp.ContractBlockNumberSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetaccount_timestamp",
+			},
+		},
+		[EntityType.StarknetBlock]: {
+			"NetworkBlockNumber": {
+				kind: "Research",
+				decision: "Retain StarknetBlock.NetworkBlockNumber as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetblock",
+			},
+			"NetworkBlockHash": {
+				kind: "Research",
+				decision: "Retain StarknetBlock.NetworkBlockHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetblock",
+			},
+		},
+		[EntityType.StarknetClass]: {
+			"NetworkClassHash": {
+				kind: "Research",
+				decision: "Retain StarknetClass.NetworkClassHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetclass",
+			},
+		},
+		[EntityType.StarknetContract]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain StarknetContract.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetcontract",
+			},
+		},
+		[EntityType.StarknetEvent]: {
+			"TransactionEventIndex": {
+				kind: "Research",
+				decision: "Retain StarknetEvent.TransactionEventIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetevent",
+			},
+		},
+		[EntityType.StarknetNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain StarknetNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetnetwork",
+			},
+		},
+		[EntityType.StarknetNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StarknetNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetnetwork_timestamp",
+			},
+		},
+		[EntityType.StarknetStorageEntry]: {
+			"ContractStorageKey": {
+				kind: "Research",
+				decision: "Retain StarknetStorageEntry.ContractStorageKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetstorageentry",
+			},
+		},
+		[EntityType.StarknetStorageEntry_Timestamp]: {
+			"EntryBlockNumberSource": {
+				kind: "Research",
+				decision: "Retain StarknetStorageEntry_Timestamp.EntryBlockNumberSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknetstorageentry_timestamp",
+			},
+		},
+		[EntityType.StarknetTransaction]: {
+			"NetworkTransactionHash": {
+				kind: "Research",
+				decision: "Retain StarknetTransaction.NetworkTransactionHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknettransaction",
+			},
+		},
+		[EntityType.StarknetTransaction_Timestamp]: {
+			"TransactionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StarknetTransaction_Timestamp.TransactionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#starknettransaction_timestamp",
+			},
+		},
+		[EntityType.StellarAccount]: {
+			"NetworkAccountId": {
+				kind: "Research",
+				decision: "Retain StellarAccount.NetworkAccountId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaraccount",
+			},
+		},
+		[EntityType.StellarAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaraccount_timestamp",
+			},
+		},
+		[EntityType.StellarAccountSigner]: {
+			"AccountSignerKeySignerType": {
+				kind: "Research",
+				decision: "Retain StellarAccountSigner.AccountSignerKeySignerType as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaraccountsigner",
+			},
+		},
+		[EntityType.StellarAccountSigner_Timestamp]: {
+			"SignerTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarAccountSigner_Timestamp.SignerTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaraccountsigner_timestamp",
+			},
+		},
+		[EntityType.StellarAsset]: {
+			"NetworkAssetKey": {
+				kind: "Research",
+				decision: "Retain StellarAsset.NetworkAssetKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarasset",
+			},
+		},
+		[EntityType.StellarClaimableBalance]: {
+			"NetworkClaimableBalanceId": {
+				kind: "Research",
+				decision: "Retain StellarClaimableBalance.NetworkClaimableBalanceId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarclaimablebalance",
+			},
+		},
+		[EntityType.StellarClaimableBalance_Timestamp]: {
+			"ClaimableBalanceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarClaimableBalance_Timestamp.ClaimableBalanceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarclaimablebalance_timestamp",
+			},
+		},
+		[EntityType.StellarLedger]: {
+			"NetworkSequence": {
+				kind: "Research",
+				decision: "Retain StellarLedger.NetworkSequence as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarledger",
+			},
+		},
+		[EntityType.StellarLiquidityPool]: {
+			"NetworkLiquidityPoolId": {
+				kind: "Research",
+				decision: "Retain StellarLiquidityPool.NetworkLiquidityPoolId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarliquiditypool",
+			},
+		},
+		[EntityType.StellarLiquidityPool_Timestamp]: {
+			"LiquidityPoolTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarLiquidityPool_Timestamp.LiquidityPoolTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarliquiditypool_timestamp",
+			},
+		},
+		[EntityType.StellarNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain StellarNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarnetwork",
+			},
+		},
+		[EntityType.StellarNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellarnetwork_timestamp",
+			},
+		},
+		[EntityType.StellarOffer]: {
+			"NetworkOfferId": {
+				kind: "Research",
+				decision: "Retain StellarOffer.NetworkOfferId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaroffer",
+			},
+		},
+		[EntityType.StellarOffer_Timestamp]: {
+			"OfferTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarOffer_Timestamp.OfferTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaroffer_timestamp",
+			},
+		},
+		[EntityType.StellarOperation]: {
+			"TransactionOperationIndex": {
+				kind: "Research",
+				decision: "Retain StellarOperation.TransactionOperationIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellaroperation",
+			},
+		},
+		[EntityType.StellarTrade]: {
+			"NetworkTradeIdSource": {
+				kind: "Research",
+				decision: "Retain StellarTrade.NetworkTradeIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellartrade",
+			},
+		},
+		[EntityType.StellarTransaction]: {
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain StellarTransaction.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellartransaction",
+			},
+		},
+		[EntityType.StellarTransaction_Timestamp]: {
+			"TransactionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarTransaction_Timestamp.TransactionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellartransaction_timestamp",
+			},
+		},
+		[EntityType.StellarTrustline]: {
+			"AccountAsset": {
+				kind: "Research",
+				decision: "Retain StellarTrustline.AccountAsset as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellartrustline",
+			},
+		},
+		[EntityType.StellarTrustline_Timestamp]: {
+			"TrustlineTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain StellarTrustline_Timestamp.TrustlineTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#stellartrustline_timestamp",
+			},
+		},
+		[EntityType.SuiAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain SuiAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiaccount",
+			},
+		},
+		[EntityType.SuiBalanceChange]: {
+			"TransactionChangeIndex": {
+				kind: "Research",
+				decision: "Retain SuiBalanceChange.TransactionChangeIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suibalancechange",
+			},
+		},
+		[EntityType.SuiCheckpoint]: {
+			"NetworkSequence": {
+				kind: "Research",
+				decision: "Retain SuiCheckpoint.NetworkSequence as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suicheckpoint",
+			},
+			"NetworkDigest": {
+				kind: "Research",
+				decision: "Retain SuiCheckpoint.NetworkDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suicheckpoint",
+			},
+		},
+		[EntityType.SuiCoinBalance_Timestamp]: {
+			"AccountCoinTypeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain SuiCoinBalance_Timestamp.AccountCoinTypeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suicoinbalance_timestamp",
+			},
+		},
+		[EntityType.SuiCoinType]: {
+			"NetworkCoinType": {
+				kind: "Research",
+				decision: "Retain SuiCoinType.NetworkCoinType as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suicointype",
+			},
+		},
+		[EntityType.SuiDynamicFieldEdge]: {
+			"ParentObjectFieldNameHashChildObjectId": {
+				kind: "Research",
+				decision: "Retain SuiDynamicFieldEdge.ParentObjectFieldNameHashChildObjectId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suidynamicfieldedge",
+			},
+		},
+		[EntityType.SuiDynamicFieldEdge_Timestamp]: {
+			"EdgeCheckpointSequenceSource": {
+				kind: "Research",
+				decision: "Retain SuiDynamicFieldEdge_Timestamp.EdgeCheckpointSequenceSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suidynamicfieldedge_timestamp",
+			},
+		},
+		[EntityType.SuiEvent]: {
+			"NetworkTransactionDigestEventIndex": {
+				kind: "Research",
+				decision: "Retain SuiEvent.NetworkTransactionDigestEventIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suievent",
+			},
+		},
+		[EntityType.SuiNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain SuiNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suinetwork",
+			},
+		},
+		[EntityType.SuiNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain SuiNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suinetwork_timestamp",
+			},
+		},
+		[EntityType.SuiObject]: {
+			"NetworkObjectId": {
+				kind: "Research",
+				decision: "Retain SuiObject.NetworkObjectId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiobject",
+			},
+		},
+		[EntityType.SuiObjectChange]: {
+			"TransactionChangeIndex": {
+				kind: "Research",
+				decision: "Retain SuiObjectChange.TransactionChangeIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiobjectchange",
+			},
+		},
+		[EntityType.SuiObjectVersion]: {
+			"NetworkObjectIdVersionDigest": {
+				kind: "Research",
+				decision: "Retain SuiObjectVersion.NetworkObjectIdVersionDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiobjectversion",
+			},
+		},
+		[EntityType.SuiPackage]: {
+			"NetworkOriginalPackageId": {
+				kind: "Research",
+				decision: "Retain SuiPackage.NetworkOriginalPackageId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suipackage",
+			},
+		},
+		[EntityType.SuiPackageUpgrade]: {
+			"PackageUpgradedPackageId": {
+				kind: "Research",
+				decision: "Retain SuiPackageUpgrade.PackageUpgradedPackageId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suipackageupgrade",
+			},
+		},
+		[EntityType.SuiPackageVersion]: {
+			"NetworkPackageIdVersionDigest": {
+				kind: "Research",
+				decision: "Retain SuiPackageVersion.NetworkPackageIdVersionDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suipackageversion",
+			},
+		},
+		[EntityType.SuiProgrammableTransactionCommand]: {
+			"TransactionCommandIndex": {
+				kind: "Research",
+				decision: "Retain SuiProgrammableTransactionCommand.TransactionCommandIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiprogrammabletransactioncommand",
+			},
+		},
+		[EntityType.SuiRegulatedCoinState_Timestamp]: {
+			"CoinTypeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain SuiRegulatedCoinState_Timestamp.CoinTypeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suiregulatedcoinstate_timestamp",
+			},
+		},
+		[EntityType.SuiTransaction]: {
+			"NetworkDigest": {
+				kind: "Research",
+				decision: "Retain SuiTransaction.NetworkDigest as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suitransaction",
+			},
+		},
+		[EntityType.SuiTransaction_Timestamp]: {
+			"TransactionCheckpointSequenceSource": {
+				kind: "Research",
+				decision: "Retain SuiTransaction_Timestamp.TransactionCheckpointSequenceSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#suitransaction_timestamp",
+			},
+		},
+		[EntityType.SwapQuote_Timestamp]: {
+			"SourceQuoteRequestHashTimestampMs": {
+				kind: "Research",
+				decision: "Retain SwapQuote_Timestamp.SourceQuoteRequestHashTimestampMs as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#swapquote_timestamp",
+			},
+		},
+		[EntityType.SwapQuoteStep]: {
+			"QuoteIndexInQuote": {
+				kind: "Research",
+				decision: "Retain SwapQuoteStep.QuoteIndexInQuote as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#swapquotestep",
+			},
+		},
+		[EntityType.TezosAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TezosAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosaccount",
+			},
+		},
+		[EntityType.TezosAccount_Timestamp]: {
+			"AccountLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosAccount_Timestamp.AccountLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosaccount_timestamp",
+			},
+		},
+		[EntityType.TezosBaker]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TezosBaker.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbaker",
+			},
+		},
+		[EntityType.TezosBaker_Cycle_Timestamp]: {
+			"BakerCycleSource": {
+				kind: "Research",
+				decision: "Retain TezosBaker_Cycle_Timestamp.BakerCycleSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbaker_cycle_timestamp",
+			},
+		},
+		[EntityType.TezosBaker_Timestamp]: {
+			"BakerLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosBaker_Timestamp.BakerLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbaker_timestamp",
+			},
+		},
+		[EntityType.TezosBakingRight]: {
+			"NetworkCycleLevelRightKindBakerAddressSource": {
+				kind: "Research",
+				decision: "Retain TezosBakingRight.NetworkCycleLevelRightKindBakerAddressSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbakingright",
+			},
+		},
+		[EntityType.TezosBakingRight_Timestamp]: {
+			"RightTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TezosBakingRight_Timestamp.RightTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbakingright_timestamp",
+			},
+		},
+		[EntityType.TezosBigMap]: {
+			"ContractBigMapId": {
+				kind: "Research",
+				decision: "Retain TezosBigMap.ContractBigMapId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbigmap",
+			},
+		},
+		[EntityType.TezosBigMap_Timestamp]: {
+			"BigMapLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosBigMap_Timestamp.BigMapLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbigmap_timestamp",
+			},
+		},
+		[EntityType.TezosBigMapDiff]: {
+			"OperationBigMapIdKeyHash": {
+				kind: "Research",
+				decision: "Retain TezosBigMapDiff.OperationBigMapIdKeyHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbigmapdiff",
+			},
+		},
+		[EntityType.TezosBigMapKey]: {
+			"BigMapKeyHash": {
+				kind: "Research",
+				decision: "Retain TezosBigMapKey.BigMapKeyHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbigmapkey",
+			},
+		},
+		[EntityType.TezosBigMapKey_Timestamp]: {
+			"BigMapKeyLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosBigMapKey_Timestamp.BigMapKeyLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosbigmapkey_timestamp",
+			},
+		},
+		[EntityType.TezosBlock]: {
+			"NetworkLevel": {
+				kind: "Research",
+				decision: "Retain TezosBlock.NetworkLevel as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosblock",
+			},
+			"NetworkHash": {
+				kind: "Research",
+				decision: "Retain TezosBlock.NetworkHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosblock",
+			},
+		},
+		[EntityType.TezosContract]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TezosContract.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezoscontract",
+			},
+		},
+		[EntityType.TezosContract_Timestamp]: {
+			"ContractLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosContract_Timestamp.ContractLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezoscontract_timestamp",
+			},
+		},
+		[EntityType.TezosCycle]: {
+			"NetworkCycle": {
+				kind: "Research",
+				decision: "Retain TezosCycle.NetworkCycle as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezoscycle",
+			},
+		},
+		[EntityType.TezosEntrypoint]: {
+			"ContractEntrypointName": {
+				kind: "Research",
+				decision: "Retain TezosEntrypoint.ContractEntrypointName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosentrypoint",
+			},
+		},
+		[EntityType.TezosInternalOperation]: {
+			"ParentOperationInternalIndex": {
+				kind: "Research",
+				decision: "Retain TezosInternalOperation.ParentOperationInternalIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosinternaloperation",
+			},
+		},
+		[EntityType.TezosMichelsonScript]: {
+			"NetworkScriptHash": {
+				kind: "Research",
+				decision: "Retain TezosMichelsonScript.NetworkScriptHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosmichelsonscript",
+			},
+		},
+		[EntityType.TezosNetwork]: {
+			"Network": {
+				kind: "Research",
+				decision: "Retain TezosNetwork.Network as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosnetwork",
+			},
+		},
+		[EntityType.TezosNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TezosNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosnetwork_timestamp",
+			},
+		},
+		[EntityType.TezosOperation]: {
+			"OperationGroupContentIndex": {
+				kind: "Research",
+				decision: "Retain TezosOperation.OperationGroupContentIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosoperation",
+			},
+		},
+		[EntityType.TezosOperationGroup]: {
+			"NetworkOperationHash": {
+				kind: "Research",
+				decision: "Retain TezosOperationGroup.NetworkOperationHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezosoperationgroup",
+			},
+		},
+		[EntityType.TezosToken]: {
+			"NetworkContractAddressTokenId": {
+				kind: "Research",
+				decision: "Retain TezosToken.NetworkContractAddressTokenId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezostoken",
+			},
+		},
+		[EntityType.TezosToken_Timestamp]: {
+			"TokenLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosToken_Timestamp.TokenLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezostoken_timestamp",
+			},
+		},
+		[EntityType.TezosTokenBalance_Timestamp]: {
+			"AccountTokenLevelSource": {
+				kind: "Research",
+				decision: "Retain TezosTokenBalance_Timestamp.AccountTokenLevelSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezostokenbalance_timestamp",
+			},
+		},
+		[EntityType.TezosTokenTransfer]: {
+			"NetworkTransferIdSource": {
+				kind: "Research",
+				decision: "Retain TezosTokenTransfer.NetworkTransferIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tezostokentransfer",
+			},
+		},
+		[EntityType.TokenMetadataDocument]: {
+			"MetadataSubjectKeyMetadataKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TokenMetadataDocument.MetadataSubjectKeyMetadataKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tokenmetadatadocument",
+			},
+		},
+		[EntityType.TokenProgramExtension_Timestamp]: {
+			"AssetInstanceExtensionKindExtensionScopeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TokenProgramExtension_Timestamp.AssetInstanceExtensionKindExtensionScopeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tokenprogramextension_timestamp",
+			},
+		},
+		[EntityType.TonAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonaccount_timestamp",
+			},
+		},
+		[EntityType.TonBlock]: {
+			"NetworkWorkchainShardPrefixSeqno": {
+				kind: "Research",
+				decision: "Retain TonBlock.NetworkWorkchainShardPrefixSeqno as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonblock",
+			},
+			"NetworkRootHashFileHash": {
+				kind: "Research",
+				decision: "Retain TonBlock.NetworkRootHashFileHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonblock",
+			},
+		},
+		[EntityType.TonContract]: {
+			"Account": {
+				kind: "Research",
+				decision: "Retain TonContract.Account as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#toncontract",
+			},
+		},
+		[EntityType.TonContract_Timestamp]: {
+			"ContractTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonContract_Timestamp.ContractTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#toncontract_timestamp",
+			},
+		},
+		[EntityType.TonContractGetMethod]: {
+			"ContractMethodName": {
+				kind: "Research",
+				decision: "Retain TonContractGetMethod.ContractMethodName as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#toncontractgetmethod",
+			},
+		},
+		[EntityType.TonContractGetMethod_Timestamp]: {
+			"MethodTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonContractGetMethod_Timestamp.MethodTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#toncontractgetmethod_timestamp",
+			},
+		},
+		[EntityType.TonJetton]: {
+			"NetworkMasterAddress": {
+				kind: "Research",
+				decision: "Retain TonJetton.NetworkMasterAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonjetton",
+			},
+		},
+		[EntityType.TonJetton_Timestamp]: {
+			"JettonTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonJetton_Timestamp.JettonTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonjetton_timestamp",
+			},
+		},
+		[EntityType.TonJettonBalance_Timestamp]: {
+			"AccountJettonTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonJettonBalance_Timestamp.AccountJettonTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonjettonbalance_timestamp",
+			},
+		},
+		[EntityType.TonJettonTransfer]: {
+			"NetworkTransferIdSource": {
+				kind: "Research",
+				decision: "Retain TonJettonTransfer.NetworkTransferIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonjettontransfer",
+			},
+		},
+		[EntityType.TonMessage]: {
+			"NetworkMessageHash": {
+				kind: "Research",
+				decision: "Retain TonMessage.NetworkMessageHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonmessage",
+			},
+			"SourceTransactionOutIndex": {
+				kind: "Research",
+				decision: "Retain TonMessage.SourceTransactionOutIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonmessage",
+			},
+		},
+		[EntityType.TonNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnetwork_timestamp",
+			},
+		},
+		[EntityType.TonNftCollection]: {
+			"NetworkCollectionAddress": {
+				kind: "Research",
+				decision: "Retain TonNftCollection.NetworkCollectionAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnftcollection",
+			},
+		},
+		[EntityType.TonNftCollection_Timestamp]: {
+			"CollectionTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonNftCollection_Timestamp.CollectionTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnftcollection_timestamp",
+			},
+		},
+		[EntityType.TonNftItem]: {
+			"NetworkItemAddress": {
+				kind: "Research",
+				decision: "Retain TonNftItem.NetworkItemAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnftitem",
+			},
+			"CollectionItemIndex": {
+				kind: "Research",
+				decision: "Retain TonNftItem.CollectionItemIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnftitem",
+			},
+		},
+		[EntityType.TonNftItem_Timestamp]: {
+			"ItemTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonNftItem_Timestamp.ItemTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnftitem_timestamp",
+			},
+		},
+		[EntityType.TonNftTransfer]: {
+			"NetworkTransferIdSource": {
+				kind: "Research",
+				decision: "Retain TonNftTransfer.NetworkTransferIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonnfttransfer",
+			},
+		},
+		[EntityType.TonShard_Timestamp]: {
+			"WorkchainShardPrefixSeqnoSource": {
+				kind: "Research",
+				decision: "Retain TonShard_Timestamp.WorkchainShardPrefixSeqnoSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonshard_timestamp",
+			},
+		},
+		[EntityType.TonTrace]: {
+			"NetworkTraceIdSource": {
+				kind: "Research",
+				decision: "Retain TonTrace.NetworkTraceIdSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontrace",
+			},
+			"RootMessageSource": {
+				kind: "Research",
+				decision: "Retain TonTrace.RootMessageSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontrace",
+			},
+		},
+		[EntityType.TonTrace_Timestamp]: {
+			"TraceTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TonTrace_Timestamp.TraceTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontrace_timestamp",
+			},
+		},
+		[EntityType.TonTransaction]: {
+			"AccountLt": {
+				kind: "Research",
+				decision: "Retain TonTransaction.AccountLt as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontransaction",
+			},
+			"AccountLtHash": {
+				kind: "Research",
+				decision: "Retain TonTransaction.AccountLtHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontransaction",
+			},
+		},
+		[EntityType.TonTransactionPhase]: {
+			"TransactionPhaseKind": {
+				kind: "Research",
+				decision: "Retain TonTransactionPhase.TransactionPhaseKind as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tontransactionphase",
+			},
+		},
+		[EntityType.TonWorkchain]: {
+			"NetworkWorkchain": {
+				kind: "Research",
+				decision: "Retain TonWorkchain.NetworkWorkchain as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tonworkchain",
+			},
+		},
+		[EntityType.TransferRestriction]: {
+			"AssetInstanceRestrictionKeySource": {
+				kind: "Research",
+				decision: "Retain TransferRestriction.AssetInstanceRestrictionKeySource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#transferrestriction",
+			},
+		},
+		[EntityType.TransferRestrictionCheck_Timestamp]: {
+			"RestrictionTimestampMsSourceSubjectKey": {
+				kind: "Research",
+				decision: "Retain TransferRestrictionCheck_Timestamp.RestrictionTimestampMsSourceSubjectKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#transferrestrictioncheck_timestamp",
+			},
+		},
+		[EntityType.TronAccount]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TronAccount.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronaccount",
+			},
+		},
+		[EntityType.TronAccount_Timestamp]: {
+			"AccountTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronAccount_Timestamp.AccountTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronaccount_timestamp",
+			},
+		},
+		[EntityType.TronAccountTokenBalance_Timestamp]: {
+			"AccountTokenTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronAccountTokenBalance_Timestamp.AccountTokenTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronaccounttokenbalance_timestamp",
+			},
+		},
+		[EntityType.TronBlock]: {
+			"NetworkHeight": {
+				kind: "Research",
+				decision: "Retain TronBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronblock",
+			},
+			"NetworkHeightHash": {
+				kind: "Research",
+				decision: "Retain TronBlock.NetworkHeightHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronblock",
+			},
+		},
+		[EntityType.TronContract]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TronContract.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#troncontract",
+			},
+		},
+		[EntityType.TronContract_Timestamp]: {
+			"ContractTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronContract_Timestamp.ContractTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#troncontract_timestamp",
+			},
+		},
+		[EntityType.TronNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronnetwork_timestamp",
+			},
+		},
+		[EntityType.TronToken]: {
+			"NetworkTokenId": {
+				kind: "Research",
+				decision: "Retain TronToken.NetworkTokenId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trontoken",
+			},
+		},
+		[EntityType.TronToken_Timestamp]: {
+			"TokenTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronToken_Timestamp.TokenTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trontoken_timestamp",
+			},
+		},
+		[EntityType.TronTokenTransfer]: {
+			"NetworkTransactionIdTransferIndex": {
+				kind: "Research",
+				decision: "Retain TronTokenTransfer.NetworkTransactionIdTransferIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trontokentransfer",
+			},
+		},
+		[EntityType.TronTransaction]: {
+			"NetworkTransactionId": {
+				kind: "Research",
+				decision: "Retain TronTransaction.NetworkTransactionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trontransaction",
+			},
+		},
+		[EntityType.TronTransactionReceipt]: {
+			"Transaction": {
+				kind: "Research",
+				decision: "Retain TronTransactionReceipt.Transaction as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trontransactionreceipt",
+			},
+		},
+		[EntityType.TronWitness]: {
+			"NetworkAddress": {
+				kind: "Research",
+				decision: "Retain TronWitness.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronwitness",
+			},
+		},
+		[EntityType.TronWitness_Timestamp]: {
+			"WitnessTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain TronWitness_Timestamp.WitnessTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#tronwitness_timestamp",
+			},
+		},
+		[EntityType.TrustedIssuer]: {
+			"ProfileIssuerKey": {
+				kind: "Research",
+				decision: "Retain TrustedIssuer.ProfileIssuerKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#trustedissuer",
+			},
+		},
+		[EntityType.UsageRight_Timestamp]: {
+			"SubjectKeyRightKeyTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain UsageRight_Timestamp.SubjectKeyRightKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#usageright_timestamp",
+			},
+		},
+		[EntityType.WalletConnectionMethod]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain WalletConnectionMethod.Id as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#walletconnectionmethod",
+			},
+		},
+		[EntityType.XrplAccount_Timestamp]: {
+			"AccountLedgerIndexSource": {
+				kind: "Research",
+				decision: "Retain XrplAccount_Timestamp.AccountLedgerIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrplaccount_timestamp",
+			},
+		},
+		[EntityType.XrplAmendment_Timestamp]: {
+			"AmendmentLedgerIndexSource": {
+				kind: "Research",
+				decision: "Retain XrplAmendment_Timestamp.AmendmentLedgerIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrplamendment_timestamp",
+			},
+		},
+		[EntityType.XrplAmm_Timestamp]: {
+			"AmmLedgerIndexSource": {
+				kind: "Research",
+				decision: "Retain XrplAmm_Timestamp.AmmLedgerIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrplamm_timestamp",
+			},
+		},
+		[EntityType.XrplLedger]: {
+			"NetworkLedgerHash": {
+				kind: "Research",
+				decision: "Retain XrplLedger.NetworkLedgerHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrplledger",
+			},
+		},
+		[EntityType.XrplLedgerEntry]: {
+			"LedgerEntryHash": {
+				kind: "Research",
+				decision: "Retain XrplLedgerEntry.LedgerEntryHash as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrplledgerentry",
+			},
+		},
+		[EntityType.XrplTransaction_Timestamp]: {
+			"TransactionLedgerIndexSource": {
+				kind: "Research",
+				decision: "Retain XrplTransaction_Timestamp.TransactionLedgerIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrpltransaction_timestamp",
+			},
+		},
+		[EntityType.XrplTrustline_Timestamp]: {
+			"TrustlineLedgerIndexSource": {
+				kind: "Research",
+				decision: "Retain XrplTrustline_Timestamp.TrustlineLedgerIndexSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xrpltrustline_timestamp",
+			},
+		},
+		[EntityType.XUser]: {
+			"Username": {
+				kind: "Research",
+				decision: "Retain XUser.Username as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#xuser",
+			},
+		},
+		[EntityType.ZcashShieldedPoolBlockState]: {
+			"BlockPool": {
+				kind: "Research",
+				decision: "Retain ZcashShieldedPoolBlockState.BlockPool as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zcashshieldedpoolblockstate",
+			},
+		},
+		[EntityType.ZeroGConsensusNetwork]: {
+			"NetworkConsensusNetworkId": {
+				kind: "Research",
+				decision: "Retain ZeroGConsensusNetwork.NetworkConsensusNetworkId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogconsensusnetwork",
+			},
+		},
+		[EntityType.ZeroGConsensusNetwork_Timestamp]: {
+			"ConsensusNetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ZeroGConsensusNetwork_Timestamp.ConsensusNetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogconsensusnetwork_timestamp",
+			},
+		},
+		[EntityType.ZeroGDaNode]: {
+			"NetworkNodeId": {
+				kind: "Research",
+				decision: "Retain ZeroGDaNode.NetworkNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogdanode",
+			},
+		},
+		[EntityType.ZeroGDaQuorum]: {
+			"NetworkQuorumId": {
+				kind: "Research",
+				decision: "Retain ZeroGDaQuorum.NetworkQuorumId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogdaquorum",
+			},
+		},
+		[EntityType.ZeroGDataBlob]: {
+			"NetworkDataRoot": {
+				kind: "Research",
+				decision: "Retain ZeroGDataBlob.NetworkDataRoot as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogdatablob",
+			},
+		},
+		[EntityType.ZeroGDataChunk]: {
+			"ZeroGDataBlobChunkIndex": {
+				kind: "Research",
+				decision: "Retain ZeroGDataChunk.ZeroGDataBlobChunkIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogdatachunk",
+			},
+		},
+		[EntityType.ZeroGKvEntry]: {
+			"NetworkNamespaceKey": {
+				kind: "Research",
+				decision: "Retain ZeroGKvEntry.NetworkNamespaceKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogkventry",
+			},
+		},
+		[EntityType.ZeroGNetwork]: {
+			"Slug": {
+				kind: "Research",
+				decision: "Retain ZeroGNetwork.Slug as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerognetwork",
+			},
+		},
+		[EntityType.ZeroGNetwork_Timestamp]: {
+			"NetworkTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ZeroGNetwork_Timestamp.NetworkTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerognetwork_timestamp",
+			},
+		},
+		[EntityType.ZeroGServiceProvider]: {
+			"NetworkProviderId": {
+				kind: "Research",
+				decision: "Retain ZeroGServiceProvider.NetworkProviderId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogserviceprovider",
+			},
+		},
+		[EntityType.ZeroGServiceRequest]: {
+			"ZeroGServiceProviderRequestId": {
+				kind: "Research",
+				decision: "Retain ZeroGServiceRequest.ZeroGServiceProviderRequestId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogservicerequest",
+			},
+		},
+		[EntityType.ZeroGSettlementTrace]: {
+			"ZeroGServiceRequestTraceId": {
+				kind: "Research",
+				decision: "Retain ZeroGSettlementTrace.ZeroGServiceRequestTraceId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogsettlementtrace",
+			},
+		},
+		[EntityType.ZeroGStorageLogEntry]: {
+			"NetworkLogEntryId": {
+				kind: "Research",
+				decision: "Retain ZeroGStorageLogEntry.NetworkLogEntryId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogstoragelogentry",
+			},
+		},
+		[EntityType.ZeroGStorageNode]: {
+			"NetworkNodeId": {
+				kind: "Research",
+				decision: "Retain ZeroGStorageNode.NetworkNodeId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogstoragenode",
+			},
+		},
+		[EntityType.ZeroGStorageNode_Timestamp]: {
+			"StorageNodeTimestampMsSource": {
+				kind: "Research",
+				decision: "Retain ZeroGStorageNode_Timestamp.StorageNodeTimestampMsSource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogstoragenode_timestamp",
+			},
+		},
+		[EntityType.ZeroGStorageProof]: {
+			"ZeroGStorageNodeProofId": {
+				kind: "Research",
+				decision: "Retain ZeroGStorageProof.ZeroGStorageNodeProofId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#zerogstorageproof",
+			},
+		},
+	},
 	children: {
 		"~": {
 			children: {
@@ -67477,9 +72674,9 @@ export const routes = defineRoutes(schema)({
 							imports: [
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
-								{ from: "$/views/BlockheadWalletConnectionsView.svelte", default: "BlockheadWalletConnectionsView" },
+								{ from: "$/components/WalletConnectionsControl.svelte", default: "WalletConnectionsControl" },
 								{ from: "$/views/BlockheadBridgeTransactionsView.svelte", default: "BlockheadBridgeTransactionsView" },
-								{ from: "$/views/EvmNetworkActorCoinBalancesView.svelte", default: "EvmNetworkActorCoinBalancesView" },
+								{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
 								{ from: "$/views/EvmAccountsView.svelte", default: "EvmAccountsView" },
 								{ from: "$/sources/Source.ts", names: ["Source"] },
 							],
@@ -67495,10 +72692,6 @@ export const routes = defineRoutes(schema)({
 															{ id: 'transactions', label: 'Transactions' },
 														]}
 														data-card
-														scrollContainerProps={{
-															'data-row': 'start align-start',
-															style: '--carousel-basis: 40ch',
-														}}
 													>
 														{#snippet Summary({ open: _open })}
 															<header
@@ -67510,13 +72703,8 @@ export const routes = defineRoutes(schema)({
 														{/snippet}
 
 														{#snippet SectionConnections()}
-															<BlockheadWalletConnectionsView
-																href={resolve('/~/accounts/connections')}
-																selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' }).$$blockheadWalletConnections({
-																	sources: [Source.Local_Internal],
-																})}
+															<WalletConnectionsControl
 																id='wallet-connections'
-																open={true}
 															/>
 														{/snippet}
 
@@ -67526,20 +72714,16 @@ export const routes = defineRoutes(schema)({
 																selection={select(EntityType._Global, { scope: '$$actors' }).$$actors({
 																	sources: [Source.Local_Internal],
 																})}
-																id='accounts'
-																open={true}
+																		id='accounts'
+																		open={true}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 															/>
 														{/snippet}
 
 														{#snippet SectionBalances()}
-															<EvmNetworkActorCoinBalancesView
-																href={resolve('/~/accounts/balances')}
-																selection={select(EntityType._Global, { scope: '$$actorCoins' }).$$actorCoins({
-																	sources: [Source.Allium_Rest],
-																})}
-																id='balances'
-																open={true}
-															/>
+															<WalletAccountPortfolio id='accounts-balances' />
 														{/snippet}
 
 														{#snippet SectionAllowances()}
@@ -67555,8 +72739,11 @@ export const routes = defineRoutes(schema)({
 																selection={select(EntityType._Global, { scope: '$$bridgeTransactions' }).$$bridgeTransactions({
 																	sources: [Source.Local_Internal],
 																})}
-																id='transactions'
-																open={true}
+																		id='transactions'
+																		open={true}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 															/>
 														{/snippet}
 													</CollapsibleTabs>
@@ -67665,24 +72852,20 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 						"balances": {
-							collections: [
-								{
-									field: [
-										EntityType._Global,
-										"$$actorCoins"
+							page: {
+								view: {
+									imports: [
+										{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
+										{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
 									],
-									query: {
-										sources: [Source.Allium_Rest],
-									},
-									derivations: {
-										"scope": { kind: "literal", value: "$$actorCoins" }
-									},
-									page: {
-										view: { component: "EvmNetworkActorCoinBalancesView" },
-										text: { title: "Balances" }
-									}
+									Content: dedent `
+													<HeadingComponent>Balances</HeadingComponent>
+
+													<WalletAccountPortfolio id='account-balances' />
+												`,
 								},
-							],
+								text: { title: "Balances" },
+							},
 						},
 						"balance": {
 							children: {
@@ -67790,24 +72973,23 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 						"transactions": {
-							collections: [
-								{
-									field: [
-										EntityType._Global,
-										"$$bridgeTransactions"
+							page: {
+								view: {
+									imports: [
+										{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
+										{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
 									],
-									query: {
-										sources: [Source.Local_Internal],
-									},
-									derivations: {
-										"scope": { kind: "literal", value: "$$bridgeTransactions" }
-									},
-									page: {
-										view: { component: "BlockheadBridgeTransactionsView" },
-										text: { title: "Transactions" }
-									}
+									Content: dedent `
+													<HeadingComponent>Transactions</HeadingComponent>
+
+													<WalletAccountPortfolio
+														facet='transactions'
+														id='account-transactions'
+													/>
+												`,
 								},
-							],
+								text: { title: "Transactions" },
+							},
 						},
 						"transaction": {
 							children: {
@@ -67823,7 +73005,7 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"[sourceTxHash]": {
 													params: {
-														"sourceTxHash": ["string"],
+																		"sourceTxHash": ["opaqueRouteIdentifier"],
 													},
 													children: {
 														"[createdAt]": {
@@ -67858,8 +73040,7 @@ export const routes = defineRoutes(schema)({
 																					{ field: "$network", value: { kind: "selector", entity: EntityType.Network, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object",
 																										fields: [{ name: "namespace",
 																												value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } }, {
-																						field: "txHash", param: "sourceTxHash", decode: _ExpressionDecode.
-																							DecodeURIComponent
+																														field: "txHash", param: "sourceTxHash"
 																					},
 																				] }
 																		},
@@ -68070,14 +73251,9 @@ export const routes = defineRoutes(schema)({
 														id='manage:hub'
 														sectionIdPrefix='manage'
 														sections={[
-															{ id: 'profiles', label: 'Profiles' },
-															{ id: 'sources', label: 'Sources' },
+																	{ id: 'sources', label: 'Sources' },
 														]}
 														data-card
-														scrollContainerProps={{
-															'data-row': 'start align-start',
-															style: '--carousel-basis: 40ch',
-														}}
 													>
 														{#snippet Summary({ open: _open })}
 															<header
@@ -68088,18 +73264,17 @@ export const routes = defineRoutes(schema)({
 															</header>
 														{/snippet}
 
-														{#snippet SectionProfiles()}
-															<p data-text='muted'>Profiles are not wired yet.</p>
-														{/snippet}
-
 														{#snippet SectionSources()}
 															<BlockheadSourcesView
 																href={resolve('/~/manage/sources')}
 																selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
 																	sources: [Source.Local_Internal],
 																})}
-																id='sources'
-																open={true}
+																		id='sources'
+																		open={true}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 															/>
 														{/snippet}
 													</CollapsibleTabs>
@@ -68108,16 +73283,6 @@ export const routes = defineRoutes(schema)({
 						text: { title: "Manage" }
 					},
 					children: {
-						"profiles": {
-							page: {
-								view: {
-									Content: dedent `
-													<p data-text='muted'>Profiles are not wired yet.</p>
-												`,
-								},
-								text: { title: "Profiles" }
-							}
-						},
 						"sources": {
 							collections: [
 								{
@@ -68186,10 +73351,6 @@ export const routes = defineRoutes(schema)({
 															{ id: 'contacts', label: 'Contacts' },
 														]}
 														data-card
-														scrollContainerProps={{
-															'data-row': 'start align-start',
-															style: '--carousel-basis: 40ch',
-														}}
 													>
 														{#snippet Summary({ open: _open })}
 															<header
@@ -68206,8 +73367,11 @@ export const routes = defineRoutes(schema)({
 																selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
 																	sources: [Source.Local_Internal],
 																})}
-																id='rooms'
-																open={true}
+																		id='rooms'
+																		open={true}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 															/>
 														{/snippet}
 
@@ -68217,8 +73381,11 @@ export const routes = defineRoutes(schema)({
 																selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
 																	sources: [Source.Local_Internal],
 																})}
-																id='contacts'
-																open={true}
+																		id='contacts'
+																		open={true}
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 															/>
 														{/snippet}
 													</CollapsibleTabs>
@@ -68476,28 +73643,27 @@ export const routes = defineRoutes(schema)({
 																														kind: "selector",
 																														entity: EntityType.BridgeRoute, selector: "Quote", params: [
 																															{
-																																field: "fromChainId", value: { kind: "param", name: "fromChainId", decode: _ExpressionDecode.Number }
+																														field: "fromChainId", value: { kind: "param", name: "fromChainId" }
 																															},
 																															{
-																																field: "toChainId", value: { kind: "param", name: "toChainId", decode: _ExpressionDecode.Number }
+																														field: "toChainId", value: { kind: "param", name: "toChainId" }
 																															}, {
 																																field: "fromToken",
-																																value: { kind: "param", name: "fromToken",
-																																	decode: _ExpressionDecode.DecodeURIComponent }
+																																value: { kind: "param", name: "fromToken" }
 																															}, {
 																																field: "toToken", value: {
-																																	kind: "param", name: "toToken", decode: _ExpressionDecode.DecodeURIComponent
+																																	kind: "param", name: "toToken"
 																																}
 																															}, {
-																																field: "fromAmount", value: { kind: "param", name: "fromAmount", decode: _ExpressionDecode.BigInt }
+																														field: "fromAmount", value: { kind: "param", name: "fromAmount" }
 																															}, {
-																																field: "fromAddress", value: { kind: "param", name: "fromAddress", decode: _ExpressionDecode.DecodeURIComponent }
+																															field: "fromAddress", value: { kind: "param", name: "fromAddress" }
 																															},
 																															{
-																																field: "slippage", value: { kind: "param",
-																																	name: "slippage", decode: _ExpressionDecode.Number }
+																														field: "slippage", value: { kind: "param",
+																															name: "slippage" }
 																															}, {
-																																field: "toAddress", value: { kind: "param", name: "toAddress", decode: _ExpressionDecode.DecodeURIComponent }
+																															field: "toAddress", value: { kind: "param", name: "toAddress" }
 																															},
 																														],
 																													}
@@ -68549,10 +73715,6 @@ export const routes = defineRoutes(schema)({
 													{ id: 'pools', label: 'Pools' },
 												]}
 												data-card
-												scrollContainerProps={{
-													'data-row': 'start align-start',
-													style: '--carousel-basis: 40ch',
-												}}
 											>
 												{#snippet Summary({ open: _open })}
 													<header
@@ -68564,29 +73726,38 @@ export const routes = defineRoutes(schema)({
 												{/snippet}
 
 												{#snippet SectionCoins()}
-													<CoinsView
-																						href={resolve('/coins')}
-														selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
-														id='coins'
-														open={true}
-													/>
+															<CoinsView
+																			href={resolve('/coins')}
+																selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
+																id='coins'
+																open={true}
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 
 												{#snippet SectionCurrencies()}
-													<CurrenciesView
+															<CurrenciesView
 																						href={resolve('/currencies')}
-														selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
-														open={true}
-													/>
+																selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
+																open={true}
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 
 												{#snippet SectionPools()}
-													<LiquidityPoolsView
+															<LiquidityPoolsView
 																						href={resolve('/pools')}
 														selection={select(EntityType._Global, { scope: '$$liquidityPools' }).$$liquidityPools}
-														id='pools'
-														open={false}
-													/>
+																id='pools'
+																open={true}
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 											</CollapsibleTabs>
 								`,
@@ -68770,10 +73941,6 @@ export const routes = defineRoutes(schema)({
 													{ id: 'proposals', label: 'Proposals' },
 												]}
 												data-card
-												scrollContainerProps={{
-													'data-row': 'start align-start',
-													style: '--carousel-basis: 40ch',
-												}}
 											>
 												{#snippet Summary({ open: _open })}
 													<header
@@ -68785,23 +73952,29 @@ export const routes = defineRoutes(schema)({
 												{/snippet}
 
 												{#snippet SectionNetworks()}
-													<NetworksView
+															<NetworksView
 																						href={resolve('/networks')}
 														selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
-														id='networks'
-														open={true}
-													/>
+																id='networks'
+																open={true}
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 
 												{#snippet SectionUpgrades()}
-													<EthereumNetworkUpgradesView
+															<EthereumNetworkUpgradesView
 														selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
 															sources: [Source.Constants_Internal],
-															limit: 512,
-														})}
-														id='upgrades'
-														open={true}
-													/>
+																limit: 512,
+																})}
+																id='upgrades'
+																open={true}
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 
 												{#snippet SectionIpfs()}
@@ -68815,14 +73988,17 @@ export const routes = defineRoutes(schema)({
 												{/snippet}
 
 												{#snippet SectionProposals()}
-													<SpecificationRealmsView
+															<SpecificationRealmsView
 														selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
 															sources: [Source.Constants_Internal],
 														})}
-														id='proposal-realms'
-														open={true}
-														title='Proposals'
-													/>
+																id='proposal-realms'
+																open={true}
+																title='Proposals'
+																data-column-item='flexible'
+																data-card
+																data-scroll-container
+															/>
 												{/snippet}
 											</CollapsibleTabs>
 								`,
@@ -68847,10 +74023,6 @@ export const routes = defineRoutes(schema)({
 													{ id: 'agents', label: 'ERC-8004 Registrations' },
 												]}
 												data-card
-												scrollContainerProps={{
-													'data-row': 'start align-start',
-													style: '--carousel-basis: 40ch',
-												}}
 											>
 												{#snippet Summary({ open: _open })}
 													<header
@@ -68868,9 +74040,12 @@ export const routes = defineRoutes(schema)({
 															sources: [Source.Eip8004Scan_Rest],
 															limit: 100,
 														})}
-														id='agents'
-														open={true}
-														title='ERC-8004 Registrations'
+																		id='agents'
+																		open={true}
+																		title='ERC-8004 Registrations'
+																		data-column-item='flexible'
+																		data-card
+																		data-scroll-container
 													/>
 												{/snippet}
 											</CollapsibleTabs>
@@ -69128,10 +74303,6 @@ export const routes = defineRoutes(schema)({
 													{ id: 'farcaster', label: 'Farcaster' },
 												]}
 												data-card
-												scrollContainerProps={{
-													'data-row': 'start align-start',
-													style: '--carousel-basis: 40ch',
-												}}
 											>
 												{#snippet Summary({ open: _open })}
 													<header
@@ -69262,7 +74433,7 @@ export const routes = defineRoutes(schema)({
 																		kind: "selector", entity: EntityType.Url, selector: "Url",
 																		params: [
 																			{
-																				field: "url", param: "url", decode: _ExpressionDecode.DecodeURIComponent
+																								field: "url", param: "url"
 																			},
 																		],
 																	}
@@ -69308,7 +74479,7 @@ export const routes = defineRoutes(schema)({
 						}
 					}
 				},
-				"(evm)": {
+				"(protocols)": {
 					children: {
 						"evm": {
 							selectors: {
@@ -69331,6 +74502,13 @@ export const routes = defineRoutes(schema)({
 								}
 							},
 							children: {
+								"(topics)": {
+									layout: {
+										kind: "group",
+										title: "Topics",
+										href: "/evm/topics",
+									},
+									children: {
 								"topics": {
 									collections: [
 										{
@@ -69406,7 +74584,7 @@ export const routes = defineRoutes(schema)({
 																					"$topic": {
 																						kind: "object", fields: [
 																							{
-																								name: "hex", value: { kind: "param", name: "hex", decode: _ExpressionDecode.DecodeURIComponent }
+																												name: "hex", value: { kind: "param", name: "hex" }
 																							},
 																						],
 																					}
@@ -69425,6 +74603,15 @@ export const routes = defineRoutes(schema)({
 										}
 									}
 									},
+									},
+								},
+								"(selectors)": {
+									layout: {
+										kind: "group",
+										title: "Selectors",
+										href: "/evm/selectors",
+									},
+									children: {
 								"selectors": {
 									collections: [
 										{
@@ -69502,7 +74689,7 @@ export const routes = defineRoutes(schema)({
 																					"$selector": {
 																						kind: "object",
 																						fields: [
-																							{ name: "hex", value: { kind: "param", name: "hex", decode: _ExpressionDecode.DecodeURIComponent } },
+																											{ name: "hex", value: { kind: "param", name: "hex" } },
 																						],
 																					}
 																				},
@@ -69520,6 +74707,15 @@ export const routes = defineRoutes(schema)({
 										}
 									}
 								},
+									},
+								},
+								"(calldata)": {
+									layout: {
+										kind: "group",
+										title: "Calldata",
+										href: "/evm/calldata-decoder",
+									},
+									children: {
 								"calldata-decoder": {
 									page: {
 										view: {
@@ -70065,6 +75261,15 @@ export const routes = defineRoutes(schema)({
 										}
 									}
 								},
+									},
+								},
+								"(errors)": {
+									layout: {
+										kind: "group",
+										title: "Errors",
+										href: "/evm/errors",
+									},
+									children: {
 								"errors": {
 									collections: [
 										{
@@ -70142,7 +75347,7 @@ export const routes = defineRoutes(schema)({
 																					"$error": {
 																						kind: "object",
 																						fields: [
-																							{ name: "hex", value: { kind: "param", name: "hex", decode: _ExpressionDecode.DecodeURIComponent } },
+																											{ name: "hex", value: { kind: "param", name: "hex" } },
 																						],
 																					}
 																				},
@@ -70160,8 +75365,10 @@ export const routes = defineRoutes(schema)({
 										}
 									}
 								}
+									}
+								},
+								}
 							}
-						}
 					}
 				},
 				"(ens)": {
@@ -70288,7 +75495,7 @@ export const routes = defineRoutes(schema)({
 																					"$name": {
 																						kind: "object",
 																						fields: [
-																							{ name: "name", value: { kind: "param", name: "ensName", decode: _ExpressionDecode.DecodeURIComponent } },
+																											{ name: "name", value: { kind: "param", name: "ensName" } },
 																						],
 																					}
 																				},
@@ -70313,7 +75520,7 @@ export const routes = defineRoutes(schema)({
 																sources: [Source.TheGraph_Graphql, Source.Voltaire_JsonRpc],
 															},
 															derivations: {
-																"name": { kind: "param", name: "ensName", decode: _ExpressionDecode.DecodeURIComponent }
+																			"name": { kind: "param", name: "ensName" }
 															},
 															page: {
 																view: { component: "EnsRecordsView" },
@@ -70347,7 +75554,7 @@ export const routes = defineRoutes(schema)({
 																			"$name": {
 																				kind: "object",
 																				fields: [
-																					{ name: "name", value: { kind: "param", name: "ensName", decode: _ExpressionDecode.DecodeURIComponent } },
+																								{ name: "name", value: { kind: "param", name: "ensName" } },
 																				],
 																			}
 																		},
@@ -70393,11 +75600,11 @@ export const routes = defineRoutes(schema)({
 																												value: {
 																													kind: "object",
 																													fields: [
-																														{ name: "name", value: { kind: "param", name: "ensName", decode: _ExpressionDecode.DecodeURIComponent } },
+																													{ name: "name", value: { kind: "param", name: "ensName" } },
 																													],
 																												},
 																											},
-																											{ name: "recordKey", value: { kind: "param", name: "recordId", decode: _ExpressionDecode.DecodeURIComponent } },
+																											{ name: "recordKey", value: { kind: "param", name: "recordId" } },
 																										],
 																									}
 																								},
@@ -70986,6 +76193,31 @@ export const routes = defineRoutes(schema)({
 
 																		page: {}
 																	}
+																},
+																[EntityType.XrplAccount]: {
+																	"NetworkAccount": {
+																		probeCases: [
+																			{
+																				id: "default",
+																				params: {
+																					network: "/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.network",
+																					accountId: "/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.accountId",
+																				},
+																			},
+																		],
+																		when: {
+																			path: ["namespace"],
+																			is: "Xrpl",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Xrpl"],
+																		},
+																		params: {
+																			"accountId": ["account"],
+																		},
+																		page: {},
+																	},
 																}
 																},
 															children: {
@@ -71037,6 +76269,210 @@ export const routes = defineRoutes(schema)({
 														},
 												}
 											}
+										},
+										"activity": {
+											children: {
+												"day": {
+													children: {
+														"[dayStartTimestampMs]": {
+															selectors: {
+																[EntityType.Network_Activity_Day]: {
+																	"NetworkDayStartTimestampMsSource": {
+																		probeCases: [{ id: "default", params: { network: "/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.network", dayStartTimestampMs: "/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.dayStartTimestampMs" } }],
+																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																		params: { dayStartTimestampMs: ["dayStartTimestampMs"] },
+																		derivations: { source: { kind: "literal", value: Source.SpaceAndTime_MakeInfinite } },
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+											},
+										},
+									},
+										"actor": {
+											children: {
+												"[address]": {
+													selectors: {
+														[EntityType.FilecoinActor]: {
+															"NetworkAddress": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.network", address: "/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.address" } }],
+																when: { path: ["namespace"], is: "Filecoin" },
+																projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
+																params: { "address": ["address"] },
+																page: {},
+															},
+														},
+													},
+													children: {
+														"observations": {
+															children: {
+																"[height]": {
+																	children: {
+																		"[tipsetKey]": {
+																			children: {
+																				"[source]": {
+																					selectors: {
+																						[EntityType.FilecoinActor_Timestamp]: {
+																							"ActorHeightTipsetKeySource": {
+																								probeCases: [{ id: "default", params: { network: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.network", address: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.address", height: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.height", tipsetKey: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.tipsetKey", source: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.source" } }],
+																								projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
+																								params: { "height": ["height"], "tipsetKey": ["tipsetKey"], "source": ["source"] },
+																								page: {},
+																							},
+																						},
+																					},
+																				},
+																			},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"miner": {
+											children: {
+												"[minerAddress]": {
+													selectors: {
+														[EntityType.FilecoinMiner]: {
+															"NetworkMinerAddress": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.network", minerAddress: "/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.minerAddress" } }],
+																when: { path: ["namespace"], is: "Filecoin" },
+																projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
+																params: { "minerAddress": ["minerAddress"] },
+																page: {},
+															},
+														},
+													},
+													children: {
+														"observations": {
+															children: {
+																"[height]": {
+																	children: {
+																		"[tipsetKey]": {
+																			children: {
+																				"[source]": {
+																					selectors: {
+																						[EntityType.FilecoinMiner_Timestamp]: {
+																							"MinerHeightTipsetKeySource": {
+																								probeCases: [{ id: "default", params: { network: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.network", minerAddress: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.minerAddress", height: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.height", tipsetKey: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.tipsetKey", source: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.source" } }],
+																								projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
+																								params: { "height": ["height"], "tipsetKey": ["tipsetKey"], "source": ["source"] },
+																								page: {},
+																							},
+																						},
+																					},
+																				},
+																			},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"amendment": {
+											children: {
+												"[amendmentId]": {
+													selectors: {
+														[EntityType.XrplAmendment]: {
+															"NetworkAmendmentId": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.network", amendmentId: "/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.amendmentId" } }],
+																when: { path: ["namespace"], is: "Xrpl" },
+																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
+																params: { "amendmentId": ["amendmentId"] },
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"amm": {
+											children: {
+												"[ammAccount]": {
+													selectors: {
+														[EntityType.XrplAmm]: {
+															"NetworkAmmAccount": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.network", ammAccount: "/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.ammAccount" } }],
+																when: { path: ["namespace"], is: "Xrpl" },
+																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
+																params: { "ammAccount": ["ammAccount"] },
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"ledger": {
+											children: {
+												"[ledgerIndex]": {
+													selectors: {
+														[EntityType.XrplLedger]: {
+															"NetworkLedgerIndex": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.network", ledgerIndex: "/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.ledgerIndex" } }],
+																when: { path: ["namespace"], is: "Xrpl" },
+																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
+																params: { "ledgerIndex": ["ledgerIndex"] },
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"transaction": {
+											children: {
+												"[hash]": {
+													selectors: {
+														[EntityType.XrplTransaction]: {
+															"NetworkHash": {
+																probeCases: [{ id: "default", params: { network: "/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.network", hash: "/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.hash" } }],
+																when: { path: ["namespace"], is: "Xrpl" },
+																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
+																params: { "hash": ["hash"] },
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"trustline": {
+											children: {
+												"[account]": {
+													children: {
+														"[currency]": {
+															children: {
+																"[issuer]": {
+																	selectors: {
+																		[EntityType.XrplTrustline]: {
+																			"NetworkAccountCurrencyIssuer": {
+																				probeCases: [{ id: "default", params: { network: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.network", account: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.account", currency: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.currency", issuer: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.issuer" } }],
+																				when: { path: ["namespace"], is: "Xrpl" },
+																				projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
+																				params: {
+																					"account": ["account"],
+																					"currency": ["currency"],
+																					"issuer": ["issuer"],
+																				},
+																				page: {},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
 										},
 										"blocks": {
 											collections: [
@@ -72418,90 +77854,7 @@ export const routes = defineRoutes(schema)({
 																						page: {}
 																					}
 																				}
-																			},
-																			children: {
-																				"cash-token": {
-																					children: {
-																						"fungible-amount": {
-																							selectors: {
-																								[EntityType.BitcoinCashCashTokenFungibleAmount]: {
-																									"UtxoOutput": {
-																										probeCases: [
-																											{
-																												id: "default",
-																												params: {
-																													network: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.network",
-																													transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.transactionId",
-																													outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.outputIndex",
-																												},
-																											},
-																										],
-
-																										projection: {
-																											entityType: EntityType.Network,
-																											facetPath: ["CashTokens"]
-																										},
-
-																										page: {}
-																									}
-																								}
 																							},
-																						},
-																						"nft": {
-																							selectors: {
-																								[EntityType.BitcoinCashCashTokenNft]: {
-																									"UtxoOutput": {
-																										probeCases: [
-																											{
-																												id: "default",
-																												params: {
-																													network: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.network",
-																													transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.transactionId",
-																													outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.outputIndex",
-																												},
-																											},
-																										],
-
-																										projection: {
-																											entityType: EntityType.Network,
-																											facetPath: ["CashTokens"]
-																										},
-
-																										page: {}
-																									}
-																								}
-																							},
-																							children: {
-																								"commitment": {
-																									selectors: {
-																										[EntityType.BitcoinCashCashTokenCommitment]: {
-																											"UtxoOutput": {
-																												probeCases: [
-																													{
-																														id: "default",
-																														params: {
-																															network: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.network",
-																															transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.transactionId",
-																															outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.outputIndex",
-																														},
-																													},
-																												],
-
-																												projection: {
-																													entityType: EntityType.Network,
-																													facetPath: ["CashTokens"]
-																												},
-
-																												page: {}
-																											}
-																										}
-																									},
-																								}
-																							}
-																						}
-																					}
-																				}
-																			}
 																		}
 																	}
 																},
@@ -74270,7 +79623,132 @@ export const routes = defineRoutes(schema)({
 														text: { title: "Governance" }
 													}
 												},
+												{
+													field: [
+														EntityType.Network,
+														["Cardano", "$$governanceProposals"]
+													],
+													page: {
+														view: { component: "CardanoGovernanceProposalsView" },
+														text: { title: "Governance" }
+													}
+												},
 											],
+											children: {
+												"committee": {
+													children: {
+														"epoch": {
+															children: {
+																"[epoch]": {
+																	children: {
+																		"[source]": {
+																			selectors: {
+																				[EntityType.CardanoCommittee_Epoch]: {
+																					"NetworkEpochSource": {
+																						probeCases: [{
+																							id: "default",
+																							params: {
+																								network: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.network",
+																								epoch: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.epoch",
+																								source: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.source",
+																							},
+																						}],
+																						projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
+																						params: {
+																							"epoch": ["epoch"],
+																							"source": ["source"],
+																						},
+																						page: {},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"proposal": {
+													children: {
+														"[proposalTxHash]": {
+															children: {
+																"[proposalIndex]": {
+																	selectors: {
+																		[EntityType.CardanoGovernanceProposal]: {
+																			"NetworkProposalTxHashProposalIndex": {
+																				probeCases: [
+																					{
+																						id: "default",
+																						params: {
+																							network: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.network",
+																							proposalTxHash: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalTxHash",
+																							proposalIndex: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalIndex",
+																						}
+																					}
+																				],
+																				projection: {
+																					entityType: EntityType.Network,
+																					facetPath: ["Cardano"]
+																				},
+																				params: {
+																					"proposalTxHash": ["proposalTxHash"],
+																					"proposalIndex": ["proposalIndex"]
+																				},
+																				page: {}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											},
+										},
+										"drep": {
+											children: {
+												"[drepCredential]": {
+													selectors: {
+														[EntityType.CardanoDRep]: {
+															"NetworkDrepCredential": {
+																probeCases: [{
+																	id: "default",
+																	params: {
+																		network: "/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.network",
+																		drepCredential: "/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.drepCredential",
+																	}
+																}],
+																projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
+																params: { "drepCredential": ["drepCredential"] },
+																page: {}
+															}
+														}
+													}
+												}
+											}
+										},
+										"stake-pool": {
+											children: {
+												"[poolId]": {
+													selectors: {
+														[EntityType.CardanoStakePool]: {
+															"NetworkPoolId": {
+																probeCases: [{
+																	id: "default",
+																	params: {
+																		network: "/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.network",
+																		poolId: "/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.poolId",
+																	}
+																}],
+																projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
+																params: { "poolId": ["poolId"] },
+																page: {}
+															}
+														}
+													}
+												}
+											}
 										},
 										"observation": {
 											children: {
@@ -74579,7 +80057,7 @@ export const routes = defineRoutes(schema)({
 										],
 
 										derivations: {
-											"reference": routeCall("$/lib/swarm.ts", "swarmResourceReferenceFromRouteParam", [{ kind: "param", name: "reference", decode: _ExpressionDecode.DecodeURIComponent }]),
+																			"reference": routeCall("$/lib/swarm.ts", "swarmResourceReferenceFromRouteParam", [{ kind: "param", name: "reference" }]),
 											"contentPath": { kind: "literal", value: "" }
 										},
 
@@ -74605,7 +80083,7 @@ export const routes = defineRoutes(schema)({
 												},
 											],
 											derivations: {
-												contentPath: routeCall("$/lib/swarm.ts", "swarmResourceContentPathFromRouteParam", [{ kind: "param", name: "contentPath", decode: _ExpressionDecode.DecodeURIComponent }]),
+																		contentPath: routeCall("$/lib/swarm.ts", "swarmResourceContentPathFromRouteParam", [{ kind: "param", name: "contentPath" }]),
 											},
 											href: {
 												conditions: [
@@ -75108,7 +80586,7 @@ export const routes = defineRoutes(schema)({
 																							],
 																						},
 																					}, {
-																						field: "id", param: "poolId", decode: _ExpressionDecode.DecodeURIComponent
+																														field: "id", param: "poolId"
 																					},
 																				],
 																			}
@@ -75167,8 +80645,7 @@ export const routes = defineRoutes(schema)({
 																					],
 																				},
 																			}, {
-																				field: "id", param: "poolId", decode: _ExpressionDecode
-																					.DecodeURIComponent
+																										field: "id", param: "poolId"
 																			},
 																		],
 																	}
@@ -75246,7 +80723,7 @@ export const routes = defineRoutes(schema)({
 																	$coin: {
 																		kind: "selector", entity: EntityType.Coin, selector: "CoinId", params: [
 																			{
-																				field: "coinId", param: "coinId", decode: _ExpressionDecode.DecodeURIComponent
+																										field: "coinId", param: "coinId"
 																			},
 																		],
 																	}
@@ -75340,7 +80817,7 @@ export const routes = defineRoutes(schema)({
 																	$currency: {
 																		kind: "selector", entity: EntityType.Currency, selector: "Iso4217", params: [
 																			{
-																				field: "iso4217", param: "iso4217", decode: _ExpressionDecode.DecodeURIComponent
+																										field: "iso4217", param: "iso4217"
 																			},
 																		],
 																	}
@@ -75672,12 +81149,11 @@ export const routes = defineRoutes(schema)({
 																								kind: "object",
 																								fields: [
 																									{
-																										name: "marketVenueId",
-																										value: {
-																											kind: "param",
-																											name: "marketVenue",
-																											decode: _ExpressionDecode.DecodeURIComponent,
-																										},
+																														name: "marketVenueId",
+																														value: {
+																															kind: "param",
+																															name: "marketVenue",
+																														},
 																									},
 																								],
 																							}
@@ -75813,7 +81289,7 @@ export const routes = defineRoutes(schema)({
 																							children: {
 																								"[timeIntervalValue]": {
 																									params: {
-																										"timeIntervalValue": ["string"],
+																										"timeIntervalValue": ["NonNegativeInteger"],
 																									},
 																									children: {
 																										"[timestampMs]": {
@@ -75847,19 +81323,17 @@ export const routes = defineRoutes(schema)({
 																																kind: "object",
 																																fields: [
 																																	{
-																																		name: "unit",
-																																		value: {
-																																			kind: "param",
-																																			name: "timeIntervalUnit",
-																																			decode: _ExpressionDecode.DecodeURIComponent,
-																																		},
+																															name: "unit",
+																															value: {
+																																kind: "param",
+																																name: "timeIntervalUnit",
+																															},
 																																	},
 																																	{
 																																		name: "value",
 																																		value: {
 																																			kind: "param",
 																																			name: "timeIntervalValue",
-																																			decode: _ExpressionDecode.Number,
 																																		},
 																																	},
 																																],
@@ -76122,22 +81596,22 @@ export const routes = defineRoutes(schema)({
 								},
 								"account": {
 									children: {
-										"[accountId]": {
+										"[connectionId]": {
 											selectors: {
 												[EntityType.BlockheadFarcasterAccountConnection]: {
-													"Fid": {
+													"ConnectionId": {
 														probeCases: [
 															{
 																id: "default",
 																params: {
-																	accountId: "/farcaster/account/[accountId]:BlockheadFarcasterAccountConnection.Fid.1.accountId",
+																	connectionId: "/farcaster/account/[connectionId]:BlockheadFarcasterAccountConnection.ConnectionId.1.connectionId",
 																},
 															},
 														],
 
 														params: {
-															"accountId": [
-																"fid"
+															"connectionId": [
+																"connectionId"
 															]
 														},
 														page: {}
@@ -76223,7 +81697,7 @@ export const routes = defineRoutes(schema)({
 																sources: [Source.Snapchain_Rest],
 															},
 															derivations: {
-																"fid": { kind: "param", name: "userId", decode: _ExpressionDecode.Number }
+																								"fid": { kind: "param", name: "userId" }
 															},
 															page: {
 																view: { component: "FarcasterCastsView" },
@@ -76298,7 +81772,7 @@ export const routes = defineRoutes(schema)({
 																			"$user": {
 																				kind: "object", fields: [
 																					{
-																						name: "fid", value: { kind: "param", name: "userId", decode: _ExpressionDecode.Number }
+																														name: "fid", value: { kind: "param", name: "userId" }
 																					},
 																				],
 																			}
@@ -76350,7 +81824,7 @@ export const routes = defineRoutes(schema)({
 																sources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest],
 															},
 															derivations: {
-																"id": { kind: "param", name: "channelId", decode: _ExpressionDecode.DecodeURIComponent }
+																							"id": { kind: "param", name: "channelId" }
 															},
 															page: {
 																view: { component: "FarcasterCastsView" },
@@ -76382,7 +81856,7 @@ export const routes = defineRoutes(schema)({
 																		}, derivations: {
 																			"$channel": {
 																				kind: "object", fields: [
-																					{ name: "id", value: { kind: "param", name: "channelId", decode: _ExpressionDecode.DecodeURIComponent } },
+																										{ name: "id", value: { kind: "param", name: "channelId" } },
 																				],
 																			}
 																		},
@@ -76456,10 +81930,9 @@ export const routes = defineRoutes(schema)({
 																					$cast: {
 																						kind: "selector", entity: EntityType.FarcasterCast, selector: "FidHash", params: [
 																							{
-																								field: "fid", param: "fid", decode: _ExpressionDecode
-																									.Number
-																							}, {
-																								field: "hash", param: "hash", decode: _ExpressionDecode.DecodeURIComponent
+																															field: "fid", param: "fid"
+																														}, {
+																															field: "hash", param: "hash"
 																							},
 																						],
 																					}
@@ -76499,9 +81972,9 @@ export const routes = defineRoutes(schema)({
 																						kind: "object",
 																						fields: [
 																							{
-																								name: "fid", value: { kind: "param", name: "fid", decode: _ExpressionDecode.Number }
-																							}, {
-																								name: "hash", value: { kind: "param", name: "hash", decode: _ExpressionDecode.DecodeURIComponent }
+																														name: "fid", value: { kind: "param", name: "fid" }
+																													}, {
+																														name: "hash", value: { kind: "param", name: "hash" }
 																							},
 																						],
 																					}
@@ -76625,7 +82098,7 @@ export const routes = defineRoutes(schema)({
 															},
 															derivations: {
 																"variant": { kind: "literal", value: "byUser" },
-																"fid": { kind: "param", name: "userId", decode: _ExpressionDecode.Number }
+																								"fid": { kind: "param", name: "userId" }
 															}
 														},
 													],
@@ -76673,7 +82146,7 @@ export const routes = defineRoutes(schema)({
 															},
 															derivations: {
 																"variant": { kind: "literal", value: "byChannel" },
-																"channelId": { kind: "param", name: "channelId", decode: _ExpressionDecode.DecodeURIComponent }
+																								"channelId": { kind: "param", name: "channelId" }
 															}
 														},
 													],
@@ -76721,7 +82194,7 @@ export const routes = defineRoutes(schema)({
 															},
 															derivations: {
 																"variant": { kind: "literal", value: "following" },
-																"viewerFid": { kind: "param", name: "userId", decode: _ExpressionDecode.Number }
+																								"viewerFid": { kind: "param", name: "userId" }
 															}
 														},
 													],
@@ -76861,7 +82334,7 @@ export const routes = defineRoutes(schema)({
 															], query: {
 																sources: [Source.Lens_Graphql],
 															}, derivations: {
-																"address": { kind: "param", name: "address", decode: _ExpressionDecode.DecodeURIComponent }
+																								"address": { kind: "param", name: "address" }
 															},
 															page: {
 																view: { component: "LensPostsView" }, text: { title: "Lens account posts" }
@@ -76893,7 +82366,7 @@ export const routes = defineRoutes(schema)({
 																			"$account": {
 																				kind: "object", fields: [
 																					{
-																						name: "address", value: { kind: "param", name: "address", decode: _ExpressionDecode.DecodeURIComponent }
+																												name: "address", value: { kind: "param", name: "address" }
 																					},
 																				],
 																			}
@@ -76942,7 +82415,7 @@ export const routes = defineRoutes(schema)({
 															], query: {
 																sources: [Source.Lens_Graphql],
 															}, derivations: {
-																"id": { kind: "param", name: "postId", decode: _ExpressionDecode.DecodeURIComponent }
+																								"id": { kind: "param", name: "postId" }
 															},
 															page: {
 																view: { component: "LensPostsView" }, text: { title: "Lens post comments" }
@@ -76974,7 +82447,7 @@ export const routes = defineRoutes(schema)({
 																			"$post": {
 																				kind: "object", fields: [
 																					{
-																						name: "id", value: { kind: "param", name: "postId", decode: _ExpressionDecode.DecodeURIComponent }
+																												name: "id", value: { kind: "param", name: "postId" }
 																					},
 																				],
 																			}
@@ -77099,7 +82572,7 @@ export const routes = defineRoutes(schema)({
 																			"$user": {
 																				kind: "object", fields: [
 																					{
-																						name: "id", value: { kind: "param", name: "userId", decode: _ExpressionDecode.DecodeURIComponent }
+																												name: "id", value: { kind: "param", name: "userId" }
 																					},
 																				],
 																			}
@@ -77164,7 +82637,7 @@ export const routes = defineRoutes(schema)({
 																			"$post": {
 																				kind: "object", fields: [
 																					{
-																						name: "id", value: { kind: "param", name: "postId", decode: _ExpressionDecode.DecodeURIComponent }
+																												name: "id", value: { kind: "param", name: "postId" }
 																					},
 																				],
 																			}
@@ -77334,6 +82807,77 @@ export const routes = defineRoutes(schema)({
 										},
 									],
 								},
+								"instance": {
+									children: {
+										"[instanceOrigin]": {
+											selectors: {
+												[EntityType.ActivityPubInstance]: {
+													"InstanceOrigin": {
+														probeCases: [
+															{
+																id: "default",
+																params: {
+																	instanceOrigin: "/activitypub/instance/[instanceOrigin]:ActivityPubInstance.InstanceOrigin.1.instanceOrigin",
+																},
+															},
+														],
+														params: {
+															"instanceOrigin": [
+																"instanceOrigin"
+															]
+														},
+														page: {}
+													}
+												}
+											},
+											children: {
+												"observations": {
+													children: {
+														"[timestampMs]": {
+															children: {
+																"[source]": {
+																	selectors: {
+																		[EntityType.ActivityPubInstance_Timestamp]: {
+																			"InstanceTimestampMsSource": {
+																				probeCases: [
+																					{
+																						id: "default",
+																						params: {
+																							instanceOrigin: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.instanceOrigin",
+																							timestampMs: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.timestampMs",
+																							source: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.source",
+																						},
+																					},
+																				],
+																				params: {
+																					"timestampMs": [
+																						"timestampMs"
+																					],
+																					"source": [
+																						"source"
+																					],
+																				},
+																				derivations: {
+																					"$instance": {
+																						kind: "object",
+																						fields: [
+																							{ name: "instanceOrigin", value: { kind: "param", name: "instanceOrigin" } },
+																						],
+																					}
+																				},
+																				page: {}
+																			}
+																		}
+																	},
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								},
 								"actor": {
 									children: {
 										"[instanceOrigin]": {
@@ -77377,8 +82921,8 @@ export const routes = defineRoutes(schema)({
 																		sources: [Source.Mastodon_Rest],
 																	},
 																	derivations: {
-																		"instanceOrigin": { kind: "param", name: "instanceOrigin", decode: _ExpressionDecode.DecodeURIComponent },
-																		"localAccountId": { kind: "param", name: "localAccountId", decode: _ExpressionDecode.DecodeURIComponent }
+																											"instanceOrigin": { kind: "param", name: "instanceOrigin" },
+																											"localAccountId": { kind: "param", name: "localAccountId" }
 																	},
 																	page: {
 																		view: { component: "ActivityPubNotesView" },
@@ -77390,16 +82934,19 @@ export const routes = defineRoutes(schema)({
 														"observations": {
 															children: {
 																"[timestampMs]": {
-																	selectors: {
-																		[EntityType.ActivityPubActor_Timestamp]: {
-																			"ActivityPubActorTimestampMs": {
+																	children: {
+																		"[source]": {
+																			selectors: {
+																				[EntityType.ActivityPubActor_Timestamp]: {
+																					"ActivityPubActorTimestampMsSource": {
 																				probeCases: [
 																					{
 																						id: "default",
 																						params: {
-																							instanceOrigin: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.instanceOrigin",
-																							localAccountId: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.localAccountId",
-																							timestampMs: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.timestampMs",
+																							instanceOrigin: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.instanceOrigin",
+																							localAccountId: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.localAccountId",
+																							timestampMs: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.timestampMs",
+																							source: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.source",
 																						},
 																					},
 																				],
@@ -77407,21 +82954,26 @@ export const routes = defineRoutes(schema)({
 																				params: {
 																					"timestampMs": [
 																						"timestampMs"
-																					]
+																					],
+																					"source": [
+																						"source"
+																					],
 																				},
 																				derivations: {
 																					"$actor": {
 																						kind: "object",
 																						fields: [
-																							{ name: "instanceOrigin", value: { kind: "param", name: "instanceOrigin", decode: _ExpressionDecode.DecodeURIComponent } },
-																							{ name: "localAccountId", value: { kind: "param", name: "localAccountId", decode: _ExpressionDecode.DecodeURIComponent } },
+																															{ name: "instanceOrigin", value: { kind: "param", name: "instanceOrigin" } },
+																															{ name: "localAccountId", value: { kind: "param", name: "localAccountId" } },
 																						],
 																					}
 																				},
 
 																				page: {}
+																					}
+																				}
 																			}
-																		}
+																		},
 																	},
 																}
 															}
@@ -77475,8 +83027,8 @@ export const routes = defineRoutes(schema)({
 																		sources: [Source.Mastodon_Rest],
 																	},
 																	derivations: {
-																		"instanceOrigin": { kind: "param", name: "instanceOrigin", decode: _ExpressionDecode.DecodeURIComponent },
-																		"localStatusId": { kind: "param", name: "localStatusId", decode: _ExpressionDecode.DecodeURIComponent }
+																											"instanceOrigin": { kind: "param", name: "instanceOrigin" },
+																											"localStatusId": { kind: "param", name: "localStatusId" }
 																	},
 																	page: {
 																		view: { component: "ActivityPubNotesView" },
@@ -77488,16 +83040,19 @@ export const routes = defineRoutes(schema)({
 														"observations": {
 															children: {
 																"[timestampMs]": {
-																	selectors: {
-																		[EntityType.ActivityPubNote_Timestamp]: {
-																			"ActivityPubNoteTimestampMs": {
+																	children: {
+																		"[source]": {
+																			selectors: {
+																				[EntityType.ActivityPubNote_Timestamp]: {
+																					"ActivityPubNoteTimestampMsSource": {
 																				probeCases: [
 																					{
 																						id: "default",
 																						params: {
-																							instanceOrigin: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.instanceOrigin",
-																							localStatusId: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.localStatusId",
-																							timestampMs: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.timestampMs",
+																							instanceOrigin: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.instanceOrigin",
+																							localStatusId: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.localStatusId",
+																							timestampMs: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.timestampMs",
+																							source: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.source",
 																						},
 																					},
 																				],
@@ -77505,21 +83060,26 @@ export const routes = defineRoutes(schema)({
 																				params: {
 																					"timestampMs": [
 																						"timestampMs"
-																					]
+																					],
+																					"source": [
+																						"source"
+																					],
 																				},
 																				derivations: {
 																					"$note": {
 																						kind: "object",
 																						fields: [
-																							{ name: "instanceOrigin", value: { kind: "param", name: "instanceOrigin", decode: _ExpressionDecode.DecodeURIComponent } },
-																							{ name: "localStatusId", value: { kind: "param", name: "localStatusId", decode: _ExpressionDecode.DecodeURIComponent } },
+																															{ name: "instanceOrigin", value: { kind: "param", name: "instanceOrigin" } },
+																															{ name: "localStatusId", value: { kind: "param", name: "localStatusId" } },
 																						],
 																					}
 																				},
 
 																				page: {}
+																					}
+																				}
 																			}
-																		}
+																		},
 																	},
 																}
 															}
@@ -77633,11 +83193,10 @@ export const routes = defineRoutes(schema)({
 																"$$posts"
 															],
 															derivations: {
-																"did": {
-																	kind: "param",
-																	name: "did",
-																	decode: _ExpressionDecode.DecodeURIComponent,
-																}
+																									"did": {
+																										kind: "param",
+																										name: "did",
+																									}
 															},
 															page: {
 																view: { component: "AtprotoPostsView" },
@@ -77653,7 +83212,7 @@ export const routes = defineRoutes(schema)({
 																EntityType.AtprotoActor, "$$timestamps"
 															], derivations: {
 																"did": {
-																	kind: "param", name: "did", decode: _ExpressionDecode.DecodeURIComponent,
+																										kind: "param", name: "did",
 																}
 															},
 															page: {
@@ -77662,31 +83221,37 @@ export const routes = defineRoutes(schema)({
 														},
 													],
 													children: {
-														"[timestampMs]": {
+												"[timestampMs]": {
+													children: {
+														"[source]": {
 															selectors: {
-																[EntityType.AtprotoActor_Timestamp]: {
-																	"AtprotoActorTimestampMs": {
+														[EntityType.AtprotoActor_Timestamp]: {
+															"AtprotoActorTimestampMsSource": {
 																		probeCases: [
 																			{
 																				id: "default",
 																				params: {
-																					did: "/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.did",
-																					timestampMs: "/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.timestampMs",
+																	did: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.did",
+																	timestampMs: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.timestampMs",
+																	source: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.source",
 																				},
 																			},
 																		],
 
 																		params: {
 																			"timestampMs": [
-																				"timestampMs"
-																			]
+															"timestampMs"
+														],
+														"source": [
+															"source"
+														]
 																		},
 																		derivations: {
 																			"$actor": {
 																				kind: "object", fields: [
 																					{
 																						name: "did", value: {
-																							kind: "param", name: "did", decode: _ExpressionDecode.DecodeURIComponent,
+																															kind: "param", name: "did",
 																						},
 																					},
 																				],
@@ -77696,6 +83261,8 @@ export const routes = defineRoutes(schema)({
 																	}
 																}
 															},
+														}
+															}
 														}
 													}
 												}
@@ -77716,12 +83283,16 @@ export const routes = defineRoutes(schema)({
 																	},
 																],
 
-																params: {
-																	"handle": [
-																		"handle"
-																	]
-																},
-																page: {}
+																	params: {
+																		"handle": [
+																			"handle"
+																		]
+																	},
+													href: {
+														entityHref: false,
+														canonicalize: true,
+													},
+																	page: {}
 															}
 														}
 													},
@@ -77764,11 +83335,10 @@ export const routes = defineRoutes(schema)({
 																"$$thread"
 															],
 															derivations: {
-																"uri": {
-																	kind: "param",
-																	name: "uri",
-																	decode: _ExpressionDecode.DecodeURIComponent,
-																}
+																									"uri": {
+																										kind: "param",
+																										name: "uri",
+																									}
 															},
 															page: {
 																view: { component: "AtprotoPostsView" },
@@ -77784,7 +83354,7 @@ export const routes = defineRoutes(schema)({
 																EntityType.AtprotoPost, "$$timestamps"
 															], derivations: {
 																"uri": {
-																	kind: "param", name: "uri", decode: _ExpressionDecode.DecodeURIComponent,
+																										kind: "param", name: "uri",
 																}
 															},
 															page: {
@@ -77816,7 +83386,7 @@ export const routes = defineRoutes(schema)({
 																				kind: "object", fields: [
 																					{
 																						name: "uri", value: {
-																							kind: "param", name: "uri", decode: _ExpressionDecode.DecodeURIComponent,
+																															kind: "param", name: "uri",
 																						},
 																					},
 																				],
@@ -77878,6 +83448,72 @@ export const routes = defineRoutes(schema)({
 											}
 										},
 									],
+								},
+								"search": {
+									page: {
+										view: {
+											imports: [
+												{ from: "$app/navigation", names: ["goto"] },
+												{ from: "$app/paths", names: ["resolve"] },
+											],
+											script: `
+												let query = $state('')
+											`,
+											Content: {
+												raw: `
+													<form
+														method="GET"
+														data-card
+														data-column="gap-3"
+														onsubmit={(event) => {
+															event.preventDefault()
+															const normalizedQuery = query.trim().replace(/\\s+/g, ' ')
+															if (normalizedQuery !== '')
+											void goto(resolve('/nostr/search/[query=stringSegment]', {
+												query: normalizedQuery,
+											}))
+														}}
+													>
+														<label data-column="gap-2">
+															<span>Search Nostr profiles</span>
+															<input
+																name="query"
+																type="search"
+																required
+																maxlength="64"
+																autocomplete="off"
+																bind:value={query}
+															/>
+														</label>
+														<button type="submit">Search</button>
+													</form>
+												`,
+											},
+										},
+										text: { title: "Search Nostr profiles" },
+									},
+									children: {
+										"[query]": {
+											selectors: {
+												[EntityType.NostrSearchQuery]: {
+													"Query": {
+														probeCases: [
+															{
+																id: "default",
+																params: {
+																	query: "alice",
+																},
+															},
+														],
+														params: {
+															"query": ["query"],
+														},
+														page: {},
+													},
+												},
+											},
+										},
+									},
 								},
 								"notes": {
 									collections: [
@@ -78748,7 +84384,7 @@ export const routes = defineRoutes(schema)({
 											},
 											page: {
 												view: { component: "YoutubeVideosView" },
-												text: { title: "YouTube Videos" }
+												text: { title: "Popular YouTube videos (bounded provider chart)" }
 											}
 										},
 									],
@@ -78798,25 +84434,29 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"observations": {
 													children: {
-														"[timestampMs]": {
-															selectors: {
-																[EntityType.YoutubeChannel_Timestamp]: {
-																	"YoutubeChannelTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					channelId: "/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.channelId",
-																					timestampMs: "/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
+								"[timestampMs]-[source]": {
+									selectors: {
+										[EntityType.YoutubeChannel_Timestamp]: {
+											"YoutubeChannelTimestampMsSource": {
+												probeCases: [
+													{
+														id: "default",
+														params: {
+															channelId: "/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.channelId",
+															timestampMs: "/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.timestampMs",
+															source: Source.Youtube_Rest,
+														},
+													},
+												],
 
-																		params: {
-																			"timestampMs": [
-																				"timestampMs"
-																			]
-																		},
+												params: {
+													"timestampMs": [
+														"timestampMs"
+													],
+													"source": [
+														"source"
+													]
+												},
 																		derivations: {
 																			"$channel": {
 																				kind: "object",
@@ -78860,7 +84500,7 @@ export const routes = defineRoutes(schema)({
 																    component: "YoutubeVideosView",
 																},
 																text: {
-																    title: "Channel videos",
+																    title: "Recent channel videos (bounded, date ordered)",
 																}
 															}
 														},
@@ -78923,25 +84563,29 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"observations": {
 													children: {
-														"[timestampMs]": {
-															selectors: {
-																[EntityType.YoutubeVideo_Timestamp]: {
-																	"YoutubeVideoTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					videoId: "/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.videoId",
-																					timestampMs: "/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
+								"[timestampMs]-[source]": {
+									selectors: {
+										[EntityType.YoutubeVideo_Timestamp]: {
+											"YoutubeVideoTimestampMsSource": {
+												probeCases: [
+													{
+														id: "default",
+														params: {
+															videoId: "/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.videoId",
+															timestampMs: "/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.timestampMs",
+															source: Source.Youtube_Rest,
+														},
+													},
+												],
 
-																		params: {
-																			"timestampMs": [
-																				"timestampMs"
-																			]
-																		},
+												params: {
+													"timestampMs": [
+														"timestampMs"
+													],
+													"source": [
+														"source"
+													]
+												},
 																		derivations: {
 																			"$video": {
 																				kind: "object",
@@ -79021,25 +84665,29 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"observations": {
 													children: {
-														"[timestampMs]": {
-															selectors: {
-																[EntityType.YoutubePlaylist_Timestamp]: {
-																	"YoutubePlaylistTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					playlistId: "/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.playlistId",
-																					timestampMs: "/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
+								"[timestampMs]-[source]": {
+									selectors: {
+										[EntityType.YoutubePlaylist_Timestamp]: {
+											"YoutubePlaylistTimestampMsSource": {
+												probeCases: [
+													{
+														id: "default",
+														params: {
+															playlistId: "/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.playlistId",
+															timestampMs: "/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.timestampMs",
+															source: Source.Youtube_Rest,
+														},
+													},
+												],
 
-																		params: {
-																			"timestampMs": [
-																				"timestampMs"
-																			]
-																		},
+												params: {
+													"timestampMs": [
+														"timestampMs"
+													],
+													"source": [
+														"source"
+													]
+												},
 																		derivations: {
 																			"$playlist": {
 																				kind: "object",
@@ -79125,26 +84773,30 @@ export const routes = defineRoutes(schema)({
 													children: {
 														"observations": {
 															children: {
-																"[timestampMs]": {
-																	selectors: {
-																		[EntityType.YoutubeComment_Timestamp]: {
-																			"YoutubeCommentTimestampMs": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							videoId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.videoId",
-																							commentId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.commentId",
-																							timestampMs: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.timestampMs",
-																						},
-																					},
-																				],
+										"[timestampMs]-[source]": {
+											selectors: {
+												[EntityType.YoutubeComment_Timestamp]: {
+													"YoutubeCommentTimestampMsSource": {
+														probeCases: [
+															{
+																id: "default",
+																params: {
+																	videoId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.videoId",
+																	commentId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.commentId",
+																	timestampMs: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.timestampMs",
+																	source: Source.Youtube_Rest,
+																},
+															},
+														],
 
-																				params: {
-																					"timestampMs": [
-																						"timestampMs"
-																					]
-																				}, derivations: {
+														params: {
+															"timestampMs": [
+																"timestampMs"
+															],
+															"source": [
+																"source"
+															]
+														}, derivations: {
 																					"$comment": {
 																						kind: "object", fields: [
 																							{
@@ -80621,6 +86273,10 @@ export const app = {
 				label: "Primal",
 			},
 			{
+				provider: "PublicNode",
+				label: "PublicNode",
+			},
+			{
 				provider: "Pyth",
 				label: "Pyth",
 				origins: true,
@@ -80705,8 +86361,8 @@ export const app = {
 				label: "Snapchain",
 			},
 			{
-				provider: "Solana",
-				label: "Solana",
+				provider: "SpaceAndTime",
+				label: "Space and Time",
 			},
 			{
 				provider: "SolanaMobileWalletAdapter",
@@ -81171,8 +86827,8 @@ export const app = {
 				label: "Algod REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "algorand-algod",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "algorand",
 					},
 					endpoints: [
 						{
@@ -81201,8 +86857,8 @@ export const app = {
 				label: "Algorand Indexer REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "algorand-indexer",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "algorand",
 					},
 					endpoints: [
 						{
@@ -81430,8 +87086,8 @@ export const app = {
 				label: "Aptos fullnode REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "aptos-fullnode",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "aptos",
 					},
 					endpoints: [
 						{
@@ -81477,7 +87133,7 @@ export const app = {
 				label: "Aptos Indexer GraphQL",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "aptos",
 					},
 					endpoints: [
@@ -81606,7 +87262,7 @@ export const app = {
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://public.api.bsky.app",
 							origin: "https://public.api.bsky.app",
-							corsEnabled: true,
+							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.Xrpc,
@@ -81614,7 +87270,7 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.BrowserDirect,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -81717,7 +87373,7 @@ export const app = {
 				label: "Avail JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "avail",
 					},
 					endpoints: [
@@ -81747,7 +87403,7 @@ export const app = {
 				label: "Avail Explorer REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "avail",
 					},
 					endpoints: [
@@ -81777,7 +87433,7 @@ export const app = {
 				label: "Avalanche Info JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "avalanche-p-chain",
 					},
 					endpoints: [
@@ -81807,7 +87463,7 @@ export const app = {
 				label: "Avalanche PlatformVM JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "avalanche-p-chain",
 					},
 					endpoints: [
@@ -82552,8 +88208,8 @@ export const app = {
 				label: "Bittensor JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "bittensor:finney",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "bittensor",
 					},
 					endpoints: [
 						{
@@ -82942,7 +88598,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "blockfrost-cardano-mainnet",
+						key: "cip34:1-764824073",
 					},
 					endpoints: [
 						{
@@ -83555,7 +89211,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "cardano-koios-mainnet",
+						key: "cip34:1-764824073",
 					},
 					endpoints: [
 						{
@@ -83585,7 +89241,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "cardano",
+						key: "cip34:1-764824073",
 					},
 					endpoints: [
 						{
@@ -83709,7 +89365,7 @@ export const app = {
 				label: "Celestia JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "celestia",
 					},
 					endpoints: [
@@ -83891,7 +89547,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "solana",
+						key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 					},
 					endpoints: [
 						{
@@ -83918,7 +89574,7 @@ export const app = {
 				label: "Circle CCTP Stellar contracts",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "stellar",
 					},
 					endpoints: [
@@ -84454,8 +90110,8 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://cosmos-rest.publicnode.com",
-							origin: "https://cosmos-rest.publicnode.com",
+							locator: "https://rest.cosmos.directory/cosmoshub",
+							origin: "https://rest.cosmos.directory",
 							corsEnabled: true,
 						},
 					],
@@ -84822,8 +90478,8 @@ export const app = {
 				label: "dYdX Indexer REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "dydx-chain",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "dydx",
 					},
 					endpoints: [
 						{
@@ -84852,8 +90508,8 @@ export const app = {
 				label: "dYdX Validator REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "dydx-chain",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "dydx",
 					},
 					endpoints: [
 						{
@@ -85215,32 +90871,7 @@ export const app = {
 					},
 					{
 						target: {
-							kind: SourceTargetKind.Caip2Network,
-							key: "bitcoin",
-						},
-						endpoints: [
-							{
-								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://blockstream.info/api",
-								origin: "https://blockstream.info",
-								corsEnabled: true,
-							},
-						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.RestJson,
-						operationGroups: [
-							SourceOperationGroup.GenericRead,
-						],
-						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
-					},
-					{
-						target: {
-							kind: SourceTargetKind.Caip2Network,
+							kind: SourceTargetKind.NetworkSlug,
 							key: "liquid",
 						},
 						endpoints: [
@@ -86355,8 +91986,8 @@ export const app = {
 				label: "Hedera mirror node REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Global,
-						key: "hedera-mainnet-mirror-node",
+						kind: SourceTargetKind.Caip2Network,
+						key: "hedera:mainnet",
 					},
 					endpoints: [
 						{
@@ -86386,7 +92017,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "hedera",
+						key: "hedera:mainnet",
 					},
 					endpoints: [
 						{
@@ -86455,7 +92086,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "solana:mainnet",
+						key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 					},
 					endpoints: [
 						{
@@ -86728,7 +92359,7 @@ export const app = {
 				label: "Internet Computer Rosetta API",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "icp",
 					},
 					endpoints: [
@@ -86857,7 +92488,7 @@ export const app = {
 				label: "Juno JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "starknet",
 					},
 					endpoints: [
@@ -86946,7 +92577,7 @@ export const app = {
 				label: "Kaspa node gRPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "kaspa",
 					},
 					endpoints: [
@@ -86986,7 +92617,7 @@ export const app = {
 				label: "Kaspa node REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "kaspa",
 					},
 					endpoints: [
@@ -87015,7 +92646,7 @@ export const app = {
 				label: "Kaspa node wRPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "kaspa",
 					},
 					endpoints: [
@@ -87161,7 +92792,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "cardano",
+						key: "cip34:1-764824073",
 					},
 					endpoints: [
 						{
@@ -87580,8 +93211,8 @@ export const app = {
 				label: "mempool.space Lightning REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "lightning:mainnet",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "lightning",
 					},
 					endpoints: [
 						{
@@ -87742,8 +93373,8 @@ export const app = {
 				label: "Logos blockchain node REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "logos",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "logos-testnet",
 					},
 					endpoints: [
 						{
@@ -87810,7 +93441,7 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "fil:mainnet",
+							key: "fil:f",
 						},
 						endpoints: [
 							{
@@ -88413,7 +94044,7 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "monero:mainnet",
+							key: "monero:418015bb9ae982a1975da7d79277c270",
 						},
 						endpoints: [
 							{
@@ -88519,8 +94150,8 @@ export const app = {
 				label: "NearBlocks REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "near:mainnet",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "near",
 					},
 					endpoints: [
 						{
@@ -88621,8 +94252,8 @@ export const app = {
 				label: "NEAR JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "near:mainnet",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "near",
 					},
 					endpoints: [
 						{
@@ -88839,8 +94470,8 @@ export const app = {
 				label: "Nodely Algod REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "algorand-algod",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "algorand",
 					},
 					endpoints: [
 						{
@@ -88869,8 +94500,8 @@ export const app = {
 				label: "Nodely Algorand Indexer REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "algorand-indexer",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "algorand",
 					},
 					endpoints: [
 						{
@@ -89041,7 +94672,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "cardano",
+						key: "cip34:1-764824073",
 					},
 					endpoints: [
 						{
@@ -89258,7 +94889,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "cosmos",
+						key: "cosmos:cosmoshub-4",
 					},
 					endpoints: [
 						{
@@ -89317,7 +94948,7 @@ export const app = {
 				label: "Pathfinder JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "starknet",
 					},
 					endpoints: [
@@ -89748,7 +95379,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "solana",
+						key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 					},
 					endpoints: [
 						{
@@ -89931,7 +95562,7 @@ export const app = {
 				label: "Quilibrium node gRPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "quilibrium",
 					},
 					endpoints: [
@@ -89995,7 +95626,7 @@ export const app = {
 				label: "Quilibrium node gRPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "quilibrium",
 					},
 					endpoints: [
@@ -90516,20 +96147,35 @@ export const app = {
 				},
 			},
 			{
+				source: Source.SpaceAndTime_MakeInfinite,
+				provider: "SpaceAndTime",
+				label: "Space and Time MakeInfinite",
+				binding: {
+					target: { kind: SourceTargetKind.Caip2Network, key: "eip155:1" },
+					endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: "https://proxy.api.makeinfinite.dev", origin: "https://proxy.api.makeinfinite.dev", corsEnabled: false }],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [SourceOperationGroup.GenericRead],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [{ scope: SourceCredentialScope.RuntimeSecret, envKey: "MAKEINFINITE_API_KEY", injection: { header: { name: "apikey" } } }],
+					artifacts: [{ kind: SourceArtifactKind.HandwrittenTypes, path: "src/sources/SpaceAndTime/MakeInfinite/types.ts", generated: false }],
+				},
+			},
+			{
 				source: Source.Solana_JsonRpc,
-				provider: "Solana",
+				provider: "PublicNode",
 				label: "Solana JSON-RPC",
 				bindings: [
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "solana:mainnet",
+							key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://api.mainnet.solana.com",
-								origin: "https://api.mainnet.solana.com",
+								locator: "https://solana-rpc.publicnode.com",
+								origin: "https://solana-rpc.publicnode.com",
 								corsEnabled: false,
 							},
 						],
@@ -90555,12 +96201,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "solana:mainnet",
+							key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.WebSocketUrl,
-								locator: "wss://api.mainnet.solana.com",
+								locator: "wss://solana-rpc.publicnode.com",
 							},
 						],
 						wireProtocol: WireProtocol.JsonRpc2,
@@ -90758,7 +96404,7 @@ export const app = {
 				label: "Starknet JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "starknet",
 					},
 					endpoints: [
@@ -90878,7 +96524,7 @@ export const app = {
 				label: "Stellar RPC JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "stellar",
 					},
 					endpoints: [
@@ -91062,7 +96708,7 @@ export const app = {
 				label: "Sui GraphQL",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "sui",
 					},
 					endpoints: [
@@ -91099,7 +96745,7 @@ export const app = {
 				label: "Sui gRPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "sui",
 					},
 					endpoints: [
@@ -91127,7 +96773,7 @@ export const app = {
 				label: "Sui JSON-RPC",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "sui",
 					},
 					endpoints: [
@@ -91269,7 +96915,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "tezos",
+						key: "tezos:NetXdQprcVkpaWU",
 					},
 					endpoints: [
 						{
@@ -91531,7 +97177,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "ton",
+						key: "ton:-239",
 					},
 					endpoints: [
 						{
@@ -91560,7 +97206,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "ton",
+						key: "ton:-239",
 					},
 					endpoints: [
 						{
@@ -91724,8 +97370,8 @@ export const app = {
 				label: "TronGrid REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "tron:mainnet",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "tron",
 					},
 					endpoints: [
 						{
@@ -91790,8 +97436,8 @@ export const app = {
 				label: "TRONSCAN REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "tron:mainnet",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "tron",
 					},
 					endpoints: [
 						{
@@ -92010,12 +97656,6 @@ export const app = {
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "http://localhost:8545",
-								origin: "http://localhost:8545",
-								corsEnabled: false,
-							},
-							{
-								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://eth.llamarpc.com",
 								origin: "https://eth.llamarpc.com",
 								corsEnabled: false,
@@ -92038,7 +97678,6 @@ export const app = {
 						operationGroups: [
 							SourceOperationGroup.EvmRpcCore,
 							SourceOperationGroup.EvmRpcTrace,
-							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [
@@ -95420,13 +101059,13 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "xrpl",
+						key: "xrpl:0",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{xrpl-rippled-host}",
-							origin: "https://{xrpl-rippled-host}",
+							locator: "https://s1.ripple.com:51234",
+							origin: "https://s1.ripple.com:51234",
 							corsEnabled: false,
 						},
 					],
@@ -95435,10 +101074,17 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Xrpl/JsonRpc/types.ts",
+							generated: false,
 						},
 					],
 				},
@@ -95451,7 +101097,7 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "xrpl",
+							key: "xrpl:0",
 						},
 						endpoints: [
 							{
@@ -95476,7 +101122,7 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Caip2Network,
-							key: "xrpl",
+							key: "xrpl:0",
 						},
 						endpoints: [
 							{
@@ -95625,7 +101271,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "bip122:00040fe8ec8471911baa1db1266ea15d",
+						key: "bip122:00040fe8ec8471911baa1db1266ea15",
 					},
 					endpoints: [
 						{
@@ -95686,7 +101332,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "zcash",
+						key: "bip122:00040fe8ec8471911baa1db1266ea15",
 					},
 					endpoints: [
 						{
@@ -95762,7 +101408,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
-						key: "bip122:00040fe8ec8471911baa1db1266ea15d",
+						key: "bip122:00040fe8ec8471911baa1db1266ea15",
 					},
 					endpoints: [
 						{
@@ -95992,6 +101638,10 @@ export const app = {
 				path: "src/resolvers/A2aWellKnown-Http.ts",
 			},
 			{
+				source: Source.AcpRegistry_Rest,
+				path: "src/resolvers/AcpRegistry-Rest.ts",
+			},
+			{
 				source: Source.AptosFullnode_Rest,
 				path: "src/resolvers/AptosFullnode-Rest.ts",
 			},
@@ -96038,6 +101688,10 @@ export const app = {
 			{
 				source: Source.Blockfrost_Rest,
 				path: "src/resolvers/Blockfrost-Rest.ts",
+			},
+			{
+				source: Source.CardanoKoios_Rest,
+				path: "src/resolvers/CardanoKoios-Rest.ts",
 			},
 			{
 				source: Source.Blockscout_Rest,
@@ -96156,8 +101810,16 @@ export const app = {
 				path: "src/resolvers/FilecoinFips-Github.ts",
 			},
 			{
+				source: Source.HederaMirrorNode_Rest,
+				path: "src/resolvers/HederaMirrorNode-Rest.ts",
+			},
+			{
 				source: Source.Helius_Rest,
 				path: "src/resolvers/Helius-Rest.ts",
+			},
+			{
+				source: Source.HuggingFaceHub_Rest,
+				path: "src/resolvers/HuggingFaceHub-Rest.ts",
 			},
 			{
 				source: Source.Hyperliquid_JsonRpc,
@@ -96218,6 +101880,10 @@ export const app = {
 			{
 				source: Source.MempoolSpace_Rest,
 				path: "src/resolvers/MempoolSpace-Rest.ts",
+			},
+			{
+				source: Source.Mlflow_Rest,
+				path: "src/resolvers/Mlflow-Rest.ts",
 			},
 			{
 				source: Source.MetadataVision_Rest,
@@ -96292,6 +101958,10 @@ export const app = {
 				path: "src/resolvers/NostrRelay-Nip11-Http.ts",
 			},
 			{
+				source: Source.NostrRelay_WebSocket,
+				path: "src/resolvers/NostrRelay-WebSocket.ts",
+			},
+			{
 				source: Source.OpenAI_Rest,
 				path: "src/resolvers/OpenAI-Rest.ts",
 			},
@@ -96334,6 +102004,10 @@ export const app = {
 			{
 				source: Source.Snapchain_Rest,
 				path: "src/resolvers/Snapchain-Rest.ts",
+			},
+			{
+				source: Source.SpaceAndTime_MakeInfinite,
+				path: "src/resolvers/SpaceAndTime-MakeInfinite.ts",
 			},
 			{
 				source: Source.Sourcify_Rest,
@@ -96426,6 +102100,10 @@ export const app = {
 			{
 				source: Source.X_FxEmbed_Rest,
 				path: "src/resolvers/X-FxEmbed-Rest.ts",
+			},
+			{
+				source: Source.Xrpl_Rippled,
+				path: "src/resolvers/Xrpl-JsonRpc.ts",
 			},
 			{
 				source: Source.Zcashd_JsonRpc,

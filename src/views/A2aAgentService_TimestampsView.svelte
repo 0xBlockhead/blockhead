@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aAgentService_TimestampView from '$/views/A2aAgentService_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					reachable: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentService_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aAgentService_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				reachable: true,
+			},
+		})
+	}
+	getResourceItems={(a2aAgentServiceTimestamps) => [...new Map(a2aAgentServiceTimestamps.values.map((a2aAgentServiceTimestamp) => [a2aAgentServiceTimestamp[EntityMetaKey.SelectorKey], a2aAgentServiceTimestamp])).values()]}
+	getKey={(a2aAgentServiceTimestamp) => a2aAgentServiceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A agent service observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aAgentServiceTimestamps)}
-			{@const uniqueA2aAgentServiceTimestamps = [...new Map(a2aAgentServiceTimestamps.values.map((a2aAgentServiceTimestamp) => [a2aAgentServiceTimestamp[EntityMetaKey.SelectorKey], a2aAgentServiceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentService_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aAgentServiceTimestamps.totalCount}
-				getKey={(a2aAgentServiceTimestamp) => a2aAgentServiceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aAgentServiceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A agent service observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aAgentServiceTimestamp })}
-					{@const a2aAgentServiceTimestampFields = { ...a2aAgentServiceTimestamp[EntityMetaKey.Selector], ...a2aAgentServiceTimestamp }}
-					{@const selection = select(EntityType.A2aAgentService_Timestamp, a2aAgentServiceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aAgentService_TimestampView
-						selection={selection}
-						prefetched={a2aAgentServiceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aAgentService_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aAgentServiceTimestamp })}
+		{@const a2aAgentServiceTimestampFields = { ...a2aAgentServiceTimestamp[EntityMetaKey.Selector], ...a2aAgentServiceTimestamp }}
+		{@const selection = select(EntityType.A2aAgentService_Timestamp, a2aAgentServiceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aAgentService_TimestampView
+			selection={selection}
+			prefetched={a2aAgentServiceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

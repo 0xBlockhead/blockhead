@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 import { parse as parseSvelte } from 'svelte/compiler'
@@ -27,8 +28,8 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 	sourceBindingCompatibility,
-	_ListEntityRow,
 	_ExpressionDecode,
+	_RouteParamEncoding,
 	_ViewItemKind,
 	type _AppFacetCondition,
 	type _Expression,
@@ -45,6 +46,8 @@ import {
 	app,
 } from '../../APP.ts'
 
+import { networks } from './inputs/Network.ts'
+
 
 type Entity = App['schema']['entities'][number]
 type EntityField = Entity['fields'][number]
@@ -57,7 +60,9 @@ type EntityFacetEntry = {
 type EntitySelector = Entity['selectors'][number]
 type ValueTypeType = App['schema']['valueTypes'][number]['type']
 type SingularView = NonNullable<Entity['views']['singular']>
-type EntityLatest = NonNullable<SingularView['latest']>[number]
+type EntityLatest = NonNullable<SingularView['latest']>[number] & {
+	projectionPath?: readonly [string, ...string[]]
+}
 type EntityCarousel = NonNullable<SingularView['carousels']>[number] & {
 	projectionPath?: readonly [string, ...string[]]
 }
@@ -124,6 +129,7 @@ type RouteParam = {
 	explicitValueTypes: readonly string[]
 	valueTypes: readonly string[]
 	decode?: _ExpressionDecode | _RouteParamTransform
+	encoding?: _RouteParamEncoding
 }
 type SelectorAncestorBinding = {
 	field: string
@@ -155,6 +161,7 @@ type SelectorRouteMapping = {
 	boundaryLiveOptional?: true
 	href?: {
 		entityHref?: false
+		canonicalize?: true
 		conditions?: EntityHref['conditions']
 		params: EntityHref['params']
 	}
@@ -180,6 +187,42 @@ type SelectorRouteVariant = {
 	ownerNodeId: string
 	mapping: SelectorRouteMapping
 }
+type SelectorOutcome =
+	| {
+		kind: 'VisibleRoute'
+		nodeId: string
+	}
+	| {
+		kind: 'CuratedParent'
+		target: {
+			entityType: string
+			selectorName: string
+		}
+	}
+	| {
+		kind: 'Facet'
+		target: {
+			entityType: string
+			selectorName: string
+		}
+		facetPath: readonly [string, ...string[]]
+	}
+	| {
+		kind: 'Hub' | 'Internal'
+		nodeId: string
+	}
+	| {
+		kind: 'Alias'
+		target: {
+			entityType: string
+			selectorName: string
+		}
+	}
+	| {
+		kind: 'Research' | 'Blocked'
+		decision: string
+		evidence: string
+	}
 type RouteNode = {
 	internalPath: string
 	svelteKitPath: string
@@ -215,7 +258,7 @@ type RelationshipSection = {
 	titleField?: string
 	field: FieldReference
 	component?: string
-	href?: string
+	href?: _ViewListSection['href']
 	emptyText?: string
 	selection?: _ViewQuery
 	viewEntry?: _ViewItem
@@ -308,6 +351,7 @@ type RouteFixturePlan = {
 	routeId: string
 	publicPath: string
 	parameterMatchers: Readonly<Record<string, readonly string[]>>
+	parameterEncodingByName: Readonly<Partial<Record<string, _RouteParamEncoding>>>
 	mappings: readonly RouteFixtureMetadata[]
 	boundaryLiveOptional: boolean
 }
@@ -347,6 +391,7 @@ type CompiledAppFacts = Readonly<{
 	routeNodesByPublicPath: Readonly<Record<string, readonly RouteNode[]>>
 	routeNodesByPublicShape: Readonly<Record<string, readonly RouteNode[]>>
 	routeMappingByEntityTypeAndSelector: Readonly<Record<string, SelectorRouteMapping>>
+	selectorOutcomeByEntityTypeAndSelector: Readonly<Record<string, SelectorOutcome>>
 	routeMappingsByNode: Readonly<Record<string, readonly SelectorRouteMapping[]>>
 	routeProbeMappingsByNode: Readonly<Record<string, Readonly<{
 		ownerNodeId: string
@@ -373,6 +418,7 @@ type LoweringIndexes = Readonly<Pick<
 	| 'facetAncestorConditionsByPath'
 	| 'facetDependencyConditionsByPath'
 	| 'generatedComponentByName'
+	| 'sourceBindings'
 	| 'valueTypeById'
 >>
 type SourcesMarkdownLoweringInput = Readonly<Pick<
@@ -405,6 +451,14 @@ export type CompiledApp = Readonly<{
 }>
 
 const repoRoot = process.cwd()
+const networkConstantsInput = (await fs.readFile(
+	new URL('./inputs/Network.ts', import.meta.url),
+	'utf8'
+)).trimEnd().split('\n')
+const caip2NetworkKeys = new Set(networks.flatMap((network) => (
+	'caip2' in network ? [`${network.caip2.namespace}:${network.caip2.reference}`] : []
+)))
+const networkSlugs = new Set(networks.map((network) => network.slug))
 const generatedOutputRoot = path.resolve(process.env.APP_GENERATED_OUTPUT_ROOT ?? repoRoot)
 const generatedRoot = path.join(generatedOutputRoot, 'src')
 const routeRoot = path.join(generatedRoot, 'routes')
@@ -927,11 +981,60 @@ const fieldReferenceKey = (field: FieldReference) => (
 		field
 )
 
+const fieldReferenceExpression = (base: string, field: FieldReference) => (
+	fieldExpression(base, fieldReferenceKey(field))
+)
+
 const fieldResourceBaseExpression = (base: string, field: FieldReference) => (
 	isProjectionFieldReference(field) ?
 		field.slice(0, -1).reduce((expression, facetName) => `${expression}${propertyAccess(facetName)}`, base)
 	:
 		base
+)
+
+const carouselFieldProjectionAccess = (
+	field: FieldReference | undefined,
+	projectionPath?: readonly [string, ...string[]]
+) => {
+	if (!isProjectionFieldReference(field ?? ''))
+		return {
+			fieldBase: 'selection',
+			fieldReference: field,
+		}
+
+	if (projectionPath == null)
+		return {
+			fieldBase: 'projection',
+			fieldReference: field.at(-1) ?? '',
+			projectionResourceExpression: fieldResourceBaseExpression('selection', field),
+		}
+
+	const fieldFacetPath = field.slice(0, -1)
+	if (
+		fieldFacetPath.length === projectionPath.length
+		&& projectionPath.every((facetName, index) => fieldFacetPath[index] === facetName)
+	) return {
+		fieldBase: 'projection',
+		fieldReference: field.at(-1) ?? '',
+	}
+
+	if (
+		fieldFacetPath.length < projectionPath.length
+		&& fieldFacetPath.every((facetName, index) => projectionPath[index] === facetName)
+	) return {
+		fieldBase: 'selection',
+		fieldReference: field,
+	}
+
+	return {
+		fieldBase: 'projection',
+		fieldReference: field.at(-1) ?? '',
+		projectionResourceExpression: fieldResourceBaseExpression('selection', field),
+	}
+}
+
+const lowerProjectionContentLine = (line: string, projectionResourceExpression: string) => (
+	line.replaceAll(projectionResourceExpression, 'projection')
 )
 
 const lowerProjectionBoundaryLines = (
@@ -948,14 +1051,31 @@ const lowerProjectionBoundaryLines = (
 		lowerSvelteAttribute(level + 1, 'resource', projectionResourceExpression),
 		`${'\t'.repeat(level)}>`,
 		`${'\t'.repeat(level + 1)}{#snippet Applicable(projection)}`,
-		...reindentLines(content.map((line) => line.replaceAll(
-			projectionResourceExpression,
-			'projection'
+		...reindentLines(content.map((line) => (
+			lowerProjectionContentLine(line, projectionResourceExpression)
 		)), level + 2),
 		`${'\t'.repeat(level + 1)}{/snippet}`,
 		`${'\t'.repeat(level)}</ProjectionBoundary>`,
 	]
 }
+
+const lowerCarouselProjectionLines = (
+	projectionResourceExpression: string,
+	content: string[],
+	level: number
+) => [
+	`${'\t'.repeat(level)}<ResourceBoundary`,
+	lowerSvelteAttribute(level + 1, 'resource', projectionResourceExpression),
+	`${'\t'.repeat(level)}>`,
+	`${'\t'.repeat(level + 1)}{#snippet children(projectionValue)}`,
+	`${'\t'.repeat(level + 2)}<Projection projection={projectionValue}>`,
+	`${'\t'.repeat(level + 3)}{#snippet Applicable(projection)}`,
+	...reindentLines(content, level + 4),
+	`${'\t'.repeat(level + 3)}{/snippet}`,
+	`${'\t'.repeat(level + 2)}</Projection>`,
+	`${'\t'.repeat(level + 1)}{/snippet}`,
+	`${'\t'.repeat(level)}</ResourceBoundary>`,
+]
 
 const fieldResourceExpression = (base: string, field: FieldReference, _entityType: string, query?: string, _multiple = true) => {
 	const fieldName = fieldNameForReference(field)
@@ -1255,12 +1375,13 @@ const lowerObject = (entries: readonly [string, string | undefined][]) => emitTy
 const lowerQueryFields = (
 	fields: readonly FieldReference[],
 	openFields: readonly FieldReference[] | undefined,
-	openExpression: string | undefined
+	openExpression: string | undefined,
+	emitEmptyFields = false
 ) => {
 	const lowerFieldSelection = (references: readonly FieldReference[]) => {
 		const root = new Map<string, Map<string, unknown> | true>()
 		for (const reference of references) {
-			const path = isProjectionFieldReference(reference) ? reference : [reference]
+			const path = isProjectionFieldReference(reference) ? reference : reference.split('.')
 			let fields = root
 			for (const segment of path.slice(0, -1)) {
 				const nested = fields.get(segment)
@@ -1285,7 +1406,7 @@ const lowerQueryFields = (
 	}
 	const fieldEntries = lowerFieldSelection(fields)
 	if (openExpression == null || openFields == null || openFields.length === 0)
-		return fields.length === 0 ? undefined : fieldEntries
+		return fields.length === 0 && !emitEmptyFields ? undefined : fieldEntries
 
 	return [
 		'{',
@@ -1316,6 +1437,107 @@ const lowerSourceArray = (sources: readonly string[] | undefined) => {
 			throw new Error(`Source selection contains undefined: ${sources.join(', ')}`)
 
 	return lowerArray(sources.map((source) => enumAccess('Source', source)))
+}
+
+const lowerNetworkApplicableSourceArray = (
+	sources: readonly string[] | undefined,
+	_indexes: Pick<LoweringIndexes, 'sourceBindings'>
+) => {
+	if (sources == null)
+		return undefined
+
+	return `networkApplicableSources(${lowerSourceArray(sources)}, pendingEntity)`
+}
+
+const lowerNetworkSourceApplicabilityDeclarations = (
+	indexes: Pick<LoweringIndexes, 'sourceBindings'>,
+	sources: readonly string[]
+) => {
+	const entries = unique(sources).flatMap((source) => {
+		const bindings = indexes.sourceBindings.filter((sourceBinding) => sourceBinding.source === source)
+		const targets = bindings.flatMap(({ binding }) => {
+			if (binding.target.kind === SourceTargetKind.Caip2Network)
+				return [{
+					kind: SourceTargetKind.Caip2Network,
+					key: binding.target.key,
+				}]
+			if (binding.target.kind === SourceTargetKind.NetworkSlug)
+				return [{
+					kind: SourceTargetKind.NetworkSlug,
+					key: binding.target.key,
+				}]
+			if (binding.target.kind === SourceTargetKind.Eip155Chain)
+				return [{
+					kind: SourceTargetKind.Caip2Network,
+					key: `eip155:${binding.target.key}`,
+				}]
+
+			return []
+		})
+		return targets.length === 0 || targets.length !== bindings.length ? [] : [
+			`\t[Source.${source}, [`,
+			...unique(targets.map(({ kind, key }) => `${kind}\u001f${key}`)).map((target) => {
+				const [kind, key] = target.split('\u001f')
+				return `\t\t{ kind: SourceTargetKind.${kind}, key: ${emitTypeScript(key)} },`
+			}),
+			'\t]],',
+		]
+	})
+
+	return {
+		imports: [{
+			from: '$/sources/SourceBinding.ts',
+			names: ['SourceTargetKind'],
+		}],
+		lines: [
+			'const networkTargetKeysBySource = new Map<',
+			'\tSource,',
+			'\treadonly { kind: SourceTargetKind; key: string }[]',
+			'>([',
+			...entries,
+			'])',
+			'',
+			'const networkApplicableSources = (',
+			'\tsources: readonly Source[],',
+			'\tnetwork: {',
+			'\t\tslug: string',
+			'\t\tcaip2?: {',
+			'\t\t\tnamespace: string',
+			'\t\t\treference: string',
+			'\t\t}',
+			'\t}',
+			') => sources.filter((source) => {',
+			'\tconst targets = networkTargetKeysBySource.get(source)',
+			'\treturn targets == null || targets.some((target) => (',
+			'\t\ttarget.kind === SourceTargetKind.NetworkSlug ?',
+			'\t\t\ttarget.key === network.slug',
+			'\t\t\t:',
+			'\t\t\tnetwork.caip2 != null && target.key === `${network.caip2.namespace}:${network.caip2.reference}`',
+			'\t))',
+			'})',
+		],
+	}
+}
+
+const lowerDispatchedSourceSelectionExpression = (mappings: readonly {
+	entityType: string
+	selectorName: string
+	sourceSelection?: readonly string[] | _SourceSelection
+}[]) => {
+	const sourceExpressions = mappings.map((mapping) => (
+		Array.isArray(mapping.sourceSelection) ? lowerSourceArray(mapping.sourceSelection) : undefined
+	))
+	if (sourceExpressions.some((sources) => sources == null))
+		return undefined
+	if (unique(sourceExpressions).length === 1)
+		return sourceExpressions[0]
+
+	return mappings.reduceRight((alternate, mapping, index) => (
+		index === mappings.length - 1 ?
+			sourceExpressions[index] ?? 'undefined'
+		:
+			`data.selectorMapping.entityType === EntityType.${mapping.entityType} && data.selectorMapping.selectorName === ${emitTypeScript(mapping.selectorName)} ? ${sourceExpressions[index] ?? 'undefined'} : ${alternate}`
+	), '')
 }
 
 const sourceSelectionName = (selection: _SourceSelection) => selection.name ?? 'anonymousSources'
@@ -1390,7 +1612,8 @@ const lowerQuery = (
 	openExpression?: string,
 	excludedFields?: ReadonlySet<string>,
 	orderEntity?: Entity,
-	requestCount = false
+	requestCount = false,
+	emitEmptyFields = false
 ) => {
 	const queryEntries: [string, string | undefined][] = []
 	const sources = query == null ? undefined : 'sources' in query ? query.sources : undefined
@@ -1410,7 +1633,7 @@ const lowerQuery = (
 	])
 	queryEntries.push([
 		'fields',
-		lowerQueryFields(queryFields, openFields, openExpression),
+		lowerQueryFields(queryFields, openFields, openExpression, emitEmptyFields),
 	])
 	queryEntries.push([
 		'limit',
@@ -1554,57 +1777,6 @@ const lowerConditionedEntityLines = (
 		`${'\t'.repeat(level)}{/if}`,
 	]
 }
-
-const lowerProjectionConditionedLines = (
-	entity: Entity,
-	indexes: LoweringIndexes,
-	projectionPath: readonly [string, ...string[]],
-	conditions: readonly {
-		field: FieldReference
-		equals?: _Literal
-		notEquals?: _Literal
-		contains?: _Literal
-		oneOf?: readonly _Literal[]
-	}[] | undefined,
-	level: number,
-	bodyLines: readonly string[]
-) => (conditions ?? []).reduceRight<string[]>((lines, condition, conditionIndex) => {
-	if (
-		!isProjectionFieldReference(condition.field)
-		|| condition.field.length !== projectionPath.length + 1
-		|| !projectionPath.every((facetName, index) => condition.field[index] === facetName)
-	)
-		throw new Error(`${entity.entityType} projection ${projectionPath.join('.')} condition must reference a field on that projection`)
-
-	const fieldName = fieldNameForReference(condition.field)
-	const fieldDefinition = fieldDefinitionByReference(entity, condition.field, indexes)
-	if (fieldDefinition == null)
-		throw new Error(`${entity.entityType} projection condition references missing field ${condition.field.join('.')}`)
-
-	const valueName = `projectionConditionValue${conditionIndex}`
-	const valueExpression = (
-		fieldDefinition.cardinality === EntityFieldCardinality.Many
-		|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany ?
-			`${valueName}.values`
-		:
-			valueName
-	)
-	const expression = [
-		!('equals' in condition) ? undefined : `${valueExpression} === ${emitTypeScript(condition.equals)}`,
-		!('notEquals' in condition) ? undefined : `${valueExpression} !== ${emitTypeScript(condition.notEquals)}`,
-		!('contains' in condition) ? undefined : `${valueExpression}.includes(${emitTypeScript(condition.contains)})`,
-		!('oneOf' in condition) ? undefined : `${lowerArray(condition.oneOf.map(emitTypeScript))}.includes(${valueExpression})`,
-	].filter(Boolean).join(' && ')
-	return [
-		`${'\t'.repeat(level)}<ResourceBoundary resource={projection${propertyAccess(fieldName)}}>`,
-		`${'\t'.repeat(level + 1)}{#snippet children(${valueName})}`,
-		`${'\t'.repeat(level + 2)}{#if ${expression}}`,
-		...reindentLines(lines, level + 3),
-		`${'\t'.repeat(level + 2)}{/if}`,
-		`${'\t'.repeat(level + 1)}{/snippet}`,
-		`${'\t'.repeat(level)}</ResourceBoundary>`,
-	]
-}, [...bodyLines])
 
 const expressionImports = (expression: _Expression, imports = new Map<string, Set<string>>()) => {
 	if (typeof expression === 'string' || 'raw' in expression)
@@ -1977,6 +2149,7 @@ type RouteDetail = {
 	selector: _Expression
 	component: string
 	href: string
+	sourceSelection?: readonly string[] | _SourceSelection
 }
 type RouteDetailLayoutPlan = {
 	details: readonly RouteDetail[]
@@ -2311,6 +2484,129 @@ const routeParamNamesFromExpression = (expression: _Expression): string[] => {
 	return []
 }
 
+const normalizeRouteParamDecodes = (
+	expression: _Expression,
+	decodeByParam: ReadonlyMap<string, _ExpressionDecode | _RouteParamTransform | undefined>,
+	owner: string
+): _Expression => {
+	if (typeof expression === 'string' || 'raw' in expression)
+		return expression
+	if (expression.kind === 'param') {
+		const decode = decodeByParam.get(expression.name)
+		if (
+			expression.decode != null
+			&& (
+				decode == null
+				|| typeof expression.decode !== typeof decode
+				|| (
+					typeof expression.decode === 'string'
+					&& expression.decode !== decode
+				)
+				|| (
+					typeof expression.decode !== 'string'
+					&& typeof decode !== 'string'
+					&& (expression.decode.from !== decode.from || expression.decode.name !== decode.name)
+				)
+			)
+		)
+			throw new Error(`${owner} parameter ${expression.name} decoder disagrees with normalized route metadata`)
+
+		return decode == null ? expression : {
+			...expression,
+			decode,
+		}
+	}
+	if (expression.kind === 'object')
+		return {
+			...expression,
+			fields: expression.fields.map((field) => ({
+				...field,
+				value: normalizeRouteParamDecodes(field.value, decodeByParam, owner),
+			})),
+		}
+	if (expression.kind === 'selector')
+		return {
+			...expression,
+			params: expression.params.map((param) => {
+				if ('value' in param)
+					return {
+						...param,
+						value: normalizeRouteParamDecodes(param.value, decodeByParam, owner),
+						...(param.hrefValue == null ? {} : {
+							hrefValue: normalizeRouteParamDecodes(param.hrefValue, decodeByParam, owner),
+						}),
+					}
+				const decode = decodeByParam.get(param.param)
+				if (
+					param.decode != null
+					&& (
+						decode == null
+						|| typeof param.decode !== typeof decode
+						|| (
+							typeof param.decode === 'string'
+							&& param.decode !== decode
+						)
+						|| (
+							typeof param.decode !== 'string'
+							&& typeof decode !== 'string'
+							&& (param.decode.from !== decode.from || param.decode.name !== decode.name)
+						)
+					)
+				)
+					throw new Error(`${owner} parameter ${param.param} decoder disagrees with normalized route metadata`)
+
+				return decode == null ? param : {
+					...param,
+					decode,
+				}
+			}),
+		}
+	if (expression.kind === 'property')
+		return {
+			...expression,
+			value: normalizeRouteParamDecodes(expression.value, decodeByParam, owner),
+		}
+	if (expression.kind === 'catalogIndex') {
+		const param = expression.param
+		return {
+			...expression,
+			...(param == null ? {} : { param: undefined }),
+			...(param == null && expression.key == null ? {} : {
+				key: normalizeRouteParamDecodes(
+					expression.key ?? {
+						kind: 'param',
+						name: param ?? '',
+					},
+					decodeByParam,
+					owner
+				),
+			}),
+		}
+	}
+	if (expression.kind === 'call')
+		return {
+			...expression,
+			args: expression.args.map((argument) => normalizeRouteParamDecodes(argument, decodeByParam, owner)),
+		}
+	if (expression.kind === 'template')
+		return {
+			...expression,
+			parts: expression.parts.map((part) => typeof part === 'string' ? part : normalizeRouteParamDecodes(part, decodeByParam, owner)),
+		}
+	if (expression.kind === 'case')
+		return {
+			...expression,
+			value: normalizeRouteParamDecodes(expression.value, decodeByParam, owner),
+			cases: expression.cases.map((item) => ({
+				...item,
+				value: normalizeRouteParamDecodes(item.value, decodeByParam, owner),
+			})),
+			default: normalizeRouteParamDecodes(expression.default, decodeByParam, owner),
+		}
+
+	return expression
+}
+
 const indexRouteParamValueTypes = (
 	nodes: App['routes']['children'],
 	entities: readonly Entity[]
@@ -2407,6 +2703,11 @@ const compileRouteTree = (
 				] as const])).values()]
 				if (decodes.length > 1)
 					throw new Error(`${routeId(routePath)} parameter ${name} has incompatible schema decoders`)
+				const encodings = unique(routeParamDefinitions.flatMap((routeParam) => (
+					routeParam.encoding == null ? [] : [routeParam.encoding]
+				)))
+				if (encodings.length > 1)
+					throw new Error(`${routeId(routePath)} parameter ${name} has incompatible schema encodings`)
 
 				return {
 					name,
@@ -2415,9 +2716,15 @@ const compileRouteTree = (
 					explicitValueTypes,
 					valueTypes,
 					...(decodes[0] == null ? {} : { decode: decodes[0] }),
+					...(encodings[0] == null ? {} : { encoding: encodings[0] }),
 				}
 			}),
 		]
+		const normalizeExpression = (owner: string, expression: _Expression) => normalizeRouteParamDecodes(
+			expression,
+			new Map(routeParams.map((routeParam) => [routeParam.name, routeParam.decode])),
+			`${routeId(routePath)} ${owner}`
+		)
 		const ancestorSelectorsAtNode = ancestorSelectors.map((ancestor) => ({
 			...ancestor,
 			descendantSvelteKitPath: routeId([
@@ -2425,7 +2732,25 @@ const compileRouteTree = (
 				svelteKitRoutePath(segment, routeParams),
 			].filter(Boolean).join('/')),
 		}))
-		const compiledSelectorMappings = selectorMappings.map(({ entityType, selectorName, mapping }) => {
+		const compiledSelectorMappings = selectorMappings.map(({ entityType, selectorName, mapping: sourceMapping }) => {
+			const mapping = {
+				...sourceMapping,
+				...(sourceMapping.derivations == null ? {} : {
+					derivations: Object.fromEntries(Object.entries(sourceMapping.derivations).map(([field, expression]) => [
+						field,
+						normalizeExpression(`${entityType}.${selectorName}`, expression),
+					])),
+				}),
+				...(sourceMapping.href == null ? {} : {
+					href: {
+						...sourceMapping.href,
+						params: (sourceMapping.href.params ?? []).map((param) => ({
+							...param,
+							value: normalizeExpression(`${entityType}.${selectorName}`, param.value),
+						})),
+					},
+				}),
+			}
 			const entity = entityByType.get(entityType)
 			const selector = entity?.selectors.find((candidate) => candidate.name === selectorName)
 			if (entity == null || selector == null)
@@ -2748,6 +3073,7 @@ const compileRouteTree = (
 				title: mapping.title,
 				href: mapping.href == null ? undefined : {
 					entityHref: mapping.href.entityHref,
+					canonicalize: mapping.href.canonicalize,
 					conditions: mapping.href.conditions,
 					params: mapping.href.params ?? [],
 				},
@@ -2771,6 +3097,10 @@ const compileRouteTree = (
 			}
 		})
 		const collectionMappings = (node.collections ?? []).map((collection) => {
+			const derivations = Object.fromEntries(Object.entries(collection.derivations ?? {}).map(([field, expression]) => [
+				field,
+				normalizeExpression(`${collection.field[0]} collection`, expression),
+			]))
 			const sourceEntity = entityByType.get(collection.field[0])
 			if (sourceEntity == null)
 				throw new Error(`${routeId(routePath)} collection references missing source entity ${collection.field[0]}`)
@@ -2784,9 +3114,9 @@ const compileRouteTree = (
 				entity: field.entityType,
 				source: {
 					entity: sourceEntity.entityType,
-					selector: Object.keys(collection.derivations ?? {}).length > 0 ? {
+					selector: Object.keys(derivations).length > 0 ? {
 						kind: 'object' as const,
-						fields: Object.entries(collection.derivations ?? {}).map(([name, value]) => ({
+						fields: Object.entries(derivations).map(([name, value]) => ({
 							name,
 							value,
 						})),
@@ -2900,10 +3230,14 @@ const compileRouteTree = (
 				probeCases: mapping.probeCases,
 				...(mapping.boundaryLiveOptional == null ? {} : { boundaryLiveOptional: mapping.boundaryLiveOptional }),
 				...(href == null ? {} : { href }),
-				hrefAlternatives: hrefParamAlternatives.map((hrefParams) => Object.entries(hrefParams).map(([param, value]) => ({
-					param,
-					value,
-				}))),
+				hrefAlternatives: hrefParamAlternatives.map((hrefParams) => Object.entries(hrefParams).map(([param, value]) => {
+					const decode = routeParams.find((routeParam) => routeParam.name === param)?.decode
+					return {
+						param,
+						value,
+						...(typeof decode !== 'string' ? {} : { decode }),
+					}
+				})),
 				fields,
 				title,
 				...(mapping.when == null ? {} : { when: mapping.when }),
@@ -3057,10 +3391,14 @@ const compileRouteTree = (
 						...node.selectorVariant.href,
 						params: node.selectorVariant.href?.params ?? [],
 					},
-					hrefAlternatives: hrefAlternatives.map((alternative) => Object.entries(alternative).map(([param, value]) => ({
-						param,
-						value,
-					}))),
+					hrefAlternatives: hrefAlternatives.map((alternative) => Object.entries(alternative).map(([param, value]) => {
+						const decode = routeParams.find((routeParam) => routeParam.name === param)?.decode
+						return {
+							param,
+							value,
+							...(typeof decode !== 'string' ? {} : { decode }),
+						}
+					})),
 					fields: variantFields,
 					page: node.selectorVariant.page ?? {},
 				},
@@ -3225,6 +3563,34 @@ const routeHrefFromCollection = (
 ): CollectionRouteHref | undefined => {
 	const href = node.svelteKitPath
 	const selector = collection.selector
+	if (selector.kind === 'object') {
+		const params: CollectionRouteHref['params'] = []
+		for (const param of routeParamNames(href)) {
+			const selectorField = selector.fields.find(({ value }) => (
+				typeof value !== 'string'
+				&& !('raw' in value)
+				&& value.kind === 'param'
+				&& value.name === param
+			))
+			if (selectorField == null)
+				return undefined
+
+			const decode = node.params.find((routeParam) => routeParam.name === param)?.decode
+			params.push({
+				param,
+				value: {
+					kind: 'field',
+					name: selectorField.name,
+				},
+				...(typeof decode !== 'string' ? {} : { decode }),
+			})
+		}
+
+		return {
+			href,
+			params,
+		}
+	}
 	if (selector.kind !== 'selector')
 		return routeParamNames(href).length === 0 ?
 			{
@@ -3303,7 +3669,8 @@ const encodedRouteParamDomain = (
 		&& valueType.routeParam?.matcher === 'networkCaip2'
 		&& valueType.routeParam?.encode?.name === 'caip2StringFromValue'
 		&& valueType.type.object.length === 2
-		&& valueType.type.object.every((field) => 'enum' in field.type)
+		&& valueType.type.object[0]?.name === 'namespace'
+		&& valueType.type.object[1]?.name === 'reference'
 	)
 		return { requiredCharacters: asciiCharacters(':') }
 	if (
@@ -3329,12 +3696,20 @@ const encodedRouteParamDomain = (
 		}
 	if (
 		'raw' in valueType.type
-		&& valueType.type.raw === 'EvmAddress'
-		&& valueType.routeParam?.matcher === 'evmAddress'
+		&& (
+			(
+				valueType.type.raw === 'EvmAddress'
+				&& valueType.routeParam?.matcher === 'evmAddress'
+			)
+			|| (
+				valueType.type.raw === 'EvmTopicHash'
+				&& valueType.routeParam?.matcher === 'evmTopicHash'
+			)
+		)
 	)
 		return {
-			minimumLength: 42,
-			maximumLength: 42,
+			minimumLength: valueType.type.raw === 'EvmAddress' ? 42 : 66,
+			maximumLength: valueType.type.raw === 'EvmAddress' ? 42 : 66,
 			characters: asciiCharacters('0123456789abcdefABCDEFx'),
 			charactersByIndex: new Map([
 				[0, asciiCharacters('0')],
@@ -3600,6 +3975,7 @@ const lowerEntriesFromRouteNodes = (
 		))
 		return mapping == null ? [] : [{
 			...detail,
+			...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
 			selector: {
 				kind: 'object' as const,
 				fields: mapping.fields.map(({ field, value }) => ({
@@ -3631,6 +4007,7 @@ const lowerEntriesFromRouteNodes = (
 		))
 
 		const hrefParamNames = routeParamNames(href)
+		const detailSourcesExpression = lowerDispatchedSourceSelectionExpression(dispatchDetails)
 		return {
 			details: ownDetails,
 			components: unique(ownDetails.map((detail) => detail.component)),
@@ -3647,10 +4024,10 @@ const lowerEntriesFromRouteNodes = (
 				:
 					`data.selectorMapping.entityType === EntityType.${detail.entityType} && data.selectorMapping.selectorName === ${emitTypeScript(detail.selectorName)} ? ${componentIdentifier(detail.component)} : ${alternate}`
 			), ''),
-			detailSelectionExpression: ownDetails.length === 1 ?
-				`select(EntityType.${ownDetails[0]?.entityType}, data.selector)`
+			detailSelectionExpression: `${ownDetails.length === 1 ?
+				`select(EntityType.${ownDetails[0]?.entityType}, data.selector`
 			:
-				'select(data.selectorMapping.entityType, data.selectorMapping.selector)',
+				'select(data.selectorMapping.entityType, data.selectorMapping.selector'}${detailSourcesExpression == null ? ')' : `, { sources: ${detailSourcesExpression} })`}`,
 		}
 	})()
 	const collections = node.collectionMappings.map((collection) => ({
@@ -4086,8 +4463,23 @@ const combineSingularViewContributions = (
 		...(facet.lists ?? []),
 	],
 	carousels: [
-		...(base?.carousels ?? []),
-		...(facet.carousels ?? []),
+		...(facet.carousels ?? []).reduce((carousels, carousel) => {
+			if (carousel.after == null)
+				return [
+					...carousels,
+					carousel,
+				]
+
+			const anchorIndex = carousels.findIndex((candidate) => candidate.id === carousel.after)
+			if (anchorIndex === -1)
+				throw new Error(`Carousel ${carousel.id ?? carousel.label} references missing insertion anchor ${carousel.after}`)
+
+			return [
+				...carousels.slice(0, anchorIndex + 1),
+				carousel,
+				...carousels.slice(anchorIndex + 1),
+			]
+		}, [...(base?.carousels ?? [])]),
 	],
 })
 
@@ -4164,6 +4556,10 @@ const normalizeApp = (app: App) => {
 				) as Partial<SingularView> | undefined
 				const facetSingularView = resolvedFacetSingularView == null ? undefined : {
 					...resolvedFacetSingularView,
+					latest: resolvedFacetSingularView.latest?.map((latest) => ({
+						...latest,
+						projectionPath,
+					})),
 					carousels: resolvedFacetSingularView.carousels?.map((carousel) => ({
 						...carousel,
 						projectionPath,
@@ -4250,6 +4646,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			bindingIndex,
 		})))
 	for (const { binding, source } of compiledSourceBindings) {
+		if (binding.target.kind === SourceTargetKind.Caip2Network && !caip2NetworkKeys.has(binding.target.key))
+			throw new Error(`${source}: unknown Caip2Network target ${binding.target.key}`)
+		if (binding.target.kind === SourceTargetKind.NetworkSlug && !networkSlugs.has(binding.target.key))
+			throw new Error(`${source}: unknown NetworkSlug target ${binding.target.key}`)
 		if (binding.endpoints.length === 0)
 			throw new Error(`${source}: source binding requires at least one endpoint`)
 		if (binding.operationGroups.length === 0)
@@ -4345,6 +4745,19 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const allEntityTypes = new Set(entityTypes)
 	const facetNames = new Set(facetEntries.map(({ facet }) => facet.name))
 	const errors: string[] = []
+	const resolverModuleSourceIds = new Set<Source>()
+	const resolverModulePaths = new Set<string>()
+	for (const resolverModule of resolverModules) {
+		if (!sourceIds.has(resolverModule.source))
+			errors.push(`resolver module ${resolverModule.path} references missing source ${resolverModule.source}`)
+		if (resolverModuleSourceIds.has(resolverModule.source))
+			errors.push(`duplicate resolver module source ${resolverModule.source}`)
+		if (resolverModulePaths.has(resolverModule.path))
+			errors.push(`duplicate resolver module path ${resolverModule.path}`)
+
+		resolverModuleSourceIds.add(resolverModule.source)
+		resolverModulePaths.add(resolverModule.path)
+	}
 	for (const entity of activeEntities) {
 		const fieldByName = new Map(entity.fields.map((field) => [field.name, field]))
 		for (const selector of entity.selectors) {
@@ -4549,6 +4962,33 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					errors.push(`${entity.entityType}.${field.name} references missing source ${source}`)
 			}
 		}
+		const contentWarning = entitySingularView(entity)?.contentWarning
+		if (contentWarning != null) {
+			if (singularViewContent(entitySingularView(entity))?.body == null)
+				errors.push(`${entity.entityType} contentWarning requires content.body`)
+			for (const [
+				role,
+				fieldReference,
+				expectedPrimitive,
+			] of [
+				['sensitive', contentWarning.sensitiveField, 'boolean'],
+				['text', contentWarning.textField, 'string'],
+			] as const) {
+				const field = fieldDefinitionByReference(entity, fieldReference, { entityFacetByPath })
+				const valueType = field?.valueType == null ? undefined : valueTypeById.get(field.valueType)
+				const primitiveType = valueType?.type ?? field?.primitiveType
+				if (field == null)
+					errors.push(`${entity.entityType} contentWarning ${role} field references missing field ${fieldReference}`)
+				else if (field.type !== EntityFieldType.Primitive)
+					errors.push(`${entity.entityType} contentWarning ${role} field must be primitive`)
+				else if (field.cardinality !== EntityFieldCardinality.ZeroOrOne)
+					errors.push(`${entity.entityType} contentWarning ${role} field must be ZeroOrOne`)
+				else if (primitiveType == null || !('primitive' in primitiveType) || primitiveType.primitive !== expectedPrimitive)
+					errors.push(`${entity.entityType} contentWarning ${role} field must be ${expectedPrimitive}`)
+			}
+			if (contentWarning.fallbackText.trim() === '')
+				errors.push(`${entity.entityType} contentWarning fallbackText must be nonblank`)
+		}
 		for (const { facet } of facetEntries.filter((facetEntry) => facetEntry.entityType === entity.entityType)) {
 			errors.push(...facetConditionErrors(entity, facet.condition, entityFacetByPath))
 			for (const list of facet.singularView?.lists ?? []) {
@@ -4604,10 +5044,120 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	for (const [key, entries] of routeMappingsByEntityTypeAndSelector)
 		if (entries.length > 1)
 			throw new Error(`Duplicate route selector mapping ${key}: ${entries.map(({ node }) => node.internalPath).join(', ')}`)
+	for (const { node, mapping } of indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
+		node,
+		mapping,
+	}))))
+		if (
+			mapping.href?.entityHref === false
+			&& !indexedRouteNodes.some((candidateNode) => candidateNode.selectorMappings.some((candidateMapping) => (
+				candidateMapping.entityType === mapping.entityType
+				&& candidateMapping.href?.entityHref !== false
+				&& selectorMappingOwnsDetailPage(candidateNode, candidateMapping)
+			))))
+			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} suppresses its entity href without a canonical entity route`)
+	for (const { node, mapping } of indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
+		node,
+		mapping,
+	}))))
+		if (
+			mapping.href?.canonicalize === true
+			&& mapping.href.entityHref !== false
+		)
+			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} canonicalizes without suppressing its alias entity href`)
 
 	const routeMappingByEntityTypeAndSelector = new Map([...routeMappingsByEntityTypeAndSelector].flatMap(([key, [entry]]) => (
 		entry == null ? [] : [[key, entry.mapping] as const]
 	)))
+	const selectorOutcomeByEntityTypeAndSelector = new Map<string, SelectorOutcome>([...routeMappingsByEntityTypeAndSelector].flatMap(([key, [entry]]) => (
+		entry == null ? [] : [[key, {
+			kind: 'VisibleRoute',
+			nodeId: entry.node.internalPath,
+		} satisfies SelectorOutcome] as const]
+	)))
+	const schemaSelectorKeys = new Set(activeEntities.flatMap((entity) => entity.selectors.map((selector) => (
+		selectorRouteMappingKey(entity.entityType, selector.name)
+	))))
+	for (const [
+		entityType,
+		outcomes,
+	] of Object.entries(sourceApp.routes.outcomes ?? {}))
+		for (const [
+			selectorName,
+			outcome,
+		] of Object.entries(outcomes)) {
+			const key = selectorRouteMappingKey(entityType, selectorName)
+			if (!schemaSelectorKeys.has(key)) {
+				errors.push(`${key} route outcome references an unknown selector`)
+				continue
+			}
+			if (selectorOutcomeByEntityTypeAndSelector.has(key)) {
+				errors.push(`${key} has both a visible route mapping and ${outcome.kind} outcome`)
+				continue
+			}
+
+			selectorOutcomeByEntityTypeAndSelector.set(key, outcome)
+		}
+
+	if (sourceApp.routes.outcomes != null)
+		for (const key of schemaSelectorKeys)
+			if (!selectorOutcomeByEntityTypeAndSelector.has(key))
+				errors.push(`${key} is missing an explicit route outcome`)
+
+	for (const [
+		key,
+		outcome,
+	] of selectorOutcomeByEntityTypeAndSelector) {
+		if (outcome.kind === 'VisibleRoute')
+			continue
+
+		if (outcome.kind === 'Hub' || outcome.kind === 'Internal') {
+			if (!routeNodeByInternalPath.has(outcome.nodeId))
+				errors.push(`${key} ${outcome.kind} outcome references missing route node ${outcome.nodeId}`)
+			continue
+		}
+
+		if (outcome.kind === 'Research' || outcome.kind === 'Blocked') {
+			if (outcome.decision.trim() === '' || outcome.evidence.trim() === '')
+				errors.push(`${key} ${outcome.kind} outcome requires a decision and evidence`)
+			continue
+		}
+
+		const targetKey = selectorRouteMappingKey(outcome.target.entityType, outcome.target.selectorName)
+		if (!schemaSelectorKeys.has(targetKey))
+			errors.push(`${key} ${outcome.kind} outcome references unknown selector ${targetKey}`)
+		if (
+			outcome.kind === 'Facet'
+			&& entityFacetByPath[projectionPathKey(outcome.target.entityType, outcome.facetPath)] == null
+		)
+			errors.push(`${key} Facet outcome references missing ${outcome.target.entityType}.${outcome.facetPath.join('.')}`)
+	}
+
+	for (const [
+		key,
+		outcome,
+	] of selectorOutcomeByEntityTypeAndSelector) {
+		if (outcome.kind !== 'Alias')
+			continue
+
+		const visited = new Set([key])
+		let targetKey = selectorRouteMappingKey(outcome.target.entityType, outcome.target.selectorName)
+		while (selectorOutcomeByEntityTypeAndSelector.get(targetKey)?.kind === 'Alias') {
+			if (visited.has(targetKey)) {
+				errors.push(`${key} Alias outcome contains a cycle through ${targetKey}`)
+				targetKey = ''
+				break
+			}
+
+			visited.add(targetKey)
+			const target = selectorOutcomeByEntityTypeAndSelector.get(targetKey)
+			if (target?.kind !== 'Alias')
+				break
+			targetKey = selectorRouteMappingKey(target.target.entityType, target.target.selectorName)
+		}
+		if (targetKey !== '' && selectorOutcomeByEntityTypeAndSelector.get(targetKey)?.kind !== 'VisibleRoute')
+			errors.push(`${key} Alias outcome must resolve to one visible route`)
+	}
 	const routeMappingsByNode = new Map(indexedRouteNodes.map((node) => [
 		node.internalPath,
 		node.selectorMappings,
@@ -4663,11 +5213,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			}
 	}
 
-	for (const snippet of rawSnippetSources(app)) {
+	for (const [snippetIndex, snippet] of rawSnippetSources(app).entries()) {
 		try {
 			parseSvelte(snippet.raw)
 		} catch (error) {
-			errors.push(`Raw Svelte fragment did not parse: ${error instanceof Error ? error.message : String(error)}`)
+			errors.push(`Raw Svelte fragment ${snippetIndex.toString()} did not parse: ${error instanceof Error ? error.message : String(error)}`)
 		}
 	}
 
@@ -4811,6 +5361,9 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			routeId: node.svelteKitPath,
 			publicPath: node.publicPath,
 			parameterMatchers: Object.fromEntries(node.params.map((param) => [param.name, param.matchers])),
+			parameterEncodingByName: Object.fromEntries(node.params.flatMap((param) => (
+				param.encoding == null ? [] : [[param.name, param.encoding]]
+			))),
 			mappings,
 			boundaryLiveOptional: mappings.some((mapping) => mapping.boundaryLiveOptional),
 		}]
@@ -4859,6 +5412,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		routeNodesByPublicPath: nullPrototypeRecord([...routeNodesByPublicPath]),
 		routeNodesByPublicShape: nullPrototypeRecord([...routeNodesByPublicShape]),
 		routeMappingByEntityTypeAndSelector: nullPrototypeRecord([...routeMappingByEntityTypeAndSelector]),
+		selectorOutcomeByEntityTypeAndSelector: nullPrototypeRecord([...selectorOutcomeByEntityTypeAndSelector]),
 		routeMappingsByNode: nullPrototypeRecord([...routeMappingsByNode]),
 		routeProbeMappingsByNode: nullPrototypeRecord([...routeProbeMappingsByNode]),
 		compositeRouteParams: [...new Map(indexedRouteNodes
@@ -4913,6 +5467,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				facetAncestorConditionsByPath: compiledApp.facetAncestorConditionsByPath,
 				facetDependencyConditionsByPath: compiledApp.facetDependencyConditionsByPath,
 				generatedComponentByName: compiledApp.generatedComponentByName,
+				sourceBindings: compiledApp.sourceBindings,
 				valueTypeById: compiledApp.valueTypeById,
 		},
 		entityTypes: compiledApp.entityTypes,
@@ -4940,10 +5495,18 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 const lowerGeneratedFiles = (loweringInput: AppLoweringInput): GeneratedFile[] => {
 	const indexes = loweringInput.indexes
 	const files = [
+		textFile(
+			'src/constants/Network.ts',
+			[
+				generatedHeader,
+				'',
+				...networkConstantsInput,
+			]
+		),
 		lowerEntityFieldFile(),
 		lowerEntityTypeFile(loweringInput.entityTypes),
 		...loweringInput.entityViewPlans.map(({ entity }) => lowerEntitySchemaFile(entity, indexes)),
-		lowerSchemaIndexFile(loweringInput.entityTypes),
+		lowerSchemaIndexFile(loweringInput.entityTypes, indexes),
 		lowerSourcesMarkdownFile(loweringInput.sourcesMarkdown),
 		lowerSourceFile(loweringInput.sourceNames),
 		lowerSourceBindingFile(),
@@ -5037,9 +5600,15 @@ const lowerE2eRouteFixtureMetadataFile = (routeFixturePlans: readonly RouteFixtu
 			'\tconst value = params[paramName]',
 			'\tif (value == null || value === \'\')',
 			'\t\tthrow new Error(`${routeId} is missing required route parameter ${paramName}`)',
-			'',
 			'\treturn value',
 			'}',
+			'',
+			'const encodeE2eRouteParam = (value: string, encoding: \'Opaque\' | \'Path\') => (',
+			'\tencoding === \'Opaque\' ?',
+			'\t\tencodeURIComponent(value)',
+			'\t:',
+			'\t\tvalue.split(\'/\').map(encodeURIComponent).join(\'/\')',
+			')',
 			'',
 			'export const e2eRouteParamMatcherByName = {',
 			...matcherNames.map((matcher) => `\t${matcher}: match${matcher[0]?.toUpperCase()}${matcher.slice(1)},`),
@@ -5088,7 +5657,12 @@ const lowerE2eRouteFixtureMetadataFile = (routeFixturePlans: readonly RouteFixtu
 							.filter(Boolean)
 							.map((segment) => {
 								const match = segment.match(/^\[\[?(?:\.\.\.)?(\w+)(?:=\w+)?\]\]?$/)
-								return match == null ? emitTypeScript(segment) : `requiredE2eRouteParam(params, ${emitTypeScript(metadata.routeId)}, ${emitTypeScript(match[1])})`
+								if (match == null)
+									return emitTypeScript(segment)
+
+								const requiredParam = `requiredE2eRouteParam(params, ${emitTypeScript(metadata.routeId)}, ${emitTypeScript(match[1])})`
+								const encoding = metadata.parameterEncodingByName[match[1] ?? '']
+								return encoding == null ? requiredParam : `encodeE2eRouteParam(${requiredParam}, ${emitTypeScript(encoding)})`
 							})
 							.join(', ')}].join('')`],
 						['boundaryLiveOptional', metadata.boundaryLiveOptional ? 'true' : undefined],
@@ -5301,7 +5875,69 @@ const lowerSchemaFacetEntry = (
 	]
 }
 
-const lowerSchemaIndexFile = (entityTypes: readonly string[]) => {
+const facetConditionLeaves = (
+	entityType: string,
+	condition: _AppFacetCondition
+): {
+	dependency: {
+		entityType: string
+		facetPath: readonly string[]
+		fieldName: string
+	}
+	itemIndex?: number
+	condition: Exclude<_AppFacetCondition, { all: readonly _AppFacetCondition[] }>
+}[] => {
+	if ('all' in condition)
+		return condition.all.flatMap((child) => facetConditionLeaves(entityType, child))
+
+	const indexedItem = condition.path.at(-1)
+	const fieldName = condition.path.at(typeof indexedItem === 'number' ? -2 : -1)
+	if (typeof fieldName !== 'string')
+		throw new Error(`${entityType} facet condition path must end in a field`)
+
+	return [{
+		dependency: {
+			entityType,
+			facetPath: condition.path.slice(0, typeof indexedItem === 'number' ? -2 : -1).filter((segment): segment is string => typeof segment === 'string'),
+			fieldName,
+		},
+		...(typeof indexedItem === 'number' && { itemIndex: indexedItem }),
+		condition,
+	}]
+}
+
+const compiledFacetConditionPlan = (
+	entityType: string,
+	conditions: readonly _AppFacetCondition[]
+) => {
+	const leaves = conditions.flatMap((condition) => facetConditionLeaves(entityType, condition))
+	const dependencies = [...new Map(leaves.map(({ dependency }) => [
+		projectionPathKey(dependency.entityType, [
+			...dependency.facetPath,
+			dependency.fieldName,
+		]),
+		dependency,
+	])).values()]
+
+	return {
+		dependencies,
+		predicates: leaves.map(({ condition, dependency, itemIndex }) => ({
+			dependencyIndex: dependencies.findIndex((candidate) => (
+				candidate.entityType === dependency.entityType
+				&& candidate.fieldName === dependency.fieldName
+				&& candidate.facetPath.length === dependency.facetPath.length
+				&& candidate.facetPath.every((segment, index) => segment === dependency.facetPath[index])
+			)),
+			...(itemIndex !== undefined && { itemIndex }),
+			...('is' in condition ? { is: condition.is } : 'isOneOf' in condition ? { isOneOf: condition.isOneOf } : { includes: condition.includes }),
+		})),
+	}
+}
+
+const lowerSchemaIndexFile = (
+	entityTypes: readonly string[],
+	indexes: Pick<LoweringIndexes, 'entityFacetByPath' | 'facetAncestorConditionsByPath'>
+) => {
 	const chunks = Array.from({
 		length: Math.ceil(entityTypes.length / 50),
 	}, (_value, index) => entityTypes.slice(index * 50, index * 50 + 50))
@@ -5315,14 +5951,33 @@ const lowerSchemaIndexFile = (entityTypes: readonly string[]) => {
 		'export const schema = [',
 		...chunks.map((_chunk, index) => `\t...schemaChunk${index},`),
 		'] as const satisfies Schema',
-		'export const schemaMeta = indexSchema(schema)',
+		'const projectionConditionPlanByEntityTypeAndPath = {',
+		...Object.entries(indexes.entityFacetByPath).flatMap(([key, facetEntry]) => {
+			const planLines = emitTypeScript({
+				kind: 'value',
+				value: compiledFacetConditionPlan(facetEntry.entityType, [
+					...(indexes.facetAncestorConditionsByPath[key] ?? []),
+					facetEntry.facet.condition,
+				]),
+			}).split('\n')
+
+			return [
+				`\t${emitTypeScript(`${key}\x1e`)}: ${planLines[0]}`,
+				...planLines.slice(1, -1).map((line) => `\t${line}`),
+				`\t${planLines.at(-1)},`,
+			]
+		}),
+		'} as const',
+		'export const schemaMeta = indexSchema(schema, projectionConditionPlanByEntityTypeAndPath)',
 		'export const entityDefinitionByType = schemaMeta.entityDefinitionByType',
 		'',
 		'export interface RegisteredEntityDefinitionByType {',
 		...entityTypes.map((entityType) => `\treadonly [EntityType.${entityType}]: typeof ${entityType}Schema`),
 		'}',
 		'export type RegisteredEntityType = keyof RegisteredEntityDefinitionByType',
-		'export type RegisteredSchema = typeof schema',
+		'export type RegisteredSchema = typeof schema & {',
+		'\treadonly entityDefinitionByType: RegisteredEntityDefinitionByType',
+		'}',
 		'export type EntitySchemaFieldName<_EntityType extends RegisteredEntityType> = EntityFieldDefinitions<RegisteredEntityDefinitionByType[_EntityType]>[\'name\']',
 	]
 
@@ -5533,12 +6188,19 @@ const lowerSourceBindingFile = () => tsFile(
 	{
 		imports: [
 			{
+				from: '$/constants/Network.ts',
+				typeNames: [
+					'Caip2NetworkKey',
+					'NetworkSlug',
+				],
+			},
+			{
 				from: 'arktype',
 				typeNames: ['Type'],
 			},
 			{
 				from: '$/sources/Source.ts',
-				typeNames: ['Source'],
+				names: ['Source'],
 			},
 			{
 				from: '$/sources/SourceProvider.ts',
@@ -5566,10 +6228,19 @@ const lowerSourceBindingFile = () => tsFile(
 			'',
 			lowerStringEnum('SourceArtifactKind', Object.values(SourceArtifactKind)),
 			'',
-			...lines(`export type SourceTarget = {
-	kind: SourceTargetKind
-	key: string
-}
+			...lines(`export type SourceTarget =
+	| {
+		kind: SourceTargetKind.Caip2Network
+		key: Caip2NetworkKey
+	}
+	| {
+		kind: SourceTargetKind.NetworkSlug
+		key: NetworkSlug
+	}
+	| {
+		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug>
+		key: string
+	}
 
 export type SourceEndpoint = {
 	endpointKind: SourceEndpointKind
@@ -5694,7 +6365,7 @@ const lowerSourceProviderFile = (sourceProviderNames: readonly string[]) => tsFi
 			},
 			{
 				from: '$/sources/Source.ts',
-				typeNames: ['Source'],
+				names: ['Source'],
 			},
 			{
 				from: '$/sources/SourceBinding.ts',
@@ -6144,21 +6815,34 @@ const lowerResolverIndexFile = (resolverModules: readonly App['resolvers']['modu
 			},
 			{
 				from: '$/sources/Source.ts',
-				typeNames: ['Source'],
+				names: ['Source'],
 			},
 		],
 		body: [
-			'const resolverModuleByPath = import.meta.glob<SourceResolverModule<typeof schema, Source>>(',
-			'\t[',
-			...resolverModules.map((module) => `\t\t${emitTypeScript(module.path.replace(/^src\/resolvers\//, './'))},`),
-			'\t],',
-			'\t{',
-			'\t\teager: true,',
-			`\t\timport: 'default',`,
-			'\t}',
+			'const resolverLoaderEntries = [',
+			...resolverModules.map((module) => (
+				`\t[Source.${module.source}, () => import(${emitTypeScript(module.path.replace(/^src\/resolvers\//, './'))})],`
+			)),
+			'] as const',
+			'',
+			'export const loadResolverEntries = async (',
+			'\tentries: readonly (readonly [Source, () => Promise<{ default: SourceResolverModule<typeof schema, Source> }>])[],',
+			'\tenabledSources: ReadonlySet<Source>',
+			') => Promise.all(',
+			'\tentries',
+			'\t\t.filter(([source]) => enabledSources.has(source))',
+			'\t\t.map(async ([source, load]) => {',
+			'\t\t\tconst resolverModule = (await load()).default as SourceResolverModule<typeof schema, Source>',
+			'\t\t\tif (resolverModule.source !== source)',
+			'\t\t\t\tthrow new Error(`Resolver module source mismatch: expected ${source}, received ${resolverModule.source}`)',
+			'',
+			'\t\t\treturn resolverModule',
+			'\t\t})',
 			')',
 			'',
-			'export const resolvers = Object.values(resolverModuleByPath)',
+			'export const loadResolvers = async (enabledSources: ReadonlySet<Source>) => loadResolverEntries(resolverLoaderEntries, enabledSources)',
+			'',
+			'export const loadAllResolvers = () => loadResolvers(new Set(resolverLoaderEntries.map(([source]) => source)))',
 		],
 	}
 )
@@ -6254,6 +6938,25 @@ const itemFieldReferences = (viewEntry: _ViewItem): FieldReference[] => {
 
 	return []
 }
+
+const viewItemDisplayExpressions = (viewEntry: _ViewItem) => (
+	typeof viewEntry !== 'object'
+	|| isProjectionFieldReference(viewEntry)
+	|| !('field' in viewEntry) ?
+		[]
+	:
+		[
+			viewEntry.decimalPlaces,
+			typeof viewEntry.prefix === 'string' ? undefined : viewEntry.prefix,
+			typeof viewEntry.suffix === 'string' ? undefined : viewEntry.suffix,
+		].filter((expression) => expression != null)
+)
+
+const viewItemDisplayFieldReferences = (viewEntry: _ViewItem): FieldReference[] => (
+	viewItemDisplayExpressions(viewEntry)
+		.flatMap(expressionFieldPaths)
+		.map((fieldPath) => fieldPath.join('.'))
+)
 
 const entityFields = (entity: Entity) => [
 	...entity.fields,
@@ -6426,6 +7129,17 @@ const lowerValueMarkup = (
 	const format = viewItemFormat(entity, indexes, viewEntry)
 	const displayExpression = lowerMappedDisplayExpression(entity, indexes, viewEntry, fieldReference, valueExpression)
 	const hrefExpression = lowerItemHrefExpression(viewEntry, fieldValuesExpression)
+	const decimalPlacesExpression = (
+		typeof viewEntry === 'object'
+		&& !isProjectionFieldReference(viewEntry)
+		&& 'field' in viewEntry
+		&& viewEntry.decimalPlaces != null ?
+			lowerAppExpression(viewEntry.decimalPlaces, {
+				fields: fieldValuesExpression,
+			})
+		:
+			undefined
+	)
 	const valueMarkup = (
 		format === 'timestamp' || format === 'dateTime' ?
 			[
@@ -6433,7 +7147,12 @@ const lowerValueMarkup = (
 			]
 		: format === 'number' || format === 'numberValue' ?
 			[
-				`${'\t'.repeat(level)}<NumberValue value={Number(${valueExpression})} />`,
+				`${'\t'.repeat(level)}<NumberValue`,
+				`${'\t'.repeat(level + 1)}value={${valueExpression}}`,
+				...(decimalPlacesExpression == null ? [] : [
+					`${'\t'.repeat(level + 1)}decimalPlaces={${decimalPlacesExpression}}`,
+				]),
+				`${'\t'.repeat(level)}/>`,
 			]
 		: format === 'currency' || format === 'currencyScaled' ?
 			[
@@ -6476,6 +7195,10 @@ const lowerValueMarkup = (
 			[
 				`${'\t'.repeat(level)}<Markdown content={String(${valueExpression})} />`,
 			]
+		: format === 'syndicationHtml' ?
+			[
+				`${'\t'.repeat(level)}<Markdown content={String(${valueExpression})} mode="syndication" />`,
+			]
 		: format === 'longText' ?
 			[
 				`${'\t'.repeat(level)}<span data-text="long-text">{${displayExpression}}</span>`,
@@ -6497,14 +7220,42 @@ const lowerValueMarkup = (
 				`${'\t'.repeat(level)}{${displayExpression}}`,
 			]
 	)
+	const lowerAffixMarkup = (
+		affix: string | Exclude<_Expression, string> | undefined,
+		position: 'prefix' | 'suffix'
+	) => {
+		if (affix == null)
+			return []
+		if (typeof affix === 'string')
+			return [
+				`${'\t'.repeat(level)}<span>${svelteText(affix)}</span>`,
+			]
+
+		const affixExpression = lowerAppExpression(affix, {
+			fields: fieldValuesExpression,
+		})
+		return [
+			`${'\t'.repeat(level)}<span>{${affixExpression} == null ? '' : \`${position === 'suffix' ? ' ' : ''}\${String(${affixExpression})}\`}</span>`,
+		]
+	}
 	const prefixedValueMarkup = [
-		...(typeof viewEntry === 'object' && 'field' in viewEntry && viewEntry.prefix != null ? [
-			`${'\t'.repeat(level)}<span>${svelteText(viewEntry.prefix)}</span>`,
-		] : []),
+		...(
+			typeof viewEntry === 'object'
+			&& !isProjectionFieldReference(viewEntry)
+			&& 'field' in viewEntry ?
+				lowerAffixMarkup(viewEntry.prefix, 'prefix')
+			:
+				[]
+		),
 		...valueMarkup,
-		...(typeof viewEntry === 'object' && 'field' in viewEntry && viewEntry.suffix != null ? [
-			`${'\t'.repeat(level)}<span>${svelteText(viewEntry.suffix)}</span>`,
-		] : []),
+		...(
+			typeof viewEntry === 'object'
+			&& !isProjectionFieldReference(viewEntry)
+			&& 'field' in viewEntry ?
+				lowerAffixMarkup(viewEntry.suffix, 'suffix')
+			:
+				[]
+		),
 	]
 
 	if (hrefExpression == null || format === 'url')
@@ -6540,9 +7291,23 @@ const lowerItemExpression = (entity: Entity, indexes: LoweringIndexes, viewEntry
 		displayed
 	:
 		`(${displayed} ? ${[
-			viewEntry.prefix == null ? undefined : emitTypeScript(viewEntry.prefix),
+			viewEntry.prefix == null ?
+				undefined
+			: typeof viewEntry.prefix === 'string' ?
+				emitTypeScript(viewEntry.prefix)
+			:
+				lowerAppExpression(viewEntry.prefix, {
+					fields: entityFieldsExpression,
+				}),
 			displayed,
-			viewEntry.suffix == null ? undefined : emitTypeScript(viewEntry.suffix),
+			viewEntry.suffix == null ?
+				undefined
+			: typeof viewEntry.suffix === 'string' ?
+				emitTypeScript(viewEntry.suffix)
+			:
+				lowerAppExpression(viewEntry.suffix, {
+					fields: entityFieldsExpression,
+				}),
 		].filter((part): part is string => part != null).join(' + ')} : '')`
 	if (viewEntry.valuePrefix == null)
 		return value
@@ -6637,13 +7402,10 @@ const viewItemImports = (entity: Entity, indexes: LoweringIndexes) => {
 			}
 			for (const param of viewEntry.link?.params ?? [])
 				expressionImports(param.value, expressionImportMap)
+			for (const expression of viewItemDisplayExpressions(viewEntry))
+				expressionImports(expression, expressionImportMap)
 		}
 	}
-	for (const section of entitySingularView(entity)?.carousels?.flatMap((carousel) => carousel.sections) ?? []) {
-		for (const param of section.href?.params ?? [])
-			expressionImports(param.value, expressionImportMap)
-	}
-
 	return [
 		...valueTypeImports,
 		...[...expressionImportMap.entries()].map(([from, names]) => ({
@@ -6719,16 +7481,8 @@ const defaultContentDlGroups = (entity: Entity, indexes: LoweringIndexes) => {
 
 const contentDlGroups = (entity: Entity, indexes: LoweringIndexes) => {
 	const summaryFieldKeys = summaryVisualFieldKeys(entity)
-	const carouselFieldKeys = new Set(
-		(entitySingularView(entity)?.carousels ?? [])
-			.flatMap((carousel) => carousel.sections)
-			.map((section) => fieldReferenceKey(section.field))
-	)
 	const modeledDlGroups = singularViewContent(entitySingularView(entity))?.dl ?? []
-	const effectiveDlGroups = modeledDlGroups
-		.map((viewEntries) => viewEntries.filter((viewEntry) => itemFieldReferences(viewEntry).every((field) => !carouselFieldKeys.has(fieldReferenceKey(field)))))
-		.filter((viewEntries) => viewEntries.length > 0)
-	const openFieldKeys = new Set(effectiveDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldReferences(viewEntry).map(fieldReferenceKey))))
+	const openFieldKeys = new Set(modeledDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldReferences(viewEntry).map(fieldReferenceKey))))
 	const serialFieldName = summarySerial(entity)?.field
 	const closedItems = viewItems(entitySingularView(entity)?.closed)
 		.filter((viewEntry) => itemFieldReferences(viewEntry).every((fieldReference) => (
@@ -6753,7 +7507,7 @@ const contentDlGroups = (entity: Entity, indexes: LoweringIndexes) => {
 			:
 				viewEntry
 			))]),
-			...effectiveDlGroups,
+			...modeledDlGroups,
 			...defaultContentDlGroups(entity, indexes),
 	]
 }
@@ -6874,15 +7628,16 @@ const lowerSerialTitleSnippet = (
 ) => selectorOwnsSerial ? [
 	...lowerSerialTitleBody(entity, indexes, serial, pendingEntityExpression, 2),
 ] : [
-	`\t\t<ResourceBoundary resource={${entityName}}>`,
-	'\t\t\t{#snippet Pending()}',
-	...lowerSerialTitleBody(entity, indexes, serial, pendingEntityExpression, 4),
-	'\t\t\t{/snippet}',
-	'\t\t\t{#snippet children(entity)}',
-	`\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-	...lowerSerialTitleBody(entity, indexes, serial, resolvedEntityExpression, 4),
-	'\t\t\t{/snippet}',
-	'\t\t</ResourceBoundary>',
+	'\t\t{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
+	...lowerSerialTitleBody(entity, indexes, serial, pendingEntityExpression, 3),
+	'\t\t{:else}',
+	`\t\t\t<ResourceBoundary resource={${entityName}}>`,
+	'\t\t\t\t{#snippet children(entity)}',
+	`\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+	...lowerSerialTitleBody(entity, indexes, serial, resolvedEntityExpression, 5),
+	'\t\t\t\t{/snippet}',
+	'\t\t\t</ResourceBoundary>',
+	'\t\t{/if}',
 ]
 
 const lowerSerialValueSnippet = (
@@ -6894,20 +7649,22 @@ const lowerSerialValueSnippet = (
 ) => selectorOwnsSerial ? [
 	...lowerSerialValueBody(entity, indexes, serial, pendingEntityExpression, 2),
 ] : [
-	`\t\t<ResourceBoundary resource={${entityName}}>`,
-	'\t\t\t{#snippet Pending()}',
-	...lowerSerialValueBody(entity, indexes, serial, pendingEntityExpression, 4),
-	'\t\t\t{/snippet}',
-	'\t\t\t{#snippet children(entity)}',
-	`\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-	...lowerSerialValueBody(entity, indexes, serial, resolvedEntityExpression, 4),
-	'\t\t\t{/snippet}',
-	'\t\t</ResourceBoundary>',
+	'\t\t{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
+	...lowerSerialValueBody(entity, indexes, serial, pendingEntityExpression, 3),
+	'\t\t{:else}',
+	`\t\t\t<ResourceBoundary resource={${entityName}}>`,
+	'\t\t\t\t{#snippet children(entity)}',
+	`\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+	...lowerSerialValueBody(entity, indexes, serial, resolvedEntityExpression, 5),
+	'\t\t\t\t{/snippet}',
+	'\t\t\t</ResourceBoundary>',
+	'\t\t{/if}',
 ]
 
 const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes: LoweringIndexes) => {
 	const { entity } = entityViewPlan
 	const componentName = singularComponentName(entity.entityType)
+	const contentWarning = entitySingularView(entity)?.contentWarning
 	const serial = summarySerial(entity)
 	const selectorOwnsSerial = serial != null && entity.selectors.some((selector) => selector.fields.includes(serial.field))
 	const configuredSummaryTitleItems = viewItems(entitySingularView(entity)?.summary?.title)
@@ -6926,18 +7683,34 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		)
 	)
 	const selectorFieldNames = entitySelectorFieldNames(entity)
+	const summaryViewEntries = [
+		...viewItems(entitySingularView(entity)?.summary?.icon),
+		...summarySerialItems(entity),
+		...viewItems(entitySingularView(entity)?.summary?.title),
+		...viewItems(entitySingularView(entity)?.summary?.value),
+		...viewItems(entitySingularView(entity)?.summary?.titleFallback),
+		...viewItems(entitySingularView(entity)?.summary?.HeadingAfter),
+	]
+	const summaryDisplayFieldKeys = new Set(
+		summaryViewEntries
+			.flatMap(viewItemDisplayFieldReferences)
+			.map(fieldReferenceKey)
+	)
 	const queryFields = [...new Map([
 		...(singularViewQuery(entitySingularView(entity))?.fields ?? []),
-		...viewItems(entitySingularView(entity)?.summary?.icon).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
-		...summarySerialItems(entity).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
-		...viewItems(entitySingularView(entity)?.summary?.title).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
-		...viewItems(entitySingularView(entity)?.summary?.value).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
-		...viewItems(entitySingularView(entity)?.summary?.titleFallback).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
-		...viewItems(entitySingularView(entity)?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldReferences(viewEntry)),
+		...(contentWarning == null ? [] : [
+			contentWarning.sensitiveField,
+			contentWarning.textField,
+		]),
+		...summaryViewEntries.flatMap((viewEntry) => [
+			...itemFieldReferences(viewEntry),
+			...viewItemDisplayFieldReferences(viewEntry),
+		]),
 	].map((fieldReference) => [fieldReferenceKey(fieldReference), fieldReference])).values()].filter((fieldReference) => {
 		const fieldDefinition = fieldDefinitionByReference(entity, fieldReference, indexes)
 		return (
-			fieldDefinition != null
+			summaryDisplayFieldKeys.has(fieldReferenceKey(fieldReference))
+			|| fieldDefinition != null
 			&& !isProjectionFieldReference(fieldReference)
 			&& !selectorFieldNames.has(fieldReference)
 			&& fieldDefinition.type !== EntityFieldType.EntityReference
@@ -6978,6 +7751,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 				&& (
 					isProjectionFieldReference(fieldReference)
 					|| fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.EntityReference
+					|| viewItemDisplayExpressions(viewEntry).length > 0
 				)
 			)
 		})
@@ -6991,8 +7765,8 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 			)
 		)
 	)
-	const summaryTitleNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryTitleEntries(entity))
-	const summaryValueNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryValueEntries(entity))
+	const summaryTitleNeedsMarkup = contentWarning == null && summaryItemsNeedMarkup(declaredSummaryTitleEntries(entity))
+	const summaryValueNeedsMarkup = contentWarning == null && summaryItemsNeedMarkup(declaredSummaryValueEntries(entity))
 	const summaryIconFieldName = itemFieldReferences(entitySingularView(entity)?.summary?.icon ?? '')[0]
 	const summaryIconFieldDefinition = summaryIconFieldName == null ? undefined : fieldDefinitionByReference(entity, summaryIconFieldName, indexes)
 	const summaryIconEntityReferenceComponent = (
@@ -7025,7 +7799,44 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		} satisfies RelationshipSection]
 	}))
 	const latestItems = singularViewLatest(entitySingularView(entity)) ?? []
-	const carousels = entitySingularView(entity)?.carousels ?? []
+	const declaredCarousels = entitySingularView(entity)?.carousels ?? []
+	const contentWarningMediaCarousels = contentWarning == null ? [] : declaredCarousels
+		.map((carousel) => ({
+			...carousel,
+			id: `${carousel.id}-sensitive-media`,
+			sections: carousel.sections
+				.filter((section) => (
+					section.field != null
+					&& fieldDefinitionByReference(entity, section.field, indexes)?.entityType === EntityType.Media
+				))
+				.map((section) => ({
+					...section,
+					id: `${section.id}-sensitive-media`,
+				})),
+		}))
+		.filter((carousel) => carousel.sections.length > 0)
+	const carousels = contentWarning == null ? declaredCarousels : declaredCarousels
+		.map((carousel) => ({
+			...carousel,
+			sections: carousel.sections.filter((section) => (
+				section.field == null
+				|| fieldDefinitionByReference(entity, section.field, indexes)?.entityType !== EntityType.Media
+			)),
+		}))
+		.filter((carousel) => carousel.sections.length > 0)
+	const loweredCarousels = [...carousels, ...contentWarningMediaCarousels]
+	const carouselSources = unique(loweredCarousels.flatMap((carousel) => carousel.sections.flatMap((section) => (
+		section.field == null ?
+			[]
+			:
+			fieldQueryForName(entity, indexes, section.field, section.selection)?.sources ?? []
+	))))
+	const networkSourceApplicability = (
+		entity.entityType === EntityType.Network ?
+			lowerNetworkSourceApplicabilityDeclarations(indexes, carouselSources)
+			:
+			undefined
+	)
 	const usesSelect = (
 		latestItems.length > 0
 		|| summaryIconEntityReferenceComponent != null
@@ -7038,7 +7849,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		})
 		|| sections.some((section) => fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference)
 		|| detailsTabSections.some((section) => fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference)
-		|| carousels.some((carousel) => carousel.sections.some((section) => (
+		|| loweredCarousels.some((carousel) => carousel.sections.some((section) => (
 			section.field != null
 			&& carouselSectionComponent(entity, indexes, section) != null
 			&& fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
@@ -7073,32 +7884,30 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		(singularViewDetails(entitySingularView(entity))?.tabs ?? []).flatMap((tab) => (
 			tab.items.flatMap((item) => item.component == null ? [] : [item.component])
 		)),
-		carousels.flatMap((carousel) => carousel.sections.flatMap((section) => {
+		loweredCarousels.flatMap((carousel) => carousel.sections.flatMap((section) => {
 			const component = carouselSectionComponent(entity, indexes, section)
 			return component == null ? [] : [component]
 		})),
 		entityViewPlan.rawSnippetComponents,
 		...(summaryIconEntityReferenceComponent == null ? [] : [summaryIconEntityReferenceComponent])
 	))
-	const viewSourceSelection = singularViewQuery(entitySingularView(entity))?.sources
-	const fieldConditionedViewSourcesExpression = lowerFieldConditionedSourceSelectionExpression(
-		viewSourceSelection,
-		'selection.entitySelector'
+	const viewSourcesExpression = 'selection.sources'
+	const query = lowerQuery(
+		singularViewQuery(entitySingularView(entity)),
+		queryFields,
+		viewSourcesExpression,
+		undefined,
+		selectorFieldNames
 	)
-	const viewSourcesExpression = fieldConditionedViewSourcesExpression === lowerSourceSelectionExpression(viewSourceSelection) ?
-		undefined
-	:
-		'selectedViewSources'
-	const query = lowerQuery(singularViewQuery(entitySingularView(entity)), queryFields, viewSourcesExpression, undefined, selectorFieldNames)
 	const sectionQueries = sections.map((section) => lowerQuery(fieldQueryForName(entity, indexes, section.field, section.selection), []))
 	const latestQueries = latestItems.map((latest) => lowerQuery(fieldQueryForName(entity, indexes, latest.field, latest.query), latest.fields ?? []))
-	const carouselQueries = carousels.flatMap((carousel) => carousel.sections.flatMap((section) => (
+	const carouselQueries = loweredCarousels.flatMap((carousel) => carousel.sections.flatMap((section) => (
 		carouselSectionComponent(entity, indexes, section) == null ?
 			[]
 		:
 			[lowerQuery(fieldQueryForName(entity, indexes, section.field, section.selection), [])]
 	)))
-	const hasEntityReferenceCarouselSections = carousels.some((carousel) => carousel.sections.some((section) => (
+	const hasEntityReferenceCarouselSections = loweredCarousels.some((carousel) => carousel.sections.some((section) => (
 		section.field != null
 		&& fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
 		&& carouselSectionComponent(entity, indexes, section) != null
@@ -7107,6 +7916,10 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 	const valueExpression = lowerJoinedItemsExpression(entity, indexes, declaredSummaryValueEntries(entity), resolvedEntityExpression)
 	const pendingTitleExpression = lowerJoinedItemsExpression(entity, indexes, declaredSummaryTitleEntries(entity), pendingEntityExpression)
 	const pendingValueExpression = lowerJoinedItemsExpression(entity, indexes, declaredSummaryValueEntries(entity), pendingEntityExpression)
+	const warningTextExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `String(${viewFieldExpression(entity, entityFieldsExpression, contentWarning.textField)} ?? '').trim()`
+	const warningConditionExpression = (entityFieldsExpression: string) => contentWarning == null ? 'false' : `${viewFieldExpression(entity, entityFieldsExpression, contentWarning.sensitiveField)} === true || ${warningTextExpression(entityFieldsExpression)} !== ''`
+	const warningIdentityExpression = (entityFieldsExpression: string) => `[${entity.selectors[0]?.fields.map((field) => textExpression(viewFieldExpression(entity, entityFieldsExpression, field))).join(', ') ?? ''}].filter(Boolean).join(' ')`
+	const warningSummaryExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `[${warningTextExpression(entityFieldsExpression)} || ${emitTypeScript(contentWarning.fallbackText)}, ${warningIdentityExpression(entityFieldsExpression)}].filter(Boolean).join(' ')`
 	const fallbackTitleExpression = lowerJoinedItemsExpression(
 		entity,
 		indexes,
@@ -7114,11 +7927,11 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		pendingEntityExpression
 	)
 	const serialFallbackTitleExpression = serial == null ? lowerFirstDeclaredExpression([pendingTitleExpression, fallbackTitleExpression]) : lowerSerialTextExpression(entity, indexes, serial, pendingEntityExpression)
-	const titleFallbackExpression = lowerFirstDeclaredExpression([serialFallbackTitleExpression, emitTypeScript(displayLabel(entityLabel(entity)))])
-	const pendingTitleFallbackExpression = lowerFirstDeclaredExpression([serial == null ? pendingTitleExpression : lowerSerialTextExpression(entity, indexes, serial, pendingEntityExpression), 'title', fallbackTitleExpression, emitTypeScript(displayLabel(entityLabel(entity)))])
-	const entityTitleFallbackExpression = lowerFirstDeclaredExpression([titleExpression, 'title', 'titleFallback'])
-	const pendingValueFallbackExpression = lowerFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'title', fallbackTitleExpression, emitTypeScript(displayLabel(entityLabel(entity)))])
-	const entityValueFallbackExpression = lowerFirstDeclaredExpression([valueExpression, titleExpression, 'titleFallback'])
+	const titleFallbackExpression = contentWarning == null ? lowerFirstDeclaredExpression([serialFallbackTitleExpression, emitTypeScript(displayLabel(entityLabel(entity)))]) : `(${warningConditionExpression(pendingEntityExpression)} ? ${warningSummaryExpression(pendingEntityExpression)} : ${lowerFirstDeclaredExpression([serialFallbackTitleExpression, emitTypeScript(displayLabel(entityLabel(entity)))])})`
+	const pendingTitleFallbackExpression = contentWarning == null ? lowerFirstDeclaredExpression([pendingTitleExpression, 'title', 'titleFallback']) : `(${warningConditionExpression(pendingEntityExpression)} ? ${warningSummaryExpression(pendingEntityExpression)} : ${lowerFirstDeclaredExpression([pendingTitleExpression, 'title', 'titleFallback'])})`
+	const entityTitleFallbackExpression = contentWarning == null ? lowerFirstDeclaredExpression([titleExpression, 'title', 'titleFallback']) : `(${warningConditionExpression(resolvedEntityExpression)} ? ${warningSummaryExpression(resolvedEntityExpression)} : ${lowerFirstDeclaredExpression([titleExpression, 'title', 'titleFallback'])})`
+	const pendingValueFallbackExpression = contentWarning == null ? lowerFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'titleFallback']) : `(${warningConditionExpression(pendingEntityExpression)} ? ${warningSummaryExpression(pendingEntityExpression)} : ${lowerFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'titleFallback'])})`
+	const entityValueFallbackExpression = contentWarning == null ? lowerFirstDeclaredExpression([valueExpression, titleExpression, 'titleFallback']) : `(${warningConditionExpression(resolvedEntityExpression)} ? ${warningSummaryExpression(resolvedEntityExpression)} : ${lowerFirstDeclaredExpression([valueExpression, titleExpression, 'titleFallback'])})`
 	const entityHrefs = indexes.entityHrefsByType[entity.entityType] ?? []
 	const entityHrefImports = Array.from(
 		entityHrefs
@@ -7185,18 +7998,22 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		})),
 		...importedViewItems,
 	])
-	const usesTimestamp = viewUsesFormat(entity, indexes, ['timestamp', 'dateTime'])
-	const usesNumberValue = serial != null || viewUsesFormat(entity, indexes, ['currency', 'currencyScaled', 'number', 'numberValue', 'percent']) || rawSnippets.some((snippet) => snippet.raw.includes('<NumberValue'))
 	const contentRows = contentDlGroups(entity, indexes)
+	const usesTimestamp = viewUsesFormat(entity, indexes, ['timestamp', 'dateTime'])
+	const usesNumberValue = (
+		serial != null
+		|| viewUsesFormat(entity, indexes, ['currency', 'currencyScaled', 'number', 'numberValue', 'percent'])
+		|| rawSnippets.some((snippet) => snippet.raw.includes('<NumberValue'))
+	)
 	const usesTruncatedValue = (
 		viewUsesFormat(entity, indexes, ['truncated', 'namespaceReference', 'url'])
 		|| contentRows.some((group) => group.some((item) => ['truncated', 'namespaceReference', 'url'].includes(viewItemFormat(entity, indexes, item) ?? '')))
 		|| rawSnippets.some((snippet) => snippet.raw.includes('<TruncatedValue'))
 	)
 	const usesUrl = viewUsesFormat(entity, indexes, ['url'])
-	const usesMarkdown = viewUsesFormat(entity, indexes, ['markdown'])
+	const usesMarkdown = viewUsesFormat(entity, indexes, ['markdown', 'syndicationHtml'])
 	const usesTooltip = (
-		carousels.some((carousel) => carousel.description != null)
+		loweredCarousels.some((carousel) => carousel.description != null)
 		|| rawSnippets.some((snippet) => snippet.raw.includes('<Tooltip'))
 	)
 	const usesCollectionHrefs = (
@@ -7207,7 +8024,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 				|| fieldDefinition?.entityType != null && hasCollectionHref(entity, indexes, section.field, fieldDefinition.entityType)
 			)
 		})
-		|| carousels.some((carousel) => carousel.sections.some((section) => {
+		|| loweredCarousels.some((carousel) => carousel.sections.some((section) => {
 			if (section.field == null)
 				return false
 
@@ -7221,6 +8038,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 	const declaredDetailsTabs = singularViewDetails(entitySingularView(entity))?.tabs ?? []
 	const detailTabsMarkup = declaredDetailsTabs.length === 0 ? [] : lowerDetailsTabs(entity, indexes, entityName, declaredDetailsTabs)
 	const carouselMarkup = carousels.flatMap((carousel) => lowerCarousel(entity, indexes, carousel))
+	const contentWarningMediaMarkup = contentWarningMediaCarousels.flatMap((carousel) => lowerCarousel(entity, indexes, carousel))
 	const detailBlockMarkup = (singularViewDetails(entitySingularView(entity))?.blocks ?? []).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => lowerContentBlock(
 		entity,
 		indexes,
@@ -7269,8 +8087,62 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 	))
 		.filter((group) => group.length > 0)
 	const contentBody = singularViewContent(entitySingularView(entity))?.body
-	const contentBodyMarkup = contentBody == null ? [] : lowerBodySection(entity, indexes, contentBody, 'contentOpen', 2, viewSourcesExpression)
+	const contentBodyMarkup = contentBody == null || contentWarning != null ? [] : lowerBodySection(entity, indexes, contentBody, 'contentOpen', 2, viewSourcesExpression)
+	const contentWarningBodyMarkup = contentBody == null || contentWarning == null ? [] : lowerValueMarkup(
+		entity,
+		indexes,
+		{
+			field: contentBody.field,
+			format: contentBody.format === 'longText' ? 'bodyLongText' : contentBody.format === 'text' ? 'bodyText' : contentBody.format,
+		},
+		contentBody.field,
+		localIdentifier(contentBody.field),
+		resolvedEntityExpression,
+		3
+	)
 	const contentBlockMarkup = contentBlocks(entity).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => lowerContentBlock(entity, indexes, viewEntry, 'contentOpen', 2)))
+	const contentWarningContentMarkup = contentWarning == null || contentBody == null ? [] : [
+		'	{#snippet ContentWarningContent(content)}',
+		'		{#if content !== undefined && content !== null && content !== \'\'}',
+		...contentWarningBodyMarkup.map((line) => line.replace(/^\t\t\t/, '\t\t\t')),
+		'		{/if}',
+		...reindentLines(contentWarningMediaMarkup, 2),
+		'	{/snippet}',
+	]
+	const contentWarningMarkup = contentWarning == null || contentBody == null ? [] : [
+		'		<ResourceBoundary',
+		lowerSvelteAttribute(3, 'resource', `selection(${lowerQuery(undefined, [
+			contentBody.field,
+			contentWarning.sensitiveField,
+			contentWarning.textField,
+		], viewSourcesExpression)})`),
+		'		>',
+		'			{#snippet children(entity)}',
+		`				{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+		`				{@const ${localIdentifier(contentBody.field)} = ${resolvedFieldExpression(contentBody.field)}}`,
+		`				{@const contentWarningText = ${warningTextExpression(resolvedEntityExpression)}}`,
+		`				{@const hasContentWarning = ${warningConditionExpression(resolvedEntityExpression)}}`,
+		'				{#if hasContentWarning}',
+		'					<Collapsible',
+		'						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}',
+		'						ontoggle={(event) => {',
+		'							revealedContentWarningSelectorKey = event.currentTarget.open ? contentWarningSelectorKey : undefined',
+		'						}}',
+		'					>',
+		'						{#snippet Summary()}',
+		'							<header data-row="align-center gap-3 wrap">',
+		`								<strong>{contentWarningText || ${emitTypeScript(contentWarning.fallbackText)}}</strong>`,
+		'								<span data-text="annotation">Show content</span>',
+		'							</header>',
+		'						{/snippet}',
+		`						{@render ContentWarningContent(${localIdentifier(contentBody.field)})}`,
+		'					</Collapsible>',
+		'				{:else}',
+		`					{@render ContentWarningContent(${localIdentifier(contentBody.field)})}`,
+		'				{/if}',
+		'			{/snippet}',
+		'		</ResourceBoundary>',
+	]
 	const usesViewDomId = true
 	const lowerSummaryItemMarkup = (viewEntry: _ViewItem, viewEntryIndex: number, entityFieldsExpression: string, entityHrefFieldsExpression: string, refLayout: 'Title' | 'Value') => {
 		if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Text)
@@ -7290,6 +8162,19 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		const fieldValueName = `${localIdentifier(fieldName)}${viewEntryIndex}`
 		const fieldDefinition = fieldDefinitionByReference(entity, fieldReference, indexes)
 		if (isProjectionFieldReference(fieldReference) && fieldDefinition?.type === EntityFieldType.Primitive) {
+			if (entityFieldsExpression === pendingEntityExpression) {
+				const fieldValueExpression = fieldReference.slice(0, -1).reduce(
+					(expression, facetName) => `${expression}${propertyAccess(facetName)}?.fields`,
+					entityFieldsExpression
+				) + propertyAccess(fieldName)
+				return [
+					`${'\t'.repeat(4)}{@const ${fieldValueName} = ${fieldValueExpression}}`,
+					`${'\t'.repeat(4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
+					...lowerValueMarkup(entity, indexes, viewEntry, fieldReference, fieldValueName, `({ value: ${fieldValueName} })`, 5),
+					`${'\t'.repeat(4)}{/if}`,
+				]
+			}
+
 			const query = lowerQuery(fieldQuery(fieldDefinition, undefined), [fieldName])
 			return [
 				'\t\t\t\t<ProjectionBoundary',
@@ -7337,9 +8222,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 				lowerSvelteAttribute(5, 'resource', fieldProxyResourceExpression('selection', fieldName, lowerQuery(fieldQuery(fieldDefinition, undefined)))),
 				`${'\t'.repeat(4)}>`,
 				`${'\t'.repeat(5)}{#snippet children(${targetEntityName})}`,
-				...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-					`${'\t'.repeat(6)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
-				] : []),
+				`${'\t'.repeat(6)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
 				`${'\t'.repeat(referenceLevel)}<${componentIdentifier(component)}`,
 				lowerSvelteAttribute(referenceLevel + 1, 'selection', `select(EntityType.${targetEntity.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
 				`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
@@ -7347,9 +8230,9 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 				`${'\t'.repeat(referenceLevel + 1)}layout={EntityLayout.${refLayout}}`,
 				`${'\t'.repeat(referenceLevel + 1)}open={false}`,
 				`${'\t'.repeat(referenceLevel)}/>`,
-				...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-					`${'\t'.repeat(6)}{/if}`,
-				] : []),
+				`${'\t'.repeat(6)}{:else}`,
+				`${'\t'.repeat(7)}<span data-text="muted">Unavailable</span>`,
+				`${'\t'.repeat(6)}{/if}`,
 				`${'\t'.repeat(5)}{/snippet}`,
 				`${'\t'.repeat(4)}</ResourceBoundary>`,
 			]
@@ -7408,6 +8291,17 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		...contentBlockMarkup,
 		...detailsMarkup,
 	].some((line) => line.includes('ProjectionBoundary'))
+	const usesProjection = [
+		...pendingSummaryTitleMarkup,
+		...entitySummaryTitleMarkup,
+		...pendingSummaryValueMarkup,
+		...entitySummaryValueMarkup,
+		...contentRowMarkupGroups.flat(),
+		...contentListSectionsFromDl,
+		...contentBodyMarkup,
+		...contentBlockMarkup,
+		...detailsMarkup,
+	].some((line) => line.includes('<Projection '))
 	const usesSource = [
 		...iconMarkup,
 		...pendingSummaryTitleMarkup,
@@ -7437,13 +8331,13 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		'import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from \'$/client/$proxy.svelte.ts\'',
 		'import type { WithRest } from \'$/typescript/WithRest.ts\'',
 		...(usesEntityProxyField ? ['import { EntityProxyField } from \'$/client/$proxy.svelte.ts\''] : []),
+		...(usesProjection ? ['import Projection from \'$/components/Projection.svelte\''] : []),
 		...(usesProjectionBoundary ? ['import ProjectionBoundary from \'$/components/ProjectionBoundary.svelte\''] : []),
 		'import EntityView, { EntityLayout } from \'$/components/EntityView.svelte\'',
 		'import { EntityMetaKey } from \'$/schema/$schema.ts\'',
 		'import { EntityType } from \'$/schema/EntityType.ts\'',
-		...(isFieldConditionedSourceSelection(viewSourceSelection) ? [
-			`import { ${defaultSourcesName(viewSourceSelection)}, ${sourceSelectionByKeyName(viewSourceSelection)} } from '$/sources/$sourceSelections.ts'`,
-		] : []),
+		...(contentWarning == null ? [] : ['import { stringify } from \'devalue\'']),
+		...lowerImportObject(networkSourceApplicability?.imports).map(lowerImport),
 		...expressionImportSpecs.map(lowerImport),
 		...((
 			usesSource
@@ -7484,12 +8378,16 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		'\t\t| \'showTypeAnnotation\'',
 		'\t>',
 		'> = $props()',
-		...(viewSourcesExpression == null || fieldConditionedViewSourcesExpression == null ? [] : [
-			'',
-			`const selectedViewSources = $derived(${fieldConditionedViewSourcesExpression})`,
-		]),
 		'',
 		...lowerPendingEntityDerived(entity),
+		...(contentWarning == null ? [] : [
+			'let revealedContentWarningSelectorKey = $state<string>()',
+			'const contentWarningSelectorKey = $derived(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector]))',
+		]),
+		...(networkSourceApplicability == null ? [] : [
+			...networkSourceApplicability.lines,
+			'',
+		]),
 		`const ${entityName} = $derived(selection(${query}))`,
 		`const titleFallback = $derived(${titleFallbackExpression})`,
 		...(usesViewDomId ? [
@@ -7501,6 +8399,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		'',
 		'',
 		'// Components',
+		...(contentWarning == null ? [] : ['import Collapsible from \'$/components/Collapsible.svelte\'']),
 		...(carouselMarkup.length === 0 && detailTabsMarkup.length === 0 ? [] : ['import CollapsibleTabs from \'$/components/CollapsibleTabs.svelte\'']),
 		...(hasEntityReferenceCarouselSections ? ['import EntitiesList from \'$/components/EntitiesList.svelte\''] : []),
 		...(carouselMarkup.length === 0 ? [] : ['import HeadingComponent from \'$/components/Heading.svelte\'']),
@@ -7531,38 +8430,40 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 		...(iconMarkup.length === 0 ? [] : ['']),
 		'\t{#snippet Title()}',
 		...(entitySingularView(entity)?.summary?.Title == null && rendersSerialTitle ? lowerSerialTitleSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entitySingularView(entity)?.summary?.Title == null ? [
-		`\t\t<ResourceBoundary resource={${entityName}}>`,
-		'\t\t\t{#snippet Pending()}',
+		'\t\t{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
 		...(pendingSummaryTitleMarkup.length === 0 ? [
-			`\t\t\t\t{${pendingTitleFallbackExpression}}`,
-		] : pendingSummaryTitleMarkup),
-		'\t\t\t{/snippet}',
-		'\t\t\t{#snippet children(entity)}',
-		`\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+			`\t\t\t{${pendingTitleFallbackExpression}}`,
+		] : pendingSummaryTitleMarkup.map((line) => `\t${line}`)),
+		'\t\t{:else}',
+		`\t\t\t<ResourceBoundary resource={${entityName}}>`,
+		'\t\t\t\t{#snippet children(entity)}',
+		`\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
 		...(entitySummaryTitleMarkup.length === 0 ? [
-			`\t\t\t\t{${entityTitleFallbackExpression}}`,
-		] : entitySummaryTitleMarkup),
-		'\t\t\t{/snippet}',
-		'\t\t</ResourceBoundary>',
+			`\t\t\t\t\t{${entityTitleFallbackExpression}}`,
+		] : entitySummaryTitleMarkup.map((line) => `\t${line}`)),
+		'\t\t\t\t{/snippet}',
+		'\t\t\t</ResourceBoundary>',
+		'\t\t{/if}',
 		] : lowerRawLines(entitySingularView(entity).summary.Title.raw, 2)),
 		'\t{/snippet}',
 		...(entitySingularView(entity)?.summary?.Value == null && !rendersSerialValue && declaredSummaryValueEntries(entity).length === 0 ? [] : [
 			'',
 			'\t{#snippet Value()}',
 			...(entitySingularView(entity)?.summary?.Value == null && serial != null && rendersSerialValue ? lowerSerialValueSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entitySingularView(entity)?.summary?.Value == null ? [
-				`\t\t<ResourceBoundary resource={${entityName}}>`,
-				'\t\t\t{#snippet Pending()}',
+				'\t\t{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
 				...(pendingSummaryValueMarkup.length === 0 ? [
-					`\t\t\t\t{${pendingValueFallbackExpression}}`,
-				] : pendingSummaryValueMarkup),
-				'\t\t\t{/snippet}',
-				'\t\t\t{#snippet children(entity)}',
-				`\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+					`\t\t\t{${pendingValueFallbackExpression}}`,
+				] : pendingSummaryValueMarkup.map((line) => `\t${line}`)),
+				'\t\t{:else}',
+				`\t\t\t<ResourceBoundary resource={${entityName}}>`,
+				'\t\t\t\t{#snippet children(entity)}',
+				`\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
 				...(entitySummaryValueMarkup.length === 0 ? [
-					`\t\t\t\t{${entityValueFallbackExpression}}`,
-				] : entitySummaryValueMarkup),
-				'\t\t\t{/snippet}',
-				'\t\t</ResourceBoundary>',
+					`\t\t\t\t\t{${entityValueFallbackExpression}}`,
+				] : entitySummaryValueMarkup.map((line) => `\t${line}`)),
+				'\t\t\t\t{/snippet}',
+				'\t\t\t</ResourceBoundary>',
+				'\t\t{/if}',
 			] : lowerRawLines(entitySingularView(entity).summary.Value.raw, 2)),
 			'\t{/snippet}',
 		]),
@@ -7576,7 +8477,8 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 			...typeAnnotationTooltipMarkup,
 			'\t{/snippet}',
 		]),
-		...(latestMarkup.length === 0 && contentRowMarkupGroups.length === 0 && contentListSectionsFromDl.length === 0 && contentBodyMarkup.length === 0 && contentBlockMarkup.length === 0 ? [] : [
+		...contentWarningContentMarkup,
+		...(latestMarkup.length === 0 && contentRowMarkupGroups.length === 0 && contentListSectionsFromDl.length === 0 && contentBodyMarkup.length === 0 && contentWarningMarkup.length === 0 && contentBlockMarkup.length === 0 ? [] : [
 			'',
 			'\t{#snippet Content({ open: contentOpen })}',
 			...(latestMarkup.length === 0 ? [] : [
@@ -7591,6 +8493,7 @@ const lowerSingularViewFile = (entityViewPlan: CompiledEntityViewFacts, indexes:
 			]),
 			...contentListSectionsFromDl,
 			...contentBodyMarkup,
+			...contentWarningMarkup,
 			...contentBlockMarkup,
 			'\t{/snippet}',
 		]),
@@ -7763,9 +8666,7 @@ const lowerSummaryAfterItem = (
 				lowerSvelteAttribute(level + 1, 'resource', fieldProxyResourceExpression('selection', fieldReference, lowerQuery(fieldQuery(fieldDefinition, undefined)))),
 				`${'\t'.repeat(level)}>`,
 				`${'\t'.repeat(level + 1)}{#snippet children(${targetEntityName})}`,
-				...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-					`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
-				] : []),
+				`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
 				`${'\t'.repeat(referenceLevel)}<span data-text="muted">`,
 				`${'\t'.repeat(referenceLevel + 1)}<${componentIdentifier(component)}`,
 				lowerSvelteAttribute(referenceLevel + 2, 'selection', `select(EntityType.${targetEntity.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
@@ -7775,9 +8676,9 @@ const lowerSummaryAfterItem = (
 				`${'\t'.repeat(referenceLevel + 2)}open={false}`,
 				`${'\t'.repeat(referenceLevel + 1)}/>`,
 				`${'\t'.repeat(referenceLevel)}</span>`,
-				...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-					`${'\t'.repeat(level + 2)}{/if}`,
-				] : []),
+				`${'\t'.repeat(level + 2)}{:else}`,
+				`${'\t'.repeat(level + 3)}<span data-text="muted">Unavailable</span>`,
+				`${'\t'.repeat(level + 2)}{/if}`,
 				`${'\t'.repeat(level + 1)}{/snippet}`,
 				`${'\t'.repeat(level)}</ResourceBoundary>`,
 			]
@@ -7801,15 +8702,16 @@ const lowerSummaryAfter = (entity: Entity, indexes: LoweringIndexes, entityName:
 	return [
 		'',
 		'\t{#snippet HeadingAfter()}',
-		`\t\t<ResourceBoundary resource={${entityName}}>`,
-		'\t\t\t{#snippet Pending()}',
-		...viewEntries.flatMap((viewEntry, viewEntryIndex) => lowerSummaryAfterItem(entity, indexes, viewEntry, pendingEntityExpression, viewEntryIndex, 4)),
-		'\t\t\t{/snippet}',
-		'\t\t\t{#snippet children(entity)}',
-		`\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-		...viewEntries.flatMap((viewEntry, viewEntryIndex) => lowerSummaryAfterItem(entity, indexes, viewEntry, 'entity', viewEntryIndex, 4)),
-		'\t\t\t{/snippet}',
-		'\t\t</ResourceBoundary>',
+		'\t\t{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
+		...viewEntries.flatMap((viewEntry, viewEntryIndex) => lowerSummaryAfterItem(entity, indexes, viewEntry, pendingEntityExpression, viewEntryIndex, 3)),
+		'\t\t{:else}',
+		`\t\t\t<ResourceBoundary resource={${entityName}}>`,
+		'\t\t\t\t{#snippet children(entity)}',
+		`\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+		...viewEntries.flatMap((viewEntry, viewEntryIndex) => lowerSummaryAfterItem(entity, indexes, viewEntry, 'entity', viewEntryIndex, 5)),
+		'\t\t\t\t{/snippet}',
+		'\t\t\t</ResourceBoundary>',
+		'\t\t{/if}',
 		'\t{/snippet}',
 	]
 }
@@ -7843,10 +8745,6 @@ const lowerIconSnippet = (entity: Entity, indexes: LoweringIndexes, entityName: 
 			'',
 			'\t{#snippet Icon()}',
 			`\t\t<ResourceBoundary resource={${entityName}}>`,
-			'\t\t\t{#snippet Pending()}',
-			'\t\t\t\t<IconComponent />',
-			'\t\t\t{/snippet}',
-			'',
 			'\t\t\t{#snippet children(entity)}',
 			`\t\t\t\t{@const reference = ${fieldExpression('entity', iconField)}}`,
 			`\t\t\t\t{#if ${referenceCondition}}`,
@@ -7873,9 +8771,6 @@ const lowerIconSnippet = (entity: Entity, indexes: LoweringIndexes, entityName: 
 		'',
 		'\t{#snippet Icon()}',
 		`\t\t<ResourceBoundary resource={${entityName}}>`,
-		'\t\t\t{#snippet Pending()}',
-		'\t\t\t\t<IconComponent />',
-		'\t\t\t{/snippet}',
 		'\t\t\t{#snippet children(entity)}',
 		`\t\t\t\t<IconComponent${fallbackAttribute} />`,
 		'\t\t\t{/snippet}',
@@ -7951,8 +8846,6 @@ const lowerEntityReferenceDlItem = (
 				`${'\t'.repeat(level)}<ResourceBoundary`,
 				lowerSvelteAttribute(level + 1, 'resource', fieldProxyResourceExpression('selection', fieldReference, query)),
 				`${'\t'.repeat(level)}>`,
-			`${'\t'.repeat(level + 1)}{#snippet Pending()}{/snippet}`,
-			'',
 			`${'\t'.repeat(level + 1)}{#snippet children(${targetEntityName})}`,
 			`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
 			`${'\t'.repeat(level + 3)}<div>`,
@@ -8030,11 +8923,18 @@ const lowerContentItem = (
 		)
 
 	const valueExpression = resolvedFieldExpression(fieldName)
-	const pendingValueExpression = pendingFieldExpression(entity, fieldName)
 	const fieldValueName = localIdentifier(fieldName)
-	const query = lowerQuery(fieldQuery(fieldDefinition, undefined), [fieldName], sourcesExpression)
-	const projectionFieldResource = isProjectionFieldReference(fieldReference) ? fieldProxyResourceExpression('selection', fieldReference, query) : undefined
-	const valueContextExpression = projectionFieldResource == null ?
+	const projectionFieldResource = isProjectionFieldReference(fieldReference)
+	const query = lowerQuery(
+		fieldQuery(fieldDefinition, undefined),
+		projectionFieldResource ? [] : [
+			...itemFieldReferences(viewEntry),
+			...viewItemDisplayFieldReferences(viewEntry),
+		],
+		sourcesExpression
+	)
+	const projectionFieldResourceExpression = projectionFieldResource ? fieldProxyResourceExpression('selection', fieldReference, query) : undefined
+	const valueContextExpression = projectionFieldResourceExpression == null ?
 		`({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`
 	:
 		`({ value: ${fieldValueName} })`
@@ -8042,36 +8942,25 @@ const lowerContentItem = (
 		`${'\t'.repeat(level)}<div>`,
 		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 		`${'\t'.repeat(level + 1)}<dd>`,
-		...lowerValueMarkup(entity, indexes, viewEntry, fieldReference, fieldValueName, valueContextExpression, level + 2),
+		...lowerValueMarkup(
+			entity,
+			indexes,
+			viewEntry,
+			fieldReference,
+			fieldValueName,
+			valueContextExpression,
+			level + 2
+		),
 		`${'\t'.repeat(level + 1)}</dd>`,
 		`${'\t'.repeat(level)}</div>`,
 	]
-	const pendingValueMarkup = [
-		`${'\t'.repeat(level)}<div>`,
-		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
-		`${'\t'.repeat(level + 1)}<dd>`,
-		...lowerValueMarkup(entity, indexes, viewEntry, fieldReference, fieldValueName, `({ value: ${fieldValueName}, ...${pendingEntityExpression} })`, level + 2),
-		`${'\t'.repeat(level + 1)}</dd>`,
-		`${'\t'.repeat(level)}</div>`,
-	]
-
 	if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
 		return lowerWithinProjection(fieldReference, wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<ResourceBoundary`,
-			lowerSvelteAttribute(level + 1, 'resource', projectionFieldResource ?? `selection(${query})`),
+			lowerSvelteAttribute(level + 1, 'resource', projectionFieldResourceExpression ?? `selection(${query})`),
 			`${'\t'.repeat(level)}>`,
-			...(projectionFieldResource == null ? [
-				`${'\t'.repeat(level + 1)}{#snippet Pending()}`,
-				`${'\t'.repeat(level + 2)}{@const ${fieldValueName} = ${pendingValueExpression}}`,
-				`${'\t'.repeat(level + 2)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
-				...pendingValueMarkup.map((line) => indent(line, 3)),
-				`${'\t'.repeat(level + 2)}{/if}`,
-				`${'\t'.repeat(level + 1)}{/snippet}`,
-			] : [
-				`${'\t'.repeat(level + 1)}{#snippet Pending()}{/snippet}`,
-			]),
-			`${'\t'.repeat(level + 1)}{#snippet children(${projectionFieldResource == null ? 'entity' : fieldValueName})}`,
-			...(projectionFieldResource == null ? [
+			`${'\t'.repeat(level + 1)}{#snippet children(${projectionFieldResourceExpression == null ? 'entity' : fieldValueName})}`,
+			...(projectionFieldResourceExpression == null ? [
 				`${'\t'.repeat(level + 2)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
 				`${'\t'.repeat(level + 2)}{@const ${fieldValueName} = ${valueExpression}}`,
 			] : []),
@@ -8087,25 +8976,23 @@ const lowerContentItem = (
 			`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 			`${'\t'.repeat(level + 1)}<dd>`,
 			`${'\t'.repeat(level + 2)}<ResourceBoundary`,
-			lowerSvelteAttribute(level + 3, 'resource', projectionFieldResource ?? `selection(${query})`),
+			lowerSvelteAttribute(level + 3, 'resource', projectionFieldResourceExpression ?? `selection(${query})`),
 			`${'\t'.repeat(level + 2)}>`,
-			...(projectionFieldResource == null ? [
-				`${'\t'.repeat(level + 3)}{#snippet Pending()}`,
-				`${'\t'.repeat(level + 4)}{@const ${fieldValueName} = ${pendingValueExpression}}`,
-				`${'\t'.repeat(level + 4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
-				...lowerValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, `({ value: ${fieldValueName}, ...${pendingEntityExpression} })`, level + 5),
-				`${'\t'.repeat(level + 4)}{/if}`,
-				`${'\t'.repeat(level + 3)}{/snippet}`,
-			] : [
-				`${'\t'.repeat(level + 3)}{#snippet Pending()}{/snippet}`,
-			]),
-			`${'\t'.repeat(level + 3)}{#snippet children(${projectionFieldResource == null ? 'entity' : fieldValueName})}`,
-			...(projectionFieldResource == null ? [
+			`${'\t'.repeat(level + 3)}{#snippet children(${projectionFieldResourceExpression == null ? 'entity' : fieldValueName})}`,
+			...(projectionFieldResourceExpression == null ? [
 				`${'\t'.repeat(level + 4)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
 				`${'\t'.repeat(level + 4)}{@const ${fieldValueName} = ${valueExpression}}`,
 			] : []),
 			`${'\t'.repeat(level + 4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
-		...lowerValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, `({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`, level + 5),
+		...lowerValueMarkup(
+			entity,
+			indexes,
+			viewEntry,
+			fieldName,
+			fieldValueName,
+			`({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`,
+			level + 5
+		),
 		`${'\t'.repeat(level + 4)}{/if}`,
 		`${'\t'.repeat(level + 3)}{/snippet}`,
 		`${'\t'.repeat(level + 2)}</ResourceBoundary>`,
@@ -8147,7 +9034,7 @@ const lowerContentItems = (
 		viewEntry,
 		openExpression,
 		level,
-		sourcesExpression,
+		projectionFieldReference == null ? sourcesExpression : undefined,
 		false
 	))
 
@@ -8253,6 +9140,8 @@ const lowerLatestContentItem = (
 		`${'\t'.repeat(level + 6)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 6)}open={false}`,
 		`${'\t'.repeat(level + 5)}/>`,
+		`${'\t'.repeat(level + 4)}{:else}`,
+		`${'\t'.repeat(level + 5)}<p data-text="muted" data-section-state="resolved-empty">No ${svelteText(latestLabel.toLowerCase())} available.</p>`,
 		`${'\t'.repeat(level + 4)}{/if}`,
 	]
 
@@ -8263,17 +9152,6 @@ const lowerLatestContentItem = (
 		`${'\t'.repeat(level + 2)}<ResourceBoundary`,
 			lowerSvelteAttribute(level + 3, 'resource', fieldProxyResourceExpression('selection', latest.field, query)),
 		`${'\t'.repeat(level + 2)}>`,
-		...(
-			// Constants-backed latest rows can hang the settle probe on default Loading while the list resolves;
-			// emit empty Pending so catalog upgrades (etc.) do not leave `.loading` markers.
-			latest.query?.sources?.length === 1 && latest.query.sources[0] === 'Constants_Internal' ?
-				[
-					`${'\t'.repeat(level + 3)}{#snippet Pending()}{/snippet}`,
-					'',
-				]
-			:
-				[]
-		),
 		`${'\t'.repeat(level + 3)}{#snippet children(${latestEntitiesName})}`,
 		`${'\t'.repeat(level + 4)}{@const ${latestEntityName} = ${latestEntitiesName}.values[0]}`,
 		...latestBodyLines,
@@ -8283,11 +9161,30 @@ const lowerLatestContentItem = (
 		`${'\t'.repeat(level)}</div>`,
 	]
 
-	return lowerProjectionBoundaryLines(
+	const latestLines = lowerProjectionBoundaryLines(
 		latest.field,
 		lowerConditionedEntityLines(entity, indexes, latestConditions, level, lines),
 		level
 	)
+	if (latest.projectionPath == null)
+		return latestLines
+
+	return [
+		`${'\t'.repeat(level)}<ProjectionBoundary`,
+		lowerSvelteAttribute(
+			level + 1,
+			'resource',
+			latest.projectionPath.reduce(
+				(expression, facetName) => `${expression}${propertyAccess(facetName)}`,
+				'selection'
+			)
+		),
+		`${'\t'.repeat(level)}>`,
+		`${'\t'.repeat(level + 1)}{#snippet Applicable(_projection)}`,
+		...reindentLines(latestLines, level + 2),
+		`${'\t'.repeat(level + 1)}{/snippet}`,
+		`${'\t'.repeat(level)}</ProjectionBoundary>`,
+	]
 }
 
 const lowerRelationshipSections = (
@@ -8450,9 +9347,11 @@ const lowerDetailTab = (
 	const content = [
 		...(tab.Content == null ? [] : lowerRawLines(tab.Content.raw, 5)),
 		...(dlViewEntries.length === 0 ? [] : [
+			`\t\t\t\t\t<article id={\`\${id}-${detailTabId(tab)}-fields\`} data-column-item="flexible" data-card data-scroll-container>`,
 			'\t\t\t\t\t<dl data-column-item="center">',
 			...dlViewEntries.flatMap((viewEntry) => lowerContentItem(entity, indexes, viewEntry, 'detailsOpen', 6)),
 			'\t\t\t\t\t</dl>',
+			'\t\t\t\t\t</article>',
 		]),
 		...reindentLines(
 			referenceSections.flatMap((section) => lowerRelationshipSection(entity, indexes, section)),
@@ -8710,21 +9609,16 @@ const lowerEntityPageSelection = (
 		sourceSelection ?? fieldDefaultSources,
 		selectorExpression
 	)
+	const query = lowerQuery(
+		undefined,
+		fields,
+		sourceSelectorField ? `[${selectorSourceExpression}]` : selectionSourcesExpression
+	)
 
-	return [
-		`select(EntityType.${entityType}, ${selectorExpression}, {`,
-		...(sourceSelectorField ? [
-			`\tsources: [${selectorSourceExpression}],`,
-		] : selectionSourcesExpression == null ? [] : [
-			...indent(`sources: ${selectionSourcesExpression},`).split('\n'),
-		]),
-		...(fields.length === 0 ? [] : [
-			'\tfields: {',
-			...fields.map((field) => `\t\t${field}: true,`),
-			'\t},',
-		]),
-		'})',
-	].join('\n')
+	return query === '{}' ?
+		`select(EntityType.${entityType}, ${selectorExpression})`
+	:
+		`select(EntityType.${entityType}, ${selectorExpression}, ${query})`
 }
 
 const pageSelectionFieldDefaultSources = (
@@ -8760,11 +9654,13 @@ const lowerCarousel = (
 	if (sections.length === 0)
 		throw new Error(`${entity.entityType} carousel ${carousel.id ?? carousel.label ?? 'unnamed'} has no sections`)
 
-	const sectionExpression = (section: EntityCarouselSection) => lowerObject([
-		['id', emitTypeScript(carouselSectionId(section))],
-		['label', emitTypeScript(section.label ?? section.field ?? 'Section')],
-		['description', section.description == null ? undefined : emitTypeScript(section.description)],
-	])
+	const sectionExpression = (section: EntityCarouselSection) => (
+		lowerObject([
+			['id', emitTypeScript(carouselSectionId(section))],
+			['label', emitTypeScript(section.label ?? section.field ?? 'Section')],
+			['description', section.description == null ? undefined : emitTypeScript(section.description)],
+		])
+	)
 	const sectionsExpression = lowerArray(sections.map(sectionExpression))
 	const tabsLines = [
 		'\t\t\t<CollapsibleTabs',
@@ -8772,17 +9668,11 @@ const lowerCarousel = (
 		'\t\t\t\tsectionIdPrefix={viewDomId}',
 		lowerSvelteAttribute(4, 'sections', sectionsExpression),
 		'\t\t\t\tdata-card',
-			...(carousel.className == null ? [] : [
-				`\t\t\t\tclass=${emitTypeScript(carousel.className)}`,
-			]),
-			'\t\t\t\tscrollContainerProps={{',
-		`\t\t\t\t\t'data-row': 'start align-start',`,
-		...(carousel.scrollContainerClassName == null ? [] : [
-			`\t\t\t\t\tclass: ${emitTypeScript(carousel.scrollContainerClassName)},`,
+		...(carousel.className == null ? [] : [
+			`\t\t\t\tclass=${emitTypeScript(carousel.className)}`,
 		]),
-		'\t\t\t\t}}',
 		'\t\t\t>',
-		'\t\t\t\t{#snippet Summary({})}',
+		'\t\t\t\t{#snippet Summary()}',
 		'\t\t\t\t\t<header data-row-item="flexible" data-row="wrap gap-4">',
 		`\t\t\t\t\t\t<HeadingComponent>${carousel.label}</HeadingComponent>`,
 		...(carousel.description == null ? [] : [
@@ -8805,29 +9695,17 @@ const lowerCarousel = (
 		'\t\t\t</CollapsibleTabs>',
 	]
 
-	const carouselLines = carousel.projectionPath == null ?
-		lowerConditionedEntityLines(entity, indexes, carousel.conditions, 3, tabsLines)
-	:
-		lowerProjectionConditionedLines(entity, indexes, carousel.projectionPath, carousel.conditions, 5, tabsLines)
 	if (carousel.projectionPath == null)
-		return carouselLines
+		return tabsLines
 
-	return [
-		'			<ProjectionBoundary',
-		lowerSvelteAttribute(
-			4,
-			'resource',
-			carousel.projectionPath.reduce(
-				(expression, facetName) => `${expression}${propertyAccess(facetName)}`,
-				'selection'
-			)
+	return lowerCarouselProjectionLines(
+		carousel.projectionPath.reduce(
+			(expression, facetName) => `${expression}${propertyAccess(facetName)}`,
+			'selection'
 		),
-		'			>',
-		'				{#snippet Applicable(projection)}',
-		...reindentLines(carouselLines, 5),
-		'				{/snippet}',
-		'			</ProjectionBoundary>',
-	]
+		tabsLines,
+		3
+	)
 }
 
 const lowerCarouselSection = (
@@ -8836,13 +9714,27 @@ const lowerCarouselSection = (
 	section: EntityCarouselSection,
 	projectionPath?: readonly [string, ...string[]]
 ) => {
-	if (section.Content != null)
+	if (section.Content != null) {
+		const contentLines = lines(section.Content.raw)
+		const firstNonConstLineIndex = contentLines.findIndex((line) => !line.trimStart().startsWith('{@const '))
+		const leadingConstLines = firstNonConstLineIndex === -1 ? contentLines : contentLines.slice(0, firstNonConstLineIndex)
+		const articleContentLines = firstNonConstLineIndex === -1 ? [] : contentLines.slice(firstNonConstLineIndex)
+
 		return [
 			`\t\t\t\t{#snippet Section${pascal(carouselSectionId(section))}({ id, label, open })}`,
-			...lowerRawLines(section.Content.raw, 5),
+			...leadingConstLines.map((line) => `${'\t'.repeat(5)}${line}`),
+			'\t\t\t\t\t<article',
+			'\t\t\t\t\t\tid={`${id}-list`}',
+			'\t\t\t\t\t\tdata-column-item="flexible"',
+			'\t\t\t\t\t\tdata-card',
+			'\t\t\t\t\t\tdata-scroll-container',
+			'\t\t\t\t\t>',
+			...articleContentLines.map((line) => line.trim() === '' ? '' : `${'\t'.repeat(6)}${line}`),
+			'\t\t\t\t\t</article>',
 			'\t\t\t\t{/snippet}',
 			'',
 		]
+	}
 
 	if (section.field == null)
 		throw new Error(`${entity.entityType} carousel section ${carouselSectionId(section)} needs Content or field`)
@@ -8861,34 +9753,27 @@ const lowerCarouselSection = (
 	if (component == null)
 		throw new Error(`${entity.entityType} carousel section ${carouselSectionId(section)} has no renderable relationship component for ${section.field}`)
 
-	const query = lowerQuery(fieldQuery(fieldDefinition, section.selection), [], undefined, undefined, undefined, undefined, true)
-	const fieldBelongsToProjection = (
-		projectionPath != null
-		&& isProjectionFieldReference(section.field)
-		&& section.field.length === projectionPath.length + 1
-		&& projectionPath.every((facetName, index) => section.field[index] === facetName)
+	const sectionQuery = fieldQuery(fieldDefinition, section.selection)
+	const query = lowerQuery(
+		sectionQuery,
+		[],
+		entity.entityType === EntityType.Network && sectionQuery?.sources != null ?
+			lowerNetworkApplicableSourceArray(sectionQuery.sources, indexes)
+		:
+			undefined,
+		undefined,
+		undefined,
+		undefined,
+		false
 	)
-	const fieldBase = fieldBelongsToProjection ? 'projection' : 'selection'
-	const fieldReference = fieldBelongsToProjection ? fieldNameForReference(section.field) : section.field
+	const fieldProjectionAccess = carouselFieldProjectionAccess(section.field, projectionPath)
 	const sectionId = carouselSectionId(section)
 	const snippetName = `Section${pascal(sectionId)}`
-	// Parent carousel/branch already gates facet visibility. resolveFieldReferences
-	// still injects facetFieldReferenceConditions onto section.conditions; nesting
-	// another executionModels ResourceBoundary can settle empty before sync and omit
-	// section title hrefs from the DOM.
-	const autoFacetConditions = facetFieldReferenceConditions(entity, section.field, indexes.facetDependencyConditionsByPath)
-	const sectionConditions = isProjectionFieldReference(section.field) ? [] : (section.conditions ?? []).filter((condition) => (
-		!autoFacetConditions.some((autoCondition) => (
-			autoCondition.field === condition.field
-			&& autoCondition.equals === condition.equals
-			&& autoCondition.contains === condition.contains
-		))
-	))
+	const emptyText = section.emptyText ?? `No ${section.label.toLowerCase()} available.`
 	const targetEntity = fieldDefinition.entityType
 	const targetEntityName = camel(targetEntity)
-	const itemLayout = `EntityLayout.${section.layout ?? 'Summary'}`
 	const sectionSelectSources = lowerSourceSelectionExpression(section.selection?.sources)
-	const sectionSelectSourcesExpression = sectionSelectSources ?? `${fieldBase}.sources`
+	const sectionSelectSourcesExpression = sectionSelectSources ?? 'selection.sources'
 	const referenceHrefExpression = lowerEntityHrefExpression(
 		indexes,
 		targetEntity,
@@ -8907,65 +9792,81 @@ const lowerCarouselSection = (
 			])
 		)
 
-	const sectionBodyLines = fieldDefinition.type === EntityFieldType.EntityReference ? [
-			'\t\t\t\t\t<ResourceBoundary',
-			lowerSvelteAttribute(6, 'resource', fieldProxyResourceExpression(fieldBase, fieldReference, query)),
+	const sectionBodyLines = fieldDefinition.type === EntityFieldType.EntityReference ? (
+		fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
+			'\t\t\t\t\t<article',
+			'\t\t\t\t\t\tid={`${id}-list`}',
+			'\t\t\t\t\t\tdata-column-item="flexible"',
+			'\t\t\t\t\t\tdata-card',
+			'\t\t\t\t\t\tdata-scroll-container',
 			'\t\t\t\t\t>',
-			...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-				'\t\t\t\t\t\t{#snippet Pending()}{/snippet}',
-				'',
-			] : []),
-			`\t\t\t\t\t\t{#snippet children(${targetEntityName})}`,
-			...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
-				...(section.emptyText == null ? [
-					`\t\t\t\t\t\t\t{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
-				] : [
-					`\t\t\t\t\t\t\t{#if ${targetEntityName} == null || ${targetEntityName}[EntityMetaKey.Selector] == null}`,
-					`\t\t\t\t\t\t\t\t<p data-text="muted">${svelteText(section.emptyText)}</p>`,
-					'\t\t\t\t\t\t\t{:else}',
-				]),
-				`\t\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
-				`\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: ${sectionSelectSourcesExpression} })}`,
-				`\t\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
-				...(referenceHrefExpression == null ? [] : [lowerSvelteAttribute(9, 'href', referenceHrefExpression)]),
-				`\t\t\t\t\t\t\t\t\tlayout={${itemLayout}}`,
-				'\t\t\t\t\t\t\t\t\topen={false}',
-				'\t\t\t\t\t\t\t\t/>',
-				'\t\t\t\t\t\t\t{/if}',
-			] : [
-				'\t\t\t\t\t\t\t<EntitiesList',
-				`\t\t\t\t\t\t\t\tentityType={EntityType.${targetEntity}}`,
-				'\t\t\t\t\t\t\t\tid={`${id}-list`}',
-				'\t\t\t\t\t\t\t\ttitle={label}',
-				'\t\t\t\t\t\t\t\tcollapsible={false}',
-				`\t\t\t\t\t\t\t\titems={[${targetEntityName}]}`,
-				`\t\t\t\t\t\t\t\tgetKey={(${targetEntityName}) => ${targetEntityName}[EntityMetaKey.SelectorKey]}`,
-				'\t\t\t\t\t\t\t>',
-				`\t\t\t\t\t\t\t\t{#snippet Item({ item: ${targetEntityName} })}`,
-				`\t\t\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
-				`\t\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: ${sectionSelectSourcesExpression} })}`,
-				`\t\t\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
-				...(referenceHrefExpression == null ? [] : [lowerSvelteAttribute(10, 'href', referenceHrefExpression)]),
-				`\t\t\t\t\t\t\t\t\t\tlayout={${itemLayout}}`,
-				'\t\t\t\t\t\t\t\t\t\topen={false}',
-				'\t\t\t\t\t\t\t\t\t/>',
-				'\t\t\t\t\t\t\t\t{/snippet}',
-				...(section.emptyText == null ? [] : [
-				'',
-					'\t\t\t\t\t\t\t\t{#snippet Empty()}',
-					`\t\t\t\t\t\t\t\t\t<p data-text="muted">${svelteText(section.emptyText)}</p>`,
-					'\t\t\t\t\t\t\t\t{/snippet}',
-				]),
-				'\t\t\t\t\t\t\t</EntitiesList>',
-			]),
-			'\t\t\t\t\t\t{/snippet}',
-			'\t\t\t\t\t</ResourceBoundary>',
+			'\t\t\t\t\t\t<ResourceBoundary',
+			lowerSvelteAttribute(7, 'resource', fieldProxyResourceExpression(
+				fieldProjectionAccess.fieldBase,
+				fieldProjectionAccess.fieldReference ?? '',
+				query
+			)),
+			'\t\t\t\t\t\t>',
+			`\t\t\t\t\t\t\t{#snippet children(${targetEntityName})}`,
+			`\t\t\t\t\t\t\t\t{#if ${targetEntityName} == null || ${targetEntityName}[EntityMetaKey.Selector] == null}`,
+			`\t\t\t\t\t\t\t\t\t<p data-text="muted" data-section-state="resolved-empty">${svelteText(emptyText)}</p>`,
+			'\t\t\t\t\t\t\t\t{:else}',
+			`\t\t\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
+			`\t\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: ${sectionSelectSourcesExpression} })}`,
+			`\t\t\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			...(referenceHrefExpression == null ? [] : [lowerSvelteAttribute(10, 'href', referenceHrefExpression)]),
+			'\t\t\t\t\t\t\t\t\t\tlayout={EntityLayout.SummaryInline}',
+			'\t\t\t\t\t\t\t\t\t\topen={false}',
+			'\t\t\t\t\t\t\t\t\t/>',
+			'\t\t\t\t\t\t\t\t{/if}',
+			'\t\t\t\t\t\t\t{/snippet}',
+			'\t\t\t\t\t\t</ResourceBoundary>',
+			'\t\t\t\t\t</article>',
 		] : [
+			'\t\t\t\t\t<EntitiesList',
+			`\t\t\t\t\t\tentityType={EntityType.${targetEntity}}`,
+			'\t\t\t\t\t\tid={`${id}-list`}',
+			'\t\t\t\t\t\ttitle={label}',
+			'\t\t\t\t\t\tcollapsible={false}',
+			'\t\t\t\t\t\tdata-column-item="flexible"',
+			'\t\t\t\t\t\tdata-card',
+			'\t\t\t\t\t\tdata-scroll-container',
+			lowerSvelteAttribute(6, 'resource', fieldProxyResourceExpression(
+				fieldProjectionAccess.fieldBase,
+				fieldProjectionAccess.fieldReference ?? '',
+				query
+			)),
+			`\t\t\t\t\t\tgetKey={(${targetEntityName}) => ${targetEntityName}[EntityMetaKey.SelectorKey]}`,
+			'\t\t\t\t\t>',
+			`\t\t\t\t\t\t{#snippet Item({ item: ${targetEntityName} })}`,
+			`\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
+			`\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: ${sectionSelectSourcesExpression} })}`,
+			`\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			...(referenceHrefExpression == null ? [] : [lowerSvelteAttribute(8, 'href', referenceHrefExpression)]),
+			'\t\t\t\t\t\t\t\tlayout={EntityLayout.Summary}',
+			'\t\t\t\t\t\t\t\topen={false}',
+			'\t\t\t\t\t\t\t/>',
+			'\t\t\t\t\t\t{/snippet}',
+			'',
+			'\t\t\t\t\t\t{#snippet Empty()}',
+			`\t\t\t\t\t\t\t<p data-text="muted" data-section-state="resolved-empty">${svelteText(emptyText)}</p>`,
+			'\t\t\t\t\t\t{/snippet}',
+			'\t\t\t\t\t</EntitiesList>',
+		]
+	) : [
 			`\t\t\t\t\t<${componentIdentifier(component)}`,
-			lowerSvelteAttribute(6, 'selection', fieldProxyResourceExpression(fieldBase, fieldReference, query)),
+			lowerSvelteAttribute(6, 'selection', fieldProxyResourceExpression(
+				fieldProjectionAccess.fieldBase,
+				fieldProjectionAccess.fieldReference ?? '',
+				query
+			)),
 			...(hrefExpression == null ? [] : [lowerSvelteAttribute(6, 'href', hrefExpression)]),
 			'\t\t\t\t\t\tCollapsibleProps={{ canToggle: false }}',
-			...(section.emptyText == null ? [] : [`\t\t\t\t\t\temptyText=${emitTypeScript(section.emptyText)}`]),
+			'\t\t\t\t\t\tcollapsible={false}',
+			'\t\t\t\t\t\tdata-column-item="flexible"',
+			'\t\t\t\t\t\tdata-card',
+			'\t\t\t\t\t\tdata-scroll-container',
+			`\t\t\t\t\t\temptyText=${emitTypeScript(emptyText)}`,
 			'\t\t\t\t\t\topen={open}',
 			'\t\t\t\t\t\ttitle={label}',
 			'\t\t\t\t\t\tid={`${id}-list`}',
@@ -8975,14 +9876,14 @@ const lowerCarouselSection = (
 	return [
 		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
 		...(
-			fieldBelongsToProjection ?
-				lowerConditionedEntityLines(entity, indexes, sectionConditions, 5, sectionBodyLines)
-			:
-				lowerProjectionBoundaryLines(
-					section.field,
-					lowerConditionedEntityLines(entity, indexes, sectionConditions, 5, sectionBodyLines),
-					5
-				)
+				fieldProjectionAccess.projectionResourceExpression == null ?
+					sectionBodyLines
+				:
+					lowerCarouselProjectionLines(
+						fieldProjectionAccess.projectionResourceExpression,
+						sectionBodyLines,
+						5
+					)
 		),
 		'\t\t\t\t{/snippet}',
 		'',
@@ -8997,50 +9898,44 @@ const lowerPrimitiveCarouselSection = (
 ) => {
 	const sectionId = carouselSectionId(section)
 	const snippetName = `Section${pascal(sectionId)}`
+	const emptyText = section.emptyText ?? `No ${section.label.toLowerCase()} available.`
 	const fieldName = section.field == null ? undefined : fieldNameForReference(section.field)
-	const fieldBelongsToProjection = (
-		projectionPath != null
-		&& section.field != null
-		&& isProjectionFieldReference(section.field)
-		&& section.field.length === projectionPath.length + 1
-		&& projectionPath.every((facetName, index) => section.field[index] === facetName)
-	)
-	const fieldIsProjected = section.field != null && isProjectionFieldReference(section.field)
+	const fieldProjectionAccess = carouselFieldProjectionAccess(section.field, projectionPath)
 	const query = lowerQuery(
 		fieldQueryForName(entity, indexes, section.field, section.selection),
-		fieldBelongsToProjection || section.field == null ? [] : [section.field]
+		[]
 	)
 	const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByReference(entity, section.field ?? '', indexes)
 	const primitiveValuesName = camel(fieldName ?? 'values')
 	const primitiveValueName = camel((fieldDefinition?.label ?? fieldName ?? 'value').replace(/s$/, ''))
 	const primitiveValueIndexName = `${primitiveValueName}Index`
-	const autoFacetConditions = facetFieldReferenceConditions(entity, section.field, indexes.facetDependencyConditionsByPath)
-	const sectionConditions = (section.conditions ?? []).filter((condition) => (
-		!autoFacetConditions.some((autoCondition) => (
-			autoCondition.field === condition.field
-			&& autoCondition.equals === condition.equals
-			&& autoCondition.contains === condition.contains
-		))
-	))
 	const sectionBodyLines = [
-		'\t\t\t\t\t<ResourceBoundary',
-		lowerSvelteAttribute(
-			6,
-			'resource',
-			fieldBelongsToProjection ?
-				fieldProxyResourceExpression('projection', fieldName ?? '', query)
-			: fieldIsProjected ?
-				fieldProxyResourceExpression('selection', section.field ?? '', query)
-			:
-				`selection(${query})`
-		),
+		'\t\t\t\t\t<article',
+		'\t\t\t\t\t\tid={`${id}-list`}',
+		'\t\t\t\t\t\tdata-column-item="flexible"',
+		'\t\t\t\t\t\tdata-card',
+		'\t\t\t\t\t\tdata-scroll-container',
 		'\t\t\t\t\t>',
-		`\t\t\t\t\t\t{#snippet children(${fieldBelongsToProjection || fieldIsProjected ? primitiveValuesName : 'entity'})}`,
-		...(fieldBelongsToProjection || fieldIsProjected ? [] : [
-			`\t\t\t\t\t\t\t{@const ${primitiveValuesName} = ${fieldExpression('entity', fieldName ?? '')}.values}`,
-		]),
-		`\t\t\t\t\t\t\t{#if ${primitiveValuesName}.length > 0}`,
-		'\t\t\t\t\t\t\t\t<ul data-column="gap-2">',
+		'\t\t\t\t\t\t<ResourceBoundary',
+		lowerSvelteAttribute(
+			7,
+			'resource',
+				section.field == null ?
+					`selection(${query})`
+				:
+					fieldProxyResourceExpression(
+						fieldProjectionAccess.fieldBase,
+						fieldProjectionAccess.fieldReference ?? '',
+						query
+					)
+			),
+			'\t\t\t\t\t\t>',
+			`\t\t\t\t\t\t\t{#snippet children(${section.field == null ? 'entity' : primitiveValuesName})}`,
+			...(section.field != null ? [] : [
+				`\t\t\t\t\t\t\t\t{@const ${primitiveValuesName} = ${fieldExpression('entity', fieldName ?? '')}.values}`,
+			]),
+		`\t\t\t\t\t\t\t\t{#if ${primitiveValuesName}.length > 0}`,
+		'\t\t\t\t\t\t\t\t<ul data-column="gap-2" data-section-state="resolved-nonempty">',
 		`\t\t\t\t\t\t\t\t\t{#each ${primitiveValuesName} as ${primitiveValueName}, ${primitiveValueIndexName} (${primitiveValueIndexName})}`,
 		...(section.items ?? []).flatMap((viewEntry) => {
 			const fieldReference = itemFieldReferences(viewEntry)[0]
@@ -9059,28 +9954,25 @@ const lowerPrimitiveCarouselSection = (
 		'\t\t\t\t\t\t\t\t\t\t</li>',
 			'\t\t\t\t\t\t\t\t\t{/each}',
 			'\t\t\t\t\t\t\t\t</ul>',
-			...(section.emptyText == null ? [
-				'\t\t\t\t\t\t\t{/if}',
-			] : [
-				'\t\t\t\t\t\t\t{:else}',
-				`\t\t\t\t\t\t\t\t<p data-text="muted">${section.emptyText}</p>`,
-				'\t\t\t\t\t\t\t{/if}',
-			]),
-		'\t\t\t\t\t\t{/snippet}',
-		'\t\t\t\t\t</ResourceBoundary>',
+			'\t\t\t\t\t\t\t\t{:else}',
+			`\t\t\t\t\t\t\t\t\t<p data-text="muted" data-section-state="resolved-empty">${svelteText(emptyText)}</p>`,
+			'\t\t\t\t\t\t\t\t{/if}',
+		'\t\t\t\t\t\t\t{/snippet}',
+		'\t\t\t\t\t\t</ResourceBoundary>',
+		'\t\t\t\t\t</article>',
 	]
 
 	return [
 		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
 		...(
-			fieldBelongsToProjection ?
-				lowerConditionedEntityLines(entity, indexes, sectionConditions, 5, sectionBodyLines)
-			:
-				lowerProjectionBoundaryLines(
-					section.field ?? '',
-					lowerConditionedEntityLines(entity, indexes, sectionConditions, 5, sectionBodyLines),
-					5
-				)
+				fieldProjectionAccess.projectionResourceExpression == null ?
+					sectionBodyLines
+				:
+					lowerCarouselProjectionLines(
+						fieldProjectionAccess.projectionResourceExpression,
+						sectionBodyLines,
+						5
+					)
 		),
 		'\t\t\t\t{/snippet}',
 		'',
@@ -9351,9 +10243,9 @@ const lowerNamedRelationshipListViewFile = (view: NamedRelationshipListView) => 
 
 const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 	const componentName = pluralComponentName(entity)
+	const contentWarning = entitySingularView(entity)?.contentWarning
 	const entityValueName = camel(entity.entityType)
 	const entityValuesName = camel(componentName.replace(/View$/, ''))
-	const uniqueEntityValuesName = `unique${pascal(entityValuesName)}`
 	const pluralView = entityPluralView(entity)
 	const row = pluralView?.row
 	const usesCustomRow = row != null
@@ -9368,14 +10260,6 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 		...(usesCustomRow ? [] : viewItems(entitySingularView(entity)?.summary?.titleFallback)),
 		...rowAfterItems,
 	]
-	const itemLayout = (
-		pluralView?.entityRow === _ListEntityRow.Title ?
-			'EntityLayout.Title'
-		: pluralView?.entityRow === _ListEntityRow.Value ?
-			'EntityLayout.Value'
-		:
-			'EntityLayout.Summary'
-	)
 	const entityHrefs = indexes.entityHrefsByType[entity.entityType] ?? []
 	const rowHrefFields = unique([
 		...(pluralView?.rowHref == null ?
@@ -9395,7 +10279,13 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 	const rowQueryFields = [...new Map([
 		...(usesCustomRow ? [] : viewItems(entitySingularView(entity)?.summary?.icon)),
 		...rowItems,
-	].flatMap((item) => itemFieldReferences(item)).concat(rowHrefFields).map((fieldReference) => [
+	].flatMap((item) => itemFieldReferences(item)).concat(
+		contentWarning == null ? [] : [
+			contentWarning.sensitiveField,
+			contentWarning.textField,
+		],
+		rowHrefFields
+	).map((fieldReference) => [
 		fieldReferenceKey(fieldReference),
 		fieldReference,
 	])).values()]
@@ -9405,9 +10295,14 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 			fieldReference.slice(0, -1),
 		] as const] : []
 	))).values()]
+	const sourceSelection = pluralView?.query?.sources
 	const query = lowerQuery(
 		pluralView?.query?.selection ?? pluralView?.query,
-		rowQueryFields.filter((fieldReference) => !isProjectionFieldReference(fieldReference))
+		rowQueryFields.filter((fieldReference) => !isProjectionFieldReference(fieldReference)),
+		sourceSelection == null ?
+			'selection.sources'
+		:
+			undefined
 	)
 	const filters = pluralView?.filters ?? []
 	const filterCondition = filters.length === 0 ?
@@ -9418,7 +10313,6 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 		`${entityValuesName}.values`
 	:
 		`${entityValuesName}.values.filter((${entityValueName}) => ${filterCondition})`
-	const sourceSelection = pluralView?.query?.sources
 	const rawSnippets = rawSnippetSources(pluralView)
 	const modelTypeAnnotationTooltipMarkup = (
 		pluralView?.TypeAnnotationTooltip != null ?
@@ -9490,14 +10384,17 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 		true
 	)
 	const itemSelectionName = 'selection'
-	const singularRowMarkup = (level: number) => [
+	const singularRowMarkup = (
+		level: number,
+		selectionExpression = itemSelectionName
+	) => [
 		`${'\t'.repeat(level)}<${singularComponentIdentifier(entity.entityType)}`,
-		`${'\t'.repeat(level + 1)}selection={${itemSelectionName}}`,
+		`${'\t'.repeat(level + 1)}selection={${selectionExpression}}`,
 		`${'\t'.repeat(level + 1)}prefetched={${itemFieldsName}}`,
 		...(entityHrefExpression == null ? [] : [
 			lowerSvelteAttribute(level + 1, 'href', entityHrefExpression),
 		]),
-		`${'\t'.repeat(level + 1)}layout={${itemLayout}}`,
+		`${'\t'.repeat(level + 1)}layout={EntityLayout.Summary}`,
 		`${'\t'.repeat(level + 1)}open={false}`,
 		`${'\t'.repeat(level)}/>`,
 	]
@@ -9565,7 +10462,7 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 		'// Components',
 		'import EntitiesList from \'$/components/EntitiesList.svelte\'',
 		...(rowProjectionPaths.length === 0 ? [] : ['import ProjectionBoundary from \'$/components/ProjectionBoundary.svelte\'']),
-		'import ResourceBoundary from \'$/components/ResourceBoundary.svelte\'',
+		...(rowProjectionPaths.length === 0 ? [] : ['import ResourceBoundary from \'$/components/ResourceBoundary.svelte\'']),
 		'import { EntityLayout } from \'$/components/EntityView.svelte\'',
 		`import ${singularComponentIdentifier(entity.entityType)} from '${viewModulePath(singularComponentName(entity.entityType))}'`,
 	]
@@ -9582,111 +10479,85 @@ const lowerPluralViewFile = (entity: Entity, indexes: LoweringIndexes) => {
 			'{/snippet}',
 		]),
 		'',
-		'{#if open}',
-		'\t<ResourceBoundary',
+		'<EntitiesList',
+		'\t{...EntitiesListProps}',
+		`\tentityType={EntityType.${entity.entityType}}`,
+		'\t{id}',
+		'\t{title}',
+		'\tbind:open',
+		'\t{collapsible}',
+		'\t{showTypeAnnotation}',
 			lowerSvelteAttribute(
-				2,
-				'resource',
-				renderedQuery === '{}' ?
-					'selection'
-				:
-					`selection(${renderedQuery})`
-			),
-			'\t\t{placeholderText}',
-			'\t>',
-			'\t\t{#snippet Pending()}',
-			'\t\t\t<EntitiesList',
-			'\t\t\t\t{...EntitiesListProps}',
-			`\t\t\t\tentityType={EntityType.${entity.entityType}}`,
-			'\t\t\t\t{id}',
-			'\t\t\t\t{title}',
-			'\t\t\t\tbind:open',
-			'\t\t\t\t{collapsible}',
-			'\t\t\t\t{showTypeAnnotation}',
-			lowerSvelteAttribute(
-				4,
+				1,
 				'TypeAnnotationTooltip',
 				modelTypeAnnotationTooltipMarkup.length === 0 ?
 					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined'
 				:
 					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip'
 			),
-			'\t\t\t\tplaceholderText={placeholderText}',
-			'\t\t\t/>',
-			'\t\t{/snippet}',
+		lowerSvelteAttribute(
+			1,
+			'resource',
+			renderedQuery === '{}' ?
+				'selection'
+			:
+				`selection(${renderedQuery})`
+		),
+		`\tgetResourceItems={(${entityValuesName}) => [...new Map(${filteredEntityValuesExpression}.map((${entityValueName}) => [${entityValueName}[EntityMetaKey.SelectorKey], ${entityValueName}])).values()]}`,
+		`\tgetKey={(${entityValueName}) => ${entityValueName}[EntityMetaKey.SelectorKey]}`,
+		'\t{placeholderText}',
+		'>',
+		'\t{#snippet Empty()}',
+		'\t\t{#if emptyText != null}',
+		'\t\t\t<p data-text="muted">{emptyText}</p>',
+		'\t\t{:else}',
+			`\t\t\t<p data-text="muted">No ${svelteText(sentenceStart(entityLabelPlural(entity)))} yet.</p>`,
+		'\t\t{/if}',
+		'\t{/snippet}',
 			'',
-			`\t\t{#snippet children(${entityValuesName})}`,
-			`\t\t\t{@const ${uniqueEntityValuesName} = [...new Map(${filteredEntityValuesExpression}.map((${entityValueName}) => [${entityValueName}[EntityMetaKey.SelectorKey], ${entityValueName}])).values()]}`,
-			'\t\t\t<EntitiesList',
-			'\t\t\t\t{...EntitiesListProps}',
-			`\t\t\t\tentityType={EntityType.${entity.entityType}}`,
-			'\t\t\t\t{id}',
-			'\t\t\t\t{title}',
-			'\t\t\t\tbind:open',
-			'\t\t\t\t{collapsible}',
-			'\t\t\t\t{showTypeAnnotation}',
-			lowerSvelteAttribute(
-				4,
-				'TypeAnnotationTooltip',
-				modelTypeAnnotationTooltipMarkup.length === 0 ?
-					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined'
-				:
-					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip'
-			),
-			`\t\t\t\ttotalCount={${entityValuesName}.totalCount}`,
-			`\t\t\t\tgetKey={(${entityValueName}) => ${entityValueName}[EntityMetaKey.SelectorKey]}`,
-			`\t\t\t\titems={${uniqueEntityValuesName}}`,
-			'\t\t\t>',
-			'\t\t\t\t{#snippet Empty()}',
-			'\t\t\t\t\t{#if emptyText != null}',
-			'\t\t\t\t\t\t<p data-text="muted">{emptyText}</p>',
-			'\t\t\t\t\t{:else}',
-				`\t\t\t\t\t\t<p data-text="muted">No ${svelteText(sentenceStart(entityLabelPlural(entity)))} yet.</p>`,
-			'\t\t\t\t\t{/if}',
-			'\t\t\t\t{/snippet}',
-			'',
-			`\t\t\t\t{#snippet Item({ item: ${entityValueName} })}`,
-			`\t\t\t\t\t{@const ${itemFieldsName} = { ...${entityValueName}[EntityMetaKey.Selector], ...${entityValueName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`} }}`,
-			`\t\t\t\t\t{@const ${itemSelectionName} = select(EntityType.${entity.entityType}, ${entityValueName}[EntityMetaKey.Selector], { sources: collectionSelection.sources })}`,
-			...(entityHrefExpression == null ? [] : [
-				`\t\t\t\t\t{@const ${itemHrefFieldsName} = { ...${entityValueName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`}, ...${entityValueName}[EntityMetaKey.Selector] }}`,
-			]),
-			...(rowProjectionPaths.length === 0 ? singularRowMarkup(5) : rowProjectionPaths.flatMap((projectionPath) => [
-				'\t\t\t\t\t<ProjectionBoundary',
-				lowerSvelteAttribute(6, 'resource', `${itemSelectionName}${projectionPath.map(propertyAccess).join('')}`),
-				'\t\t\t\t\t>',
-				'\t\t\t\t\t\t{#snippet Applicable()}',
-				...singularRowMarkup(7),
-				'\t\t\t\t\t\t{/snippet}',
-				'\t\t\t\t\t</ProjectionBoundary>',
-			])),
-			'\t\t\t\t{/snippet}',
-			'\t\t\t</EntitiesList>',
-			'\t\t{/snippet}',
-			'\t</ResourceBoundary>',
-			'{:else}',
-			'\t<EntitiesList',
-			'\t\t{...EntitiesListProps}',
-			`\t\tentityType={EntityType.${entity.entityType}}`,
-			'\t\t{id}',
-			'\t\t{title}',
-			'\t\tbind:open',
-			'\t\t{collapsible}',
-			'\t\t{showTypeAnnotation}',
-			lowerSvelteAttribute(
-				2,
-				'TypeAnnotationTooltip',
-				modelTypeAnnotationTooltipMarkup.length === 0 ?
-					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined'
-				:
-					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip'
-			),
-		'\t/>',
-		'{/if}',
-		...(pluralView?.content == null ? [] : [
-			'',
-			...lowerRawLines(pluralView.content.raw, 0),
+			`\t{#snippet Item({ item: ${entityValueName} })}`,
+			...(rowProjectionPaths.length === 0 ? [
+				`\t\t{@const ${itemFieldsName} = { ...${entityValueName}[EntityMetaKey.Selector], ...${entityValueName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`} }}`,
+				`\t\t{@const ${itemSelectionName} = select(EntityType.${entity.entityType}, ${entityValueName}[EntityMetaKey.Selector], { sources: collectionSelection.sources })}`,
+				...(entityHrefExpression == null ? [] : [
+					`\t\t{@const ${itemHrefFieldsName} = { ...${entityValueName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`}, ...${entityValueName}[EntityMetaKey.Selector] }}`,
+				]),
+				...singularRowMarkup(2),
+			] : [
+				`\t\t{@const ${itemSelectionName} = select(EntityType.${entity.entityType}, ${entityValueName}[EntityMetaKey.Selector])}`,
+				...rowProjectionPaths.flatMap((projectionPath, projectionIndex) => {
+					const projectedEntityName = `${entityValueName}Projection${projectionIndex}`
+					const projectionQuery = lowerQuery(
+						undefined,
+						rowQueryFields.filter((fieldReference) => (
+							isProjectionFieldReference(fieldReference)
+							&& fieldReference.length === projectionPath.length + 1
+							&& projectionPath.every((facetName, index) => fieldReference[index] === facetName)
+						))
+					)
+					return [
+				'\t\t<ProjectionBoundary',
+				lowerSvelteAttribute(3, 'resource', `${itemSelectionName}${projectionPath.map(propertyAccess).join('')}`),
+				'\t\t>',
+				'\t\t\t{#snippet Applicable()}',
+				'\t\t\t\t<ResourceBoundary',
+				lowerSvelteAttribute(5, 'resource', `${itemSelectionName}(${projectionQuery})`),
+				'\t\t\t\t>',
+				`\t\t\t\t\t{#snippet children(${projectedEntityName})}`,
+				`\t\t\t\t\t\t{@const ${itemFieldsName} = { ...${entityValueName}[EntityMetaKey.Selector], ...${entityValueName}, ...${projectedEntityName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`} }}`,
+				...(entityHrefExpression == null ? [] : [
+					`\t\t\t\t\t\t{@const ${itemHrefFieldsName} = { ...${entityValueName}, ...${projectedEntityName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`}, ...${entityValueName}[EntityMetaKey.Selector] }}`,
+				]),
+				...singularRowMarkup(6),
+				'\t\t\t\t\t{/snippet}',
+				'\t\t\t\t</ResourceBoundary>',
+				'\t\t\t{/snippet}',
+				'\t\t</ProjectionBoundary>',
+					]
+				}),
 		]),
+			'\t{/snippet}',
+		'</EntitiesList>',
 	]
 
 	return svelteFile(
@@ -9710,30 +10581,17 @@ const lowerViewsIndexFile = (entities: readonly Entity[]) => tsFile(
 				from: '$/schema/EntityType.ts',
 				names: ['EntityType'],
 			},
-			...entities.flatMap((entity) => [
-			{
-					from: viewModulePath(singularComponentName(entity.entityType)),
+			...entities.map((entity) => ({
+				from: viewModulePath(singularComponentName(entity.entityType)),
 				defaultName: singularComponentIdentifier(entity.entityType),
-			},
-			{
-					from: viewModulePath(pluralComponentName(entity)),
-				defaultName: pluralComponentIdentifier(entity),
-			},
-		]),
+			})),
 		],
 		body: [
 			'type EntityViewComponent = Component<any>',
 			'',
-			'export const View = {',
-			...entities.flatMap((entity) => [
-				`\t${entity.entityType}: ${singularComponentIdentifier(entity.entityType)},`,
-				`\t${pluralViewName(entity)}: ${pluralComponentIdentifier(entity)},`,
-			]),
-			'} as const',
-			'',
-			'export const entityViewComponentByType = {',
-			...entities.map((entity) => `\t[EntityType.${entity.entityType}]: View.${entity.entityType},`),
-			'} as const satisfies Partial<Record<EntityType, EntityViewComponent>>',
+			'export const entityViewComponentByType: Record<EntityType, EntityViewComponent> = {',
+			...entities.map((entity) => `\t[EntityType.${entity.entityType}]: ${singularComponentIdentifier(entity.entityType)},`),
+			'}',
 		],
 	}
 )
@@ -10333,6 +11191,50 @@ const lowerMultiCollectionPageFile = (
 	)
 }
 
+const lowerPageEntityTitleExpression = (
+	entity: Entity,
+	indexes: LoweringIndexes,
+	selectionExpression: string,
+	dataTitleExpression?: string
+) => {
+	const serial = summarySerial(entity)
+	const pendingTitle = lowerJoinedItemsExpression(entity, indexes, declaredSummaryTitleEntries(entity), `${selectionExpression}.entitySelector`)
+	const pendingFallbackTitle = lowerJoinedItemsExpression(
+		entity,
+		indexes,
+		viewItems(entitySingularView(entity)?.summary?.titleFallback),
+		`${selectionExpression}.entitySelector`
+	)
+	const pendingSerialTitle = serial == null ?
+		lowerFirstDeclaredExpression([pendingTitle, pendingFallbackTitle])
+	:
+		lowerSerialTextExpression(entity, indexes, serial, `${selectionExpression}.entitySelector`)
+	const resolvedEntityFieldsExpression = `({ ...${selectionExpression}.entitySelector, ...${selectionExpression}.entity })`
+	const resolvedTitle = lowerJoinedItemsExpression(entity, indexes, declaredSummaryTitleEntries(entity), resolvedEntityFieldsExpression)
+	const resolvedFallbackTitle = lowerJoinedItemsExpression(
+		entity,
+		indexes,
+		viewItems(entitySingularView(entity)?.summary?.titleFallback),
+		resolvedEntityFieldsExpression
+	)
+	const resolvedSerialTitle = serial == null ?
+		lowerFirstDeclaredExpression([resolvedTitle, resolvedFallbackTitle])
+	:
+		lowerSerialTextExpression(entity, indexes, serial, resolvedEntityFieldsExpression)
+	const entityTypeLabel = emitTypeScript(displayLabel(entityLabel(entity)))
+	const titleExpression = (
+		`${selectionExpression}.entity == null ? `
+		+ lowerFirstDeclaredExpression([pendingSerialTitle, entityTypeLabel])
+		+ ' : '
+		+ lowerFirstDeclaredExpression([resolvedSerialTitle, entityTypeLabel])
+	)
+
+	return dataTitleExpression == null ?
+		`(${titleExpression})`
+	:
+		`(${dataTitleExpression} ?? (${titleExpression}))`
+}
+
 const lowerPageFile = (
 	routePath: string,
 	appRoutePath: string,
@@ -10340,13 +11242,77 @@ const lowerPageFile = (
 	indexes: LoweringIndexes,
 	hasGeneratedPageModule = false
 ) => {
-	if ((routeFile.mappings?.length ?? 0) > 1)
+	const mappingSourcesExpression = lowerDispatchedSourceSelectionExpression(routeFile.mappings ?? [])
+	if ((routeFile.mappings?.length ?? 0) > 1) {
+		const mappings = routeFile.mappings ?? []
+		const pageSelectionExpression = mappings.reduceRight<string>(
+			(alternate, mapping) => {
+				const entity = indexes.entityByType[mapping.entityType]
+				if (entity == null)
+					throw new Error(`${routePath} references missing entity ${mapping.entityType}`)
+
+				return (
+					`data.selectorMapping.entityType === EntityType.${mapping.entityType} `
+					+ `&& data.selectorMapping.selectorName === ${emitTypeScript(mapping.selectorName)} ? `
+					+ lowerEntityPageSelection(
+						indexes,
+						entity,
+						mapping.entityType,
+						'data.selectorMapping.selector',
+						mapping.selectorName,
+						mapping.sourceSelection
+					)
+					+ ` : ${alternate}`
+				)
+			},
+			'undefined'
+		)
+		const pageTitleExpression = mappings.reduceRight<string>(
+			(alternate, mapping) => {
+				const entity = indexes.entityByType[mapping.entityType]
+				if (entity == null)
+					throw new Error(`${routePath} references missing entity ${mapping.entityType}`)
+
+				return (
+					`data.selectorMapping.entityType === EntityType.${mapping.entityType} `
+					+ `&& data.selectorMapping.selectorName === ${emitTypeScript(mapping.selectorName)} ? `
+					+ lowerPageEntityTitleExpression(entity, indexes, 'pageSelection')
+					+ ` : ${alternate}`
+				)
+			},
+			emitTypeScript('Blockhead')
+		)
+		const pageEntityTypeLabelExpression = mappings.reduceRight<string>(
+			(alternate, mapping) => {
+				const entity = indexes.entityByType[mapping.entityType]
+				if (entity == null)
+					throw new Error(`${routePath} references missing entity ${mapping.entityType}`)
+
+				return (
+					`data.selectorMapping.entityType === EntityType.${mapping.entityType} `
+					+ `&& data.selectorMapping.selectorName === ${emitTypeScript(mapping.selectorName)} ? `
+					+ emitTypeScript(displayLabel(entityLabel(entity)))
+					+ ` : ${alternate}`
+				)
+			},
+			emitTypeScript('Entity')
+		)
+		const pageSelectionImports = mergeImports(
+			mappings.flatMap((mapping) => {
+				const entity = indexes.entityByType[mapping.entityType]
+				return entity == null ? [] : viewItemImports(entity, indexes)
+			})
+		).map(lowerImport)
+
 		return svelteFile(
 			routePath,
 			{
 				script: [
 					'// Types/constants',
 					'import type { PageProps } from \'./$types.ts\'',
+					'import { EntityType } from \'$/schema/EntityType.ts\'',
+					...pageSelectionImports,
+					...(pageSelectionExpression.includes('Source.') || mappingSourcesExpression?.includes('Source.') === true ? ['import { Source } from \'$/sources/Source.ts\''] : []),
 					'',
 					'',
 					'// Context',
@@ -10360,9 +11326,16 @@ const lowerPageFile = (
 					'\tparams,',
 					'}: PageProps = $props()',
 					'',
+					`const pageSelection = $derived(${pageSelectionExpression})`,
+					`const pageEntityTitle = $derived(${pageTitleExpression})`,
+					`const pageEntityTypeLabel = $derived(${pageEntityTypeLabelExpression})`,
+					'',
 					'// Components',
 					'import Page from \'$/components/Page.svelte\'',
 					'import { entityViewComponentByType } from \'$/views/index.ts\'',
+				],
+				head: [
+					'<title>{pageEntityTitle} • {pageEntityTypeLabel} • Blockhead</title>',
 				],
 				markup: [
 					'<Page>',
@@ -10370,12 +11343,13 @@ const lowerPageFile = (
 					'',
 					'\t<EntityView',
 					lowerSvelteAttribute(2, 'href', lowerRouteResolveExpression(routeId(appRoutePath), routeParamNames(routeId(appRoutePath)).map((param) => [param, `params.${param}`]))),
-					'\t\tselection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}',
+					'\t\tselection={pageSelection}',
 					'\t/>',
 					'</Page>',
 				],
 			}
 		)
+	}
 
 	if ((routeFile.collections?.length ?? 0) > 1)
 		return lowerMultiCollectionPageFile(
@@ -10485,39 +11459,85 @@ const lowerPageFile = (
 		undefined
 	const pageEntityTitleExpression = (
 		isEntityDetailPage && viewEntityDefinition != null && entityTypeLabel != null ?
-			(() => {
-				const serial = summarySerial(viewEntityDefinition)
-				const pendingTitle = lowerJoinedItemsExpression(viewEntityDefinition, indexes, declaredSummaryTitleEntries(viewEntityDefinition), 'pageSelection.entitySelector')
-				const pendingFallbackTitle = lowerJoinedItemsExpression(
-					viewEntityDefinition,
-					indexes,
-					viewItems(entitySingularView(viewEntityDefinition)?.summary?.titleFallback),
-					'pageSelection.entitySelector'
-				)
-				const pendingSerialTitle = serial == null ?
-					lowerFirstDeclaredExpression([pendingTitle, pendingFallbackTitle])
-				:
-					lowerSerialTextExpression(viewEntityDefinition, indexes, serial, 'pageSelection.entitySelector')
-				const resolvedEntityFieldsExpression = '({ ...pageSelection.entitySelector, ...pageSelection.entity })'
-				const resolvedTitle = lowerJoinedItemsExpression(viewEntityDefinition, indexes, declaredSummaryTitleEntries(viewEntityDefinition), resolvedEntityFieldsExpression)
-				const resolvedFallbackTitle = lowerJoinedItemsExpression(
-					viewEntityDefinition,
-					indexes,
-					viewItems(entitySingularView(viewEntityDefinition)?.summary?.titleFallback),
-					resolvedEntityFieldsExpression
-				)
-				const resolvedSerialTitle = serial == null ?
-					lowerFirstDeclaredExpression([resolvedTitle, resolvedFallbackTitle])
-				:
-					lowerSerialTextExpression(viewEntityDefinition, indexes, serial, resolvedEntityFieldsExpression)
-				return usesData ?
-					`(data.title ?? (pageSelection.entity == null ? ${lowerFirstDeclaredExpression([pendingSerialTitle, emitTypeScript(entityTypeLabel)])} : ${lowerFirstDeclaredExpression([resolvedSerialTitle, emitTypeScript(entityTypeLabel)])}))`
-				:
-					`(pageSelection.entity == null ? ${lowerFirstDeclaredExpression([pendingSerialTitle, emitTypeScript(entityTypeLabel)])} : ${lowerFirstDeclaredExpression([resolvedSerialTitle, emitTypeScript(entityTypeLabel)])})`
-			})()
+			lowerPageEntityTitleExpression(
+				viewEntityDefinition,
+				indexes,
+				'pageSelection',
+				usesData ? 'data.title' : undefined
+			)
 		:
 			undefined
 	)
+	if (
+		mapping?.href?.canonicalize === true
+		&& viewEntity != null
+		&& viewEntityDefinition != null
+		&& pageSelectionExpression != null
+		&& pageEntityTitleExpression != null
+		&& entityTypeLabel != null
+	) {
+		const canonicalEntityHrefExpression = lowerEntityHrefExpression(
+			indexes,
+			viewEntity,
+			'({ ...pageSelection.entitySelector, ...pageSelection.entity })',
+			'({ ...pageSelection.entitySelector, ...pageSelection.entity })',
+			true
+		)
+		if (canonicalEntityHrefExpression == null)
+			throw new Error(`${routePath} canonical alias has no canonical entity href`)
+
+		return svelteFile(
+			routePath,
+			{
+				script: [
+					'// Types/constants',
+					'import type { PageProps } from \'./$types.ts\'',
+					`import { EntityType } from '$/schema/EntityType.ts'`,
+					...(pageSelectionExpression.includes('Source.') ? [
+						`import { Source } from '$/sources/Source.ts'`,
+					] : []),
+					'',
+					'',
+					'// Context',
+					`import { resolve } from '$app/paths'`,
+					`import { select } from '$/routes/+layout.svelte'`,
+					'',
+					'',
+					'// State',
+					'let {',
+					'\tparams,',
+					'}: PageProps = $props()',
+					'',
+					`const pageSelection = $derived(${pageSelectionExpression})`,
+					`const pageEntityTitle = $derived(${pageEntityTitleExpression})`,
+					`const canonicalEntityHref = $derived(pageSelection.entity == null ? undefined : ${canonicalEntityHrefExpression})`,
+					'',
+					'$effect(() => {',
+					'\tif (canonicalEntityHref == null) return',
+					'',
+					'\tglobalThis.location.replace(canonicalEntityHref)',
+					'})',
+					'',
+					'',
+					'// Components',
+					`import Page from '$/components/Page.svelte'`,
+					`import ResourceBoundary from '$/components/ResourceBoundary.svelte'`,
+				],
+				head: [
+					`<title>{pageEntityTitle} • ${entityTypeLabel} • Blockhead</title>`,
+				],
+				markup: [
+					'<Page>',
+					'\t<ResourceBoundary resource={pageSelection}>',
+					'\t\t{#snippet children()}',
+					'\t\t\t<!-- The canonical alias navigation effect owns the resolved state. -->',
+					'\t\t{/snippet}',
+					'\t</ResourceBoundary>',
+					'</Page>',
+				],
+			}
+		)
+	}
 	const routeFileUsesResolve = view?.Content == null && (component != null && viewEntity != null || collection != null && collectionComponent != null)
 	const collectionSourceEntityDefinition = collection == null ? undefined : indexes.entityByType[collection.source.entity]
 	const collectionSelectionQuery = collection == null || collectionSourceEntityDefinition == null ? '' : lowerQuery(fieldQueryForName(
@@ -10548,7 +11568,6 @@ const lowerPageFile = (
 			collection.entity,
 			collectionSelectionQuery
 		)
-
 	return svelteFile(
 		routePath,
 		{
@@ -10672,7 +11691,9 @@ const lowerEntityPageMarkup = (
 
 	return [
 		`\t<${component}`,
-		lowerSvelteAttribute(2, 'href', lowerRouteResolveExpression(href, routeParamNames(href).map((param) => [param, `params.${param}`]))),
+		...(mapping?.href?.entityHref === false ? [] : [
+			lowerSvelteAttribute(2, 'href', lowerRouteResolveExpression(href, routeParamNames(href).map((param) => [param, `params.${param}`]))),
+		]),
 		lowerSvelteAttribute(
 			2,
 			'selection',
@@ -10717,6 +11738,9 @@ const lowerCollectionPageMarkup = (
 		`${'\t'.repeat(componentIndent + 1)}title=${emitTypeScript(collection.page?.text?.title ?? routeFile.page?.text?.title ?? sentenceStart(entityLabelPlural(collectionEntity)))}`,
 		lowerSvelteAttribute(componentIndent + 1, 'selection', collectionSelectionExpression),
 		`${'\t'.repeat(componentIndent + 1)}id=${emitTypeScript(routeCollectionIdForFieldReference(source.field))}`,
+		`${'\t'.repeat(componentIndent + 1)}data-column-item="flexible"`,
+		`${'\t'.repeat(componentIndent + 1)}data-card`,
+		`${'\t'.repeat(componentIndent + 1)}data-scroll-container`,
 		`${'\t'.repeat(componentIndent)}/>`,
 	]
 	if (projectionResourceExpression == null)
@@ -10767,6 +11791,7 @@ const lowerLayoutFile = (routePath: string, routeFile: RouteFile, indexes: Lower
 					'// Types/constants',
 					'import type { LayoutProps } from \'./$types.ts\'',
 					'import { EntityType } from \'$/schema/EntityType.ts\'',
+					...(detailSelectionExpression.includes('Source.') ? ['import { Source } from \'$/sources/Source.ts\''] : []),
 					'',
 					'',
 					'// Context',
@@ -11012,9 +12037,9 @@ const generatedOwnedPaths = async (files: readonly GeneratedFile[]) => {
 }
 
 const removeEmptyRouteDirectories = async (directory = routeRoot) => {
-	const entries = await fs.readdir(directory, {
-		withFileTypes: true,
-	})
+	const entries = await readDirectory(directory)
+	if (entries.length === 0 && directory === routeRoot)
+		return
 	for (const entry of entries) {
 		if (entry.isDirectory())
 			await removeEmptyRouteDirectories(path.join(directory, entry.name))
@@ -11024,20 +12049,6 @@ const removeEmptyRouteDirectories = async (directory = routeRoot) => {
 	const remaining = await fs.readdir(directory)
 	if (remaining.length === 0)
 		await fs.rmdir(directory)
-}
-
-const cleanStaleGeneratedFiles = async (files: readonly GeneratedFile[]) => {
-	const expected = new Set(files.map((generatedFile) => generatedFile.path))
-	for (const filePath of (await generatedOwnedPaths(files)).filter((filePath) => (
-		!expected.has(filePath)
-		&& !protectedRouteFiles.has(filePath)
-		&& !protectedSchemaFiles.has(filePath)
-	)))
-		await fs.rm(path.join(generatedOutputRoot, filePath), {
-			force: true,
-		})
-
-	await removeEmptyRouteDirectories()
 }
 
 const checkFiles = async (files: readonly GeneratedFile[]) => {
@@ -11068,22 +12079,178 @@ const checkFiles = async (files: readonly GeneratedFile[]) => {
 		].join('\n'))
 }
 
-const writeFiles = async (files: readonly GeneratedFile[]) => {
-	for (const generatedFile of [...files].sort((left, right) => left.path.localeCompare(right.path, 'en', {
-		sensitivity: 'base',
-		numeric: true,
-	}))) {
-		const absolutePath = path.join(generatedOutputRoot, generatedFile.path)
-		const renderedFile = renderGeneratedFile(generatedFile)
-		if (await readText(absolutePath) === renderedFile)
-			continue
+export const writeFiles = async (files: readonly GeneratedFile[]) => {
+	const lockPath = path.join(generatedOutputRoot, '.blockhead-generator.lock')
+	const transactionId = `${process.pid}-${randomUUID()}`
+	const transactionRoot = path.join(generatedOutputRoot, `.blockhead-generator-${transactionId}`)
+	const stagedRoot = path.join(transactionRoot, 'staged')
+	const backupRoot = path.join(transactionRoot, 'backup')
+	const expected = new Set(files.map((generatedFile) => generatedFile.path))
+	let stale: string[] = []
+	const changed: {
+		absolutePath: string
+		filePath: string
+		renderedFile: string
+	}[] = []
 
-		await fs.mkdir(path.dirname(absolutePath), {
+	for (let attempt = 0; ; attempt += 1) {
+		try {
+			await fs.mkdir(lockPath)
+			break
+		} catch (error) {
+			if (!(typeof error === 'object' && error != null && 'code' in error && error.code === 'EEXIST'))
+				throw error
+			if (attempt === 600)
+				throw new Error(`Timed out waiting for generator publication lock: ${lockPath}`)
+
+			await new Promise((resolve) => setTimeout(resolve, 100))
+		}
+	}
+
+	await fs.writeFile(path.join(lockPath, 'owner.json'), `${JSON.stringify({
+		pid: process.pid,
+		startedAt: new Date().toISOString(),
+		transactionId,
+	})}\n`)
+
+	const published: {
+		absolutePath: string
+		backupPath: string
+		hadExistingFile: boolean
+	}[] = []
+	let vitePaused = false
+	try {
+		stale = (await generatedOwnedPaths(files)).filter((filePath) => (
+			!expected.has(filePath)
+			&& !protectedRouteFiles.has(filePath)
+			&& !protectedSchemaFiles.has(filePath)
+		)).sort()
+		for (const generatedFile of [...files].sort((left, right) => left.path.localeCompare(right.path, 'en', {
+			sensitivity: 'base',
+			numeric: true,
+		}))) {
+			const absolutePath = path.join(generatedOutputRoot, generatedFile.path)
+			const renderedFile = renderGeneratedFile(generatedFile)
+			if (await readText(absolutePath) === renderedFile)
+				continue
+
+			changed.push({
+				absolutePath,
+				filePath: generatedFile.path,
+				renderedFile,
+			})
+		}
+
+		if (changed.length === 0 && stale.length === 0)
+			return
+
+		if (process.env.APP_GENERATOR_VITE_HANDSHAKE_URL != null) {
+			const response = await fetch(`${process.env.APP_GENERATOR_VITE_HANDSHAKE_URL}/__blockhead-generator/pause`, {
+				method: 'POST',
+			})
+			if (!response.ok)
+				throw new Error(`Vite generator pause failed: ${response.status} ${await response.text()}`)
+			vitePaused = true
+		}
+
+		for (const changedFile of changed) {
+			const stagedPath = path.join(stagedRoot, changedFile.filePath)
+			await fs.mkdir(path.dirname(stagedPath), {
+				recursive: true,
+			})
+			await fs.writeFile(stagedPath, changedFile.renderedFile)
+			const existingStat = await fs.stat(changedFile.absolutePath).catch(() => undefined)
+			if (existingStat != null)
+				await fs.chmod(stagedPath, existingStat.mode)
+		}
+
+		for (const changedFile of changed) {
+			const stagedPath = path.join(stagedRoot, changedFile.filePath)
+			const backupPath = path.join(backupRoot, changedFile.filePath)
+			const hadExistingFile = await readText(changedFile.absolutePath) !== undefined
+			await fs.mkdir(path.dirname(changedFile.absolutePath), {
+				recursive: true,
+			})
+			if (hadExistingFile) {
+				await fs.mkdir(path.dirname(backupPath), {
+					recursive: true,
+				})
+				await fs.rename(changedFile.absolutePath, backupPath)
+			}
+			await fs.rename(stagedPath, changedFile.absolutePath)
+			published.push({
+				absolutePath: changedFile.absolutePath,
+				backupPath,
+				hadExistingFile,
+			})
+
+			if (Number(process.env.APP_GENERATOR_FAIL_AFTER_PUBLICATION ?? '-1') === published.length)
+				throw new Error(`Injected generator publication failure after ${published.length} files`)
+		}
+
+		for (const filePath of stale) {
+			const absolutePath = path.join(generatedOutputRoot, filePath)
+			const backupPath = path.join(backupRoot, filePath)
+			await fs.mkdir(path.dirname(backupPath), {
+				recursive: true,
+			})
+			await fs.rename(absolutePath, backupPath)
+			published.push({
+				absolutePath,
+				backupPath,
+				hadExistingFile: true,
+			})
+
+			if (Number(process.env.APP_GENERATOR_FAIL_AFTER_PUBLICATION ?? '-1') === published.length)
+				throw new Error(`Injected generator publication failure after ${published.length} files`)
+		}
+
+		const epochPath = path.join(generatedOutputRoot, '.blockhead-generator-epoch')
+		const stagedEpochPath = path.join(transactionRoot, 'epoch')
+		await fs.writeFile(stagedEpochPath, `${JSON.stringify({
+			changed: changed.map(({ filePath }) => filePath),
+			completedAt: new Date().toISOString(),
+			removed: stale,
+			transactionId,
+		})}\n`)
+		await fs.rename(stagedEpochPath, epochPath)
+		await removeEmptyRouteDirectories()
+	} catch (error) {
+		for (const publishedFile of published.reverse()) {
+			await fs.rm(publishedFile.absolutePath, {
+				force: true,
+			})
+			if (publishedFile.hadExistingFile) {
+				await fs.mkdir(path.dirname(publishedFile.absolutePath), {
+					recursive: true,
+				})
+				await fs.rename(publishedFile.backupPath, publishedFile.absolutePath)
+			}
+		}
+		throw error
+	} finally {
+		let viteResumeError: Error | undefined
+		if (vitePaused)
+			try {
+				const response = await fetch(`${process.env.APP_GENERATOR_VITE_HANDSHAKE_URL}/__blockhead-generator/resume`, {
+					method: 'POST',
+				})
+				if (!response.ok)
+					viteResumeError = new Error(`Vite generator resume failed: ${response.status} ${await response.text()}`)
+			} catch (error) {
+				viteResumeError = error instanceof Error ? error : new Error(String(error))
+			}
+		await fs.rm(transactionRoot, {
+			force: true,
 			recursive: true,
 		})
-		await fs.writeFile(absolutePath, renderedFile)
+		await fs.rm(lockPath, {
+			force: true,
+			recursive: true,
+		})
+		if (viteResumeError != null)
+			throw viteResumeError
 	}
-	await cleanStaleGeneratedFiles(files)
 }
 
 const cleanFiles = async (files: readonly GeneratedFile[]) => {

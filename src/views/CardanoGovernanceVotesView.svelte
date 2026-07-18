@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoGovernanceVoteView from '$/views/CardanoGovernanceVoteView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoGovernanceVote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoGovernanceVote}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoGovernanceVotes) => [...new Map(cardanoGovernanceVotes.values.map((cardanoGovernanceVote) => [cardanoGovernanceVote[EntityMetaKey.SelectorKey], cardanoGovernanceVote])).values()]}
+	getKey={(cardanoGovernanceVote) => cardanoGovernanceVote[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano governance votes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoGovernanceVotes)}
-			{@const uniqueCardanoGovernanceVotes = [...new Map(cardanoGovernanceVotes.values.map((cardanoGovernanceVote) => [cardanoGovernanceVote[EntityMetaKey.SelectorKey], cardanoGovernanceVote])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoGovernanceVote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoGovernanceVotes.totalCount}
-				getKey={(cardanoGovernanceVote) => cardanoGovernanceVote[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoGovernanceVotes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano governance votes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoGovernanceVote })}
-					{@const cardanoGovernanceVoteFields = { ...cardanoGovernanceVote[EntityMetaKey.Selector], ...cardanoGovernanceVote }}
-					{@const selection = select(EntityType.CardanoGovernanceVote, cardanoGovernanceVote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoGovernanceVoteView
-						selection={selection}
-						prefetched={cardanoGovernanceVoteFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoGovernanceVote}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoGovernanceVote })}
+		{@const cardanoGovernanceVoteFields = { ...cardanoGovernanceVote[EntityMetaKey.Selector], ...cardanoGovernanceVote }}
+		{@const selection = select(EntityType.CardanoGovernanceVote, cardanoGovernanceVote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoGovernanceVoteView
+			selection={selection}
+			prefetched={cardanoGovernanceVoteFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dydxChainMarket = $derived(selection({
-		sources: [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			marketKind: true,
 			baseAsset: true,
@@ -73,52 +69,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dydxChainMarket}>
-			{#snippet Pending()}
-				{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dydxChainMarket}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dydxChainMarket}>
-			{#snippet Pending()}
-				{[String((pendingEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.ticker) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dydxChainMarket}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.ticker) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={dydxChainMarket}>
-			{#snippet Pending()}
-				{@const baseAsset0 = pendingEntity.baseAsset}
-				{#if baseAsset0 !== undefined && baseAsset0 !== null}
-					<span data-text="muted">
-						{String((baseAsset0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const baseAsset0 = resolvedEntity.baseAsset}
-				{#if baseAsset0 !== undefined && baseAsset0 !== null}
-					<span data-text="muted">
-						{String((baseAsset0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const baseAsset0 = pendingEntity.baseAsset}
+			{#if baseAsset0 !== undefined && baseAsset0 !== null}
+				<span data-text="muted">
+					{String((baseAsset0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={dydxChainMarket}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const baseAsset0 = resolvedEntity.baseAsset}
+					{#if baseAsset0 !== undefined && baseAsset0 !== null}
+						<span data-text="muted">
+							{String((baseAsset0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ticker: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ticker = pendingEntity.ticker}
-							{#if ticker !== undefined && ticker !== null}
-								{String((ticker) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ticker = resolvedEntity.ticker}
@@ -167,24 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							baseAsset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const baseAsset = pendingEntity.baseAsset}
-					{#if baseAsset !== undefined && baseAsset !== null}
-						<div>
-							<dt>base asset</dt>
-							<dd>
-								{String((baseAsset) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const baseAsset = resolvedEntity.baseAsset}
@@ -202,24 +181,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							quoteAsset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const quoteAsset = pendingEntity.quoteAsset}
-					{#if quoteAsset !== undefined && quoteAsset !== null}
-						<div>
-							<dt>quote asset</dt>
-							<dd>
-								{String((quoteAsset) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const quoteAsset = resolvedEntity.quoteAsset}
@@ -240,19 +208,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									marketKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const marketKind = pendingEntity.marketKind}
-							{#if marketKind !== undefined && marketKind !== null}
-								{String((marketKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const marketKind = resolvedEntity.marketKind}

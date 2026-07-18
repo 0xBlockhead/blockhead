@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLocalMediaIngestView from '$/views/BlockheadLocalMediaIngestView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					fileName: true,
-					mimeType: true,
-					ingestId: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLocalMediaIngest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLocalMediaIngest}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				fileName: true,
+				mimeType: true,
+				ingestId: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLocalMediaIngests) => [...new Map(blockheadLocalMediaIngests.values.map((blockheadLocalMediaIngest) => [blockheadLocalMediaIngest[EntityMetaKey.SelectorKey], blockheadLocalMediaIngest])).values()]}
+	getKey={(blockheadLocalMediaIngest) => blockheadLocalMediaIngest[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Local media ingests yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLocalMediaIngests)}
-			{@const uniqueBlockheadLocalMediaIngests = [...new Map(blockheadLocalMediaIngests.values.map((blockheadLocalMediaIngest) => [blockheadLocalMediaIngest[EntityMetaKey.SelectorKey], blockheadLocalMediaIngest])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLocalMediaIngest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLocalMediaIngests.totalCount}
-				getKey={(blockheadLocalMediaIngest) => blockheadLocalMediaIngest[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLocalMediaIngests}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Local media ingests yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLocalMediaIngest })}
-					{@const blockheadLocalMediaIngestFields = { ...blockheadLocalMediaIngest[EntityMetaKey.Selector], ...blockheadLocalMediaIngest }}
-					{@const selection = select(EntityType.BlockheadLocalMediaIngest, blockheadLocalMediaIngest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLocalMediaIngestView
-						selection={selection}
-						prefetched={blockheadLocalMediaIngestFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLocalMediaIngest}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLocalMediaIngest })}
+		{@const blockheadLocalMediaIngestFields = { ...blockheadLocalMediaIngest[EntityMetaKey.Selector], ...blockheadLocalMediaIngest }}
+		{@const selection = select(EntityType.BlockheadLocalMediaIngest, blockheadLocalMediaIngest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLocalMediaIngestView
+			selection={selection}
+			prefetched={blockheadLocalMediaIngestFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

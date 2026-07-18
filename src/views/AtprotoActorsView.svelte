@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
 </script>
@@ -62,88 +61,50 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					displayName: true,
-					handle: true,
-					did: true,
-				},
-				limit: 12,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AtprotoActor}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				did: true,
+			},
+			limit: 12,
+		})
+	}
+	getResourceItems={(atprotoActors) => [...new Map(atprotoActors.values.map((atprotoActor) => [atprotoActor[EntityMetaKey.SelectorKey], atprotoActor])).values()]}
+	getKey={(atprotoActor) => atprotoActor[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(atprotoActors)}
-			{@const uniqueAtprotoActors = [...new Map(atprotoActors.values.map((atprotoActor) => [atprotoActor[EntityMetaKey.SelectorKey], atprotoActor])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoActors.totalCount}
-				getKey={(atprotoActor) => atprotoActor[EntityMetaKey.SelectorKey]}
-				items={uniqueAtprotoActors}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: atprotoActor })}
-					{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
-					{@const selection = select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
-					<AtprotoActorView
-						selection={selection}
-						prefetched={atprotoActorFields}
-						href={
-							(atprotoActorHrefFields.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
-								did: String(atprotoActorHrefFields.did ?? ''),
-							}) : atprotoActorHrefFields.handle !== undefined ? resolve('/atproto/actor/handle/[handle=stringSegment]', {
-								handle: String(atprotoActorHrefFields.handle ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AtprotoActor}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: atprotoActor })}
+		{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
+		{@const selection = select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
+		<AtprotoActorView
+			selection={selection}
+			prefetched={atprotoActorFields}
+			href={
+				(atprotoActorHrefFields.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+					did: encodeURIComponent(String(atprotoActorHrefFields.did ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

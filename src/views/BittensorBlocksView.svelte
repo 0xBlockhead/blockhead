@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					blockNumber: true,
-					hash: true,
-					extrinsicCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BittensorBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BittensorBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				blockNumber: true,
+				hash: true,
+				extrinsicCount: true,
+			},
+		})
+	}
+	getResourceItems={(bittensorBlocks) => [...new Map(bittensorBlocks.values.map((bittensorBlock) => [bittensorBlock[EntityMetaKey.SelectorKey], bittensorBlock])).values()]}
+	getKey={(bittensorBlock) => bittensorBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bittensor blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bittensorBlocks)}
-			{@const uniqueBittensorBlocks = [...new Map(bittensorBlocks.values.map((bittensorBlock) => [bittensorBlock[EntityMetaKey.SelectorKey], bittensorBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BittensorBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bittensorBlocks.totalCount}
-				getKey={(bittensorBlock) => bittensorBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueBittensorBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bittensor blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bittensorBlock })}
-					{@const bittensorBlockFields = { ...bittensorBlock[EntityMetaKey.Selector], ...bittensorBlock }}
-					{@const selection = select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BittensorBlockView
-						selection={selection}
-						prefetched={bittensorBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BittensorBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bittensorBlock })}
+		{@const bittensorBlockFields = { ...bittensorBlock[EntityMetaKey.Selector], ...bittensorBlock }}
+		{@const selection = select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BittensorBlockView
+			selection={selection}
+			prefetched={bittensorBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

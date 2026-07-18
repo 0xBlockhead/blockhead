@@ -29,14 +29,9 @@
 		id='manage:hub'
 		sectionIdPrefix='manage'
 		sections={[
-			{ id: 'profiles', label: 'Profiles' },
-			{ id: 'sources', label: 'Sources' },
+					{ id: 'sources', label: 'Sources' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -47,18 +42,17 @@
 			</header>
 		{/snippet}
 
-		{#snippet SectionProfiles()}
-			<p data-text='muted'>Profiles are not wired yet.</p>
-		{/snippet}
-
 		{#snippet SectionSources()}
 			<BlockheadSourcesView
 				href={resolve('/~/manage/sources')}
 				selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
 					sources: [Source.Local_Internal],
 				})}
-				id='sources'
-				open={true}
+						id='sources'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

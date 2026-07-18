@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,11 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGSettlementTrace = $derived(selection({
-		sources: [
-			Source.ZeroGChain_JsonRpc,
-			Source.ZeroGStorageNode_JsonRpc,
-			Source.ZeroGStorageScan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			settlementTransactionHash: true,
 		},
@@ -74,60 +69,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGSettlementTrace}>
-			{#snippet Pending()}
-				{[String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || 'zero g settlement trace'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGSettlementTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGSettlementTrace}>
-			{#snippet Pending()}
-				<ZeroGServiceRequestView
-					selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ZeroGServiceRequestView
-					selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ZeroGServiceRequestView
+						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zeroGSettlementTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ZeroGServiceRequestView
+						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGSettlementTrace}>
-			{#snippet Pending()}
-				{@const settlementTransactionHash0 = pendingEntity.settlementTransactionHash}
-				{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const settlementTransactionHash0 = resolvedEntity.settlementTransactionHash}
-				{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const settlementTransactionHash0 = pendingEntity.settlementTransactionHash}
+			{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zeroGSettlementTrace}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const settlementTransactionHash0 = resolvedEntity.settlementTransactionHash}
+					{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									traceId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const traceId = pendingEntity.traceId}
-							{#if traceId !== undefined && traceId !== null}
-								{String((traceId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const traceId = resolvedEntity.traceId}
@@ -176,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							settlementTransactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const settlementTransactionHash = pendingEntity.settlementTransactionHash}
-					{#if settlementTransactionHash !== undefined && settlementTransactionHash !== null}
-						<div>
-							<dt>settlement transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((settlementTransactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const settlementTransactionHash = resolvedEntity.settlementTransactionHash}
@@ -211,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							acknowledgementSignature: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const acknowledgementSignature = pendingEntity.acknowledgementSignature}
-					{#if acknowledgementSignature !== undefined && acknowledgementSignature !== null}
-						<div>
-							<dt>acknowledgement signature</dt>
-							<dd>
-								<TruncatedValue value={String((acknowledgementSignature) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const acknowledgementSignature = resolvedEntity.acknowledgementSignature}
@@ -246,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardAmount = pendingEntity.rewardAmount}
-					{#if rewardAmount !== undefined && rewardAmount !== null}
-						<div>
-							<dt>reward amount</dt>
-							<dd>
-								<NumberValue value={Number(rewardAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardAmount = resolvedEntity.rewardAmount}
@@ -271,7 +227,9 @@
 						<div>
 							<dt>reward amount</dt>
 							<dd>
-								<NumberValue value={Number(rewardAmount)} />
+								<NumberValue
+									value={rewardAmount}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandTealProgram_TimestampView from '$/views/AlgorandTealProgram_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTealProgram_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandTealProgram_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandTealProgramTimestamps) => [...new Map(algorandTealProgramTimestamps.values.map((algorandTealProgramTimestamp) => [algorandTealProgramTimestamp[EntityMetaKey.SelectorKey], algorandTealProgramTimestamp])).values()]}
+	getKey={(algorandTealProgramTimestamp) => algorandTealProgramTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand teal program observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandTealProgramTimestamps)}
-			{@const uniqueAlgorandTealProgramTimestamps = [...new Map(algorandTealProgramTimestamps.values.map((algorandTealProgramTimestamp) => [algorandTealProgramTimestamp[EntityMetaKey.SelectorKey], algorandTealProgramTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTealProgram_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandTealProgramTimestamps.totalCount}
-				getKey={(algorandTealProgramTimestamp) => algorandTealProgramTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandTealProgramTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand teal program observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandTealProgramTimestamp })}
-					{@const algorandTealProgramTimestampFields = { ...algorandTealProgramTimestamp[EntityMetaKey.Selector], ...algorandTealProgramTimestamp }}
-					{@const selection = select(EntityType.AlgorandTealProgram_Timestamp, algorandTealProgramTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandTealProgram_TimestampView
-						selection={selection}
-						prefetched={algorandTealProgramTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandTealProgram_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandTealProgramTimestamp })}
+		{@const algorandTealProgramTimestampFields = { ...algorandTealProgramTimestamp[EntityMetaKey.Selector], ...algorandTealProgramTimestamp }}
+		{@const selection = select(EntityType.AlgorandTealProgram_Timestamp, algorandTealProgramTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandTealProgram_TimestampView
+			selection={selection}
+			prefetched={algorandTealProgramTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubNote_TimestampView from '$/views/ActivityPubNote_TimestampView.svelte'
 </script>
@@ -62,85 +61,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$note: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ActivityPubNote_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$note: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(activityPubNoteTimestamps) => [...new Map(activityPubNoteTimestamps.values.map((activityPubNoteTimestamp) => [activityPubNoteTimestamp[EntityMetaKey.SelectorKey], activityPubNoteTimestamp])).values()]}
+	getKey={(activityPubNoteTimestamp) => activityPubNoteTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ActivityPub note observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(activityPubNoteTimestamps)}
-			{@const uniqueActivityPubNoteTimestamps = [...new Map(activityPubNoteTimestamps.values.map((activityPubNoteTimestamp) => [activityPubNoteTimestamp[EntityMetaKey.SelectorKey], activityPubNoteTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubNoteTimestamps.totalCount}
-				getKey={(activityPubNoteTimestamp) => activityPubNoteTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueActivityPubNoteTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ActivityPub note observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: activityPubNoteTimestamp })}
-					{@const activityPubNoteTimestampFields = { ...activityPubNoteTimestamp[EntityMetaKey.Selector], ...activityPubNoteTimestamp }}
-					{@const selection = select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const activityPubNoteTimestampHrefFields = { ...activityPubNoteTimestamp, ...activityPubNoteTimestamp[EntityMetaKey.Selector] }}
-					<ActivityPubNote_TimestampView
-						selection={selection}
-						prefetched={activityPubNoteTimestampFields}
-						href={
-							(activityPubNoteTimestampHrefFields.timestampMs !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-								timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
-								instanceOrigin: String(activityPubNoteTimestampHrefFields.$note.instanceOrigin ?? ''),
-								localStatusId: String(activityPubNoteTimestampHrefFields.$note.localStatusId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ActivityPubNote_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: activityPubNoteTimestamp })}
+		{@const activityPubNoteTimestampFields = { ...activityPubNoteTimestamp[EntityMetaKey.Selector], ...activityPubNoteTimestamp }}
+		{@const selection = select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const activityPubNoteTimestampHrefFields = { ...activityPubNoteTimestamp, ...activityPubNoteTimestamp[EntityMetaKey.Selector] }}
+		<ActivityPubNote_TimestampView
+			selection={selection}
+			prefetched={activityPubNoteTimestampFields}
+			href={
+				(activityPubNoteTimestampHrefFields.timestampMs !== undefined && activityPubNoteTimestampHrefFields.source !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
+					source: String(activityPubNoteTimestampHrefFields.source ?? ''),
+					instanceOrigin: encodeURIComponent(String(activityPubNoteTimestampHrefFields.$note.instanceOrigin ?? '')),
+					localStatusId: String(activityPubNoteTimestampHrefFields.$note.localStatusId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

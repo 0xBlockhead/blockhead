@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearContractView from '$/views/NearContractView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					accountId: true,
-					codeHash: true,
-					codeSizeBytes: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearContract}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				accountId: true,
+				codeHash: true,
+				codeSizeBytes: true,
+			},
+		})
+	}
+	getResourceItems={(nearContracts) => [...new Map(nearContracts.values.map((nearContract) => [nearContract[EntityMetaKey.SelectorKey], nearContract])).values()]}
+	getKey={(nearContract) => nearContract[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near contracts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearContracts)}
-			{@const uniqueNearContracts = [...new Map(nearContracts.values.map((nearContract) => [nearContract[EntityMetaKey.SelectorKey], nearContract])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearContracts.totalCount}
-				getKey={(nearContract) => nearContract[EntityMetaKey.SelectorKey]}
-				items={uniqueNearContracts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near contracts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearContract })}
-					{@const nearContractFields = { ...nearContract[EntityMetaKey.Selector], ...nearContract }}
-					{@const selection = select(EntityType.NearContract, nearContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearContractView
-						selection={selection}
-						prefetched={nearContractFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearContract}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearContract })}
+		{@const nearContractFields = { ...nearContract[EntityMetaKey.Selector], ...nearContract }}
+		{@const selection = select(EntityType.NearContract, nearContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearContractView
+			selection={selection}
+			prefetched={nearContractFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

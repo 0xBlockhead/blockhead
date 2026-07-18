@@ -84,11 +84,13 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
-				[BeaconEpochSelector.EvmNetworkEpoch]: async ({ epoch }) => ({
-					startSlot: epoch * slotsPerEpoch,
-					endSlot: (epoch * slotsPerEpoch) + slotsPerEpoch - 1,
-					slotCount: slotsPerEpoch,
-				}),
+				[BeaconEpochSelector.EvmNetworkEpoch]: {
+					resolve: async ({ epoch }) => ({
+						startSlot: epoch * slotsPerEpoch,
+						endSlot: (epoch * slotsPerEpoch) + slotsPerEpoch - 1,
+						slotCount: slotsPerEpoch,
+					}),
+				},
 			},
 		})({
 				startSlot: (epoch) => epoch.startSlot,
@@ -99,9 +101,11 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ slot }) => ({
-					epoch: Math.floor(slot / slotsPerEpoch),
-				}),
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ slot }) => ({
+						epoch: Math.floor(slot / slotsPerEpoch),
+					}),
+				},
 			},
 		})({
 				epoch: (slot) => slot.epoch,
@@ -116,21 +120,23 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }) => {
-					const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
-					const header = await getHeader(
-						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						slot
-					)
-					return {
-						bodyRoot: with0xHex(header.bodyRoot),
-						...(header.canonical != null && { canonical: header.canonical }),
-						parentRoot: with0xHex(header.parentRoot),
-						proposerIndex: header.proposerIndex,
-						root: with0xHex(header.root),
-						signature: with0xHex(header.signature),
-						stateRoot: with0xHex(header.stateRoot),
-					}
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ $network, slot }) => {
+						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
+						const header = await getHeader(
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							slot
+						)
+						return {
+							bodyRoot: with0xHex(header.bodyRoot),
+							...(header.canonical != null && { canonical: header.canonical }),
+							parentRoot: with0xHex(header.parentRoot),
+							proposerIndex: header.proposerIndex,
+							root: with0xHex(header.root),
+							signature: with0xHex(header.signature),
+							stateRoot: with0xHex(header.stateRoot),
+						}
+					},
 				},
 			},
 		})({
@@ -146,24 +152,26 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconValidator,
 			resolve: {
-				[BeaconValidatorSelector.NetworkIndexInNetwork]: async ({ $network, indexInNetwork }) => {
-					const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
-					const summary = await getValidatorSummaryAtHead(
-						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						indexInNetwork
-					)
-					if (summary == null) {
-						throw new Error(
-							`Beacon_Rest: validator summary not returned for index ${String(indexInNetwork)}`
+				[BeaconValidatorSelector.NetworkIndexInNetwork]: {
+					resolve: async ({ $network, indexInNetwork }) => {
+						const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
+						const summary = await getValidatorSummaryAtHead(
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							indexInNetwork
 						)
-					}
-					return {
-						balanceGwei: summary.balanceGwei,
-						effectiveBalanceGwei: summary.effectiveBalanceGwei,
-						pubkey: summary.pubkey,
-						slashed: summary.slashed,
-						status: summary.status,
-					}
+						if (summary == null) {
+							throw new Error(
+								`Beacon_Rest: validator summary not returned for index ${String(indexInNetwork)}`
+							)
+						}
+						return {
+							balanceGwei: summary.balanceGwei,
+							effectiveBalanceGwei: summary.effectiveBalanceGwei,
+							pubkey: summary.pubkey,
+							slashed: summary.slashed,
+							status: summary.status,
+						}
+					},
 				},
 			},
 		})({
@@ -177,18 +185,20 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconCommittee,
 			resolve: {
-				[BeaconCommitteeSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
-					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
-					const committee = (
-						await getCommittees(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							String(slot)
-						)
-					).find((committee) => committee.index === indexInSlot)
-					if (committee == null) throw new Error('Beacon_Rest: committee not found')
-					return {
-						validatorIndices: committee.validatorIndices,
-					}
+				[BeaconCommitteeSelector.EvmNetworkSlotIndexInSlot]: {
+					resolve: async ({ $network, slot, indexInSlot }) => {
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+						const committee = (
+							await getCommittees(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								String(slot)
+							)
+						).find((committee) => committee.index === indexInSlot)
+						if (committee == null) throw new Error('Beacon_Rest: committee not found')
+						return {
+							validatorIndices: committee.validatorIndices,
+						}
+					},
 				},
 			},
 		})({
@@ -198,16 +208,18 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSyncCommittee,
 			resolve: {
-				[BeaconSyncCommitteeSelector.EvmNetworkPeriod]: async ({ $network }) => {
-					const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
-					const committee = await getSyncCommittee(
-						await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						'head'
-					)
-					if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
-					return {
-						validatorIndices: committee.validatorIndices,
-					}
+				[BeaconSyncCommitteeSelector.EvmNetworkPeriod]: {
+					resolve: async ({ $network }) => {
+						const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
+						const committee = await getSyncCommittee(
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							'head'
+						)
+						if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
+						return {
+							validatorIndices: committee.validatorIndices,
+						}
+					},
 				},
 			},
 		})({
@@ -217,19 +229,21 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
-				[BeaconAttestationSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					const attestation = (
-						await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)
-					).attestations.find((committee) => committee.index === indexInSlot)
-					if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
-					return {
-						...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
-						...(attestation.aggregationBits != null && { aggregationBits: attestation.aggregationBits }),
-					}
+				[BeaconAttestationSelector.EvmNetworkSlotIndexInSlot]: {
+					resolve: async ({ $network, slot, indexInSlot }) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						const attestation = (
+							await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)
+						).attestations.find((committee) => committee.index === indexInSlot)
+						if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
+						return {
+							...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
+							...(attestation.aggregationBits != null && { aggregationBits: attestation.aggregationBits }),
+						}
+					},
 				},
 			},
 		})({
@@ -240,34 +254,36 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
-				[BeaconWithdrawalSelector.EvmNetworkSlotIndexInSlot]: async ({ $network, slot, indexInSlot }) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					const withdrawal = (
-						await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)
-					).withdrawals.find((committee) => committee.index === indexInSlot)
-					if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
-					return {
-						...(withdrawal.validatorIndex != null && {
-							validatorIndex: withdrawal.validatorIndex,
-							$validator: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									indexInNetwork: withdrawal.validatorIndex,
+				[BeaconWithdrawalSelector.EvmNetworkSlotIndexInSlot]: {
+					resolve: async ({ $network, slot, indexInSlot }) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						const withdrawal = (
+							await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)
+						).withdrawals.find((committee) => committee.index === indexInSlot)
+						if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
+						return {
+							...(withdrawal.validatorIndex != null && {
+								validatorIndex: withdrawal.validatorIndex,
+								$validator: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										indexInNetwork: withdrawal.validatorIndex,
+									},
 								},
-							},
-						}),
-						...(withdrawal.address != null && {
-							$account: {
-								[EntityMetaKey.Selector]: {
-									address: with0xHex(withdrawal.address),
+							}),
+							...(withdrawal.address != null && {
+								$account: {
+									[EntityMetaKey.Selector]: {
+										address: with0xHex(withdrawal.address),
+									},
 								},
-							},
-						}),
-						...(withdrawal.amountGwei != null && { amountGwei: withdrawal.amountGwei }),
-					}
+							}),
+							...(withdrawal.amountGwei != null && { amountGwei: withdrawal.amountGwei }),
+						}
+					},
 				},
 			},
 		})({
@@ -280,24 +296,26 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlashing,
 			resolve: {
-				[BeaconSlashingSelector.EvmNetworkSlotKindIndexInSlot]: async ({ $network, slot, kind, indexInSlot }) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					const slashing = (
-						await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)
-					).slashings.find((candidate) => (
-						candidate.kind === kind
-						&& candidate.index === indexInSlot
-					))
-					if (slashing == null) throw new Error('Beacon_Rest: slashing not found')
-					return {
-						$network,
-						slot,
-						kind: slashing.kind,
-						indexInSlot: slashing.index,
-					}
+				[BeaconSlashingSelector.EvmNetworkSlotKindIndexInSlot]: {
+					resolve: async ({ $network, slot, kind, indexInSlot }) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						const slashing = (
+							await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)
+						).slashings.find((candidate) => (
+							candidate.kind === kind
+							&& candidate.index === indexInSlot
+						))
+						if (slashing == null) throw new Error('Beacon_Rest: slashing not found')
+						return {
+							$network,
+							slot,
+							kind: slashing.kind,
+							indexInSlot: slashing.index,
+						}
+					},
 				},
 			},
 		})({
@@ -310,22 +328,24 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
 			resolve: {
-				[EthereumBeaconFinality_TimestampSelector.EvmNetworkTimestampMs]: async ({ $network }) => {
-					const chainId = Number($network.caip2.reference)
-					const checkpoints = await beaconFinalityCheckpointsForChain(chainId)
-					if (checkpoints == null) {
-						throw new Error(
-							`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`
-						)
-					}
-					return {
-						currentJustifiedCheckpointEpoch: checkpoints.currentJustified.epoch,
-						currentJustifiedCheckpointRoot: checkpoints.currentJustified.root,
-						previousJustifiedCheckpointEpoch: checkpoints.previousJustified.epoch,
-						previousJustifiedCheckpointRoot: checkpoints.previousJustified.root,
-						finalizedCheckpointEpoch: checkpoints.finalized.epoch,
-						finalizedCheckpointRoot: checkpoints.finalized.root,
-					}
+				[EthereumBeaconFinality_TimestampSelector.EvmNetworkTimestampMs]: {
+					resolve: async ({ $network }) => {
+						const chainId = Number($network.caip2.reference)
+						const checkpoints = await beaconFinalityCheckpointsForChain(chainId)
+						if (checkpoints == null) {
+							throw new Error(
+								`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`
+							)
+						}
+						return {
+							currentJustifiedCheckpointEpoch: checkpoints.currentJustified.epoch,
+							currentJustifiedCheckpointRoot: checkpoints.currentJustified.root,
+							previousJustifiedCheckpointEpoch: checkpoints.previousJustified.epoch,
+							previousJustifiedCheckpointRoot: checkpoints.previousJustified.root,
+							finalizedCheckpointEpoch: checkpoints.finalized.epoch,
+							finalizedCheckpointRoot: checkpoints.finalized.root,
+						}
+					},
 				},
 			},
 		})({
@@ -340,18 +360,20 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
-				[BeaconEpochSelector.EvmNetworkEpoch]: async ({ $network, epoch }, context) => (
-					Array.from(
-						{ length: Math.min(resolverContextRowLimit(context), slotsPerEpoch) },
-						(_, i) => (epoch * slotsPerEpoch) + i
-					)
-						.map((slot) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								slot,
-							},
-						}))
-				),
+				[BeaconEpochSelector.EvmNetworkEpoch]: {
+					resolve: async ({ $network, epoch }, context) => (
+						Array.from(
+							{ length: Math.min(resolverContextRowLimit(context), slotsPerEpoch) },
+							(_, i) => (epoch * slotsPerEpoch) + i
+						)
+							.map((slot) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									slot,
+								},
+							}))
+					),
+				},
 			},
 		})({
 				$$beaconSlots: (epoch) => epoch,
@@ -360,32 +382,34 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					const headEpoch = Math.floor(await getHeadSlot(base) / slotsPerEpoch)
-					return (
-						Array.from(
-							{ length: resolverContextRowLimit(context) },
-							(_, i) => headEpoch - i
-						)
-							.flatMap((epoch) => (
-								epoch < 0 ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												$network: { caip2 },
-												epoch,
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						const headEpoch = Math.floor(await getHeadSlot(base) / slotsPerEpoch)
+						return (
+							Array.from(
+								{ length: resolverContextRowLimit(context) },
+								(_, i) => headEpoch - i
+							)
+								.flatMap((epoch) => (
+									epoch < 0 ?
+										[]
+									:
+										[
+											{
+												[EntityMetaKey.Selector]: {
+													$network: { caip2 },
+													epoch,
+												},
 											},
-										},
-									]
-							))
-					)
+										]
+								))
+						)
+					},
 				},
 			},
 		})({
@@ -397,32 +421,34 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					const headSlot = await getHeadSlot(base)
-					return (
-						Array.from(
-							{ length: resolverContextRowLimit(context) },
-							(_, i) => headSlot - i
-						)
-							.flatMap((slot) => (
-								slot < 0 ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: {
-												$network: { caip2 },
-												slot,
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						const headSlot = await getHeadSlot(base)
+						return (
+							Array.from(
+								{ length: resolverContextRowLimit(context) },
+								(_, i) => headSlot - i
+							)
+								.flatMap((slot) => (
+									slot < 0 ?
+										[]
+									:
+										[
+											{
+												[EntityMetaKey.Selector]: {
+													$network: { caip2 },
+													slot,
+												},
 											},
-										},
-									]
-							))
-					)
+										]
+								))
+						)
+					},
 				},
 			},
 		})({
@@ -434,26 +460,28 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
-					const limit = resolverContextRowLimit(context)
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					return (
-						(await getRecentProposerValidatorIndices({
-							beaconRestBaseUrl: base,
-							limit,
-							slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
-						}))
-							.map((validatorIndex) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									indexInNetwork: validatorIndex,
-								},
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						return (
+							(await getRecentProposerValidatorIndices({
+								beaconRestBaseUrl: base,
+								limit,
+								slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
 							}))
-					)
+								.map((validatorIndex) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										indexInNetwork: validatorIndex,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -465,22 +493,24 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }, context) => {
-					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
-					return (
-						(await getCommittees(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							String(slot)
-						))
-							.slice(0, resolverContextRowLimit(context))
-							.map((committee) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									slot,
-									indexInSlot: committee.index,
-								},
-							}))
-					)
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ $network, slot }, context) => {
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+						return (
+							(await getCommittees(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								String(slot)
+							))
+								.slice(0, resolverContextRowLimit(context))
+								.map((committee) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										indexInSlot: committee.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -490,22 +520,24 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }, context) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					return (
-						(await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)).attestations
-							.slice(0, resolverContextRowLimit(context))
-							.map((attestation) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									slot,
-									indexInSlot: attestation.index,
-								},
-							}))
-					)
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ $network, slot }, context) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						return (
+							(await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)).attestations
+								.slice(0, resolverContextRowLimit(context))
+								.map((attestation) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										indexInSlot: attestation.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -515,22 +547,24 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }, context) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					return (
-						(await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)).withdrawals
-							.slice(0, resolverContextRowLimit(context))
-							.map((withdrawal) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									slot,
-									indexInSlot: withdrawal.index,
-								},
-							}))
-					)
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ $network, slot }, context) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						return (
+							(await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)).withdrawals
+								.slice(0, resolverContextRowLimit(context))
+								.map((withdrawal) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										indexInSlot: withdrawal.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -540,23 +574,25 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
-				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }, context) => {
-					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
-					return (
-						(await getBlockDutySummary(
-							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot
-						)).slashings
-							.slice(0, resolverContextRowLimit(context))
-							.map((slashing) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									slot,
-									kind: slashing.kind,
-									indexInSlot: slashing.index,
-								},
-							}))
-					)
+				[BeaconSlotSelector.EvmNetworkSlot]: {
+					resolve: async ({ $network, slot }, context) => {
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+						return (
+							(await getBlockDutySummary(
+								await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+								slot
+							)).slashings
+								.slice(0, resolverContextRowLimit(context))
+								.map((slashing) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										kind: slashing.kind,
+										indexInSlot: slashing.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -566,23 +602,25 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					return (
-						(await getCommittees(base))
-							.slice(0, resolverContextRowLimit(context))
-							.map((committee) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									slot: committee.slot,
-									indexInSlot: committee.index,
-								},
-							}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						return (
+							(await getCommittees(base))
+								.slice(0, resolverContextRowLimit(context))
+								.map((committee) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										slot: committee.slot,
+										indexInSlot: committee.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -594,20 +632,22 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$network: { caip2 },
-								period: Math.floor(Math.floor(await getHeadSlot(base) / slotsPerEpoch) / 256),
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: { caip2 },
+									period: Math.floor(Math.floor(await getHeadSlot(base) / slotsPerEpoch) / 256),
+								},
 							},
-						},
-					]
+						]
+					},
 				},
 			},
 		})({
@@ -619,24 +659,26 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					const slot = await getHeadSlot(base)
-					return (
-						(await getBlockDutySummary(base, slot)).attestations
-							.slice(0, resolverContextRowLimit(context))
-							.map((attestation) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									slot,
-									indexInSlot: attestation.index,
-								},
-							}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						const slot = await getHeadSlot(base)
+						return (
+							(await getBlockDutySummary(base, slot)).attestations
+								.slice(0, resolverContextRowLimit(context))
+								.map((attestation) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										slot,
+										indexInSlot: attestation.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -648,24 +690,26 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					const slot = await getHeadSlot(base)
-					return (
-						(await getBlockDutySummary(base, slot)).withdrawals
-							.slice(0, resolverContextRowLimit(context))
-							.map((withdrawal) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									slot,
-									indexInSlot: withdrawal.index,
-								},
-							}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						const slot = await getHeadSlot(base)
+						return (
+							(await getBlockDutySummary(base, slot)).withdrawals
+								.slice(0, resolverContextRowLimit(context))
+								.map((withdrawal) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										slot,
+										indexInSlot: withdrawal.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -677,25 +721,27 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
-					const chainId = Number(caip2.reference)
-					const base = await beaconRestBaseUrl(chainId)
-					if (base == null)
-						return []
-					const slot = await getHeadSlot(base)
-					return (
-						(await getBlockDutySummary(base, slot)).slashings
-							.slice(0, resolverContextRowLimit(context))
-							.map((slashing) => ({
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									slot,
-									kind: slashing.kind,
-									indexInSlot: slashing.index,
-								},
-							}))
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+						const chainId = Number(caip2.reference)
+						const base = await beaconRestBaseUrl(chainId)
+						if (base == null)
+							return []
+						const slot = await getHeadSlot(base)
+						return (
+							(await getBlockDutySummary(base, slot)).slashings
+								.slice(0, resolverContextRowLimit(context))
+								.map((slashing) => ({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										slot,
+										kind: slashing.kind,
+										indexInSlot: slashing.index,
+									},
+								}))
+						)
+					},
 				},
 			},
 		})({
@@ -707,14 +753,21 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }) => [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: { caip2 },
-							timestampMs: Date.now(),
-						},
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }) => {
+						if (await beaconRestBaseUrl(Number(caip2.reference)) == null)
+							return []
+
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: { caip2 },
+									timestampMs: Date.now(),
+								},
+							},
+						]
 					},
-				],
+				},
 			},
 		})({
 				Evm: {
@@ -725,12 +778,16 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
-				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async (selector) => (
-					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
-				),
-				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async (selector) => (
-					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
-				),
+				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async (selector) => (
+						(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
+					),
+				},
+				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: {
+					resolve: async (selector) => (
+						(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
+					),
+				},
 			},
 		})({
 				previousForkVersion: (upgrade) => upgrade,
@@ -739,12 +796,16 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
-				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async (selector) => (
-					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
-				),
-				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async (selector) => (
-					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
-				),
+				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: {
+					resolve: async (selector) => (
+						(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
+					),
+				},
+				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: {
+					resolve: async (selector) => (
+						(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
+					),
+				},
 			},
 		})({
 				currentForkVersion: (upgrade) => upgrade,

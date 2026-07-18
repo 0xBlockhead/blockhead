@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiDynamicFieldEdge = $derived(selection({}))
+	const suiDynamicFieldEdge = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui dynamic field edge')
 	const viewDomId = $derived('sui-dynamic-field-edge-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiDynamicFieldEdge}>
-			{#snippet Pending()}
-				{title || 'Sui dynamic field edge'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiDynamicFieldEdge}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fieldNameHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fieldNameHash = pendingEntity.fieldNameHash}
-							{#if fieldNameHash !== undefined && fieldNameHash !== null}
-								<TruncatedValue value={String((fieldNameHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fieldNameHash = resolvedEntity.fieldNameHash}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									childObjectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const childObjectId = pendingEntity.childObjectId}
-							{#if childObjectId !== undefined && childObjectId !== null}
-								{String((childObjectId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const childObjectId = resolvedEntity.childObjectId}

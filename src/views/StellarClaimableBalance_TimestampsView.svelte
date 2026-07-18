@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarClaimableBalance_TimestampView from '$/views/StellarClaimableBalance_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarClaimableBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarClaimableBalance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarClaimableBalanceTimestamps) => [...new Map(stellarClaimableBalanceTimestamps.values.map((stellarClaimableBalanceTimestamp) => [stellarClaimableBalanceTimestamp[EntityMetaKey.SelectorKey], stellarClaimableBalanceTimestamp])).values()]}
+	getKey={(stellarClaimableBalanceTimestamp) => stellarClaimableBalanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar claimable balance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarClaimableBalanceTimestamps)}
-			{@const uniqueStellarClaimableBalanceTimestamps = [...new Map(stellarClaimableBalanceTimestamps.values.map((stellarClaimableBalanceTimestamp) => [stellarClaimableBalanceTimestamp[EntityMetaKey.SelectorKey], stellarClaimableBalanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarClaimableBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarClaimableBalanceTimestamps.totalCount}
-				getKey={(stellarClaimableBalanceTimestamp) => stellarClaimableBalanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarClaimableBalanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar claimable balance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarClaimableBalanceTimestamp })}
-					{@const stellarClaimableBalanceTimestampFields = { ...stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], ...stellarClaimableBalanceTimestamp }}
-					{@const selection = select(EntityType.StellarClaimableBalance_Timestamp, stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarClaimableBalance_TimestampView
-						selection={selection}
-						prefetched={stellarClaimableBalanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarClaimableBalance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarClaimableBalanceTimestamp })}
+		{@const stellarClaimableBalanceTimestampFields = { ...stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], ...stellarClaimableBalanceTimestamp }}
+		{@const selection = select(EntityType.StellarClaimableBalance_Timestamp, stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarClaimableBalance_TimestampView
+			selection={selection}
+			prefetched={stellarClaimableBalanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

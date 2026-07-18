@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearValidatorView from '$/views/NearValidatorView.svelte'
 </script>
@@ -62,81 +61,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.NearRpc_JsonRpc,
-				],
-				fields: {
-					accountId: true,
-					stakeYoctoNear: true,
-					isSlashed: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+			fields: {
+				accountId: true,
+				stakeYoctoNear: true,
+				isSlashed: true,
+			},
+		})
+	}
+	getResourceItems={(nearValidators) => [...new Map(nearValidators.values.map((nearValidator) => [nearValidator[EntityMetaKey.SelectorKey], nearValidator])).values()]}
+	getKey={(nearValidator) => nearValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearValidators)}
-			{@const uniqueNearValidators = [...new Map(nearValidators.values.map((nearValidator) => [nearValidator[EntityMetaKey.SelectorKey], nearValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearValidators.totalCount}
-				getKey={(nearValidator) => nearValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueNearValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearValidator })}
-					{@const nearValidatorFields = { ...nearValidator[EntityMetaKey.Selector], ...nearValidator }}
-					{@const selection = select(EntityType.NearValidator, nearValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearValidatorView
-						selection={selection}
-						prefetched={nearValidatorFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearValidator })}
+		{@const nearValidatorFields = { ...nearValidator[EntityMetaKey.Selector], ...nearValidator }}
+		{@const selection = select(EntityType.NearValidator, nearValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearValidatorView
+			selection={selection}
+			prefetched={nearValidatorFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

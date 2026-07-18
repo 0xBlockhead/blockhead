@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosBlock = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			transactionCount: true,
 		},
@@ -56,7 +57,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import CosmosTransactionsView from '$/views/CosmosTransactionsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -98,26 +98,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosBlock}>
-			{#snippet Pending()}
-				{@const transactionCount0 = pendingEntity.transactionCount}
-				{#if transactionCount0 !== undefined && transactionCount0 !== null}
-					<span data-text="muted">
-						{String((transactionCount0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transactionCount0 = resolvedEntity.transactionCount}
-				{#if transactionCount0 !== undefined && transactionCount0 !== null}
-					<span data-text="muted">
-						{String((transactionCount0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const transactionCount0 = pendingEntity.transactionCount}
+			{#if transactionCount0 !== undefined && transactionCount0 !== null}
+				<span data-text="muted">
+					{String((transactionCount0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cosmosBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionCount0 = resolvedEntity.transactionCount}
+					{#if transactionCount0 !== undefined && transactionCount0 !== null}
+						<span data-text="muted">
+							{String((transactionCount0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									height: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const height = pendingEntity.height}
-							{#if height !== undefined && height !== null}
-								{String((height) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const height = resolvedEntity.height}
@@ -158,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -185,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							proposerConsensusAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const proposerConsensusAddress = pendingEntity.proposerConsensusAddress}
-					{#if proposerConsensusAddress !== undefined && proposerConsensusAddress !== null}
-						<div>
-							<dt>Proposer consensus address</dt>
-							<dd>
-								<TruncatedValue value={String((proposerConsensusAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const proposerConsensusAddress = resolvedEntity.proposerConsensusAddress}
@@ -220,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -255,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionCount = pendingEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
-						<div>
-							<dt>Transaction count</dt>
-							<dd>
-								{String((transactionCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionCount = resolvedEntity.transactionCount}
@@ -305,20 +260,5 @@
 				</dd>
 			</div>
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CosmosTransactionsView
-				selection={
-						selection.$$transactions({
-							count: true,
-						})
-					}
-				title='Transactions'
-				emptyText='No Cosmos transactions.'
-				id='CosmosTransactionsView-transactions'
-			/>
-		{/if}
 	{/snippet}
 </EntityView>

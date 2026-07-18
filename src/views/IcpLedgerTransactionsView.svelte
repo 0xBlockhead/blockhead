@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpLedgerTransactionView from '$/views/IcpLedgerTransactionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpLedgerTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpLedgerTransactions) => [...new Map(icpLedgerTransactions.values.map((icpLedgerTransaction) => [icpLedgerTransaction[EntityMetaKey.SelectorKey], icpLedgerTransaction])).values()]}
+	getKey={(icpLedgerTransaction) => icpLedgerTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP ledger transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpLedgerTransactions)}
-			{@const uniqueIcpLedgerTransactions = [...new Map(icpLedgerTransactions.values.map((icpLedgerTransaction) => [icpLedgerTransaction[EntityMetaKey.SelectorKey], icpLedgerTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpLedgerTransactions.totalCount}
-				getKey={(icpLedgerTransaction) => icpLedgerTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpLedgerTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP ledger transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpLedgerTransaction })}
-					{@const icpLedgerTransactionFields = { ...icpLedgerTransaction[EntityMetaKey.Selector], ...icpLedgerTransaction }}
-					{@const selection = select(EntityType.IcpLedgerTransaction, icpLedgerTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpLedgerTransactionView
-						selection={selection}
-						prefetched={icpLedgerTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpLedgerTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpLedgerTransaction })}
+		{@const icpLedgerTransactionFields = { ...icpLedgerTransaction[EntityMetaKey.Selector], ...icpLedgerTransaction }}
+		{@const selection = select(EntityType.IcpLedgerTransaction, icpLedgerTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpLedgerTransactionView
+			selection={selection}
+			prefetched={icpLedgerTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

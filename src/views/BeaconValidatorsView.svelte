@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInNetwork: true,
-					status: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BeaconValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				indexInNetwork: true,
+				status: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(beaconValidators) => [...new Map(beaconValidators.values.map((beaconValidator) => [beaconValidator[EntityMetaKey.SelectorKey], beaconValidator])).values()]}
+	getKey={(beaconValidator) => beaconValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Beacon validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(beaconValidators)}
-			{@const uniqueBeaconValidators = [...new Map(beaconValidators.values.map((beaconValidator) => [beaconValidator[EntityMetaKey.SelectorKey], beaconValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconValidators.totalCount}
-				getKey={(beaconValidator) => beaconValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueBeaconValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Beacon validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: beaconValidator })}
-					{@const beaconValidatorFields = { ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }}
-					{@const selection = select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const beaconValidatorHrefFields = { ...beaconValidator, ...beaconValidator[EntityMetaKey.Selector] }}
-					<BeaconValidatorView
-						selection={selection}
-						prefetched={beaconValidatorFields}
-						href={
-							(beaconValidatorHrefFields.indexInNetwork !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
-								network: String(caip2StringFromValue(beaconValidatorHrefFields.$network.caip2) ?? ''),
-							}) : beaconValidatorHrefFields.indexInNetwork !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
-								network: String(beaconValidatorHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BeaconValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: beaconValidator })}
+		{@const beaconValidatorFields = { ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }}
+		{@const selection = select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const beaconValidatorHrefFields = { ...beaconValidator, ...beaconValidator[EntityMetaKey.Selector] }}
+		<BeaconValidatorView
+			selection={selection}
+			prefetched={beaconValidatorFields}
+			href={
+				(beaconValidatorHrefFields.indexInNetwork !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+					validatorId: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
+					network: String(caip2StringFromValue(beaconValidatorHrefFields.$network.caip2) ?? ''),
+				}) : beaconValidatorHrefFields.indexInNetwork !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+					validatorId: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
+					network: String(beaconValidatorHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

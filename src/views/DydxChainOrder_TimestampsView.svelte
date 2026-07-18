@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainOrder_TimestampView from '$/views/DydxChainOrder_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainOrder_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainOrder_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainOrderTimestamps) => [...new Map(dydxChainOrderTimestamps.values.map((dydxChainOrderTimestamp) => [dydxChainOrderTimestamp[EntityMetaKey.SelectorKey], dydxChainOrderTimestamp])).values()]}
+	getKey={(dydxChainOrderTimestamp) => dydxChainOrderTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain order observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainOrderTimestamps)}
-			{@const uniqueDydxChainOrderTimestamps = [...new Map(dydxChainOrderTimestamps.values.map((dydxChainOrderTimestamp) => [dydxChainOrderTimestamp[EntityMetaKey.SelectorKey], dydxChainOrderTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainOrder_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainOrderTimestamps.totalCount}
-				getKey={(dydxChainOrderTimestamp) => dydxChainOrderTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainOrderTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain order observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainOrderTimestamp })}
-					{@const dydxChainOrderTimestampFields = { ...dydxChainOrderTimestamp[EntityMetaKey.Selector], ...dydxChainOrderTimestamp }}
-					{@const selection = select(EntityType.DydxChainOrder_Timestamp, dydxChainOrderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainOrder_TimestampView
-						selection={selection}
-						prefetched={dydxChainOrderTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainOrder_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainOrderTimestamp })}
+		{@const dydxChainOrderTimestampFields = { ...dydxChainOrderTimestamp[EntityMetaKey.Selector], ...dydxChainOrderTimestamp }}
+		{@const selection = select(EntityType.DydxChainOrder_Timestamp, dydxChainOrderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainOrder_TimestampView
+			selection={selection}
+			prefetched={dydxChainOrderTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

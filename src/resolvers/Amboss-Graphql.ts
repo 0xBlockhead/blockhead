@@ -27,27 +27,29 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
-				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }) => {
-					assertLightningNetwork($network)
-					const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-					const edge = await getEdge({ channelId: channelId })
-					const edgeInfo = edge.graph?.info
+				[LightningChannelSelector.NetworkChannelId]: {
+					resolve: async ({ $network, channelId }) => {
+						assertLightningNetwork($network)
+						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
+						const edge = await getEdge({ channelId: channelId })
+						const edgeInfo = edge.graph?.info
 
-					return {
-						[EntityMetaKey.Selector]: {
-							$network,
-							channelId: edge.long_channel_id,
-						},
-						shortChannelId: edge.short_channel_id,
-						...(edgeInfo?.node2_pub != null && {
-							$node1: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									publicKey: edgeInfo.node2_pub,
-								},
+						return {
+							[EntityMetaKey.Selector]: {
+								$network,
+								channelId: edge.long_channel_id,
 							},
-						}),
-					}
+							shortChannelId: edge.short_channel_id,
+							...(edgeInfo?.node2_pub != null && {
+								$node1: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										publicKey: edgeInfo.node2_pub,
+									},
+								},
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -58,18 +60,20 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
-					assertLightningNetwork($network)
-					const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
-					const pubkeys = await getPopularNodePubkeys()
-					return pubkeys
-						.slice(0, resolverContextRowLimit(context))
-						.map((publicKey) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								publicKey,
-							},
-						}))
+				[LightningNetworkSelector.Network]: {
+					resolve: async ({ $network }, context) => {
+						assertLightningNetwork($network)
+						const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
+						const pubkeys = await getPopularNodePubkeys()
+						return pubkeys
+							.slice(0, resolverContextRowLimit(context))
+							.map((publicKey) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									publicKey,
+								},
+							}))
+					},
 				}
 			},
 		})({

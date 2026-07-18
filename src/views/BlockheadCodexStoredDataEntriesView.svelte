@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCodexStoredDataView from '$/views/BlockheadCodexStoredDataView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					cid: true,
-					$nodeState: true,
-					firstSeenAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCodexStoredData}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCodexStoredData}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				cid: true,
+				$nodeState: true,
+				firstSeenAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCodexStoredDataEntries) => [...new Map(blockheadCodexStoredDataEntries.values.map((blockheadCodexStoredData) => [blockheadCodexStoredData[EntityMetaKey.SelectorKey], blockheadCodexStoredData])).values()]}
+	getKey={(blockheadCodexStoredData) => blockheadCodexStoredData[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead codex stored data entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCodexStoredDataEntries)}
-			{@const uniqueBlockheadCodexStoredDataEntries = [...new Map(blockheadCodexStoredDataEntries.values.map((blockheadCodexStoredData) => [blockheadCodexStoredData[EntityMetaKey.SelectorKey], blockheadCodexStoredData])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCodexStoredData}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCodexStoredDataEntries.totalCount}
-				getKey={(blockheadCodexStoredData) => blockheadCodexStoredData[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCodexStoredDataEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead codex stored data entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCodexStoredData })}
-					{@const blockheadCodexStoredDataFields = { ...blockheadCodexStoredData[EntityMetaKey.Selector], ...blockheadCodexStoredData }}
-					{@const selection = select(EntityType.BlockheadCodexStoredData, blockheadCodexStoredData[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCodexStoredDataView
-						selection={selection}
-						prefetched={blockheadCodexStoredDataFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCodexStoredData}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCodexStoredData })}
+		{@const blockheadCodexStoredDataFields = { ...blockheadCodexStoredData[EntityMetaKey.Selector], ...blockheadCodexStoredData }}
+		{@const selection = select(EntityType.BlockheadCodexStoredData, blockheadCodexStoredData[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCodexStoredDataView
+			selection={selection}
+			prefetched={blockheadCodexStoredDataFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

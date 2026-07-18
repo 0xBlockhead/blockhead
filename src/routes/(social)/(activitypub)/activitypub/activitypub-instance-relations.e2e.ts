@@ -11,7 +11,7 @@ import {
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 
 
-test('ActivityPub hub renders settled directory and federation sections', async ({ page }, testInfo) => {
+test('ActivityPub hub renders settled directory and observation-owned instances', async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 	const {
@@ -43,7 +43,7 @@ test('ActivityPub hub renders settled directory and federation sections', async 
 		const main = page.locator('#main')
 		await step(expect(main).toContainText('global ActivityPub network'))
 		await step(expect(main).toContainText('Directory'))
-		await step(expect(main).toContainText('Federation'))
+		await step(expect(main).toContainText('Observations'))
 		await step(expect(main.locator('a[href="/activitypub/actors"]')).toHaveText('Actors'))
 		await step(expect(main).toContainText('No ActivityPub actors in this observed.'))
 		await step(main.locator('a[data-scroll-marker-label="Notes"]').click())
@@ -51,9 +51,8 @@ test('ActivityPub hub renders settled directory and federation sections', async 
 		await step(expect(main).toContainText('No ActivityPub notes in this observed.'))
 		await step(main.locator('a[data-scroll-marker-label="Instances"]').click())
 		await step(expect(main).toContainText('No ActivityPub instances declared.'))
-		await step(expect(main).toContainText('No ActivityPub instance peers in this observed.'))
-		await step(main.locator('a[data-scroll-marker-label="Moderated domains"]').click())
-		await step(expect(main).toContainText('No ActivityPub moderated domains in this observed.'))
+		await step(main.locator('a[data-scroll-marker-label="Observations"]').click())
+		await step(expect(main).toContainText('No ActivityPub hub observations yet.'))
 		await step(expect(main).not.toContainText('Internal Error'))
 		await step(expect(main).not.toContainText('[object Object]'))
 		await step(expect(main.getByText(/Loading\b/)).toHaveCount(0))

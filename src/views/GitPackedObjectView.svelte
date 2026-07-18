@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitPackedObject = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			storedKind: true,
 		},
@@ -70,74 +71,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitPackedObject}>
-			{#snippet Pending()}
-				{@const objectId0 = pendingEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const objectId0 = resolvedEntity.objectId}
-				{#if objectId0 !== undefined && objectId0 !== null}
-					<TruncatedValue value={String((objectId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const objectId0 = pendingEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={gitPackedObject}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const objectId0 = resolvedEntity.objectId}
+					{#if objectId0 !== undefined && objectId0 !== null}
+						<TruncatedValue value={String((objectId0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitPackedObject}>
-			{#snippet Pending()}
-				{[String((pendingEntity.storedKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git packed object'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.storedKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.storedKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitPackedObject}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.storedKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitPackedObject}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$packfile}
-				>
-					{#snippet children(gitPackfile)}
-						<span data-text="muted">
-							<GitPackfileView
-								selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
-								prefetched={gitPackfile}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$packfile}
-				>
-					{#snippet children(gitPackfile)}
-						<span data-text="muted">
-							<GitPackfileView
-								selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
-								prefetched={gitPackfile}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$packfile}
+			>
+				{#snippet children(gitPackfile)}
+					{#if gitPackfile != null && gitPackfile[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<GitPackfileView
+							selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
+							prefetched={gitPackfile}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={gitPackedObject}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$packfile}
+					>
+						{#snippet children(gitPackfile)}
+							{#if gitPackfile != null && gitPackfile[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<GitPackfileView
+									selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
+									prefetched={gitPackfile}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +157,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									packHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const packHash = pendingEntity.packHash}
-							{#if packHash !== undefined && packHash !== null}
-								<TruncatedValue value={String((packHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const packHash = resolvedEntity.packHash}
@@ -178,19 +181,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectId = pendingEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectId = resolvedEntity.objectId}
@@ -208,19 +205,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									objectFormat: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const objectFormat = pendingEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const objectFormat = resolvedEntity.objectFormat}
@@ -235,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							offset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const offset = pendingEntity.offset}
-					{#if offset !== undefined && offset !== null}
-						<div>
-							<dt>offset</dt>
-							<dd>
-								<NumberValue value={Number(offset)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const offset = resolvedEntity.offset}
@@ -260,7 +240,9 @@
 						<div>
 							<dt>offset</dt>
 							<dd>
-								<NumberValue value={Number(offset)} />
+								<NumberValue
+									value={offset}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -270,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deltaBaseObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deltaBaseObjectId = pendingEntity.deltaBaseObjectId}
-					{#if deltaBaseObjectId !== undefined && deltaBaseObjectId !== null}
-						<div>
-							<dt>delta base object ID</dt>
-							<dd>
-								{String((deltaBaseObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deltaBaseObjectId = resolvedEntity.deltaBaseObjectId}
@@ -305,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							storedKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const storedKind = pendingEntity.storedKind}
-					{#if storedKind !== undefined && storedKind !== null}
-						<div>
-							<dt>stored kind</dt>
-							<dd>
-								{String((storedKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const storedKind = resolvedEntity.storedKind}
@@ -360,8 +320,6 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

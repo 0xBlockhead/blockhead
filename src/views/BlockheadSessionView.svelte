@@ -9,7 +9,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+	import BlockheadSessionActionsComposer from '$/components/BlockheadSessionActionsComposer.svelte'
 
 
 	// Context
@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadSession = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			status: true,
@@ -64,7 +62,6 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadSessionSimulationView from '$/views/BlockheadSessionSimulationView.svelte'
-	import BlockheadSessionActionsView from '$/views/BlockheadSessionActionsView.svelte'
 	import BlockheadIntentInvocationsView from '$/views/BlockheadIntentInvocationsView.svelte'
 	import BlockheadSessionSimulationsView from '$/views/BlockheadSessionSimulationsView.svelte'
 </script>
@@ -85,52 +82,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSession}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadSession}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadSession}>
-			{#snippet Pending()}
-				{@const updatedAt0 = pendingEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const updatedAt0 = resolvedEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const updatedAt0 = pendingEntity.updatedAt}
+			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(updatedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadSession}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const updatedAt0 = resolvedEntity.updatedAt}
+					{#if updatedAt0 !== undefined && updatedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(updatedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									status: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const status = pendingEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const status = resolvedEntity.status}
@@ -171,19 +162,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}
@@ -201,19 +186,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									updatedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const updatedAt = pendingEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const updatedAt = resolvedEntity.updatedAt}
@@ -228,24 +207,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lockedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lockedAt = pendingEntity.lockedAt}
-					{#if lockedAt !== undefined && lockedAt !== null}
-						<div>
-							<dt>Locked</dt>
-							<dd>
-								<Timestamp timestamp={Number(lockedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lockedAt = resolvedEntity.lockedAt}
@@ -265,8 +233,6 @@
 			<ResourceBoundary
 				resource={selection.$latestSimulation}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
 						<div>
@@ -287,24 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							simulationCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const simulationCount = pendingEntity.simulationCount}
-					{#if simulationCount !== undefined && simulationCount !== null}
-						<div>
-							<dt>Simulation count</dt>
-							<dd>
-								{String((simulationCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const simulationCount = resolvedEntity.simulationCount}
@@ -340,39 +295,36 @@
 				}
 				data-card
 				class='network-view-collapsible-work'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Work</HeadingComponent>
 					</header>
 				{/snippet}
 
 				{#snippet SectionBlockheadSessionActions({ id, label, open })}
-					<BlockheadSessionActionsView
-						selection={
-							selection.$$actions({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No actions.'
-						open={open}
-						title={label}
+					<article
 						id={`${id}-list`}
-					/>
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+					>
+						<BlockheadSessionActionsComposer
+							{selection}
+							{id}
+							{open}
+						/>
+					</article>
 				{/snippet}
 
 				{#snippet SectionBlockheadSessionIntents({ id, label, open })}
 					<BlockheadIntentInvocationsView
-						selection={
-							selection.$$intentInvocations({
-								count: true,
-							})
-						}
+						selection={selection.$$intentInvocations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No intent invocations.'
 						open={open}
 						title={label}
@@ -395,11 +347,8 @@
 				}
 				data-card
 				class='network-view-collapsible-simulations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Simulations</HeadingComponent>
 					</header>
@@ -407,12 +356,12 @@
 
 				{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
 					<BlockheadSessionSimulationsView
-						selection={
-							selection.$$simulations({
-								count: true,
-							})
-						}
+						selection={selection.$$simulations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No simulations.'
 						open={open}
 						title={label}

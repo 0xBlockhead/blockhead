@@ -12,7 +12,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmTokenStandard } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,9 +45,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmTokenTransfer = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			standard: true,
 			amount: true,
@@ -92,16 +89,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmTokenTransfer}>
-			{#snippet Pending()}
-				{(String((pendingEntity.indexInLog) ?? '') ? 'Transfer #' + String((pendingEntity.indexInLog) ?? '') : '') || title || [(String((pendingEntity.indexInLog) ?? '') ? '#' + String((pendingEntity.indexInLog) ?? '') : '')].filter(Boolean).join(' ') || 'Token transfer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.standard) ?? ''), String((resolvedEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.standard) ?? ''), String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmTokenTransfer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.standard) ?? ''), String((resolvedEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -121,20 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInLog: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInLog = pendingEntity.indexInLog}
-							{#if indexInLog !== undefined && indexInLog !== null}
-								<span>#</span>
-								{String((indexInLog) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInLog = resolvedEntity.indexInLog}
@@ -177,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									standard: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const standard = pendingEntity.standard}
-							{#if standard !== undefined && standard !== null}
-								{String((standard) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const standard = resolvedEntity.standard}
@@ -207,24 +191,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									amount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amount = pendingEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amount = resolvedEntity.amount}
 							{#if amount !== undefined && amount !== null}
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -240,18 +220,13 @@
 							<dt>Token ID</dt>
 							<dd>
 								<ResourceBoundary
-									resource={
-										projection.tokenId({
-											fields: {
-												tokenId: true,
-											},
-										})
-									}
+									resource={projection.tokenId}
 								>
-									{#snippet Pending()}{/snippet}
 									{#snippet children(tokenId)}
 										{#if tokenId !== undefined && tokenId !== null}
-											<NumberValue value={Number(tokenId)} />
+											<NumberValue
+												value={tokenId}
+											/>
 										{/if}
 									{/snippet}
 								</ResourceBoundary>
@@ -264,8 +239,6 @@
 			<ResourceBoundary
 				resource={selection.$from}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -291,8 +264,6 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -318,8 +289,6 @@
 			<ResourceBoundary
 				resource={selection.$coinInstance}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -350,8 +319,6 @@
 				<ResourceBoundary
 					resource={selection.$tokenContract}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(evmContract)}
 						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 							<div>
@@ -383,28 +350,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Blockscout_Rest,
-								Source.Etherscan_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								tokenSymbol: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const tokenSymbol = pendingEntity.tokenSymbol}
-						{#if tokenSymbol !== undefined && tokenSymbol !== null}
-							<div>
-								<dt>Token symbol</dt>
-								<dd>
-									{String((tokenSymbol) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const tokenSymbol = resolvedEntity.tokenSymbol}
@@ -424,28 +376,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Blockscout_Rest,
-								Source.Etherscan_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								tokenName: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const tokenName = pendingEntity.tokenName}
-						{#if tokenName !== undefined && tokenName !== null}
-							<div>
-								<dt>Token name</dt>
-								<dd>
-									{String((tokenName) ?? '')}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const tokenName = resolvedEntity.tokenName}
@@ -465,28 +402,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							sources: [
-								Source.Blockscout_Rest,
-								Source.Etherscan_Rest,
-							],
+							sources: selection.sources,
 							fields: {
 								tokenDecimals: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const tokenDecimals = pendingEntity.tokenDecimals}
-						{#if tokenDecimals !== undefined && tokenDecimals !== null}
-							<div>
-								<dt>Token decimals</dt>
-								<dd>
-									<NumberValue value={Number(tokenDecimals)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const tokenDecimals = resolvedEntity.tokenDecimals}
@@ -494,7 +416,9 @@
 							<div>
 								<dt>Token decimals</dt>
 								<dd>
-									<NumberValue value={Number(tokenDecimals)} />
+									<NumberValue
+										value={tokenDecimals}
+									/>
 								</dd>
 							</div>
 						{/if}

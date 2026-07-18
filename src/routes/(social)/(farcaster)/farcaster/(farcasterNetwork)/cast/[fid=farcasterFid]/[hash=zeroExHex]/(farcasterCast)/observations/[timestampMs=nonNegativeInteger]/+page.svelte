@@ -20,7 +20,7 @@
 	const pageSelection = $derived(select(EntityType.FarcasterCast_Timestamp, {
 		$cast: {
 			fid: Number(params.fid),
-			hash: decodeURIComponent(params.hash),
+			hash: params.hash,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

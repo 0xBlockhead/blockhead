@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarAccountTimestamp = $derived(selection({}))
+	const stellarAccountTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar account timestamp')
 	const viewDomId = $derived('stellar-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarAccountTimestamp}>
-			{#snippet Pending()}
-				{title || 'stellar account timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ledgerSequence: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ledgerSequence = pendingEntity.ledgerSequence}
-					{#if ledgerSequence !== undefined && ledgerSequence !== null}
-						<div>
-							<dt>ledger sequence</dt>
-							<dd>
-								{String((ledgerSequence) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ledgerSequence = resolvedEntity.ledgerSequence}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sequence: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sequence = pendingEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
-						<div>
-							<dt>sequence</dt>
-							<dd>
-								{String((sequence) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sequence = resolvedEntity.sequence}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nativeBalance: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nativeBalance = pendingEntity.nativeBalance}
-					{#if nativeBalance !== undefined && nativeBalance !== null}
-						<div>
-							<dt>native balance</dt>
-							<dd>
-								{String((nativeBalance) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nativeBalance = resolvedEntity.nativeBalance}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subentryCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subentryCount = pendingEntity.subentryCount}
-					{#if subentryCount !== undefined && subentryCount !== null}
-						<div>
-							<dt>subentry count</dt>
-							<dd>
-								{String((subentryCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subentryCount = resolvedEntity.subentryCount}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signerCount = pendingEntity.signerCount}
-					{#if signerCount !== undefined && signerCount !== null}
-						<div>
-							<dt>signer count</dt>
-							<dd>
-								{String((signerCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signerCount = resolvedEntity.signerCount}

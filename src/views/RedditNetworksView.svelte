@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditNetworkView from '$/views/RedditNetworkView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RedditNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+			},
+		})
+	}
+	getResourceItems={(redditNetworks) => [...new Map(redditNetworks.values.map((redditNetwork) => [redditNetwork[EntityMetaKey.SelectorKey], redditNetwork])).values()]}
+	getKey={(redditNetwork) => redditNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Reddit networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(redditNetworks)}
-			{@const uniqueRedditNetworks = [...new Map(redditNetworks.values.map((redditNetwork) => [redditNetwork[EntityMetaKey.SelectorKey], redditNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditNetworks.totalCount}
-				getKey={(redditNetwork) => redditNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueRedditNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Reddit networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: redditNetwork })}
-					{@const redditNetworkFields = { ...redditNetwork[EntityMetaKey.Selector], ...redditNetwork }}
-					{@const selection = select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RedditNetworkView
-						selection={selection}
-						prefetched={redditNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RedditNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: redditNetwork })}
+		{@const redditNetworkFields = { ...redditNetwork[EntityMetaKey.Selector], ...redditNetwork }}
+		{@const selection = select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RedditNetworkView
+			selection={selection}
+			prefetched={redditNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

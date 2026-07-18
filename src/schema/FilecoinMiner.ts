@@ -28,50 +28,19 @@ export const FilecoinMiner = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	$owner: {
-		label: 'Owner',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.FilecoinActor,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
-	$worker: {
-		label: 'Worker',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.FilecoinActor,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
-	peerId: {
-		label: 'Peer ID',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
-	qualityAdjustedPower: {
-		label: 'Quality adjusted power',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
 	$$sectors: {
 		label: 'Sectors',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FilecoinSector,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
+	},
+	$$timestamps: {
+		label: 'Observations',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.FilecoinMiner_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Lotus_JsonRpc,

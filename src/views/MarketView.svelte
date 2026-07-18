@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import Projection from '$/components/Projection.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,7 +47,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const market = $derived(selection({}))
+	const market = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Market')
 	const viewDomId = $derived('market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -54,6 +57,7 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
@@ -80,6 +84,15 @@
 	bind:open
 	{...EntityViewProps}
 >
+
+	{#snippet Icon()}
+		<ResourceBoundary resource={market}>
+			{#snippet children(entity)}
+				<IconComponent />
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		{selection.entitySelector.$marketVenue.marketVenueId}:{selection.entitySelector.$base.assetKey}-{selection.entitySelector.$quote.assetKey}
 		{#if selection.entitySelector.marketKind !== MarketKind.Spot}
@@ -171,71 +184,37 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-market-spot'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'market-prices',
-							label: 'Spot',
-						},
-						{
-							id: 'market-ohlc',
-							label: 'Candles',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-spot'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+			<ResourceBoundary
+				resource={selection.Spot}
 			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Spot</HeadingComponent>
-					</header>
-				{/snippet}
+				{#snippet children(projectionValue)}
+					<Projection projection={projectionValue}>
+						{#snippet Applicable(projection)}
+							<CollapsibleTabs
+								id={viewDomId + '-carousel-market-spot'}
+								sectionIdPrefix={viewDomId}
+								sections={
+									[
+										{
+											id: 'market-prices',
+											label: 'Spot',
+										},
+										{
+											id: 'market-ohlc',
+											label: 'Candles',
+										},
+									]
+								}
+								data-card
+								class='network-view-collapsible-spot'
+							>
+								{#snippet Summary()}
+									<header data-row-item="flexible" data-row="wrap gap-4">
+										<HeadingComponent>Spot</HeadingComponent>
+									</header>
+								{/snippet}
 
-				{#snippet SectionMarketPrices({ id, label, open })}
-					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind === 'Spot'}
-					<MarketPricesView
-						selection={
-							selection.$$marketPrices({
-								sources: [
-									Source.Constants_Internal,
-									Source.Coingecko_Rest,
-									Source.Coingecko_OpenApi,
-									Source.CoinMarketCap_Rest,
-									Source.Coinpaprika_OpenApi,
-									Source.Defillama_OpenApi,
-									Source.Blockscout_Rest,
-									Source.Defillama_Rest,
-								],
-								count: true,
-							})
-						}
-						href={resolve('/coins/prices')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No spot market prices.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-					{:else if pendingEntity.marketKind === undefined}
-						<ResourceBoundary
-							resource={
-								selection({
-									fields: {
-										marketKind: true,
-									},
-								})
-							}
-						>
-							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{#if resolvedEntity.marketKind === 'Spot'}
+								{#snippet SectionMarketPrices({ id, label, open })}
 									<MarketPricesView
 										selection={
 											selection.$$marketPrices({
@@ -249,56 +228,22 @@
 													Source.Blockscout_Rest,
 													Source.Defillama_Rest,
 												],
-												count: true,
 											})
 										}
 										href={resolve('/coins/prices')}
 										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
 										emptyText='No spot market prices.'
 										open={open}
 										title={label}
 										id={`${id}-list`}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
+								{/snippet}
 
-				{#snippet SectionMarketOhlc({ id, label, open })}
-					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind === 'Spot'}
-					<Market_TimeInterval_TimestampsView
-						selection={
-							selection.$$marketTimeIntervalTimestamps({
-								sources: [
-									Source.Coingecko_Rest,
-									Source.Coingecko_OpenApi,
-									Source.Coinpaprika_OpenApi,
-									Source.CoinMarketCap_Rest,
-								],
-								count: true,
-							})
-						}
-						href={resolve('/coins/candles')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No OHLC candles.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-					{:else if pendingEntity.marketKind === undefined}
-						<ResourceBoundary
-							resource={
-								selection({
-									fields: {
-										marketKind: true,
-									},
-								})
-							}
-						>
-							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{#if resolvedEntity.marketKind === 'Spot'}
+								{#snippet SectionMarketOhlc({ id, label, open })}
 									<Market_TimeInterval_TimestampsView
 										selection={
 											selection.$$marketTimeIntervalTimestamps({
@@ -308,99 +253,79 @@
 													Source.Coinpaprika_OpenApi,
 													Source.CoinMarketCap_Rest,
 												],
-												count: true,
 											})
 										}
 										href={resolve('/coins/candles')}
 										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
 										emptyText='No OHLC candles.'
 										open={open}
 										title={label}
 										id={`${id}-list`}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
+								{/snippet}
+
+							</CollapsibleTabs>
+						{/snippet}
+					</Projection>
 				{/snippet}
+			</ResourceBoundary>
 
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-market-derivatives'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'market-derivative-timestamps',
-							label: 'Derivative observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-derivatives'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+			<ResourceBoundary
+				resource={selection.Derivative}
 			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Derivative observations</HeadingComponent>
-					</header>
-				{/snippet}
+				{#snippet children(projectionValue)}
+					<Projection projection={projectionValue}>
+						{#snippet Applicable(projection)}
+							<CollapsibleTabs
+								id={viewDomId + '-carousel-market-derivatives'}
+								sectionIdPrefix={viewDomId}
+								sections={
+									[
+										{
+											id: 'market-derivative-timestamps',
+											label: 'Derivative observations',
+										},
+									]
+								}
+								data-card
+								class='network-view-collapsible-derivatives'
+							>
+								{#snippet Summary()}
+									<header data-row-item="flexible" data-row="wrap gap-4">
+										<HeadingComponent>Derivative observations</HeadingComponent>
+									</header>
+								{/snippet}
 
-				{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
-					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind !== 'Spot'}
-					<Market_Derivative_TimestampsView
-						selection={
-							selection.$$derivativeTimestamps({
-								sources: [
-									Source.Coingecko_OpenApi,
-								],
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No derivative observations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-					{:else if pendingEntity.marketKind === undefined}
-						<ResourceBoundary
-							resource={
-								selection({
-									fields: {
-										marketKind: true,
-									},
-								})
-							}
-						>
-							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{#if resolvedEntity.marketKind !== 'Spot'}
+								{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
 									<Market_Derivative_TimestampsView
 										selection={
 											selection.$$derivativeTimestamps({
 												sources: [
 													Source.Coingecko_OpenApi,
 												],
-												count: true,
 											})
 										}
 										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
 										emptyText='No derivative observations.'
 										open={open}
 										title={label}
 										id={`${id}-list`}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
+								{/snippet}
 
-			</CollapsibleTabs>
+							</CollapsibleTabs>
+						{/snippet}
+					</Projection>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

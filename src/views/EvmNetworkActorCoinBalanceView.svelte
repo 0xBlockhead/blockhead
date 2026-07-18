@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetworkActorCoinBalance = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			symbol: true,
 			decimals: true,
@@ -85,47 +82,47 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNetworkActorCoinBalance}>
-			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'balance'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmNetworkActorCoinBalance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmNetworkActorCoinBalance}>
-			{#snippet Pending()}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$actor.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EvmAccountView
-					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={evmNetworkActorCoinBalance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+						href={
 						(selection.entitySelector.$actor.address !== undefined ? resolve('/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$actor.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -176,8 +173,6 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -241,19 +236,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									symbol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const symbol = pendingEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const symbol = resolvedEntity.symbol}
@@ -271,24 +260,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									decimals: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const decimals = pendingEntity.decimals}
-							{#if decimals !== undefined && decimals !== null}
-								<NumberValue value={Number(decimals)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const decimals = resolvedEntity.decimals}
 							{#if decimals !== undefined && decimals !== null}
-								<NumberValue value={Number(decimals)} />
+								<NumberValue
+									value={decimals}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

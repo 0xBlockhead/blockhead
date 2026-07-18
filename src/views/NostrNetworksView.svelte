@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrNetworkView from '$/views/NostrNetworkView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					registryName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NostrNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				registryName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(nostrNetworks) => [...new Map(nostrNetworks.values.map((nostrNetwork) => [nostrNetwork[EntityMetaKey.SelectorKey], nostrNetwork])).values()]}
+	getKey={(nostrNetwork) => nostrNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Nostr networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nostrNetworks)}
-			{@const uniqueNostrNetworks = [...new Map(nostrNetworks.values.map((nostrNetwork) => [nostrNetwork[EntityMetaKey.SelectorKey], nostrNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrNetworks.totalCount}
-				getKey={(nostrNetwork) => nostrNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueNostrNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Nostr networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nostrNetwork })}
-					{@const nostrNetworkFields = { ...nostrNetwork[EntityMetaKey.Selector], ...nostrNetwork }}
-					{@const selection = select(EntityType.NostrNetwork, nostrNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NostrNetworkView
-						selection={selection}
-						prefetched={nostrNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NostrNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nostrNetwork })}
+		{@const nostrNetworkFields = { ...nostrNetwork[EntityMetaKey.Selector], ...nostrNetwork }}
+		{@const selection = select(EntityType.NostrNetwork, nostrNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NostrNetworkView
+			selection={selection}
+			prefetched={nostrNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

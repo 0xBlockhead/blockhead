@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaValidatorView from '$/views/SolanaValidatorView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					votePubkey: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SolanaValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				votePubkey: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(solanaValidators) => [...new Map(solanaValidators.values.map((solanaValidator) => [solanaValidator[EntityMetaKey.SelectorKey], solanaValidator])).values()]}
+	getKey={(solanaValidator) => solanaValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Solana validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(solanaValidators)}
-			{@const uniqueSolanaValidators = [...new Map(solanaValidators.values.map((solanaValidator) => [solanaValidator[EntityMetaKey.SelectorKey], solanaValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaValidators.totalCount}
-				getKey={(solanaValidator) => solanaValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueSolanaValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Solana validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: solanaValidator })}
-					{@const solanaValidatorFields = { ...solanaValidator[EntityMetaKey.Selector], ...solanaValidator }}
-					{@const selection = select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const solanaValidatorHrefFields = { ...solanaValidator, ...solanaValidator[EntityMetaKey.Selector] }}
-					<SolanaValidatorView
-						selection={selection}
-						prefetched={solanaValidatorFields}
-						href={
-							(solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
-								network: String(caip2StringFromValue(solanaValidatorHrefFields.$network.caip2) ?? ''),
-							}) : solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
-								network: String(solanaValidatorHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SolanaValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: solanaValidator })}
+		{@const solanaValidatorFields = { ...solanaValidator[EntityMetaKey.Selector], ...solanaValidator }}
+		{@const selection = select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const solanaValidatorHrefFields = { ...solanaValidator, ...solanaValidator[EntityMetaKey.Selector] }}
+		<SolanaValidatorView
+			selection={selection}
+			prefetched={solanaValidatorFields}
+			href={
+				(solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+					validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
+					network: String(caip2StringFromValue(solanaValidatorHrefFields.$network.caip2) ?? ''),
+				}) : solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+					validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
+					network: String(solanaValidatorHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

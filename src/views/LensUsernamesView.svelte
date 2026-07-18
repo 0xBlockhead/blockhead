@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensUsernameView from '$/views/LensUsernameView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					value: true,
-					localName: true,
-					timestamp: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensUsername}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LensUsername}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				value: true,
+				localName: true,
+				timestamp: true,
+			},
+		})
+	}
+	getResourceItems={(lensUsernames) => [...new Map(lensUsernames.values.map((lensUsername) => [lensUsername[EntityMetaKey.SelectorKey], lensUsername])).values()]}
+	getKey={(lensUsername) => lensUsername[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lens usernames yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lensUsernames)}
-			{@const uniqueLensUsernames = [...new Map(lensUsernames.values.map((lensUsername) => [lensUsername[EntityMetaKey.SelectorKey], lensUsername])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensUsername}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensUsernames.totalCount}
-				getKey={(lensUsername) => lensUsername[EntityMetaKey.SelectorKey]}
-				items={uniqueLensUsernames}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lens usernames yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lensUsername })}
-					{@const lensUsernameFields = { ...lensUsername[EntityMetaKey.Selector], ...lensUsername }}
-					{@const selection = select(EntityType.LensUsername, lensUsername[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LensUsernameView
-						selection={selection}
-						prefetched={lensUsernameFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LensUsername}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lensUsername })}
+		{@const lensUsernameFields = { ...lensUsername[EntityMetaKey.Selector], ...lensUsername }}
+		{@const selection = select(EntityType.LensUsername, lensUsername[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LensUsernameView
+			selection={selection}
+			prefetched={lensUsernameFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

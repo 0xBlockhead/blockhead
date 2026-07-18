@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotEvent = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			eventName: true,
 		},
@@ -83,90 +84,94 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={polkadotEvent}>
-			{#snippet Pending()}
-				{[String((pendingEntity.eventName) ?? ''), (String((pendingEntity.indexInBlock) ?? '') ? 'Event ' + String((pendingEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || title || 'Polkadot event'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.eventName) ?? ''), (String((resolvedEntity.indexInBlock) ?? '') ? 'Event ' + String((resolvedEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.eventName) ?? ''), (String((pendingEntity.indexInBlock) ?? '') ? 'Event ' + String((pendingEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.eventName) ?? ''), (String((resolvedEntity.indexInBlock) ?? '') ? 'Event ' + String((resolvedEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={polkadotEvent}>
-			{#snippet Pending()}
-				{[String((pendingEntity.eventName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventName) ?? ''), (String((pendingEntity.indexInBlock) ?? '') ? 'Event ' + String((pendingEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || title || 'Polkadot event'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.eventName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eventName) ?? ''), (String((resolvedEntity.indexInBlock) ?? '') ? 'Event ' + String((resolvedEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.eventName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventName) ?? ''), (String((pendingEntity.indexInBlock) ?? '') ? 'Event ' + String((pendingEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.eventName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eventName) ?? ''), (String((resolvedEntity.indexInBlock) ?? '') ? 'Event ' + String((resolvedEntity.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotEvent}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$pallet}
-				>
-					{#snippet children(polkadotPallet)}
-						{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<PolkadotPalletView
-									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
-									prefetched={polkadotPallet}
-									href={
-										(polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-											network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-											network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$pallet}
-				>
-					{#snippet children(polkadotPallet)}
-						{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<PolkadotPalletView
-									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
-									prefetched={polkadotPallet}
-									href={
-										(polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-											network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-											network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$pallet}
+			>
+				{#snippet children(polkadotPallet)}
+					{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<PolkadotPalletView
+								selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+								prefetched={polkadotPallet}
+								href={
+									(polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+										palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+										network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+										palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+										network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={polkadotEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$pallet}
+					>
+						{#snippet children(polkadotPallet)}
+							{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<PolkadotPalletView
+										selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+										prefetched={polkadotPallet}
+										href={
+											(polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+												palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+												network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+												palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+												network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -177,19 +182,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInBlock: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInBlock = pendingEntity.indexInBlock}
-							{#if indexInBlock !== undefined && indexInBlock !== null}
-								{String((indexInBlock) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInBlock = resolvedEntity.indexInBlock}
@@ -207,19 +206,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									eventName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const eventName = pendingEntity.eventName}
-							{#if eventName !== undefined && eventName !== null}
-								{String((eventName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventName = resolvedEntity.eventName}
@@ -234,8 +227,6 @@
 			<ResourceBoundary
 				resource={selection.$pallet}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -265,8 +256,6 @@
 			<ResourceBoundary
 				resource={selection.$extrinsic}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(polkadotExtrinsic)}
 					{#if polkadotExtrinsic != null && polkadotExtrinsic[EntityMetaKey.Selector] != null}
 						<div>

@@ -18,7 +18,7 @@ export const XrplAmm = entity({
 	$network: {
 		label: 'network',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.XrplNetwork,
+		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ammAccount: {

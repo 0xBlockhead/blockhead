@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Eip8004AgentRegistrationView from '$/views/Eip8004AgentRegistrationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					agentId: true,
-					namespace: true,
-					chainId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Eip8004AgentRegistration}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Eip8004AgentRegistration}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				agentId: true,
+				namespace: true,
+				chainId: true,
+			},
+		})
+	}
+	getResourceItems={(eip8004AgentRegistrations) => [...new Map(eip8004AgentRegistrations.values.map((eip8004AgentRegistration) => [eip8004AgentRegistration[EntityMetaKey.SelectorKey], eip8004AgentRegistration])).values()]}
+	getKey={(eip8004AgentRegistration) => eip8004AgentRegistration[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EIP-8004 agent registrations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eip8004AgentRegistrations)}
-			{@const uniqueEip8004AgentRegistrations = [...new Map(eip8004AgentRegistrations.values.map((eip8004AgentRegistration) => [eip8004AgentRegistration[EntityMetaKey.SelectorKey], eip8004AgentRegistration])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Eip8004AgentRegistration}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eip8004AgentRegistrations.totalCount}
-				getKey={(eip8004AgentRegistration) => eip8004AgentRegistration[EntityMetaKey.SelectorKey]}
-				items={uniqueEip8004AgentRegistrations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EIP-8004 agent registrations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eip8004AgentRegistration })}
-					{@const eip8004AgentRegistrationFields = { ...eip8004AgentRegistration[EntityMetaKey.Selector], ...eip8004AgentRegistration }}
-					{@const selection = select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<Eip8004AgentRegistrationView
-						selection={selection}
-						prefetched={eip8004AgentRegistrationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Eip8004AgentRegistration}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eip8004AgentRegistration })}
+		{@const eip8004AgentRegistrationFields = { ...eip8004AgentRegistration[EntityMetaKey.Selector], ...eip8004AgentRegistration }}
+		{@const selection = select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<Eip8004AgentRegistrationView
+			selection={selection}
+			prefetched={eip8004AgentRegistrationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

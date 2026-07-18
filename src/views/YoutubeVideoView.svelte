@@ -43,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeVideo = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			publishedAtMs: true,
@@ -61,6 +59,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import YoutubeCommentsView from '$/views/YoutubeCommentsView.svelte'
 	import YoutubeChannelView from '$/views/YoutubeChannelView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -71,47 +70,117 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-			videoId: String(pendingEntity.videoId ?? ''),
+			videoId: encodeURIComponent(String(pendingEntity.videoId ?? '')),
 		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<ResourceBoundary resource={youtubeVideo}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'}
-			{/snippet}
 
+	{#snippet Icon()}
+		<ResourceBoundary resource={youtubeVideo}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{@const reference = entity.$thumbnail}
+				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={youtubeVideo}>
-			{#snippet Pending()}
-				{@const publishedAtMs0 = pendingEntity.publishedAtMs}
-				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAtMs0)} />
-					</span>
-				{/if}
-			{/snippet}
+	{#snippet Title()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={youtubeVideo}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const publishedAtMs0 = resolvedEntity.publishedAtMs}
-				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAtMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+	{#snippet Value()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$author}
+					>
+						{#snippet children(youtubeChannel)}
+							{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
+								<YoutubeChannelView
+									selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
+									prefetched={youtubeChannel}
+									href={
+									(youtubeChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
+										channelId: encodeURIComponent(String(youtubeChannel[EntityMetaKey.Selector].channelId ?? '')),
+									}) : undefined)
+								}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={youtubeVideo}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$author}
+					>
+						{#snippet children(youtubeChannel)}
+							{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
+								<YoutubeChannelView
+									selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
+									prefetched={youtubeChannel}
+									href={
+									(youtubeChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
+										channelId: encodeURIComponent(String(youtubeChannel[EntityMetaKey.Selector].channelId ?? '')),
+									}) : undefined)
+								}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const publishedAtMs0 = pendingEntity.publishedAtMs}
+			{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(publishedAtMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={youtubeVideo}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const publishedAtMs0 = resolvedEntity.publishedAtMs}
+					{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(publishedAtMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,24 +189,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								description: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const description = pendingEntity.description}
-						{#if description !== undefined && description !== null}
-							<div>
-								<dt>Description</dt>
-								<dd>
-									<span data-text="long-text">{String((description) ?? '')}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const description = resolvedEntity.description}
@@ -159,19 +217,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									videoId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const videoId = pendingEntity.videoId}
-							{#if videoId !== undefined && videoId !== null}
-								<TruncatedValue value={String((videoId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const videoId = resolvedEntity.videoId}
@@ -187,24 +239,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								publishedAtMs: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const publishedAtMs = pendingEntity.publishedAtMs}
-						{#if publishedAtMs !== undefined && publishedAtMs !== null}
-							<div>
-								<dt>Published</dt>
-								<dd>
-									<Timestamp timestamp={Number(publishedAtMs)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const publishedAtMs = resolvedEntity.publishedAtMs}
@@ -224,8 +265,6 @@
 				<ResourceBoundary
 					resource={selection.$author}
 				>
-					{#snippet Pending()}{/snippet}
-
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
 							<div>
@@ -236,7 +275,7 @@
 										prefetched={youtubeChannel}
 										href={
 											(youtubeChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
-												channelId: String(youtubeChannel[EntityMetaKey.Selector].channelId ?? ''),
+												channelId: encodeURIComponent(String(youtubeChannel[EntityMetaKey.Selector].channelId ?? '')),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -264,6 +303,11 @@
 						})
 					}
 				title='Comments'
+				href={
+						(selection.entitySelector.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]/comments', {
+							videoId: encodeURIComponent(String(selection.entitySelector.videoId ?? '')),
+						}) : undefined)
+					}
 				id='YoutubeCommentsView-comments'
 			/>
 		{/if}

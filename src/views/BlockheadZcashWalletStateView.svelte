@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,12 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadZcashWalletState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.ZcashClientBackend_Local,
-			Source.ZcashLightwalletd_Grpc,
-			Source.ZcashdWallet_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			unifiedAddress: true,
 		},
@@ -83,88 +77,96 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZcashWalletState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash wallet state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadZcashWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZcashWalletState}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
-							href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								href={
 								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
 								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
-							href={
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadZcashWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								href={
 								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
 								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZcashWalletState}>
-			{#snippet Pending()}
-				{@const unifiedAddress0 = pendingEntity.unifiedAddress}
-				{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((unifiedAddress0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const unifiedAddress0 = resolvedEntity.unifiedAddress}
-				{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((unifiedAddress0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const unifiedAddress0 = pendingEntity.unifiedAddress}
+			{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((unifiedAddress0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadZcashWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const unifiedAddress0 = resolvedEntity.unifiedAddress}
+					{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((unifiedAddress0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -175,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									walletId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const walletId = pendingEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const walletId = resolvedEntity.walletId}
@@ -202,8 +198,6 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -251,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							accountIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const accountIndex = pendingEntity.accountIndex}
-					{#if accountIndex !== undefined && accountIndex !== null}
-						<div>
-							<dt>account index</dt>
-							<dd>
-								<NumberValue value={Number(accountIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const accountIndex = resolvedEntity.accountIndex}
@@ -276,7 +259,9 @@
 						<div>
 							<dt>account index</dt>
 							<dd>
-								<NumberValue value={Number(accountIndex)} />
+								<NumberValue
+									value={accountIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -288,24 +273,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							unifiedAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unifiedAddress = pendingEntity.unifiedAddress}
-					{#if unifiedAddress !== undefined && unifiedAddress !== null}
-						<div>
-							<dt>unified address</dt>
-							<dd>
-								<TruncatedValue value={String((unifiedAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unifiedAddress = resolvedEntity.unifiedAddress}
@@ -323,24 +297,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transparentAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transparentAddress = pendingEntity.transparentAddress}
-					{#if transparentAddress !== undefined && transparentAddress !== null}
-						<div>
-							<dt>transparent address</dt>
-							<dd>
-								<TruncatedValue value={String((transparentAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transparentAddress = resolvedEntity.transparentAddress}
@@ -358,24 +321,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							saplingAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const saplingAddress = pendingEntity.saplingAddress}
-					{#if saplingAddress !== undefined && saplingAddress !== null}
-						<div>
-							<dt>sapling address</dt>
-							<dd>
-								<TruncatedValue value={String((saplingAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const saplingAddress = resolvedEntity.saplingAddress}
@@ -393,24 +345,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							orchardAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const orchardAddress = pendingEntity.orchardAddress}
-					{#if orchardAddress !== undefined && orchardAddress !== null}
-						<div>
-							<dt>orchard address</dt>
-							<dd>
-								<TruncatedValue value={String((orchardAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const orchardAddress = resolvedEntity.orchardAddress}
@@ -430,24 +371,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							birthdayHeight: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const birthdayHeight = pendingEntity.birthdayHeight}
-					{#if birthdayHeight !== undefined && birthdayHeight !== null}
-						<div>
-							<dt>birthday height</dt>
-							<dd>
-								<NumberValue value={Number(birthdayHeight)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const birthdayHeight = resolvedEntity.birthdayHeight}
@@ -455,7 +385,9 @@
 						<div>
 							<dt>birthday height</dt>
 							<dd>
-								<NumberValue value={Number(birthdayHeight)} />
+								<NumberValue
+									value={birthdayHeight}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -483,11 +415,8 @@
 				}
 				data-card
 				class='network-view-collapsible-keys-notes'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Keys and notes</HeadingComponent>
 					</header>
@@ -495,12 +424,12 @@
 
 				{#snippet SectionZcashViewingKeys({ id, label, open })}
 					<BlockheadZcashViewingKeysView
-						selection={
-							selection.$$viewingKeys({
-								count: true,
-							})
-						}
+						selection={selection.$$viewingKeys}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Zcash viewing keys.'
 						open={open}
 						title={label}
@@ -510,12 +439,12 @@
 
 				{#snippet SectionZcashNotes({ id, label, open })}
 					<BlockheadZcashNoteStatesView
-						selection={
-							selection.$$notes({
-								count: true,
-							})
-						}
+						selection={selection.$$notes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Zcash notes.'
 						open={open}
 						title={label}
@@ -538,11 +467,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -550,12 +476,12 @@
 
 				{#snippet SectionZcashWalletTimestamps({ id, label, open })}
 					<BlockheadZcashWalletState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Zcash wallet observations.'
 						open={open}
 						title={label}

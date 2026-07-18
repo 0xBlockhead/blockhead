@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const transferRestriction = $derived(selection({}))
+	const transferRestriction = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('transfer restriction')
 	const viewDomId = $derived('transfer-restriction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={transferRestriction}>
-			{#snippet Pending()}
-				{title || 'transfer restriction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={transferRestriction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -108,19 +110,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									restrictionKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const restrictionKey = pendingEntity.restrictionKey}
-							{#if restrictionKey !== undefined && restrictionKey !== null}
-								{String((restrictionKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const restrictionKey = resolvedEntity.restrictionKey}
@@ -138,19 +134,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -168,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									restrictionKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const restrictionKind = pendingEntity.restrictionKind}
-							{#if restrictionKind !== undefined && restrictionKind !== null}
-								{String((restrictionKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const restrictionKind = resolvedEntity.restrictionKind}
@@ -197,8 +181,6 @@
 			<ResourceBoundary
 				resource={selection.$profile}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(regulatedAssetProfile)}
 					{#if regulatedAssetProfile != null && regulatedAssetProfile[EntityMetaKey.Selector] != null}
 						<div>
@@ -219,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							message: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const message = pendingEntity.message}
-					{#if message !== undefined && message !== null}
-						<div>
-							<dt>message</dt>
-							<dd>
-								{String((message) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const message = resolvedEntity.message}

@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmContractCompilation = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			name: true,
 			fullyQualifiedName: true,
@@ -72,72 +73,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmContractCompilation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? ''), String((pendingEntity.fullyQualifiedName) ?? ''), String((pendingEntity.compiler) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract compilation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.fullyQualifiedName) ?? ''), String((resolvedEntity.compiler) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? ''), String((pendingEntity.fullyQualifiedName) ?? ''), String((pendingEntity.compiler) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmContractCompilation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.fullyQualifiedName) ?? ''), String((resolvedEntity.compiler) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmContractCompilation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.compilerVersion) ?? ''), String((pendingEntity.language) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.fullyQualifiedName) ?? ''), String((pendingEntity.compiler) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract compilation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.compilerVersion) ?? ''), String((resolvedEntity.language) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.fullyQualifiedName) ?? ''), String((resolvedEntity.compiler) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.compilerVersion) ?? ''), String((pendingEntity.language) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.fullyQualifiedName) ?? ''), String((pendingEntity.compiler) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmContractCompilation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.compilerVersion) ?? ''), String((resolvedEntity.language) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.fullyQualifiedName) ?? ''), String((resolvedEntity.compiler) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmContractCompilation}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<EvmContractView
-						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-						href={
-							(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EvmContractView
-						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-						href={
-							(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<EvmContractView
+					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+					href={
+						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={evmContractCompilation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<EvmContractView
+							selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
+							href={
+								(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+									address: String(selection.entitySelector.$contract.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+									address: String(selection.entitySelector.$contract.address ?? ''),
+									network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -145,24 +146,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							language: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const language = pendingEntity.language}
-					{#if language !== undefined && language !== null}
-						<div>
-							<dt>Language</dt>
-							<dd>
-								{String((language) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const language = resolvedEntity.language}
@@ -180,24 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							compiler: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const compiler = pendingEntity.compiler}
-					{#if compiler !== undefined && compiler !== null}
-						<div>
-							<dt>Compiler</dt>
-							<dd>
-								{String((compiler) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const compiler = resolvedEntity.compiler}
@@ -215,24 +194,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							compilerVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const compilerVersion = pendingEntity.compilerVersion}
-					{#if compilerVersion !== undefined && compilerVersion !== null}
-						<div>
-							<dt>Compiler version</dt>
-							<dd>
-								{String((compilerVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const compilerVersion = resolvedEntity.compilerVersion}
@@ -250,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -287,24 +244,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fullyQualifiedName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fullyQualifiedName = pendingEntity.fullyQualifiedName}
-					{#if fullyQualifiedName !== undefined && fullyQualifiedName !== null}
-						<div>
-							<dt>Fully qualified name</dt>
-							<dd>
-								{String((fullyQualifiedName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fullyQualifiedName = resolvedEntity.fullyQualifiedName}
@@ -343,6 +289,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						compilerSettingsJson: true,
 					},

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpLedgerBlockView from '$/views/IcpLedgerBlockView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpLedgerBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpLedgerBlocks) => [...new Map(icpLedgerBlocks.values.map((icpLedgerBlock) => [icpLedgerBlock[EntityMetaKey.SelectorKey], icpLedgerBlock])).values()]}
+	getKey={(icpLedgerBlock) => icpLedgerBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP ledger blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpLedgerBlocks)}
-			{@const uniqueIcpLedgerBlocks = [...new Map(icpLedgerBlocks.values.map((icpLedgerBlock) => [icpLedgerBlock[EntityMetaKey.SelectorKey], icpLedgerBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpLedgerBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpLedgerBlocks.totalCount}
-				getKey={(icpLedgerBlock) => icpLedgerBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpLedgerBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP ledger blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpLedgerBlock })}
-					{@const icpLedgerBlockFields = { ...icpLedgerBlock[EntityMetaKey.Selector], ...icpLedgerBlock }}
-					{@const selection = select(EntityType.IcpLedgerBlock, icpLedgerBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpLedgerBlockView
-						selection={selection}
-						prefetched={icpLedgerBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpLedgerBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpLedgerBlock })}
+		{@const icpLedgerBlockFields = { ...icpLedgerBlock[EntityMetaKey.Selector], ...icpLedgerBlock }}
+		{@const selection = select(EntityType.IcpLedgerBlock, icpLedgerBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpLedgerBlockView
+			selection={selection}
+			prefetched={icpLedgerBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

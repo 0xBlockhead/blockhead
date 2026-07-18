@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum YoutubeComment_TimestampSelector {
-	YoutubeCommentTimestampMs = 'YoutubeCommentTimestampMs',
+	YoutubeCommentTimestampMsSource = 'YoutubeCommentTimestampMsSource',
 }
 export const YoutubeComment_Timestamp = entity({
 	entityType: EntityType.YoutubeComment_Timestamp,
@@ -27,6 +27,12 @@ export const YoutubeComment_Timestamp = entity({
 		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
+	source: {
+		label: 'Source',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	likeCount: {
 		label: 'Likes',
 		type: EntityFieldType.Primitive,
@@ -41,9 +47,10 @@ export const YoutubeComment_Timestamp = entity({
 	},
 })({
 	selectors: {
-		YoutubeCommentTimestampMs: [
+		YoutubeCommentTimestampMsSource: [
 			'$comment',
 			'timestampMs',
+			'source',
 		],
 	},
 })

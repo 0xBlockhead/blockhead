@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiDataset = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 			modality: true,
@@ -71,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiDataset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiDataset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiDataset}>
-			{#snippet Pending()}
-				{@const license0 = pendingEntity.license}
-				{#if license0 !== undefined && license0 !== null}
-					<span data-text="muted">
-						{String((license0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const license0 = resolvedEntity.license}
-				{#if license0 !== undefined && license0 !== null}
-					<span data-text="muted">
-						{String((license0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const license0 = pendingEntity.license}
+			{#if license0 !== undefined && license0 !== null}
+				<span data-text="muted">
+					{String((license0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const license0 = resolvedEntity.license}
+					{#if license0 !== undefined && license0 !== null}
+						<span data-text="muted">
+							{String((license0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,31 +125,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							datasetUri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const datasetUri = pendingEntity.datasetUri}
-					{#if datasetUri !== undefined && datasetUri !== null}
-						<div>
-							<dt>dataset URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(datasetUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(datasetUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const datasetUri = resolvedEntity.datasetUri}
@@ -173,24 +156,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							huggingFaceDatasetId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const huggingFaceDatasetId = pendingEntity.huggingFaceDatasetId}
-					{#if huggingFaceDatasetId !== undefined && huggingFaceDatasetId !== null}
-						<div>
-							<dt>hugging face dataset ID</dt>
-							<dd>
-								{String((huggingFaceDatasetId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const huggingFaceDatasetId = resolvedEntity.huggingFaceDatasetId}
@@ -208,24 +180,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revision: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revision = pendingEntity.revision}
-					{#if revision !== undefined && revision !== null}
-						<div>
-							<dt>revision</dt>
-							<dd>
-								{String((revision) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revision = resolvedEntity.revision}
@@ -243,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}
@@ -278,24 +228,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							datasetName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const datasetName = pendingEntity.datasetName}
-					{#if datasetName !== undefined && datasetName !== null}
-						<div>
-							<dt>dataset name</dt>
-							<dd>
-								{String((datasetName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const datasetName = resolvedEntity.datasetName}
@@ -313,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							datasetDigest: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const datasetDigest = pendingEntity.datasetDigest}
-					{#if datasetDigest !== undefined && datasetDigest !== null}
-						<div>
-							<dt>dataset digest</dt>
-							<dd>
-								<TruncatedValue value={String((datasetDigest) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const datasetDigest = resolvedEntity.datasetDigest}
@@ -348,8 +276,6 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -372,24 +298,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -407,24 +322,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							license: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const license = pendingEntity.license}
-					{#if license !== undefined && license !== null}
-						<div>
-							<dt>license</dt>
-							<dd>
-								{String((license) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const license = resolvedEntity.license}
@@ -442,24 +346,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							modality: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const modality = pendingEntity.modality}
-					{#if modality !== undefined && modality !== null}
-						<div>
-							<dt>modality</dt>
-							<dd>
-								{String((modality) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const modality = resolvedEntity.modality}
@@ -477,24 +370,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -512,24 +394,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isLiveDataset: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isLiveDataset = pendingEntity.isLiveDataset}
-					{#if isLiveDataset !== undefined && isLiveDataset !== null}
-						<div>
-							<dt>is live dataset</dt>
-							<dd>
-								{isLiveDataset ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isLiveDataset = resolvedEntity.isLiveDataset}

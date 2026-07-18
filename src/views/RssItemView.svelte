@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const rssItem = $derived(selection({
-		sources: [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			link: true,
@@ -75,8 +71,8 @@
 	href={
 		href ?? (pendingEntity.itemIdentityKind !== undefined && pendingEntity.itemIdentity !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
 			itemIdentityKind: String(pendingEntity.itemIdentityKind ?? ''),
-			itemIdentity: String(pendingEntity.itemIdentity ?? ''),
-			feedUrl: String(pendingEntity.$feed.feedUrl ?? ''),
+			itemIdentity: encodeURIComponent(String(pendingEntity.itemIdentity ?? '')),
+			feedUrl: encodeURIComponent(String(pendingEntity.$feed.feedUrl ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -84,58 +80,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={rssItem}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? ''), String((pendingEntity.itemIdentity) ?? '')].filter(Boolean).join(' ') || title || 'RSS item'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.itemIdentity) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? ''), String((pendingEntity.itemIdentity) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={rssItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.itemIdentity) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={rssItem}>
-			{#snippet Pending()}
-				{@const itemIdentity0 = pendingEntity.itemIdentity}
-				{#if itemIdentity0 !== undefined && itemIdentity0 !== null}
-					<TruncatedValue value={String((itemIdentity0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const itemIdentity0 = resolvedEntity.itemIdentity}
-				{#if itemIdentity0 !== undefined && itemIdentity0 !== null}
-					<TruncatedValue value={String((itemIdentity0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const itemIdentity0 = pendingEntity.itemIdentity}
+					{#if itemIdentity0 !== undefined && itemIdentity0 !== null}
+						<TruncatedValue value={String((itemIdentity0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={rssItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const itemIdentity0 = resolvedEntity.itemIdentity}
+					{#if itemIdentity0 !== undefined && itemIdentity0 !== null}
+						<TruncatedValue value={String((itemIdentity0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={rssItem}>
-			{#snippet Pending()}
-				{@const publishedAt0 = pendingEntity.publishedAt}
-				{#if publishedAt0 !== undefined && publishedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const publishedAt0 = resolvedEntity.publishedAt}
-				{#if publishedAt0 !== undefined && publishedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const publishedAt0 = pendingEntity.publishedAt}
+			{#if publishedAt0 !== undefined && publishedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(publishedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={rssItem}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const publishedAt0 = resolvedEntity.publishedAt}
+					{#if publishedAt0 !== undefined && publishedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(publishedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,7 +143,7 @@
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed, {})}
 						href={
 							(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-								feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+								feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -161,24 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							author: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const author = pendingEntity.author}
-					{#if author !== undefined && author !== null}
-						<div>
-							<dt>Author</dt>
-							<dd>
-								{String((author) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const author = resolvedEntity.author}
@@ -198,31 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							link: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const link = pendingEntity.link}
-					{#if link !== undefined && link !== null}
-						<div>
-							<dt>Link</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(link)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(link)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const link = resolvedEntity.link}
@@ -249,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							publishedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const publishedAt = pendingEntity.publishedAt}
-					{#if publishedAt !== undefined && publishedAt !== null}
-						<div>
-							<dt>Published</dt>
-							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const publishedAt = resolvedEntity.publishedAt}
@@ -286,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAt = pendingEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAt = resolvedEntity.updatedAt}
@@ -323,31 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							enclosureUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const enclosureUrl = pendingEntity.enclosureUrl}
-					{#if enclosureUrl !== undefined && enclosureUrl !== null}
-						<div>
-							<dt>Enclosure URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(enclosureUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(enclosureUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const enclosureUrl = resolvedEntity.enclosureUrl}
@@ -374,31 +301,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							commentsUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const commentsUrl = pendingEntity.commentsUrl}
-					{#if commentsUrl !== undefined && commentsUrl !== null}
-						<div>
-							<dt>Comments URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(commentsUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(commentsUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const commentsUrl = resolvedEntity.commentsUrl}
@@ -424,6 +333,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						content: true,
 					},

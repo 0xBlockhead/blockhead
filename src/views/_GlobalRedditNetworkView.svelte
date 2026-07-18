@@ -39,9 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalRedditNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('Reddit')
 	const viewDomId = $derived('-global-reddit-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -53,7 +51,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
-	import GlobalRedditNetwork_TimestampsView from '$/views/_GlobalRedditNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -68,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalRedditNetwork}>
-			{#snippet Pending()}
-				{title || 'Reddit'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalRedditNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -88,19 +85,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scope: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scope = pendingEntity.scope}
-							{#if scope !== undefined && scope !== null}
-								{String(('Reddit') ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scope = resolvedEntity.scope}
@@ -133,11 +124,8 @@
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Directory</HeadingComponent>
 					</header>
@@ -151,11 +139,15 @@
 									Source.Constants_Internal,
 									Source.Reddit_PublicJson,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/reddit/subreddits')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No subreddits available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -170,51 +162,15 @@
 									Source.Constants_Internal,
 									Source.Reddit_PublicJson,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/reddit/links')}
 						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-reddit-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'reddit-hub-observations',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionRedditHubObservations({ id, label, open })}
-					<GlobalRedditNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No Reddit network observations.'
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No links available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

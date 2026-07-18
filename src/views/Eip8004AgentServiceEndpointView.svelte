@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004AgentServiceEndpoint = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			protocolKind: true,
 		},
@@ -74,72 +71,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
-			{#snippet Pending()}
-				{@const endpointUrl0 = pendingEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(endpointUrl0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(endpointUrl0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const endpointUrl0 = resolvedEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(endpointUrl0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(endpointUrl0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const endpointUrl0 = pendingEntity.endpointUrl}
+					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(endpointUrl0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(endpointUrl0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const endpointUrl0 = resolvedEntity.endpointUrl}
+					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(endpointUrl0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(endpointUrl0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
-			{#snippet Pending()}
-				{[String((pendingEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent service endpoint'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
-			{#snippet Pending()}
-				{@const protocolKind0 = pendingEntity.protocolKind}
-				{#if protocolKind0 !== undefined && protocolKind0 !== null}
-					<span data-text="muted">
-						{String((protocolKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const protocolKind0 = resolvedEntity.protocolKind}
-				{#if protocolKind0 !== undefined && protocolKind0 !== null}
-					<span data-text="muted">
-						{String((protocolKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const protocolKind0 = pendingEntity.protocolKind}
+			{#if protocolKind0 !== undefined && protocolKind0 !== null}
+				<span data-text="muted">
+					{String((protocolKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const protocolKind0 = resolvedEntity.protocolKind}
+					{#if protocolKind0 !== undefined && protocolKind0 !== null}
+						<span data-text="muted">
+							{String((protocolKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -161,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									endpointKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const endpointKind = pendingEntity.endpointKind}
-							{#if endpointKind !== undefined && endpointKind !== null}
-								{String((endpointKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const endpointKind = resolvedEntity.endpointKind}
@@ -191,26 +182,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									endpointUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const endpointUrl = pendingEntity.endpointUrl}
-							{#if endpointUrl !== undefined && endpointUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const endpointUrl = resolvedEntity.endpointUrl}
@@ -232,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -267,24 +234,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>Version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -302,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolKind = pendingEntity.protocolKind}
-					{#if protocolKind !== undefined && protocolKind !== null}
-						<div>
-							<dt>Protocol kind</dt>
-							<dd>
-								{String((protocolKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolKind = resolvedEntity.protocolKind}
@@ -339,24 +284,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							active: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const active = pendingEntity.active}
-					{#if active !== undefined && active !== null}
-						<div>
-							<dt>Active</dt>
-							<dd>
-								{active ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const active = resolvedEntity.active}
@@ -374,8 +308,6 @@
 			<ResourceBoundary
 				resource={selection.$mcpServer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
 						<div>

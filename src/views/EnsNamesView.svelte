@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 </script>
@@ -62,82 +61,49 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsName}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EnsName}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+			},
+		})
+	}
+	getResourceItems={(ensNames) => [...new Map(ensNames.values.map((ensName) => [ensName[EntityMetaKey.SelectorKey], ensName])).values()]}
+	getKey={(ensName) => ensName[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ENS names yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ensNames)}
-			{@const uniqueEnsNames = [...new Map(ensNames.values.map((ensName) => [ensName[EntityMetaKey.SelectorKey], ensName])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsName}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensNames.totalCount}
-				getKey={(ensName) => ensName[EntityMetaKey.SelectorKey]}
-				items={uniqueEnsNames}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ENS names yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ensName })}
-					{@const ensNameFields = { ...ensName[EntityMetaKey.Selector], ...ensName }}
-					{@const selection = select(EntityType.EnsName, ensName[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ensNameHrefFields = { ...ensName, ...ensName[EntityMetaKey.Selector] }}
-					<EnsNameView
-						selection={selection}
-						prefetched={ensNameFields}
-						href={
-							(ensNameHrefFields.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-								ensName: String(ensNameHrefFields.name ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EnsName}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ensName })}
+		{@const ensNameFields = { ...ensName[EntityMetaKey.Selector], ...ensName }}
+		{@const selection = select(EntityType.EnsName, ensName[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ensNameHrefFields = { ...ensName, ...ensName[EntityMetaKey.Selector] }}
+		<EnsNameView
+			selection={selection}
+			prefetched={ensNameFields}
+			href={
+				(ensNameHrefFields.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
+					ensName: encodeURIComponent(String(ensNameHrefFields.name ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -67,7 +67,7 @@ export const BlockheadWalletConnection = entity({
 		label: 'Connected',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	disconnectedAt: {
 		label: 'Disconnected',

@@ -1895,6 +1895,16 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			hash: SAMPLE_TX_HASH,
 		},
 	},
+	[EntityType.HederaBlock]: {
+		NetworkBlockNumber: {
+			$network: { slug: 'hedera' },
+			blockNumber: 1n,
+		},
+		NetworkBlockHash: {
+			$network: { slug: 'hedera' },
+			blockHash: 'e2e-probe-hedera-block',
+		},
+	},
 	[EntityType.EvmNetworkActorCoinBalance]: {
 		EvmAccountNativeCoinInstance: {
 			$actor: actorMainnetVitalik,
@@ -2074,9 +2084,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			username: 'vitalik.eth',
 			hashPrefix: CAST_HASH_32.slice(0, 12),
 		},
-	},
-	[EntityType._GlobalFarcasterNetwork]: {
-		Scope: { scope: '_GlobalFarcasterNetwork' },
 	},
 	[EntityType.HyperliquidPerpMarket_Timestamp]: {
 		PerpMarketTimestampMsSource: {

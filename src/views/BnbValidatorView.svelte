@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbValidator = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			moniker: true,
 			consensusAddress: true,
@@ -69,29 +70,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbValidator}>
-			{#snippet Pending()}
-				{[String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbValidator}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbValidator}>
-			{#snippet Pending()}
-				{[String((pendingEntity.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.moniker) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbValidator}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.moniker) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -113,19 +114,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									operatorAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const operatorAddress = pendingEntity.operatorAddress}
-							{#if operatorAddress !== undefined && operatorAddress !== null}
-								<TruncatedValue value={String((operatorAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operatorAddress = resolvedEntity.operatorAddress}
@@ -140,24 +135,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							consensusAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const consensusAddress = pendingEntity.consensusAddress}
-					{#if consensusAddress !== undefined && consensusAddress !== null}
-						<div>
-							<dt>consensus address</dt>
-							<dd>
-								<TruncatedValue value={String((consensusAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const consensusAddress = resolvedEntity.consensusAddress}
@@ -175,24 +159,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moniker: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moniker = pendingEntity.moniker}
-					{#if moniker !== undefined && moniker !== null}
-						<div>
-							<dt>moniker</dt>
-							<dd>
-								{String((moniker) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moniker = resolvedEntity.moniker}

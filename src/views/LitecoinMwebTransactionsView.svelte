@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LitecoinMwebTransactionView from '$/views/LitecoinMwebTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$mwebBlock: true,
-					transactionIndex: true,
-					kernelOffset: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LitecoinMwebTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$mwebBlock: true,
+				transactionIndex: true,
+				kernelOffset: true,
+			},
+		})
+	}
+	getResourceItems={(litecoinMwebTransactions) => [...new Map(litecoinMwebTransactions.values.map((litecoinMwebTransaction) => [litecoinMwebTransaction[EntityMetaKey.SelectorKey], litecoinMwebTransaction])).values()]}
+	getKey={(litecoinMwebTransaction) => litecoinMwebTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Litecoin MWEB transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(litecoinMwebTransactions)}
-			{@const uniqueLitecoinMwebTransactions = [...new Map(litecoinMwebTransactions.values.map((litecoinMwebTransaction) => [litecoinMwebTransaction[EntityMetaKey.SelectorKey], litecoinMwebTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LitecoinMwebTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={litecoinMwebTransactions.totalCount}
-				getKey={(litecoinMwebTransaction) => litecoinMwebTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueLitecoinMwebTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Litecoin MWEB transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: litecoinMwebTransaction })}
-					{@const litecoinMwebTransactionFields = { ...litecoinMwebTransaction[EntityMetaKey.Selector], ...litecoinMwebTransaction }}
-					{@const selection = select(EntityType.LitecoinMwebTransaction, litecoinMwebTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LitecoinMwebTransactionView
-						selection={selection}
-						prefetched={litecoinMwebTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LitecoinMwebTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: litecoinMwebTransaction })}
+		{@const litecoinMwebTransactionFields = { ...litecoinMwebTransaction[EntityMetaKey.Selector], ...litecoinMwebTransaction }}
+		{@const selection = select(EntityType.LitecoinMwebTransaction, litecoinMwebTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LitecoinMwebTransactionView
+			selection={selection}
+			prefetched={litecoinMwebTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

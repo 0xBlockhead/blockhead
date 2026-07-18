@@ -1,4 +1,14 @@
-<script lang="ts">
+<script module lang="ts">
+	export const entityDragDataType = 'application/x-blockhead-entity'
+</script>
+
+
+<script
+	lang="ts"
+	generics="
+		_EntityType extends SchemaEntityType<typeof schema>
+	"
+>
 	// Types/constants
 	import type { EntitySelector as SchemaEntitySelector, EntityType as SchemaEntityType } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -8,13 +18,15 @@
 
 	// State
 	let {
+		entityType,
 		entitySelector,
 		href,
 		idDragPlainText,
 		Icon,
 		children,
 	}: {
-		entitySelector: SchemaEntitySelector<typeof schema, SchemaEntityType<typeof schema>>
+		entityType: _EntityType
+		entitySelector: SchemaEntitySelector<typeof schema, _EntityType>
 		href?: string
 		/** `text/plain` for drag. Omit when no display-safe value is available. */
 		idDragPlainText?: string
@@ -25,11 +37,16 @@
 
 	// Inner context
 	const onDragStart = (e: DragEvent) => {
+		e.dataTransfer?.setData(entityDragDataType, stringify({
+			entityType,
+			entitySelector,
+		}))
+
 		if (idDragPlainText !== undefined && idDragPlainText.length > 0)
 			e.dataTransfer?.setData('text/plain', idDragPlainText)
 
 		if (href !== undefined && href.length > 0) {
-			e.dataTransfer?.setData('text/uri', href)
+			e.dataTransfer?.setData('text/uri-list', href)
 		}
 	}
 </script>

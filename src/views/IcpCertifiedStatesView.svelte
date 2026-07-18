@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpCertifiedStateView from '$/views/IcpCertifiedStateView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCertifiedState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpCertifiedState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpCertifiedStates) => [...new Map(icpCertifiedStates.values.map((icpCertifiedState) => [icpCertifiedState[EntityMetaKey.SelectorKey], icpCertifiedState])).values()]}
+	getKey={(icpCertifiedState) => icpCertifiedState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP certified states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpCertifiedStates)}
-			{@const uniqueIcpCertifiedStates = [...new Map(icpCertifiedStates.values.map((icpCertifiedState) => [icpCertifiedState[EntityMetaKey.SelectorKey], icpCertifiedState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCertifiedState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpCertifiedStates.totalCount}
-				getKey={(icpCertifiedState) => icpCertifiedState[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpCertifiedStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP certified states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpCertifiedState })}
-					{@const icpCertifiedStateFields = { ...icpCertifiedState[EntityMetaKey.Selector], ...icpCertifiedState }}
-					{@const selection = select(EntityType.IcpCertifiedState, icpCertifiedState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpCertifiedStateView
-						selection={selection}
-						prefetched={icpCertifiedStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpCertifiedState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpCertifiedState })}
+		{@const icpCertifiedStateFields = { ...icpCertifiedState[EntityMetaKey.Selector], ...icpCertifiedState }}
+		{@const selection = select(EntityType.IcpCertifiedState, icpCertifiedState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpCertifiedStateView
+			selection={selection}
+			prefetched={icpCertifiedStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

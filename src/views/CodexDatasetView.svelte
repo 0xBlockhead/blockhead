@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -38,9 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const codexDataset = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			filename: true,
 			mimetype: true,
@@ -69,52 +66,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={codexDataset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={codexDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={codexDataset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={codexDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={codexDataset}>
-			{#snippet Pending()}
-				{@const datasetSizeBytes0 = pendingEntity.datasetSizeBytes}
-				{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(datasetSizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const datasetSizeBytes0 = resolvedEntity.datasetSizeBytes}
-				{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(datasetSizeBytes0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const datasetSizeBytes0 = pendingEntity.datasetSizeBytes}
+			{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={datasetSizeBytes0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={codexDataset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const datasetSizeBytes0 = resolvedEntity.datasetSizeBytes}
+					{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={datasetSizeBytes0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -125,19 +126,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cid = pendingEntity.cid}
-							{#if cid !== undefined && cid !== null}
-								{String((cid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cid = resolvedEntity.cid}
@@ -152,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							treeCid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const treeCid = pendingEntity.treeCid}
-					{#if treeCid !== undefined && treeCid !== null}
-						<div>
-							<dt>tree CID</dt>
-							<dd>
-								{String((treeCid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const treeCid = resolvedEntity.treeCid}
@@ -187,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							filename: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const filename = pendingEntity.filename}
-					{#if filename !== undefined && filename !== null}
-						<div>
-							<dt>filename</dt>
-							<dd>
-								{String((filename) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const filename = resolvedEntity.filename}
@@ -222,24 +195,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mimetype: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mimetype = pendingEntity.mimetype}
-					{#if mimetype !== undefined && mimetype !== null}
-						<div>
-							<dt>mimetype</dt>
-							<dd>
-								{String((mimetype) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mimetype = resolvedEntity.mimetype}
@@ -259,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							datasetSizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const datasetSizeBytes = pendingEntity.datasetSizeBytes}
-					{#if datasetSizeBytes !== undefined && datasetSizeBytes !== null}
-						<div>
-							<dt>dataset size bytes</dt>
-							<dd>
-								<NumberValue value={Number(datasetSizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const datasetSizeBytes = resolvedEntity.datasetSizeBytes}
@@ -284,7 +235,9 @@
 						<div>
 							<dt>dataset size bytes</dt>
 							<dd>
-								<NumberValue value={Number(datasetSizeBytes)} />
+								<NumberValue
+									value={datasetSizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -294,24 +247,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockSizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockSizeBytes = pendingEntity.blockSizeBytes}
-					{#if blockSizeBytes !== undefined && blockSizeBytes !== null}
-						<div>
-							<dt>block size bytes</dt>
-							<dd>
-								<NumberValue value={Number(blockSizeBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockSizeBytes = resolvedEntity.blockSizeBytes}
@@ -319,7 +261,9 @@
 						<div>
 							<dt>block size bytes</dt>
 							<dd>
-								<NumberValue value={Number(blockSizeBytes)} />
+								<NumberValue
+									value={blockSizeBytes}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaTokenAssociationView from '$/views/HederaTokenAssociationView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenAssociation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaTokenAssociation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaTokenAssociations) => [...new Map(hederaTokenAssociations.values.map((hederaTokenAssociation) => [hederaTokenAssociation[EntityMetaKey.SelectorKey], hederaTokenAssociation])).values()]}
+	getKey={(hederaTokenAssociation) => hederaTokenAssociation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera token associations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaTokenAssociations)}
-			{@const uniqueHederaTokenAssociations = [...new Map(hederaTokenAssociations.values.map((hederaTokenAssociation) => [hederaTokenAssociation[EntityMetaKey.SelectorKey], hederaTokenAssociation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenAssociation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaTokenAssociations.totalCount}
-				getKey={(hederaTokenAssociation) => hederaTokenAssociation[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaTokenAssociations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera token associations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaTokenAssociation })}
-					{@const hederaTokenAssociationFields = { ...hederaTokenAssociation[EntityMetaKey.Selector], ...hederaTokenAssociation }}
-					{@const selection = select(EntityType.HederaTokenAssociation, hederaTokenAssociation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaTokenAssociationView
-						selection={selection}
-						prefetched={hederaTokenAssociationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaTokenAssociation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaTokenAssociation })}
+		{@const hederaTokenAssociationFields = { ...hederaTokenAssociation[EntityMetaKey.Selector], ...hederaTokenAssociation }}
+		{@const selection = select(EntityType.HederaTokenAssociation, hederaTokenAssociation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaTokenAssociationView
+			selection={selection}
+			prefetched={hederaTokenAssociationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

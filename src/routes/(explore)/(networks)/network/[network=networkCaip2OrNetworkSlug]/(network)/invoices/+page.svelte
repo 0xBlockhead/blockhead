@@ -43,5 +43,8 @@
 			})
 		}
 		id='invoices'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

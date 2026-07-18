@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosGovernanceProposalView from '$/views/CosmosGovernanceProposalView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					proposalId: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosGovernanceProposal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosGovernanceProposal}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				proposalId: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosGovernanceProposals) => [...new Map(cosmosGovernanceProposals.values.map((cosmosGovernanceProposal) => [cosmosGovernanceProposal[EntityMetaKey.SelectorKey], cosmosGovernanceProposal])).values()]}
+	getKey={(cosmosGovernanceProposal) => cosmosGovernanceProposal[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos governance proposals yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosGovernanceProposals)}
-			{@const uniqueCosmosGovernanceProposals = [...new Map(cosmosGovernanceProposals.values.map((cosmosGovernanceProposal) => [cosmosGovernanceProposal[EntityMetaKey.SelectorKey], cosmosGovernanceProposal])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosGovernanceProposal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosGovernanceProposals.totalCount}
-				getKey={(cosmosGovernanceProposal) => cosmosGovernanceProposal[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosGovernanceProposals}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos governance proposals yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosGovernanceProposal })}
-					{@const cosmosGovernanceProposalFields = { ...cosmosGovernanceProposal[EntityMetaKey.Selector], ...cosmosGovernanceProposal }}
-					{@const selection = select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosGovernanceProposalView
-						selection={selection}
-						prefetched={cosmosGovernanceProposalFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosGovernanceProposal}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosGovernanceProposal })}
+		{@const cosmosGovernanceProposalFields = { ...cosmosGovernanceProposal[EntityMetaKey.Selector], ...cosmosGovernanceProposal }}
+		{@const selection = select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosGovernanceProposalView
+			selection={selection}
+			prefetched={cosmosGovernanceProposalFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

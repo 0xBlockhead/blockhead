@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadZcashViewingKey_TimestampView from '$/views/BlockheadZcashViewingKey_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					lastScannedHeight: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				lastScannedHeight: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadZcashViewingKeyTimestamps) => [...new Map(blockheadZcashViewingKeyTimestamps.values.map((blockheadZcashViewingKeyTimestamp) => [blockheadZcashViewingKeyTimestamp[EntityMetaKey.SelectorKey], blockheadZcashViewingKeyTimestamp])).values()]}
+	getKey={(blockheadZcashViewingKeyTimestamp) => blockheadZcashViewingKeyTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead zcash viewing key observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadZcashViewingKeyTimestamps)}
-			{@const uniqueBlockheadZcashViewingKeyTimestamps = [...new Map(blockheadZcashViewingKeyTimestamps.values.map((blockheadZcashViewingKeyTimestamp) => [blockheadZcashViewingKeyTimestamp[EntityMetaKey.SelectorKey], blockheadZcashViewingKeyTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadZcashViewingKeyTimestamps.totalCount}
-				getKey={(blockheadZcashViewingKeyTimestamp) => blockheadZcashViewingKeyTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadZcashViewingKeyTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead zcash viewing key observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadZcashViewingKeyTimestamp })}
-					{@const blockheadZcashViewingKeyTimestampFields = { ...blockheadZcashViewingKeyTimestamp[EntityMetaKey.Selector], ...blockheadZcashViewingKeyTimestamp }}
-					{@const selection = select(EntityType.BlockheadZcashViewingKey_Timestamp, blockheadZcashViewingKeyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadZcashViewingKey_TimestampView
-						selection={selection}
-						prefetched={blockheadZcashViewingKeyTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadZcashViewingKeyTimestamp })}
+		{@const blockheadZcashViewingKeyTimestampFields = { ...blockheadZcashViewingKeyTimestamp[EntityMetaKey.Selector], ...blockheadZcashViewingKeyTimestamp }}
+		{@const selection = select(EntityType.BlockheadZcashViewingKey_Timestamp, blockheadZcashViewingKeyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadZcashViewingKey_TimestampView
+			selection={selection}
+			prefetched={blockheadZcashViewingKeyTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

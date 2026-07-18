@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitForgeIssueView from '$/views/GitForgeIssueView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					state: true,
-					issueNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitForgeIssue}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitForgeIssue}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				state: true,
+				issueNumber: true,
+			},
+		})
+	}
+	getResourceItems={(gitForgeIssues) => [...new Map(gitForgeIssues.values.map((gitForgeIssue) => [gitForgeIssue[EntityMetaKey.SelectorKey], gitForgeIssue])).values()]}
+	getKey={(gitForgeIssue) => gitForgeIssue[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git forge issues yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitForgeIssues)}
-			{@const uniqueGitForgeIssues = [...new Map(gitForgeIssues.values.map((gitForgeIssue) => [gitForgeIssue[EntityMetaKey.SelectorKey], gitForgeIssue])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitForgeIssue}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitForgeIssues.totalCount}
-				getKey={(gitForgeIssue) => gitForgeIssue[EntityMetaKey.SelectorKey]}
-				items={uniqueGitForgeIssues}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git forge issues yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitForgeIssue })}
-					{@const gitForgeIssueFields = { ...gitForgeIssue[EntityMetaKey.Selector], ...gitForgeIssue }}
-					{@const selection = select(EntityType.GitForgeIssue, gitForgeIssue[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitForgeIssueView
-						selection={selection}
-						prefetched={gitForgeIssueFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitForgeIssue}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitForgeIssue })}
+		{@const gitForgeIssueFields = { ...gitForgeIssue[EntityMetaKey.Selector], ...gitForgeIssue }}
+		{@const selection = select(EntityType.GitForgeIssue, gitForgeIssue[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitForgeIssueView
+			selection={selection}
+			prefetched={gitForgeIssueFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

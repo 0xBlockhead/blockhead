@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dydxChainOrder = $derived(selection({
-		sources: [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			side: true,
 			orderType: true,
@@ -76,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dydxChainOrder}>
-			{#snippet Pending()}
-				{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dydxChainOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dydxChainOrder}>
-			{#snippet Pending()}
-				{[String((pendingEntity.side) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.side) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.side) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={dydxChainOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.side) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={dydxChainOrder}>
-			{#snippet Pending()}
-				{@const orderType0 = pendingEntity.orderType}
-				{#if orderType0 !== undefined && orderType0 !== null}
-					<span data-text="muted">
-						{String((orderType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const orderType0 = resolvedEntity.orderType}
-				{#if orderType0 !== undefined && orderType0 !== null}
-					<span data-text="muted">
-						{String((orderType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const orderType0 = pendingEntity.orderType}
+			{#if orderType0 !== undefined && orderType0 !== null}
+				<span data-text="muted">
+					{String((orderType0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={dydxChainOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const orderType0 = resolvedEntity.orderType}
+					{#if orderType0 !== undefined && orderType0 !== null}
+						<span data-text="muted">
+							{String((orderType0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									orderId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const orderId = pendingEntity.orderId}
-							{#if orderId !== undefined && orderId !== null}
-								{String((orderId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const orderId = resolvedEntity.orderId}
@@ -170,8 +160,6 @@
 			<ResourceBoundary
 				resource={selection.$market}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(dydxChainMarket)}
 					{#if dydxChainMarket != null && dydxChainMarket[EntityMetaKey.Selector] != null}
 						<div>
@@ -192,24 +180,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							side: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const side = pendingEntity.side}
-					{#if side !== undefined && side !== null}
-						<div>
-							<dt>side</dt>
-							<dd>
-								{String((side) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const side = resolvedEntity.side}
@@ -227,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							orderType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const orderType = pendingEntity.orderType}
-					{#if orderType !== undefined && orderType !== null}
-						<div>
-							<dt>order type</dt>
-							<dd>
-								{String((orderType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const orderType = resolvedEntity.orderType}
@@ -264,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timeInForce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timeInForce = pendingEntity.timeInForce}
-					{#if timeInForce !== undefined && timeInForce !== null}
-						<div>
-							<dt>time in force</dt>
-							<dd>
-								{String((timeInForce) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timeInForce = resolvedEntity.timeInForce}
@@ -299,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clientId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clientId = pendingEntity.clientId}
-					{#if clientId !== undefined && clientId !== null}
-						<div>
-							<dt>client ID</dt>
-							<dd>
-								{String((clientId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clientId = resolvedEntity.clientId}
@@ -334,24 +278,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							goodTilBlock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const goodTilBlock = pendingEntity.goodTilBlock}
-					{#if goodTilBlock !== undefined && goodTilBlock !== null}
-						<div>
-							<dt>good til block</dt>
-							<dd>
-								{String((goodTilBlock) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const goodTilBlock = resolvedEntity.goodTilBlock}
@@ -369,24 +302,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							goodTilBlockTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const goodTilBlockTimeMs = pendingEntity.goodTilBlockTimeMs}
-					{#if goodTilBlockTimeMs !== undefined && goodTilBlockTimeMs !== null}
-						<div>
-							<dt>good til block time ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(goodTilBlockTimeMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const goodTilBlockTimeMs = resolvedEntity.goodTilBlockTimeMs}

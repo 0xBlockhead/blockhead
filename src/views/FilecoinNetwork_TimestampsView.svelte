@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinNetwork_TimestampView from '$/views/FilecoinNetwork_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					headHeight: true,
-					headTipsetKey: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				headHeight: true,
+				headTipsetKey: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinNetworkTimestamps) => [...new Map(filecoinNetworkTimestamps.values.map((filecoinNetworkTimestamp) => [filecoinNetworkTimestamp[EntityMetaKey.SelectorKey], filecoinNetworkTimestamp])).values()]}
+	getKey={(filecoinNetworkTimestamp) => filecoinNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinNetworkTimestamps)}
-			{@const uniqueFilecoinNetworkTimestamps = [...new Map(filecoinNetworkTimestamps.values.map((filecoinNetworkTimestamp) => [filecoinNetworkTimestamp[EntityMetaKey.SelectorKey], filecoinNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinNetworkTimestamps.totalCount}
-				getKey={(filecoinNetworkTimestamp) => filecoinNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinNetworkTimestamp })}
-					{@const filecoinNetworkTimestampFields = { ...filecoinNetworkTimestamp[EntityMetaKey.Selector], ...filecoinNetworkTimestamp }}
-					{@const selection = select(EntityType.FilecoinNetwork_Timestamp, filecoinNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinNetwork_TimestampView
-						selection={selection}
-						prefetched={filecoinNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinNetworkTimestamp })}
+		{@const filecoinNetworkTimestampFields = { ...filecoinNetworkTimestamp[EntityMetaKey.Selector], ...filecoinNetworkTimestamp }}
+		{@const selection = select(EntityType.FilecoinNetwork_Timestamp, filecoinNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinNetwork_TimestampView
+			selection={selection}
+			prefetched={filecoinNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

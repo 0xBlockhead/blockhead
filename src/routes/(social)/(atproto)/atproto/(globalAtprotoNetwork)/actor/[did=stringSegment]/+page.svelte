@@ -22,15 +22,8 @@
 		sources: [
 			Source.Atproto_Xrpc,
 		],
-		fields: {
-			$icon: true,
-			displayName: true,
-			indexedAt: true,
-			$banner: true,
-			description: true,
-		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.handle) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).handle) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')))
 
 
 	// Components

@@ -44,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bittensorSubnet = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-			Source.Bittensor_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 		},
@@ -76,29 +73,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bittensorSubnet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || 'Bittensor subnet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bittensorSubnet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bittensorSubnet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || 'Bittensor subnet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bittensorSubnet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.netuid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,24 +124,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									netuid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const netuid = pendingEntity.netuid}
-							{#if netuid !== undefined && netuid !== null}
-								<NumberValue value={Number(netuid)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const netuid = resolvedEntity.netuid}
 							{#if netuid !== undefined && netuid !== null}
-								<NumberValue value={Number(netuid)} />
+								<NumberValue
+									value={netuid}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -154,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -189,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetInfoByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetInfoByteLength = pendingEntity.subnetInfoByteLength}
-					{#if subnetInfoByteLength !== undefined && subnetInfoByteLength !== null}
-						<div>
-							<dt>Subnet info bytes</dt>
-							<dd>
-								<NumberValue value={Number(subnetInfoByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetInfoByteLength = resolvedEntity.subnetInfoByteLength}
@@ -214,7 +185,9 @@
 						<div>
 							<dt>Subnet info bytes</dt>
 							<dd>
-								<NumberValue value={Number(subnetInfoByteLength)} />
+								<NumberValue
+									value={subnetInfoByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -224,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							dynamicInfoByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const dynamicInfoByteLength = pendingEntity.dynamicInfoByteLength}
-					{#if dynamicInfoByteLength !== undefined && dynamicInfoByteLength !== null}
-						<div>
-							<dt>Dynamic info bytes</dt>
-							<dd>
-								<NumberValue value={Number(dynamicInfoByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const dynamicInfoByteLength = resolvedEntity.dynamicInfoByteLength}
@@ -249,7 +211,9 @@
 						<div>
 							<dt>Dynamic info bytes</dt>
 							<dd>
-								<NumberValue value={Number(dynamicInfoByteLength)} />
+								<NumberValue
+									value={dynamicInfoByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -259,24 +223,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hyperparamsByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hyperparamsByteLength = pendingEntity.hyperparamsByteLength}
-					{#if hyperparamsByteLength !== undefined && hyperparamsByteLength !== null}
-						<div>
-							<dt>Hyperparameter bytes</dt>
-							<dd>
-								<NumberValue value={Number(hyperparamsByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hyperparamsByteLength = resolvedEntity.hyperparamsByteLength}
@@ -284,7 +237,9 @@
 						<div>
 							<dt>Hyperparameter bytes</dt>
 							<dd>
-								<NumberValue value={Number(hyperparamsByteLength)} />
+								<NumberValue
+									value={hyperparamsByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}

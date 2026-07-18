@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IpfsProtocolView from '$/views/IpfsProtocolView.svelte'
 </script>
@@ -62,80 +61,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					relationshipModel: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IpfsProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IpfsProtocol}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				relationshipModel: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(ipfsProtocols) => [...new Map(ipfsProtocols.values.map((ipfsProtocol) => [ipfsProtocol[EntityMetaKey.SelectorKey], ipfsProtocol])).values()]}
+	getKey={(ipfsProtocol) => ipfsProtocol[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No IPFS protocols yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ipfsProtocols)}
-			{@const uniqueIpfsProtocols = [...new Map(ipfsProtocols.values.map((ipfsProtocol) => [ipfsProtocol[EntityMetaKey.SelectorKey], ipfsProtocol])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IpfsProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ipfsProtocols.totalCount}
-				getKey={(ipfsProtocol) => ipfsProtocol[EntityMetaKey.SelectorKey]}
-				items={uniqueIpfsProtocols}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No IPFS protocols yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ipfsProtocol })}
-					{@const ipfsProtocolFields = { ...ipfsProtocol[EntityMetaKey.Selector], ...ipfsProtocol }}
-					{@const selection = select(EntityType.IpfsProtocol, ipfsProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const ipfsProtocolHrefFields = { ...ipfsProtocol, ...ipfsProtocol[EntityMetaKey.Selector] }}
-					<IpfsProtocolView
-						selection={selection}
-						prefetched={ipfsProtocolFields}
-						href={(ipfsProtocol[EntityMetaKey.Selector].scope === 'IpfsProtocol' ? resolve('/ipfs') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IpfsProtocol}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ipfsProtocol })}
+		{@const ipfsProtocolFields = { ...ipfsProtocol[EntityMetaKey.Selector], ...ipfsProtocol }}
+		{@const selection = select(EntityType.IpfsProtocol, ipfsProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const ipfsProtocolHrefFields = { ...ipfsProtocol, ...ipfsProtocol[EntityMetaKey.Selector] }}
+		<IpfsProtocolView
+			selection={selection}
+			prefetched={ipfsProtocolFields}
+			href={(ipfsProtocol[EntityMetaKey.Selector].scope === 'IpfsProtocol' ? resolve('/ipfs') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

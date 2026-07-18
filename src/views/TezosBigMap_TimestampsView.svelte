@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBigMap_TimestampView from '$/views/TezosBigMap_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMap_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBigMap_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBigMapTimestamps) => [...new Map(tezosBigMapTimestamps.values.map((tezosBigMapTimestamp) => [tezosBigMapTimestamp[EntityMetaKey.SelectorKey], tezosBigMapTimestamp])).values()]}
+	getKey={(tezosBigMapTimestamp) => tezosBigMapTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos big map observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBigMapTimestamps)}
-			{@const uniqueTezosBigMapTimestamps = [...new Map(tezosBigMapTimestamps.values.map((tezosBigMapTimestamp) => [tezosBigMapTimestamp[EntityMetaKey.SelectorKey], tezosBigMapTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBigMap_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBigMapTimestamps.totalCount}
-				getKey={(tezosBigMapTimestamp) => tezosBigMapTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBigMapTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos big map observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBigMapTimestamp })}
-					{@const tezosBigMapTimestampFields = { ...tezosBigMapTimestamp[EntityMetaKey.Selector], ...tezosBigMapTimestamp }}
-					{@const selection = select(EntityType.TezosBigMap_Timestamp, tezosBigMapTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBigMap_TimestampView
-						selection={selection}
-						prefetched={tezosBigMapTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBigMap_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBigMapTimestamp })}
+		{@const tezosBigMapTimestampFields = { ...tezosBigMapTimestamp[EntityMetaKey.Selector], ...tezosBigMapTimestamp }}
+		{@const selection = select(EntityType.TezosBigMap_Timestamp, tezosBigMapTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBigMap_TimestampView
+			selection={selection}
+			prefetched={tezosBigMapTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

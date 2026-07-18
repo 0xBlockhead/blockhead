@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					text: true,
-					uri: true,
-					createdAt: true,
-				},
-				limit: 25,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AtprotoPost}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				text: true,
+				uri: true,
+				createdAt: true,
+			},
+			limit: 25,
+		})
+	}
+	getResourceItems={(atprotoPosts) => [...new Map(atprotoPosts.values.map((atprotoPost) => [atprotoPost[EntityMetaKey.SelectorKey], atprotoPost])).values()]}
+	getKey={(atprotoPost) => atprotoPost[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol posts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(atprotoPosts)}
-			{@const uniqueAtprotoPosts = [...new Map(atprotoPosts.values.map((atprotoPost) => [atprotoPost[EntityMetaKey.SelectorKey], atprotoPost])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoPosts.totalCount}
-				getKey={(atprotoPost) => atprotoPost[EntityMetaKey.SelectorKey]}
-				items={uniqueAtprotoPosts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol posts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: atprotoPost })}
-					{@const atprotoPostFields = { ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }}
-					{@const selection = select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const atprotoPostHrefFields = { ...atprotoPost, ...atprotoPost[EntityMetaKey.Selector] }}
-					<AtprotoPostView
-						selection={selection}
-						prefetched={atprotoPostFields}
-						href={
-							(atprotoPostHrefFields.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
-								uri: String(atprotoPostHrefFields.uri ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AtprotoPost}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: atprotoPost })}
+		{@const atprotoPostFields = { ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }}
+		{@const selection = select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const atprotoPostHrefFields = { ...atprotoPost, ...atprotoPost[EntityMetaKey.Selector] }}
+		<AtprotoPostView
+			selection={selection}
+			prefetched={atprotoPostFields}
+			href={
+				(atprotoPostHrefFields.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+					uri: encodeURIComponent(String(atprotoPostHrefFields.uri ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

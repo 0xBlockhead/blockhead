@@ -44,6 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbBeaconTokenMigration = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			migrationKind: true,
 		},
@@ -73,63 +74,63 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconTokenMigration}>
-			{#snippet Pending()}
-				{[String((pendingEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token migration'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconTokenMigration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbBeaconTokenMigration}>
-			{#snippet Pending()}
-				<BnbBeaconTokenView
-					selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<BnbBeaconTokenView
+						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
 
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
-					href={
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
+						href={
 						(selection.entitySelector.$targetNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$targetNetwork.caip2) ?? ''),
 						}) : selection.entitySelector.$targetNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={bnbBeaconTokenMigration}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<BnbBeaconTokenView
+						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BnbBeaconTokenView
-					selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
-					href={
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
+						href={
 						(selection.entitySelector.$targetNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$targetNetwork.caip2) ?? ''),
 						}) : selection.entitySelector.$targetNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -169,19 +170,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									targetAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const targetAddress = pendingEntity.targetAddress}
-							{#if targetAddress !== undefined && targetAddress !== null}
-								<TruncatedValue value={String((targetAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const targetAddress = resolvedEntity.targetAddress}
@@ -199,19 +194,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									migrationKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const migrationKind = pendingEntity.migrationKind}
-							{#if migrationKind !== undefined && migrationKind !== null}
-								{String((migrationKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const migrationKind = resolvedEntity.migrationKind}
@@ -226,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sourceAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sourceAddress = pendingEntity.sourceAddress}
-					{#if sourceAddress !== undefined && sourceAddress !== null}
-						<div>
-							<dt>source address</dt>
-							<dd>
-								<TruncatedValue value={String((sourceAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sourceAddress = resolvedEntity.sourceAddress}
@@ -263,24 +241,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							targetContractAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const targetContractAddress = pendingEntity.targetContractAddress}
-					{#if targetContractAddress !== undefined && targetContractAddress !== null}
-						<div>
-							<dt>target contract address</dt>
-							<dd>
-								<TruncatedValue value={String((targetContractAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const targetContractAddress = resolvedEntity.targetContractAddress}
@@ -298,24 +265,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amount = pendingEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>amount</dt>
-							<dd>
-								<NumberValue value={Number(amount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amount = resolvedEntity.amount}
@@ -323,7 +279,9 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								<NumberValue value={Number(amount)} />
+								<NumberValue
+									value={amount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -333,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							eventTxHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const eventTxHash = pendingEntity.eventTxHash}
-					{#if eventTxHash !== undefined && eventTxHash !== null}
-						<div>
-							<dt>event transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((eventTxHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const eventTxHash = resolvedEntity.eventTxHash}

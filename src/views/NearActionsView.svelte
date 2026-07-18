@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearActionView from '$/views/NearActionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					actionKind: true,
-					methodName: true,
-					actionIndex: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearAction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				actionKind: true,
+				methodName: true,
+				actionIndex: true,
+			},
+		})
+	}
+	getResourceItems={(nearActions) => [...new Map(nearActions.values.map((nearAction) => [nearAction[EntityMetaKey.SelectorKey], nearAction])).values()]}
+	getKey={(nearAction) => nearAction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near actions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearActions)}
-			{@const uniqueNearActions = [...new Map(nearActions.values.map((nearAction) => [nearAction[EntityMetaKey.SelectorKey], nearAction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearActions.totalCount}
-				getKey={(nearAction) => nearAction[EntityMetaKey.SelectorKey]}
-				items={uniqueNearActions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near actions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearAction })}
-					{@const nearActionFields = { ...nearAction[EntityMetaKey.Selector], ...nearAction }}
-					{@const selection = select(EntityType.NearAction, nearAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearActionView
-						selection={selection}
-						prefetched={nearActionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearAction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearAction })}
+		{@const nearActionFields = { ...nearAction[EntityMetaKey.Selector], ...nearAction }}
+		{@const selection = select(EntityType.NearAction, nearAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearActionView
+			selection={selection}
+			prefetched={nearActionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

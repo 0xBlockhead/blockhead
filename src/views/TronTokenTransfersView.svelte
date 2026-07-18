@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TronTokenTransferView from '$/views/TronTokenTransferView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronTokenTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TronTokenTransfer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tronTokenTransfers) => [...new Map(tronTokenTransfers.values.map((tronTokenTransfer) => [tronTokenTransfer[EntityMetaKey.SelectorKey], tronTokenTransfer])).values()]}
+	getKey={(tronTokenTransfer) => tronTokenTransfer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tron token transfers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tronTokenTransfers)}
-			{@const uniqueTronTokenTransfers = [...new Map(tronTokenTransfers.values.map((tronTokenTransfer) => [tronTokenTransfer[EntityMetaKey.SelectorKey], tronTokenTransfer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronTokenTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tronTokenTransfers.totalCount}
-				getKey={(tronTokenTransfer) => tronTokenTransfer[EntityMetaKey.SelectorKey]}
-				items={uniqueTronTokenTransfers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tron token transfers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tronTokenTransfer })}
-					{@const tronTokenTransferFields = { ...tronTokenTransfer[EntityMetaKey.Selector], ...tronTokenTransfer }}
-					{@const selection = select(EntityType.TronTokenTransfer, tronTokenTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TronTokenTransferView
-						selection={selection}
-						prefetched={tronTokenTransferFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TronTokenTransfer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tronTokenTransfer })}
+		{@const tronTokenTransferFields = { ...tronTokenTransfer[EntityMetaKey.Selector], ...tronTokenTransfer }}
+		{@const selection = select(EntityType.TronTokenTransfer, tronTokenTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TronTokenTransferView
+			selection={selection}
+			prefetched={tronTokenTransferFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

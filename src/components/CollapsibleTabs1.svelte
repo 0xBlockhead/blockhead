@@ -24,8 +24,6 @@
 		Annotation,
 		body,
 
-		scrollContainerProps = {},
-
 		...detailsProps
 	}: WithRest<
 		{
@@ -48,7 +46,6 @@
 			body?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			scrollContainerProps?: SvelteHTMLElements['div']
 		},
 		SvelteHTMLElements['details']
 	> = $props()
@@ -115,13 +112,12 @@
 			</div>
 		</summary>
 
-		{#if body && open}
+		{#if body}
 			<div
 				data-column-item="flexible"
 				data-collapsible-tabs-pane-host
 				data-scroll-container="layout-carousel"
-				data-row="align-start"
-				{...scrollContainerProps}
+				data-row="align-stretch"
 			>
 				{@render body({
 					open,

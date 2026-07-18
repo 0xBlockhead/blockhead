@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UrlPreview_TimestampView from '$/views/UrlPreview_TimestampView.svelte'
 </script>
@@ -62,90 +61,57 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$image: true,
-					title: true,
-					$url: true,
-					siteName: true,
-					previewStatus: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UrlPreview_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.UrlPreview_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$image: true,
+				title: true,
+				$url: true,
+				siteName: true,
+				previewStatus: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(urlPreviewTimestamps) => [...new Map(urlPreviewTimestamps.values.map((urlPreviewTimestamp) => [urlPreviewTimestamp[EntityMetaKey.SelectorKey], urlPreviewTimestamp])).values()]}
+	getKey={(urlPreviewTimestamp) => urlPreviewTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No URL preview observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(urlPreviewTimestamps)}
-			{@const uniqueUrlPreviewTimestamps = [...new Map(urlPreviewTimestamps.values.map((urlPreviewTimestamp) => [urlPreviewTimestamp[EntityMetaKey.SelectorKey], urlPreviewTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UrlPreview_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={urlPreviewTimestamps.totalCount}
-				getKey={(urlPreviewTimestamp) => urlPreviewTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueUrlPreviewTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No URL preview observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: urlPreviewTimestamp })}
-					{@const urlPreviewTimestampFields = { ...urlPreviewTimestamp[EntityMetaKey.Selector], ...urlPreviewTimestamp }}
-					{@const selection = select(EntityType.UrlPreview_Timestamp, urlPreviewTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const urlPreviewTimestampHrefFields = { ...urlPreviewTimestamp, ...urlPreviewTimestamp[EntityMetaKey.Selector] }}
-					<UrlPreview_TimestampView
-						selection={selection}
-						prefetched={urlPreviewTimestampFields}
-						href={
-							(urlPreviewTimestampHrefFields.timestampMs !== undefined && urlPreviewTimestampHrefFields.source !== undefined && urlPreviewTimestampHrefFields.$url !== undefined && urlPreviewTimestampHrefFields.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(urlPreviewTimestampHrefFields.timestampMs ?? ''),
-								source: String(urlPreviewTimestampHrefFields.source ?? ''),
-								url: String(urlPreviewTimestampHrefFields.$url.url ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.UrlPreview_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: urlPreviewTimestamp })}
+		{@const urlPreviewTimestampFields = { ...urlPreviewTimestamp[EntityMetaKey.Selector], ...urlPreviewTimestamp }}
+		{@const selection = select(EntityType.UrlPreview_Timestamp, urlPreviewTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const urlPreviewTimestampHrefFields = { ...urlPreviewTimestamp, ...urlPreviewTimestamp[EntityMetaKey.Selector] }}
+		<UrlPreview_TimestampView
+			selection={selection}
+			prefetched={urlPreviewTimestampFields}
+			href={
+				(urlPreviewTimestampHrefFields.timestampMs !== undefined && urlPreviewTimestampHrefFields.source !== undefined && urlPreviewTimestampHrefFields.$url !== undefined && urlPreviewTimestampHrefFields.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(urlPreviewTimestampHrefFields.timestampMs ?? ''),
+					source: String(urlPreviewTimestampHrefFields.source ?? ''),
+					url: encodeURIComponent(String(urlPreviewTimestampHrefFields.$url.url ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -64,15 +64,17 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: async ({ $provider, providerModelId }) => {
-					assertOpenAiProvider($provider)
-					return modelFields(
-						await retrieveModel({
-							binding: openAiBinding,
-							modelId: providerModelId,
-						}),
-						$provider
-					)
+				[AiModelSelector.ProviderModelId]: {
+					resolve: async ({ $provider, providerModelId }) => {
+						assertOpenAiProvider($provider)
+						return modelFields(
+							await retrieveModel({
+								binding: openAiBinding,
+								modelId: providerModelId,
+							}),
+							$provider
+						)
+					},
 				},
 			},
 		})({
@@ -87,32 +89,34 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiProviderCatalogEntry,
 			resolve: {
-				[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId]: async ({
-					$provider,
-					catalogKind,
-					providerEntryId,
-				}) => {
-					assertOpenAiProvider($provider)
-					if (catalogKind !== 'model')
-						throw new Error(`OpenAI_Rest: unsupported catalog kind ${catalogKind}`)
-
-					const model = await retrieveModel({
-						binding: openAiBinding,
-						modelId: providerEntryId,
-					})
-					return {
-						$provider: {
-							[EntityMetaKey.Selector]: $provider,
-						},
+				[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId]: {
+					resolve: async ({
+						$provider,
 						catalogKind,
-						providerEntryId: model.id,
-						entryLabel: model.id,
-						subjectKind: EntityType.AiModel,
-						subjectSelector: {
-							$provider,
-							providerModelId: model.id,
-						},
-					}
+						providerEntryId,
+					}) => {
+						assertOpenAiProvider($provider)
+						if (catalogKind !== 'model')
+							throw new Error(`OpenAI_Rest: unsupported catalog kind ${catalogKind}`)
+
+						const model = await retrieveModel({
+							binding: openAiBinding,
+							modelId: providerEntryId,
+						})
+						return {
+							$provider: {
+								[EntityMetaKey.Selector]: $provider,
+							},
+							catalogKind,
+							providerEntryId: model.id,
+							entryLabel: model.id,
+							subjectKind: EntityType.AiModel,
+							subjectSelector: {
+								$provider,
+								providerModelId: model.id,
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -127,22 +131,24 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiProviderApiOperation,
 			resolve: {
-				[AiProviderApiOperationSelector.ProviderOperationId]: async ({ $provider, operationId }) => {
-					assertOpenAiProvider($provider)
-					const operation = operationById.get(operationId)
-					if (operation == null)
-						throw new Error(`OpenAI_Rest: unsupported operation ${operationId}`)
+				[AiProviderApiOperationSelector.ProviderOperationId]: {
+					resolve: async ({ $provider, operationId }) => {
+						assertOpenAiProvider($provider)
+						const operation = operationById.get(operationId)
+						if (operation == null)
+							throw new Error(`OpenAI_Rest: unsupported operation ${operationId}`)
 
-					await listModels({
-						binding: openAiBinding,
-					})
-					return {
-						$provider: {
-							[EntityMetaKey.Selector]: $provider,
-						},
-						operationId,
-						...operation,
-					}
+						await listModels({
+							binding: openAiBinding,
+						})
+						return {
+							$provider: {
+								[EntityMetaKey.Selector]: $provider,
+							},
+							operationId,
+							...operation,
+						}
+					},
 				},
 			},
 		})({

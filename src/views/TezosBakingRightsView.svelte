@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosBakingRightView from '$/views/TezosBakingRightView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBakingRight}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosBakingRight}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosBakingRights) => [...new Map(tezosBakingRights.values.map((tezosBakingRight) => [tezosBakingRight[EntityMetaKey.SelectorKey], tezosBakingRight])).values()]}
+	getKey={(tezosBakingRight) => tezosBakingRight[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos baking rights yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosBakingRights)}
-			{@const uniqueTezosBakingRights = [...new Map(tezosBakingRights.values.map((tezosBakingRight) => [tezosBakingRight[EntityMetaKey.SelectorKey], tezosBakingRight])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosBakingRight}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosBakingRights.totalCount}
-				getKey={(tezosBakingRight) => tezosBakingRight[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosBakingRights}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos baking rights yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosBakingRight })}
-					{@const tezosBakingRightFields = { ...tezosBakingRight[EntityMetaKey.Selector], ...tezosBakingRight }}
-					{@const selection = select(EntityType.TezosBakingRight, tezosBakingRight[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosBakingRightView
-						selection={selection}
-						prefetched={tezosBakingRightFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosBakingRight}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosBakingRight })}
+		{@const tezosBakingRightFields = { ...tezosBakingRight[EntityMetaKey.Selector], ...tezosBakingRight }}
+		{@const selection = select(EntityType.TezosBakingRight, tezosBakingRight[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosBakingRightView
+			selection={selection}
+			prefetched={tezosBakingRightFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

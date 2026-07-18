@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadLogosBlockchainWalletKeyState_TimestampView from '$/views/BlockheadLogosBlockchainWalletKeyState_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					balance: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				balance: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadLogosBlockchainWalletKeyStateTimestamps) => [...new Map(blockheadLogosBlockchainWalletKeyStateTimestamps.values.map((blockheadLogosBlockchainWalletKeyStateTimestamp) => [blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.SelectorKey], blockheadLogosBlockchainWalletKeyStateTimestamp])).values()]}
+	getKey={(blockheadLogosBlockchainWalletKeyStateTimestamp) => blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Logos blockchain wallet key state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadLogosBlockchainWalletKeyStateTimestamps)}
-			{@const uniqueBlockheadLogosBlockchainWalletKeyStateTimestamps = [...new Map(blockheadLogosBlockchainWalletKeyStateTimestamps.values.map((blockheadLogosBlockchainWalletKeyStateTimestamp) => [blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.SelectorKey], blockheadLogosBlockchainWalletKeyStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLogosBlockchainWalletKeyStateTimestamps.totalCount}
-				getKey={(blockheadLogosBlockchainWalletKeyStateTimestamp) => blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadLogosBlockchainWalletKeyStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Logos blockchain wallet key state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadLogosBlockchainWalletKeyStateTimestamp })}
-					{@const blockheadLogosBlockchainWalletKeyStateTimestampFields = { ...blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.Selector], ...blockheadLogosBlockchainWalletKeyStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadLogosBlockchainWalletKeyState_TimestampView
-						selection={selection}
-						prefetched={blockheadLogosBlockchainWalletKeyStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadLogosBlockchainWalletKeyStateTimestamp })}
+		{@const blockheadLogosBlockchainWalletKeyStateTimestampFields = { ...blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.Selector], ...blockheadLogosBlockchainWalletKeyStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp, blockheadLogosBlockchainWalletKeyStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadLogosBlockchainWalletKeyState_TimestampView
+			selection={selection}
+			prefetched={blockheadLogosBlockchainWalletKeyStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

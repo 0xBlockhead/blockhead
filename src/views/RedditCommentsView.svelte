@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					body: true,
-					fullname: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditComment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RedditComment}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Constants_Internal,
+				Source.Reddit_PublicJson,
+			],
+			fields: {
+				body: true,
+				fullname: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(redditComments) => [...new Map(redditComments.values.map((redditComment) => [redditComment[EntityMetaKey.SelectorKey], redditComment])).values()]}
+	getKey={(redditComment) => redditComment[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Reddit comments yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(redditComments)}
-			{@const uniqueRedditComments = [...new Map(redditComments.values.map((redditComment) => [redditComment[EntityMetaKey.SelectorKey], redditComment])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditComment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditComments.totalCount}
-				getKey={(redditComment) => redditComment[EntityMetaKey.SelectorKey]}
-				items={uniqueRedditComments}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Reddit comments yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: redditComment })}
-					{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
-					{@const selection = select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const redditCommentHrefFields = { ...redditComment, ...redditComment[EntityMetaKey.Selector] }}
-					<RedditCommentView
-						selection={selection}
-						prefetched={redditCommentFields}
-						href={
-							(redditCommentHrefFields.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
-								fullname: String(redditCommentHrefFields.fullname ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RedditComment}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: redditComment })}
+		{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
+		{@const selection = select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const redditCommentHrefFields = { ...redditComment, ...redditComment[EntityMetaKey.Selector] }}
+		<RedditCommentView
+			selection={selection}
+			prefetched={redditCommentFields}
+			href={
+				(redditCommentHrefFields.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+					fullname: encodeURIComponent(String(redditCommentHrefFields.fullname ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

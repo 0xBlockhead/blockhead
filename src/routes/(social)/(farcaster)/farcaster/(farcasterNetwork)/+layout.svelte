@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,7 +34,9 @@
 		{@const DetailView = FarcasterNetworkView}
 
 		<DetailView
-			selection={select(EntityType.FarcasterNetwork, data.selector)}
+			selection={select(EntityType.FarcasterNetwork, data.selector, { sources: [
+	Source.Constants_Internal,
+] })}
 			href={resolve('/farcaster')}
 			layout={EntityLayout.SummaryInline}
 		/>

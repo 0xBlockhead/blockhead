@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitTorrentFile = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			path: true,
 			length: true,
@@ -69,35 +70,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bitTorrentFile}>
-			{#snippet Pending()}
-				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent file'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bitTorrentFile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bitTorrentFile}>
-			{#snippet Pending()}
-				{@const length0 = pendingEntity.length}
-				{#if length0 !== undefined && length0 !== null}
-					<NumberValue value={Number(length0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const length0 = resolvedEntity.length}
-				{#if length0 !== undefined && length0 !== null}
-					<NumberValue value={Number(length0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const length0 = pendingEntity.length}
+					{#if length0 !== undefined && length0 !== null}
+						<NumberValue
+							value={length0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bitTorrentFile}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const length0 = resolvedEntity.length}
+					{#if length0 !== undefined && length0 !== null}
+						<NumberValue
+							value={length0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,24 +124,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fileIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fileIndex = pendingEntity.fileIndex}
-							{#if fileIndex !== undefined && fileIndex !== null}
-								<NumberValue value={Number(fileIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fileIndex = resolvedEntity.fileIndex}
 							{#if fileIndex !== undefined && fileIndex !== null}
-								<NumberValue value={Number(fileIndex)} />
+								<NumberValue
+									value={fileIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -149,19 +150,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									path: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const path = pendingEntity.path}
-							{#if path !== undefined && path !== null}
-								{String((path) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const path = resolvedEntity.path}
@@ -179,24 +174,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									length: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const length = pendingEntity.length}
-							{#if length !== undefined && length !== null}
-								<NumberValue value={Number(length)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const length = resolvedEntity.length}
 							{#if length !== undefined && length !== null}
-								<NumberValue value={Number(length)} />
+								<NumberValue
+									value={length}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -206,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							piecesRoot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const piecesRoot = pendingEntity.piecesRoot}
-					{#if piecesRoot !== undefined && piecesRoot !== null}
-						<div>
-							<dt>pieces root</dt>
-							<dd>
-								{String((piecesRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const piecesRoot = resolvedEntity.piecesRoot}
@@ -241,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fileHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fileHash = pendingEntity.fileHash}
-					{#if fileHash !== undefined && fileHash !== null}
-						<div>
-							<dt>file hash</dt>
-							<dd>
-								<TruncatedValue value={String((fileHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fileHash = resolvedEntity.fileHash}

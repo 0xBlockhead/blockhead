@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BridgeRouteQuote_TimestampView from '$/views/BridgeRouteQuote_TimestampView.svelte'
 </script>
@@ -61,81 +60,48 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					fromChainId: true,
-					toChainId: true,
-					timestampMs: true,
-					source: true,
-					estimatedCostUsd: true,
-					estimatedDurationSeconds: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeRouteQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BridgeRouteQuote_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				fromChainId: true,
+				toChainId: true,
+				timestampMs: true,
+				source: true,
+				estimatedCostUsd: true,
+				estimatedDurationSeconds: true,
+			},
+		})
+	}
+	getResourceItems={(bridgeRouteQuoteTimestamps) => [...new Map(bridgeRouteQuoteTimestamps.values.map((bridgeRouteQuoteTimestamp) => [bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey], bridgeRouteQuoteTimestamp])).values()]}
+	getKey={(bridgeRouteQuoteTimestamp) => bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bridge route quote observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bridgeRouteQuoteTimestamps)}
-			{@const uniqueBridgeRouteQuoteTimestamps = [...new Map(bridgeRouteQuoteTimestamps.values.map((bridgeRouteQuoteTimestamp) => [bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey], bridgeRouteQuoteTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeRouteQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bridgeRouteQuoteTimestamps.totalCount}
-				getKey={(bridgeRouteQuoteTimestamp) => bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBridgeRouteQuoteTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bridge route quote observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bridgeRouteQuoteTimestamp })}
-					{@const bridgeRouteQuoteTimestampFields = { ...bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], ...bridgeRouteQuoteTimestamp }}
-					{@const selection = select(EntityType.BridgeRouteQuote_Timestamp, bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BridgeRouteQuote_TimestampView
-						selection={selection}
-						prefetched={bridgeRouteQuoteTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BridgeRouteQuote_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bridgeRouteQuoteTimestamp })}
+		{@const bridgeRouteQuoteTimestampFields = { ...bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], ...bridgeRouteQuoteTimestamp }}
+		{@const selection = select(EntityType.BridgeRouteQuote_Timestamp, bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BridgeRouteQuote_TimestampView
+			selection={selection}
+			prefetched={bridgeRouteQuoteTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

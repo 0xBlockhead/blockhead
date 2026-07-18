@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
@@ -35,22 +39,30 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (realm !== SpecificationRealm.Near || category !== ProposalCategory.Nep) {
-					throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Near,
+							category: OwnedProposalCategory.Nep,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+					if (realm !== SpecificationRealm.Near || category !== ProposalCategory.Nep) {
+						throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
+					}
+					const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
+					const text = await getMarkdownText({ number: number })
+					const frontmatter = parseFrontmatter(text)
+					const body = stripFrontmatter(text)
+					return {
+						documentCategory: frontmatter.category.trim(),
+						documentTitle: frontmatter.title.trim(),
+						documentStatus: frontmatter.status.trim(),
+						documentBody: body,
+					}
+				},
 				}
-				const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
-				const text = await getMarkdownText({ number: number })
-				const frontmatter = parseFrontmatter(text)
-				const body = stripFrontmatter(text)
-				return {
-					documentCategory: frontmatter.category.trim(),
-					documentTitle: frontmatter.title.trim(),
-					documentStatus: frontmatter.status.trim(),
-					documentBody: body,
-				}
-			}
 			}
 		})({
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -62,10 +74,12 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getContents())
-			}
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+					const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
+					return nearNepRows(await getContents())
+				},
+				}
 			}
 		})({
 			$$proposals: (snapshot) => snapshot,

@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadSessionAction = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			indexInSequence: true,
 			actionType: true,
@@ -85,52 +82,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSessionAction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session action'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSessionAction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadSessionAction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.selectedProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session action'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.selectedProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.actionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.selectedProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSessionAction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.selectedProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.actionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadSessionAction}>
-			{#snippet Pending()}
-				{@const indexInSequence0 = pendingEntity.indexInSequence}
-				{#if indexInSequence0 !== undefined && indexInSequence0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(indexInSequence0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const indexInSequence0 = resolvedEntity.indexInSequence}
-				{#if indexInSequence0 !== undefined && indexInSequence0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(indexInSequence0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const indexInSequence0 = pendingEntity.indexInSequence}
+			{#if indexInSequence0 !== undefined && indexInSequence0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={indexInSequence0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadSessionAction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const indexInSequence0 = resolvedEntity.indexInSequence}
+					{#if indexInSequence0 !== undefined && indexInSequence0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={indexInSequence0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,19 +167,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									actionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const actionId = pendingEntity.actionId}
-							{#if actionId !== undefined && actionId !== null}
-								{String((actionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const actionId = resolvedEntity.actionId}
@@ -196,24 +191,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInSequence: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInSequence = pendingEntity.indexInSequence}
-							{#if indexInSequence !== undefined && indexInSequence !== null}
-								<NumberValue value={Number(indexInSequence)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInSequence = resolvedEntity.indexInSequence}
 							{#if indexInSequence !== undefined && indexInSequence !== null}
-								<NumberValue value={Number(indexInSequence)} />
+								<NumberValue
+									value={indexInSequence}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -226,19 +217,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									actionType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const actionType = pendingEntity.actionType}
-							{#if actionType !== undefined && actionType !== null}
-								{String((actionType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const actionType = resolvedEntity.actionType}
@@ -253,24 +238,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							selectedProtocol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const selectedProtocol = pendingEntity.selectedProtocol}
-					{#if selectedProtocol !== undefined && selectedProtocol !== null}
-						<div>
-							<dt>selected protocol</dt>
-							<dd>
-								{String((selectedProtocol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const selectedProtocol = resolvedEntity.selectedProtocol}
@@ -293,19 +267,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}
@@ -323,19 +291,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									updatedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const updatedAt = pendingEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const updatedAt = resolvedEntity.updatedAt}
@@ -350,8 +312,6 @@
 			<ResourceBoundary
 				resource={selection.$originInvocation}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadIntentInvocation)}
 					{#if blockheadIntentInvocation != null && blockheadIntentInvocation[EntityMetaKey.Selector] != null}
 						<div>
@@ -394,11 +354,8 @@
 				}
 				data-card
 				class='network-view-collapsible-planning'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Planning</HeadingComponent>
 					</header>
@@ -406,12 +363,12 @@
 
 				{#snippet SectionSessionActionReadiness({ id, label, open })}
 					<BlockheadActionReadinessChecksView
-						selection={
-							selection.$$readinessChecks({
-								count: true,
-							})
-						}
+						selection={selection.$$readinessChecks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No readiness checks.'
 						open={open}
 						title={label}
@@ -421,12 +378,12 @@
 
 				{#snippet SectionSessionActionQuotes({ id, label, open })}
 					<BlockheadIntentQuotesView
-						selection={
-							selection.$$quotes({
-								count: true,
-							})
-						}
+						selection={selection.$$quotes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No quotes.'
 						open={open}
 						title={label}
@@ -436,12 +393,12 @@
 
 				{#snippet SectionSessionActionOrders({ id, label, open })}
 					<BlockheadIntentOrdersView
-						selection={
-							selection.$$orders({
-								count: true,
-							})
-						}
+						selection={selection.$$orders}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No orders.'
 						open={open}
 						title={label}
@@ -468,11 +425,8 @@
 				}
 				data-card
 				class='network-view-collapsible-execution'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Execution</HeadingComponent>
 					</header>
@@ -480,12 +434,12 @@
 
 				{#snippet SectionSessionActionWalletRequests({ id, label, open })}
 					<BlockheadWalletRequestsView
-						selection={
-							selection.$$walletRequests({
-								count: true,
-							})
-						}
+						selection={selection.$$walletRequests}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No wallet requests.'
 						open={open}
 						title={label}
@@ -495,12 +449,12 @@
 
 				{#snippet SectionSessionActionOutcomes({ id, label, open })}
 					<BlockheadActionOutcomesView
-						selection={
-							selection.$$outcomes({
-								count: true,
-							})
-						}
+						selection={selection.$$outcomes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No outcomes.'
 						open={open}
 						title={label}

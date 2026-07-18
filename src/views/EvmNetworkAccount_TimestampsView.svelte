@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkAccount_TimestampView from '$/views/EvmNetworkAccount_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$account: true,
-					transactionCount: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetworkAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$account: true,
+				transactionCount: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkAccountTimestamps) => [...new Map(evmNetworkAccountTimestamps.values.map((evmNetworkAccountTimestamp) => [evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey], evmNetworkAccountTimestamp])).values()]}
+	getKey={(evmNetworkAccountTimestamp) => evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkAccountTimestamps)}
-			{@const uniqueEvmNetworkAccountTimestamps = [...new Map(evmNetworkAccountTimestamps.values.map((evmNetworkAccountTimestamp) => [evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey], evmNetworkAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkAccountTimestamps.totalCount}
-				getKey={(evmNetworkAccountTimestamp) => evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkAccountTimestamp })}
-					{@const evmNetworkAccountTimestampFields = { ...evmNetworkAccountTimestamp[EntityMetaKey.Selector], ...evmNetworkAccountTimestamp }}
-					{@const selection = select(EntityType.EvmNetworkAccount_Timestamp, evmNetworkAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EvmNetworkAccount_TimestampView
-						selection={selection}
-						prefetched={evmNetworkAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetworkAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkAccountTimestamp })}
+		{@const evmNetworkAccountTimestampFields = { ...evmNetworkAccountTimestamp[EntityMetaKey.Selector], ...evmNetworkAccountTimestamp }}
+		{@const selection = select(EntityType.EvmNetworkAccount_Timestamp, evmNetworkAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EvmNetworkAccount_TimestampView
+			selection={selection}
+			prefetched={evmNetworkAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

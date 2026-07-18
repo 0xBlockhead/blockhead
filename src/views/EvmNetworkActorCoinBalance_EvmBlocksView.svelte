@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkActorCoinBalance_EvmBlockView from '$/views/EvmNetworkActorCoinBalance_EvmBlockView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$block: true,
-					balance: true,
-					usdValue: true,
-					$actorCoin: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$block: true,
+				balance: true,
+				usdValue: true,
+				$actorCoin: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkActorCoinBalanceEvmBlocks) => [...new Map(evmNetworkActorCoinBalanceEvmBlocks.values.map((evmNetworkActorCoinBalanceEvmBlock) => [evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.SelectorKey], evmNetworkActorCoinBalanceEvmBlock])).values()]}
+	getKey={(evmNetworkActorCoinBalanceEvmBlock) => evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network actor coin balance EVM blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkActorCoinBalanceEvmBlocks)}
-			{@const uniqueEvmNetworkActorCoinBalanceEvmBlocks = [...new Map(evmNetworkActorCoinBalanceEvmBlocks.values.map((evmNetworkActorCoinBalanceEvmBlock) => [evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.SelectorKey], evmNetworkActorCoinBalanceEvmBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkActorCoinBalanceEvmBlocks.totalCount}
-				getKey={(evmNetworkActorCoinBalanceEvmBlock) => evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkActorCoinBalanceEvmBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network actor coin balance EVM blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkActorCoinBalanceEvmBlock })}
-					{@const evmNetworkActorCoinBalanceEvmBlockFields = { ...evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.Selector], ...evmNetworkActorCoinBalanceEvmBlock }}
-					{@const selection = select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EvmNetworkActorCoinBalance_EvmBlockView
-						selection={selection}
-						prefetched={evmNetworkActorCoinBalanceEvmBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkActorCoinBalanceEvmBlock })}
+		{@const evmNetworkActorCoinBalanceEvmBlockFields = { ...evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.Selector], ...evmNetworkActorCoinBalanceEvmBlock }}
+		{@const selection = select(EntityType.EvmNetworkActorCoinBalance_EvmBlock, evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EvmNetworkActorCoinBalance_EvmBlockView
+			selection={selection}
+			prefetched={evmNetworkActorCoinBalanceEvmBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

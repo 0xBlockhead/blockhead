@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterChannelTimestamp = $derived(selection({
-		sources: [
-			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('Farcaster channel observation')
 	const viewDomId = $derived('farcaster-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -76,53 +72,53 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterChannelTimestamp}>
-			{#snippet Pending()}
-				<FarcasterChannelView
-					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<FarcasterChannelView
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+						href={
 						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
 							channelId: String(selection.entitySelector.$channel.id ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<FarcasterChannelView
-					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<FarcasterChannelView
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+						href={
 						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
 							channelId: String(selection.entitySelector.$channel.id ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterChannelTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={farcasterChannelTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,19 +147,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -180,24 +170,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							followerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followerCount = pendingEntity.followerCount}
-					{#if followerCount !== undefined && followerCount !== null}
-						<div>
-							<dt>Followers</dt>
-							<dd>
-								<NumberValue value={Number(followerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followerCount = resolvedEntity.followerCount}
@@ -205,7 +184,9 @@
 						<div>
 							<dt>Followers</dt>
 							<dd>
-								<NumberValue value={Number(followerCount)} />
+								<NumberValue
+									value={followerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -217,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							memberCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const memberCount = pendingEntity.memberCount}
-					{#if memberCount !== undefined && memberCount !== null}
-						<div>
-							<dt>Members</dt>
-							<dd>
-								<NumberValue value={Number(memberCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const memberCount = resolvedEntity.memberCount}
@@ -242,7 +212,9 @@
 						<div>
 							<dt>Members</dt>
 							<dd>
-								<NumberValue value={Number(memberCount)} />
+								<NumberValue
+									value={memberCount}
+								/>
 							</dd>
 						</div>
 					{/if}

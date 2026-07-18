@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,9 @@
 			{@const DetailView = data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? NetworkView : NetworkView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector, { sources: [
+		Source.Constants_Internal,
+	] })}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 						network: params.network,

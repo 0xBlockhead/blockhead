@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AlgorandTransactionGroupView from '$/views/AlgorandTransactionGroupView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransactionGroup}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AlgorandTransactionGroup}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(algorandTransactionGroups) => [...new Map(algorandTransactionGroups.values.map((algorandTransactionGroup) => [algorandTransactionGroup[EntityMetaKey.SelectorKey], algorandTransactionGroup])).values()]}
+	getKey={(algorandTransactionGroup) => algorandTransactionGroup[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Algorand transaction groups yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(algorandTransactionGroups)}
-			{@const uniqueAlgorandTransactionGroups = [...new Map(algorandTransactionGroups.values.map((algorandTransactionGroup) => [algorandTransactionGroup[EntityMetaKey.SelectorKey], algorandTransactionGroup])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AlgorandTransactionGroup}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={algorandTransactionGroups.totalCount}
-				getKey={(algorandTransactionGroup) => algorandTransactionGroup[EntityMetaKey.SelectorKey]}
-				items={uniqueAlgorandTransactionGroups}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Algorand transaction groups yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: algorandTransactionGroup })}
-					{@const algorandTransactionGroupFields = { ...algorandTransactionGroup[EntityMetaKey.Selector], ...algorandTransactionGroup }}
-					{@const selection = select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AlgorandTransactionGroupView
-						selection={selection}
-						prefetched={algorandTransactionGroupFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AlgorandTransactionGroup}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: algorandTransactionGroup })}
+		{@const algorandTransactionGroupFields = { ...algorandTransactionGroup[EntityMetaKey.Selector], ...algorandTransactionGroup }}
+		{@const selection = select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AlgorandTransactionGroupView
+			selection={selection}
+			prefetched={algorandTransactionGroupFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

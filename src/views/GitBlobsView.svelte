@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitBlobView from '$/views/GitBlobView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					objectId: true,
-					mime: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitBlob}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				objectId: true,
+				mime: true,
+			},
+		})
+	}
+	getResourceItems={(gitBlobs) => [...new Map(gitBlobs.values.map((gitBlob) => [gitBlob[EntityMetaKey.SelectorKey], gitBlob])).values()]}
+	getKey={(gitBlob) => gitBlob[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git blobs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitBlobs)}
-			{@const uniqueGitBlobs = [...new Map(gitBlobs.values.map((gitBlob) => [gitBlob[EntityMetaKey.SelectorKey], gitBlob])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitBlobs.totalCount}
-				getKey={(gitBlob) => gitBlob[EntityMetaKey.SelectorKey]}
-				items={uniqueGitBlobs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git blobs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitBlob })}
-					{@const gitBlobFields = { ...gitBlob[EntityMetaKey.Selector], ...gitBlob }}
-					{@const selection = select(EntityType.GitBlob, gitBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitBlobView
-						selection={selection}
-						prefetched={gitBlobFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitBlob}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitBlob })}
+		{@const gitBlobFields = { ...gitBlob[EntityMetaKey.Selector], ...gitBlob }}
+		{@const selection = select(EntityType.GitBlob, gitBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitBlobView
+			selection={selection}
+			prefetched={gitBlobFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

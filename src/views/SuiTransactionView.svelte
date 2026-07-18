@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiTransaction = $derived(selection({}))
+	const suiTransaction = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui transaction')
 	const viewDomId = $derived('sui-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -70,16 +72,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiTransaction}>
-			{#snippet Pending()}
-				{title || 'Sui transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,19 +103,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									digest: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const digest = pendingEntity.digest}
-							{#if digest !== undefined && digest !== null}
-								<TruncatedValue value={String((digest) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const digest = resolvedEntity.digest}
@@ -128,24 +124,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionKind = pendingEntity.transactionKind}
-					{#if transactionKind !== undefined && transactionKind !== null}
-						<div>
-							<dt>transaction kind</dt>
-							<dd>
-								{String((transactionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionKind = resolvedEntity.transactionKind}
@@ -163,24 +148,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sender: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sender = pendingEntity.sender}
-					{#if sender !== undefined && sender !== null}
-						<div>
-							<dt>sender</dt>
-							<dd>
-								{String((sender) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sender = resolvedEntity.sender}
@@ -216,11 +190,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -228,12 +199,12 @@
 
 				{#snippet SectionSuiTransactionCommands({ id, label, open })}
 					<SuiProgrammableTransactionCommandsView
-						selection={
-							selection.$$commands({
-								count: true,
-							})
-						}
+						selection={selection.$$commands}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No commands.'
 						open={open}
 						title={label}
@@ -243,12 +214,12 @@
 
 				{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
 					<SuiObjectChangesView
-						selection={
-							selection.$$objectChanges({
-								count: true,
-							})
-						}
+						selection={selection.$$objectChanges}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No object changes.'
 						open={open}
 						title={label}
@@ -275,11 +246,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -287,12 +255,12 @@
 
 				{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
 					<SuiBalanceChangesView
-						selection={
-							selection.$$balanceChanges({
-								count: true,
-							})
-						}
+						selection={selection.$$balanceChanges}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No balance changes.'
 						open={open}
 						title={label}
@@ -302,12 +270,12 @@
 
 				{#snippet SectionSuiTransactionEvents({ id, label, open })}
 					<SuiEventsView
-						selection={
-							selection.$$events({
-								count: true,
-							})
-						}
+						selection={selection.$$events}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No events.'
 						open={open}
 						title={label}
@@ -330,11 +298,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -342,12 +307,12 @@
 
 				{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
 					<SuiTransaction_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

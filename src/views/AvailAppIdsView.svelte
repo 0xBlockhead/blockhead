@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvailAppIdView from '$/views/AvailAppIdView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					appId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailAppId}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvailAppId}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				appId: true,
+			},
+		})
+	}
+	getResourceItems={(availAppIds) => [...new Map(availAppIds.values.map((availAppId) => [availAppId[EntityMetaKey.SelectorKey], availAppId])).values()]}
+	getKey={(availAppId) => availAppId[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avail app IDs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(availAppIds)}
-			{@const uniqueAvailAppIds = [...new Map(availAppIds.values.map((availAppId) => [availAppId[EntityMetaKey.SelectorKey], availAppId])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailAppId}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={availAppIds.totalCount}
-				getKey={(availAppId) => availAppId[EntityMetaKey.SelectorKey]}
-				items={uniqueAvailAppIds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avail app IDs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: availAppId })}
-					{@const availAppIdFields = { ...availAppId[EntityMetaKey.Selector], ...availAppId }}
-					{@const selection = select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvailAppIdView
-						selection={selection}
-						prefetched={availAppIdFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvailAppId}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: availAppId })}
+		{@const availAppIdFields = { ...availAppId[EntityMetaKey.Selector], ...availAppId }}
+		{@const selection = select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvailAppIdView
+			selection={selection}
+			prefetched={availAppIdFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

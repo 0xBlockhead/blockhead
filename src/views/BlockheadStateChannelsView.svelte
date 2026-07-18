@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadStateChannelView from '$/views/BlockheadStateChannelView.svelte'
 </script>
@@ -62,83 +61,50 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					id: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadStateChannel}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				id: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadStateChannels) => [...new Map(blockheadStateChannels.values.map((blockheadStateChannel) => [blockheadStateChannel[EntityMetaKey.SelectorKey], blockheadStateChannel])).values()]}
+	getKey={(blockheadStateChannel) => blockheadStateChannel[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead state channels yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadStateChannels)}
-			{@const uniqueBlockheadStateChannels = [...new Map(blockheadStateChannels.values.map((blockheadStateChannel) => [blockheadStateChannel[EntityMetaKey.SelectorKey], blockheadStateChannel])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadStateChannels.totalCount}
-				getKey={(blockheadStateChannel) => blockheadStateChannel[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadStateChannels}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead state channels yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadStateChannel })}
-					{@const blockheadStateChannelFields = { ...blockheadStateChannel[EntityMetaKey.Selector], ...blockheadStateChannel }}
-					{@const selection = select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadStateChannelHrefFields = { ...blockheadStateChannel, ...blockheadStateChannel[EntityMetaKey.Selector] }}
-					<BlockheadStateChannelView
-						selection={selection}
-						prefetched={blockheadStateChannelFields}
-						href={
-							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
-								channelId: String(blockheadStateChannelHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadStateChannel}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadStateChannel })}
+		{@const blockheadStateChannelFields = { ...blockheadStateChannel[EntityMetaKey.Selector], ...blockheadStateChannel }}
+		{@const selection = select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadStateChannelHrefFields = { ...blockheadStateChannel, ...blockheadStateChannel[EntityMetaKey.Selector] }}
+		<BlockheadStateChannelView
+			selection={selection}
+			prefetched={blockheadStateChannelFields}
+			href={
+				(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
+					channelId: String(blockheadStateChannelHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

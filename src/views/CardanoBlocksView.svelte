@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoBlockView from '$/views/CardanoBlockView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoBlocks) => [...new Map(cardanoBlocks.values.map((cardanoBlock) => [cardanoBlock[EntityMetaKey.SelectorKey], cardanoBlock])).values()]}
+	getKey={(cardanoBlock) => cardanoBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoBlocks)}
-			{@const uniqueCardanoBlocks = [...new Map(cardanoBlocks.values.map((cardanoBlock) => [cardanoBlock[EntityMetaKey.SelectorKey], cardanoBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoBlocks.totalCount}
-				getKey={(cardanoBlock) => cardanoBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoBlock })}
-					{@const cardanoBlockFields = { ...cardanoBlock[EntityMetaKey.Selector], ...cardanoBlock }}
-					{@const selection = select(EntityType.CardanoBlock, cardanoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoBlockView
-						selection={selection}
-						prefetched={cardanoBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoBlock })}
+		{@const cardanoBlockFields = { ...cardanoBlock[EntityMetaKey.Selector], ...cardanoBlock }}
+		{@const selection = select(EntityType.CardanoBlock, cardanoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoBlockView
+			selection={selection}
+			prefetched={cardanoBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

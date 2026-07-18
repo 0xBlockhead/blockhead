@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZeroGDaQuorumView from '$/views/ZeroGDaQuorumView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					quorumId: true,
-					$network: true,
-					$consensusNetwork: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDaQuorum}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZeroGDaQuorum}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				quorumId: true,
+				$network: true,
+				$consensusNetwork: true,
+			},
+		})
+	}
+	getResourceItems={(zeroGDaQuorums) => [...new Map(zeroGDaQuorums.values.map((zeroGDaQuorum) => [zeroGDaQuorum[EntityMetaKey.SelectorKey], zeroGDaQuorum])).values()]}
+	getKey={(zeroGDaQuorum) => zeroGDaQuorum[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zero g da quorums yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zeroGDaQuorums)}
-			{@const uniqueZeroGDaQuorums = [...new Map(zeroGDaQuorums.values.map((zeroGDaQuorum) => [zeroGDaQuorum[EntityMetaKey.SelectorKey], zeroGDaQuorum])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZeroGDaQuorum}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zeroGDaQuorums.totalCount}
-				getKey={(zeroGDaQuorum) => zeroGDaQuorum[EntityMetaKey.SelectorKey]}
-				items={uniqueZeroGDaQuorums}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zero g da quorums yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zeroGDaQuorum })}
-					{@const zeroGDaQuorumFields = { ...zeroGDaQuorum[EntityMetaKey.Selector], ...zeroGDaQuorum }}
-					{@const selection = select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ZeroGDaQuorumView
-						selection={selection}
-						prefetched={zeroGDaQuorumFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZeroGDaQuorum}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zeroGDaQuorum })}
+		{@const zeroGDaQuorumFields = { ...zeroGDaQuorum[EntityMetaKey.Selector], ...zeroGDaQuorum }}
+		{@const selection = select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ZeroGDaQuorumView
+			selection={selection}
+			prefetched={zeroGDaQuorumFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

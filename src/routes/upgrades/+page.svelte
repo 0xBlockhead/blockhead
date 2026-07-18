@@ -38,5 +38,8 @@
 			})
 		}
 		id='network-upgrades'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

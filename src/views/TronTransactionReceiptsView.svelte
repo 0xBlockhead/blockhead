@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TronTransactionReceiptView from '$/views/TronTransactionReceiptView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronTransactionReceipt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TronTransactionReceipt}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tronTransactionReceipts) => [...new Map(tronTransactionReceipts.values.map((tronTransactionReceipt) => [tronTransactionReceipt[EntityMetaKey.SelectorKey], tronTransactionReceipt])).values()]}
+	getKey={(tronTransactionReceipt) => tronTransactionReceipt[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tron transaction receipts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tronTransactionReceipts)}
-			{@const uniqueTronTransactionReceipts = [...new Map(tronTransactionReceipts.values.map((tronTransactionReceipt) => [tronTransactionReceipt[EntityMetaKey.SelectorKey], tronTransactionReceipt])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TronTransactionReceipt}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tronTransactionReceipts.totalCount}
-				getKey={(tronTransactionReceipt) => tronTransactionReceipt[EntityMetaKey.SelectorKey]}
-				items={uniqueTronTransactionReceipts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tron transaction receipts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tronTransactionReceipt })}
-					{@const tronTransactionReceiptFields = { ...tronTransactionReceipt[EntityMetaKey.Selector], ...tronTransactionReceipt }}
-					{@const selection = select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TronTransactionReceiptView
-						selection={selection}
-						prefetched={tronTransactionReceiptFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TronTransactionReceipt}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tronTransactionReceipt })}
+		{@const tronTransactionReceiptFields = { ...tronTransactionReceipt[EntityMetaKey.Selector], ...tronTransactionReceipt }}
+		{@const selection = select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TronTransactionReceiptView
+			selection={selection}
+			prefetched={tronTransactionReceiptFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

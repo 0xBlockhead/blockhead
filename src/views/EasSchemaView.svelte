@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,13 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const easSchema = $derived(selection({
-		sources: [
-			Source.Blockscout_Rest,
-			Source.EasContracts_Evm,
-			Source.EasScan_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			schema: true,
 			resolver: true,
@@ -84,52 +77,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={easSchema}>
-			{#snippet Pending()}
-				{[String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || 'EAS schema'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={easSchema}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={easSchema}>
-			{#snippet Pending()}
-				{[String((pendingEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || 'EAS schema'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={easSchema}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={easSchema}>
-			{#snippet Pending()}
-				{@const resolver0 = pendingEntity.resolver}
-				{#if resolver0 !== undefined && resolver0 !== null}
-					<span data-text="muted">
-						{String((resolver0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const resolver0 = resolvedEntity.resolver}
-				{#if resolver0 !== undefined && resolver0 !== null}
-					<span data-text="muted">
-						{String((resolver0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const resolver0 = pendingEntity.resolver}
+			{#if resolver0 !== undefined && resolver0 !== null}
+				<span data-text="muted">
+					{String((resolver0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={easSchema}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const resolver0 = resolvedEntity.resolver}
+					{#if resolver0 !== undefined && resolver0 !== null}
+						<span data-text="muted">
+							{String((resolver0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,19 +133,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									schemaUid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const schemaUid = pendingEntity.schemaUid}
-							{#if schemaUid !== undefined && schemaUid !== null}
-								{String((schemaUid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const schemaUid = resolvedEntity.schemaUid}
@@ -188,19 +175,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									schema: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const schema = pendingEntity.schema}
-							{#if schema !== undefined && schema !== null}
-								{String((schema) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const schema = resolvedEntity.schema}
@@ -215,24 +196,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resolver: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resolver = pendingEntity.resolver}
-					{#if resolver !== undefined && resolver !== null}
-						<div>
-							<dt>Resolver</dt>
-							<dd>
-								{String((resolver) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resolver = resolvedEntity.resolver}
@@ -250,24 +220,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revocable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revocable = pendingEntity.revocable}
-					{#if revocable !== undefined && revocable !== null}
-						<div>
-							<dt>Revocable</dt>
-							<dd>
-								{revocable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revocable = resolvedEntity.revocable}
@@ -285,24 +244,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registerer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registerer = pendingEntity.registerer}
-					{#if registerer !== undefined && registerer !== null}
-						<div>
-							<dt>Registerer</dt>
-							<dd>
-								{String((registerer) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registerer = resolvedEntity.registerer}
@@ -320,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registeredAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registeredAt = pendingEntity.registeredAt}
-					{#if registeredAt !== undefined && registeredAt !== null}
-						<div>
-							<dt>Registered at</dt>
-							<dd>
-								<Timestamp timestamp={Number(registeredAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registeredAt = resolvedEntity.registeredAt}
@@ -357,24 +294,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registeredTransactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registeredTransactionHash = pendingEntity.registeredTransactionHash}
-					{#if registeredTransactionHash !== undefined && registeredTransactionHash !== null}
-						<div>
-							<dt>Registered transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((registeredTransactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registeredTransactionHash = resolvedEntity.registeredTransactionHash}
@@ -392,24 +318,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registeredLogIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registeredLogIndex = pendingEntity.registeredLogIndex}
-					{#if registeredLogIndex !== undefined && registeredLogIndex !== null}
-						<div>
-							<dt>Registered log index</dt>
-							<dd>
-								<NumberValue value={Number(registeredLogIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registeredLogIndex = resolvedEntity.registeredLogIndex}
@@ -417,7 +332,9 @@
 						<div>
 							<dt>Registered log index</dt>
 							<dd>
-								<NumberValue value={Number(registeredLogIndex)} />
+								<NumberValue
+									value={registeredLogIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -427,8 +344,6 @@
 			<ResourceBoundary
 				resource={selection.$resolverContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -458,8 +373,6 @@
 			<ResourceBoundary
 				resource={selection.$registererAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>

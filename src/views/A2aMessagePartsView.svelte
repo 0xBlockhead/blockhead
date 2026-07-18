@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aMessagePartView from '$/views/A2aMessagePartView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					partIndex: true,
-					partKind: true,
-					mimeType: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aMessagePart}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aMessagePart}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				partIndex: true,
+				partKind: true,
+				mimeType: true,
+			},
+		})
+	}
+	getResourceItems={(a2aMessageParts) => [...new Map(a2aMessageParts.values.map((a2aMessagePart) => [a2aMessagePart[EntityMetaKey.SelectorKey], a2aMessagePart])).values()]}
+	getKey={(a2aMessagePart) => a2aMessagePart[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A message parts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aMessageParts)}
-			{@const uniqueA2aMessageParts = [...new Map(a2aMessageParts.values.map((a2aMessagePart) => [a2aMessagePart[EntityMetaKey.SelectorKey], a2aMessagePart])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aMessagePart}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aMessageParts.totalCount}
-				getKey={(a2aMessagePart) => a2aMessagePart[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aMessageParts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A message parts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aMessagePart })}
-					{@const a2aMessagePartFields = { ...a2aMessagePart[EntityMetaKey.Selector], ...a2aMessagePart }}
-					{@const selection = select(EntityType.A2aMessagePart, a2aMessagePart[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aMessagePartView
-						selection={selection}
-						prefetched={a2aMessagePartFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aMessagePart}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aMessagePart })}
+		{@const a2aMessagePartFields = { ...a2aMessagePart[EntityMetaKey.Selector], ...a2aMessagePart }}
+		{@const selection = select(EntityType.A2aMessagePart, a2aMessagePart[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aMessagePartView
+			selection={selection}
+			prefetched={a2aMessagePartFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

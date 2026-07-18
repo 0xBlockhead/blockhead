@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radiclePatch = $derived(selection({}))
+	const radiclePatch = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle patch')
 	const viewDomId = $derived('radicle-patch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radiclePatch}>
-			{#snippet Pending()}
-				{title || 'radicle patch'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radiclePatch}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									patchId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const patchId = pendingEntity.patchId}
-							{#if patchId !== undefined && patchId !== null}
-								{String((patchId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const patchId = resolvedEntity.patchId}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							authorDid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const authorDid = pendingEntity.authorDid}
-					{#if authorDid !== undefined && authorDid !== null}
-						<div>
-							<dt>author DID</dt>
-							<dd>
-								{String((authorDid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const authorDid = resolvedEntity.authorDid}
@@ -156,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							targetRef: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const targetRef = pendingEntity.targetRef}
-					{#if targetRef !== undefined && targetRef !== null}
-						<div>
-							<dt>target ref</dt>
-							<dd>
-								{String((targetRef) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const targetRef = resolvedEntity.targetRef}
@@ -191,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							headObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const headObjectId = pendingEntity.headObjectId}
-					{#if headObjectId !== undefined && headObjectId !== null}
-						<div>
-							<dt>head object ID</dt>
-							<dd>
-								{String((headObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const headObjectId = resolvedEntity.headObjectId}
@@ -226,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							baseObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const baseObjectId = pendingEntity.baseObjectId}
-					{#if baseObjectId !== undefined && baseObjectId !== null}
-						<div>
-							<dt>base object ID</dt>
-							<dd>
-								{String((baseObjectId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const baseObjectId = resolvedEntity.baseObjectId}
@@ -264,19 +216,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									state: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const state = pendingEntity.state}
-							{#if state !== undefined && state !== null}
-								{String((state) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const state = resolvedEntity.state}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								{String((createdAt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAt = pendingEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								{String((updatedAt) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAt = resolvedEntity.updatedAt}
@@ -361,8 +285,6 @@
 			<ResourceBoundary
 				resource={selection.$headCommit}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>
@@ -383,8 +305,6 @@
 			<ResourceBoundary
 				resource={selection.$baseCommit}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>

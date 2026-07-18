@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SwarmResourceView from '$/views/SwarmResourceView.svelte'
 </script>
@@ -62,89 +61,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					canonicalUri: true,
-					contentType: true,
-					displayType: true,
-					contentPath: true,
-					reference: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SwarmResource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SwarmResource}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				canonicalUri: true,
+				contentType: true,
+				displayType: true,
+				contentPath: true,
+				reference: true,
+			},
+		})
+	}
+	getResourceItems={(swarmResources) => [...new Map(swarmResources.values.map((swarmResource) => [swarmResource[EntityMetaKey.SelectorKey], swarmResource])).values()]}
+	getKey={(swarmResource) => swarmResource[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Swarm resources yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(swarmResources)}
-			{@const uniqueSwarmResources = [...new Map(swarmResources.values.map((swarmResource) => [swarmResource[EntityMetaKey.SelectorKey], swarmResource])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SwarmResource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={swarmResources.totalCount}
-				getKey={(swarmResource) => swarmResource[EntityMetaKey.SelectorKey]}
-				items={uniqueSwarmResources}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Swarm resources yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: swarmResource })}
-					{@const swarmResourceFields = { ...swarmResource[EntityMetaKey.Selector], ...swarmResource }}
-					{@const selection = select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const swarmResourceHrefFields = { ...swarmResource, ...swarmResource[EntityMetaKey.Selector] }}
-					<SwarmResourceView
-						selection={selection}
-						prefetched={swarmResourceFields}
-						href={
-							(swarmResource[EntityMetaKey.Selector].contentPath === '' && swarmResourceHrefFields.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
-								reference: String(swarmResourceHrefFields.reference ?? ''),
-							}) : swarmResource[EntityMetaKey.Selector].contentPath !== '' && swarmResourceHrefFields.reference !== undefined && swarmResourceHrefFields.contentPath !== undefined ? resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
-								reference: String(swarmResourceHrefFields.reference ?? ''),
-								contentPath: String(swarmResourceHrefFields.contentPath ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SwarmResource}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: swarmResource })}
+		{@const swarmResourceFields = { ...swarmResource[EntityMetaKey.Selector], ...swarmResource }}
+		{@const selection = select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const swarmResourceHrefFields = { ...swarmResource, ...swarmResource[EntityMetaKey.Selector] }}
+		<SwarmResourceView
+			selection={selection}
+			prefetched={swarmResourceFields}
+			href={
+				(swarmResource[EntityMetaKey.Selector].contentPath === '' && swarmResourceHrefFields.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
+					reference: String(swarmResourceHrefFields.reference ?? ''),
+				}) : swarmResource[EntityMetaKey.Selector].contentPath !== '' && swarmResourceHrefFields.reference !== undefined && swarmResourceHrefFields.contentPath !== undefined ? resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
+					reference: String(swarmResourceHrefFields.reference ?? ''),
+					contentPath: String(swarmResourceHrefFields.contentPath ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

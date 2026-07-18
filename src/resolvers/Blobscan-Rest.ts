@@ -47,22 +47,24 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
-					const { getTransactionBlob } = await import(
-						'$/sources/Blobscan/Rest/queries.ts'
-					)
-					const versionedHash = hexLowerOfByteSize(
-						(await getTransactionBlob({
-							blobIndex: entitySelector.indexInTransaction,
-							chainId: await blobscanChainId(entitySelector.$transaction.$network),
-							txHash: entitySelector.$transaction.txHash,
-						}))?.versionedHash ?? '',
-						32
-					)
-					if (versionedHash == null || !versionedHash.startsWith('0x01'))
-						throw new Error('Blobscan_Rest: blob versioned hash missing')
+				[EvmBlobSelector.TransactionIndexInTransaction]: {
+					resolve: async (entitySelector, _context) => {
+						const { getTransactionBlob } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
+						)
+						const versionedHash = hexLowerOfByteSize(
+							(await getTransactionBlob({
+								blobIndex: entitySelector.indexInTransaction,
+								chainId: await blobscanChainId(entitySelector.$transaction.$network),
+								txHash: entitySelector.$transaction.txHash,
+							}))?.versionedHash ?? '',
+							32
+						)
+						if (versionedHash == null || !versionedHash.startsWith('0x01'))
+							throw new Error('Blobscan_Rest: blob versioned hash missing')
 
-					return versionedHash
+						return versionedHash
+					},
 				},
 			},
 		})({
@@ -72,23 +74,25 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
-					const { getTransaction } = await import(
-						'$/sources/Blobscan/Rest/queries.ts'
-					)
-					const blockNumber = (await getTransaction({
-						chainId: await blobscanChainId(entitySelector.$transaction.$network),
-						txHash: entitySelector.$transaction.txHash,
-					}))?.blockNumber
-					if (blockNumber == null)
-						throw new Error('Blobscan_Rest: blob transaction block missing')
+				[EvmBlobSelector.TransactionIndexInTransaction]: {
+					resolve: async (entitySelector, _context) => {
+						const { getTransaction } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
+						)
+						const blockNumber = (await getTransaction({
+							chainId: await blobscanChainId(entitySelector.$transaction.$network),
+							txHash: entitySelector.$transaction.txHash,
+						}))?.blockNumber
+						if (blockNumber == null)
+							throw new Error('Blobscan_Rest: blob transaction block missing')
 
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$transaction.$network,
-							blockNumber: BigInt(blockNumber),
-						},
-					}
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$transaction.$network,
+								blockNumber: BigInt(blockNumber),
+							},
+						}
+					},
 				},
 			},
 		})({
@@ -98,8 +102,10 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
-					return (await blobscanBlobDetail(entitySelector))?.commitment
+				[EvmBlobSelector.TransactionIndexInTransaction]: {
+					resolve: async (entitySelector, _context) => {
+						return (await blobscanBlobDetail(entitySelector))?.commitment
+					},
 				},
 			},
 		})({
@@ -109,17 +115,19 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector, _context) => {
-					return (await blobscanBlobDetail(entitySelector))?.dataStorageReferences
-						?.flatMap((reference) => (
-							reference.storage != null && (reference.reference != null || reference.url != null) ?
-								[{
-									storage: reference.storage,
-									reference: reference.reference ?? reference.url,
-								}]
-							:
-								[]
-						))
+				[EvmBlobSelector.TransactionIndexInTransaction]: {
+					resolve: async (entitySelector, _context) => {
+						return (await blobscanBlobDetail(entitySelector))?.dataStorageReferences
+							?.flatMap((reference) => (
+								reference.storage != null && (reference.reference != null || reference.url != null) ?
+									[{
+										storage: reference.storage,
+										reference: reference.reference ?? reference.url,
+									}]
+								:
+									[]
+							))
+					},
 				},
 			},
 		})({

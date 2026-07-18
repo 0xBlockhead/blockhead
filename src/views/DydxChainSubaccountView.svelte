@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const dydxChainSubaccount = $derived(selection({
-		sources: [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('dydx chain subaccount')
 	const viewDomId = $derived('dydx-chain-subaccount-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -78,11 +74,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dydxChainSubaccount}>
-			{#snippet Pending()}
-				<CosmosAccountView
-					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<CosmosAccountView
+						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$account.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
@@ -91,16 +86,16 @@
 							network: String(selection.entitySelector.$account.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<CosmosAccountView
-					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={dydxChainSubaccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<CosmosAccountView
+						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 							accountId: String(selection.entitySelector.$account.address ?? ''),
 							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
@@ -109,30 +104,35 @@
 							network: String(selection.entitySelector.$account.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dydxChainSubaccount}>
-			{#snippet Pending()}
-				{@const subaccountNumber0 = pendingEntity.subaccountNumber}
-				{#if subaccountNumber0 !== undefined && subaccountNumber0 !== null}
-					<NumberValue value={Number(subaccountNumber0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const subaccountNumber0 = resolvedEntity.subaccountNumber}
-				{#if subaccountNumber0 !== undefined && subaccountNumber0 !== null}
-					<NumberValue value={Number(subaccountNumber0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const subaccountNumber0 = pendingEntity.subaccountNumber}
+					{#if subaccountNumber0 !== undefined && subaccountNumber0 !== null}
+						<NumberValue
+							value={subaccountNumber0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={dydxChainSubaccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const subaccountNumber0 = resolvedEntity.subaccountNumber}
+					{#if subaccountNumber0 !== undefined && subaccountNumber0 !== null}
+						<NumberValue
+							value={subaccountNumber0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -174,24 +174,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									subaccountNumber: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const subaccountNumber = pendingEntity.subaccountNumber}
-							{#if subaccountNumber !== undefined && subaccountNumber !== null}
-								<NumberValue value={Number(subaccountNumber)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subaccountNumber = resolvedEntity.subaccountNumber}
 							{#if subaccountNumber !== undefined && subaccountNumber !== null}
-								<NumberValue value={Number(subaccountNumber)} />
+								<NumberValue
+									value={subaccountNumber}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -219,11 +215,8 @@
 				}
 				data-card
 				class='network-view-collapsible-trading'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Trading</HeadingComponent>
 					</header>
@@ -231,12 +224,12 @@
 
 				{#snippet SectionDydxSubaccountPositions({ id, label, open })}
 					<DydxChainPerpetualPosition_TimestampsView
-						selection={
-							selection.$$positions({
-								count: true,
-							})
-						}
+						selection={selection.$$positions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No dYdX position observations.'
 						open={open}
 						title={label}
@@ -246,12 +239,12 @@
 
 				{#snippet SectionDydxSubaccountOrders({ id, label, open })}
 					<DydxChainOrdersView
-						selection={
-							selection.$$orders({
-								count: true,
-							})
-						}
+						selection={selection.$$orders}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No dYdX orders.'
 						open={open}
 						title={label}
@@ -274,11 +267,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -286,12 +276,12 @@
 
 				{#snippet SectionDydxSubaccountTimestamps({ id, label, open })}
 					<DydxChainSubaccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No dYdX subaccount observations.'
 						open={open}
 						title={label}

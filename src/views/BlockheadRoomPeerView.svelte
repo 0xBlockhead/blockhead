@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadRoomPeer = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			displayName: true,
 			peerId: true,
@@ -80,29 +77,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadRoomPeer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRoomPeer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadRoomPeer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadRoomPeer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,19 +135,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									peerId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const peerId = pendingEntity.peerId}
-							{#if peerId !== undefined && peerId !== null}
-								{String((peerId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const peerId = resolvedEntity.peerId}
@@ -168,19 +159,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									isConnected: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const isConnected = pendingEntity.isConnected}
-							{#if isConnected !== undefined && isConnected !== null}
-								{isConnected ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const isConnected = resolvedEntity.isConnected}
@@ -200,19 +185,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									joinedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const joinedAt = pendingEntity.joinedAt}
-							{#if joinedAt !== undefined && joinedAt !== null}
-								<Timestamp timestamp={Number(joinedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const joinedAt = resolvedEntity.joinedAt}
@@ -227,24 +206,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSeenAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSeenAt = pendingEntity.lastSeenAt}
-					{#if lastSeenAt !== undefined && lastSeenAt !== null}
-						<div>
-							<dt>Last seen</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSeenAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSeenAt = resolvedEntity.lastSeenAt}
@@ -262,24 +230,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							connectedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const connectedAt = pendingEntity.connectedAt}
-					{#if connectedAt !== undefined && connectedAt !== null}
-						<div>
-							<dt>Connected</dt>
-							<dd>
-								<Timestamp timestamp={Number(connectedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const connectedAt = resolvedEntity.connectedAt}
@@ -297,24 +254,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							disconnectedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const disconnectedAt = pendingEntity.disconnectedAt}
-					{#if disconnectedAt !== undefined && disconnectedAt !== null}
-						<div>
-							<dt>Disconnected</dt>
-							<dd>
-								<Timestamp timestamp={Number(disconnectedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const disconnectedAt = resolvedEntity.disconnectedAt}

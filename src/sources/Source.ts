@@ -249,6 +249,7 @@ export enum Source {
 	Rss2Json_Rest = 'Rss2Json_Rest',
 	SigstoreRekor_Rest = 'SigstoreRekor_Rest',
 	Snapchain_Rest = 'Snapchain_Rest',
+	SpaceAndTime_MakeInfinite = 'SpaceAndTime_MakeInfinite',
 	Solana_JsonRpc = 'Solana_JsonRpc',
 	SolanaMobileWalletAdapter_WalletApi = 'SolanaMobileWalletAdapter_WalletApi',
 	SolanaSimds_Github = 'SolanaSimds_Github',

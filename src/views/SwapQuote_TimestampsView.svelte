@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SwapQuote_TimestampView from '$/views/SwapQuote_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SwapQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SwapQuote_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(swapQuoteTimestamps) => [...new Map(swapQuoteTimestamps.values.map((swapQuoteTimestamp) => [swapQuoteTimestamp[EntityMetaKey.SelectorKey], swapQuoteTimestamp])).values()]}
+	getKey={(swapQuoteTimestamp) => swapQuoteTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Swap quote observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(swapQuoteTimestamps)}
-			{@const uniqueSwapQuoteTimestamps = [...new Map(swapQuoteTimestamps.values.map((swapQuoteTimestamp) => [swapQuoteTimestamp[EntityMetaKey.SelectorKey], swapQuoteTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SwapQuote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={swapQuoteTimestamps.totalCount}
-				getKey={(swapQuoteTimestamp) => swapQuoteTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSwapQuoteTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Swap quote observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: swapQuoteTimestamp })}
-					{@const swapQuoteTimestampFields = { ...swapQuoteTimestamp[EntityMetaKey.Selector], ...swapQuoteTimestamp }}
-					{@const selection = select(EntityType.SwapQuote_Timestamp, swapQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SwapQuote_TimestampView
-						selection={selection}
-						prefetched={swapQuoteTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SwapQuote_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: swapQuoteTimestamp })}
+		{@const swapQuoteTimestampFields = { ...swapQuoteTimestamp[EntityMetaKey.Selector], ...swapQuoteTimestamp }}
+		{@const selection = select(EntityType.SwapQuote_Timestamp, swapQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SwapQuote_TimestampView
+			selection={selection}
+			prefetched={swapQuoteTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

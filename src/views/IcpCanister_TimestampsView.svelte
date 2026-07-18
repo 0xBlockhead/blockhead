@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpCanister_TimestampView from '$/views/IcpCanister_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanister_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpCanister_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpCanisterTimestamps) => [...new Map(icpCanisterTimestamps.values.map((icpCanisterTimestamp) => [icpCanisterTimestamp[EntityMetaKey.SelectorKey], icpCanisterTimestamp])).values()]}
+	getKey={(icpCanisterTimestamp) => icpCanisterTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP canister observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpCanisterTimestamps)}
-			{@const uniqueIcpCanisterTimestamps = [...new Map(icpCanisterTimestamps.values.map((icpCanisterTimestamp) => [icpCanisterTimestamp[EntityMetaKey.SelectorKey], icpCanisterTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanister_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpCanisterTimestamps.totalCount}
-				getKey={(icpCanisterTimestamp) => icpCanisterTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpCanisterTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP canister observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpCanisterTimestamp })}
-					{@const icpCanisterTimestampFields = { ...icpCanisterTimestamp[EntityMetaKey.Selector], ...icpCanisterTimestamp }}
-					{@const selection = select(EntityType.IcpCanister_Timestamp, icpCanisterTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpCanister_TimestampView
-						selection={selection}
-						prefetched={icpCanisterTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpCanister_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpCanisterTimestamp })}
+		{@const icpCanisterTimestampFields = { ...icpCanisterTimestamp[EntityMetaKey.Selector], ...icpCanisterTimestamp }}
+		{@const selection = select(EntityType.IcpCanister_Timestamp, icpCanisterTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpCanister_TimestampView
+			selection={selection}
+			prefetched={icpCanisterTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

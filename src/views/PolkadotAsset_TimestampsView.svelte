@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotAsset_TimestampView from '$/views/PolkadotAsset_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					symbol: true,
-					name: true,
-					status: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAsset_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotAsset_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				symbol: true,
+				name: true,
+				status: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotAssetTimestamps) => [...new Map(polkadotAssetTimestamps.values.map((polkadotAssetTimestamp) => [polkadotAssetTimestamp[EntityMetaKey.SelectorKey], polkadotAssetTimestamp])).values()]}
+	getKey={(polkadotAssetTimestamp) => polkadotAssetTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot asset observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotAssetTimestamps)}
-			{@const uniquePolkadotAssetTimestamps = [...new Map(polkadotAssetTimestamps.values.map((polkadotAssetTimestamp) => [polkadotAssetTimestamp[EntityMetaKey.SelectorKey], polkadotAssetTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAsset_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAssetTimestamps.totalCount}
-				getKey={(polkadotAssetTimestamp) => polkadotAssetTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotAssetTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot asset observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotAssetTimestamp })}
-					{@const polkadotAssetTimestampFields = { ...polkadotAssetTimestamp[EntityMetaKey.Selector], ...polkadotAssetTimestamp }}
-					{@const selection = select(EntityType.PolkadotAsset_Timestamp, polkadotAssetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PolkadotAsset_TimestampView
-						selection={selection}
-						prefetched={polkadotAssetTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotAsset_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotAssetTimestamp })}
+		{@const polkadotAssetTimestampFields = { ...polkadotAssetTimestamp[EntityMetaKey.Selector], ...polkadotAssetTimestamp }}
+		{@const selection = select(EntityType.PolkadotAsset_Timestamp, polkadotAssetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PolkadotAsset_TimestampView
+			selection={selection}
+			prefetched={polkadotAssetTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

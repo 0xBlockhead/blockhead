@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconAttestation = $derived(selection({}))
+	const beaconAttestation = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived((String((pendingEntity.indexInSlot) ?? '') ? 'Attestation #' + String((pendingEntity.indexInSlot) ?? '') : '') || 'beacon attestation')
 	const viewDomId = $derived('beacon-attestation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -98,28 +100,32 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={beaconAttestation}>
-			{#snippet Pending()}
-				{@const slot0 = pendingEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slot0 = resolvedEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<span data-text="muted">
-						<span>Slot </span>
-						<NumberValue value={Number(slot0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<span data-text="muted">
+					<span>Slot </span>
+					<NumberValue
+						value={slot0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={beaconAttestation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot0 = resolvedEntity.slot}
+					{#if slot0 !== undefined && slot0 !== null}
+						<span data-text="muted">
+							<span>Slot </span>
+							<NumberValue
+								value={slot0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,24 +136,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInSlot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInSlot = pendingEntity.indexInSlot}
-							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInSlot = resolvedEntity.indexInSlot}
 							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue value={Number(indexInSlot)} />
+								<NumberValue
+									value={indexInSlot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -160,24 +162,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									slot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const slot = pendingEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const slot = resolvedEntity.slot}
 							{#if slot !== undefined && slot !== null}
-								<NumberValue value={Number(slot)} />
+								<NumberValue
+									value={slot}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -187,24 +185,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							committeeIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const committeeIndex = pendingEntity.committeeIndex}
-					{#if committeeIndex !== undefined && committeeIndex !== null}
-						<div>
-							<dt>Committee index</dt>
-							<dd>
-								<NumberValue value={Number(committeeIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const committeeIndex = resolvedEntity.committeeIndex}
@@ -212,7 +199,9 @@
 						<div>
 							<dt>Committee index</dt>
 							<dd>
-								<NumberValue value={Number(committeeIndex)} />
+								<NumberValue
+									value={committeeIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -224,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							aggregationBits: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const aggregationBits = pendingEntity.aggregationBits}
-					{#if aggregationBits !== undefined && aggregationBits !== null}
-						<div>
-							<dt>Aggregation bits</dt>
-							<dd>
-								<TruncatedValue value={String((aggregationBits) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const aggregationBits = resolvedEntity.aggregationBits}

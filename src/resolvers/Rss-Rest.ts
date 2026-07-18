@@ -20,23 +20,25 @@ export default {
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }) => {
-				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-				const feed = await getFeed(feedUrl)
-				return {
-					...(feed.title != null && { title: feed.title }),
-					...(feed.description != null && { description: feed.description }),
-					...(feed.link != null && { link: feed.link }),
-					...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
-					...(feed.language != null && { language: feed.language }),
-					...(feed.lastBuildDate != null && {
-						lastBuildDate: feed.lastBuildDate,
-					}),
-					...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
+				[RssFeedSelector.FeedUrl]: {
+					resolve: async ({ feedUrl: feedUrlSelector }) => {
+					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
+					const feed = await getFeed(feedUrl)
+					return {
+						...(feed.title != null && { title: feed.title }),
+						...(feed.description != null && { description: feed.description }),
+						...(feed.link != null && { link: feed.link }),
+						...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
+						...(feed.language != null && { language: feed.language }),
+						...(feed.lastBuildDate != null && {
+							lastBuildDate: feed.lastBuildDate,
+						}),
+						...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
+					}
+				},
 				}
-			}
 			}
 		})({
 			title: (snapshot) => snapshot.title,
@@ -51,50 +53,52 @@ export default {
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
-				[RssItemSelector.FeedIdentity]: async ({
-					$feed,
-					itemIdentityKind,
-					itemIdentity,
-				}) => {
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-				const feed = await getFeed(feedUrl)
-				const feedItem = feed.items.find((candidate) => (
-					((identity) => (
-						identity?.itemIdentityKind === itemIdentityKind
-						&& identity.itemIdentity === itemIdentity
-					))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-				))
-				if (feedItem == null) throw new Error('Rss_Rest: feed item not found')
-				return {
-					itemIdentityKind,
-					itemIdentity,
-					...(feedItem.guid != null && { guid: feedItem.guid }),
-					...(feedItem.title != null && { title: feedItem.title }),
-					...(feedItem.link != null && { link: feedItem.link }),
-					...(feedItem.description != null && { description: feedItem.description }),
-					...(feedItem.content != null && { content: feedItem.content }),
-					...(feedItem.author != null && { author: feedItem.author }),
-					...(feedItem.publishedAt != null && {
-						publishedAt: feedItem.publishedAt,
-					}),
-					...(feedItem.updatedAt != null && {
-						updatedAt: feedItem.updatedAt,
-					}),
-					...(feedItem.categories != null && feedItem.categories.length > 0 && {
-						categories: feedItem.categories,
-					}),
-					...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
-					...(feedItem.commentsUrl != null && { commentsUrl: feedItem.commentsUrl }),
-					$feed: {
-						[EntityMetaKey.Selector]: { feedUrl },
-					},
+				[RssItemSelector.FeedIdentity]: {
+					resolve: async ({
+						$feed,
+						itemIdentityKind,
+						itemIdentity,
+					}) => {
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
+					const feed = await getFeed(feedUrl)
+					const feedItem = feed.items.find((candidate) => (
+						((identity) => (
+							identity?.itemIdentityKind === itemIdentityKind
+							&& identity.itemIdentity === itemIdentity
+						))(rssItemIdentityFromParts(candidate.guid, candidate.link))
+					))
+					if (feedItem == null) throw new Error('Rss_Rest: feed item not found')
+					return {
+						itemIdentityKind,
+						itemIdentity,
+						...(feedItem.guid != null && { guid: feedItem.guid }),
+						...(feedItem.title != null && { title: feedItem.title }),
+						...(feedItem.link != null && { link: feedItem.link }),
+						...(feedItem.description != null && { description: feedItem.description }),
+						...(feedItem.content != null && { content: feedItem.content }),
+						...(feedItem.author != null && { author: feedItem.author }),
+						...(feedItem.publishedAt != null && {
+							publishedAt: feedItem.publishedAt,
+						}),
+						...(feedItem.updatedAt != null && {
+							updatedAt: feedItem.updatedAt,
+						}),
+						...(feedItem.categories != null && feedItem.categories.length > 0 && {
+							categories: feedItem.categories,
+						}),
+						...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
+						...(feedItem.commentsUrl != null && { commentsUrl: feedItem.commentsUrl }),
+						$feed: {
+							[EntityMetaKey.Selector]: { feedUrl },
+						},
+					}
+				},
 				}
-			}
 			}
 		})({
 			itemIdentityKind: (snapshot) => snapshot.itemIdentityKind,
@@ -116,27 +120,29 @@ export default {
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }, context) => {
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { listFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-				const limit = resolverContextRowLimit(context)
-				return (
-					(await listFeedItems(feedUrl, limit))
-						.flatMap((feedItem) => {
-							const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
-							return identity == null ? [] : [{
-								[EntityMetaKey.Selector]: {
-									$feed: { feedUrl },
-									...identity,
-								},
-							}]
-						})
-				)
-			}
+				[RssFeedSelector.FeedUrl]: {
+					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { listFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
+					const limit = resolverContextRowLimit(context)
+					return (
+						(await listFeedItems(feedUrl, limit))
+							.flatMap((feedItem) => {
+								const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
+								return identity == null ? [] : [{
+									[EntityMetaKey.Selector]: {
+										$feed: { feedUrl },
+										...identity,
+									},
+								}]
+							})
+					)
+				},
+				}
 			}
 		})({
 			$$items: (snapshot) => snapshot,
@@ -145,37 +151,39 @@ export default {
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed_Timestamp,
 			resolve: {
-				[RssFeed_TimestampSelector.FeedTimestampMsSource]: async ({
-					$feed,
-					timestampMs,
-					source,
-				}) => {
-					if (source !== Source.Rss_Rest)
-						throw new Error(`Rss_Rest: unsupported source ${source}`)
+				[RssFeed_TimestampSelector.FeedTimestampMsSource]: {
+					resolve: async ({
+						$feed,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.Rss_Rest)
+							throw new Error(`Rss_Rest: unsupported source ${source}`)
 
-					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
-					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
-					const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-					try {
-						return {
-							$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-							timestampMs,
-							source,
-							reachable: true,
-							observedItemCount: (await getFeed(feedUrl)).items.length,
-							fetchWindowKind: 'Feed',
+						const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+						const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
+						const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
+						try {
+							return {
+								$feed: { [EntityMetaKey.Selector]: { feedUrl } },
+								timestampMs,
+								source,
+								reachable: true,
+								observedItemCount: (await getFeed(feedUrl)).items.length,
+								fetchWindowKind: 'Feed',
+							}
+						} catch (error) {
+							return {
+								$feed: { [EntityMetaKey.Selector]: { feedUrl } },
+								timestampMs,
+								source,
+								reachable: false,
+								observedItemCount: 0,
+								fetchWindowKind: 'Feed',
+								error: error instanceof Error ? error.message : String(error),
+							}
 						}
-					} catch (error) {
-						return {
-							$feed: { [EntityMetaKey.Selector]: { feedUrl } },
-							timestampMs,
-							source,
-							reachable: false,
-							observedItemCount: 0,
-							fetchWindowKind: 'Feed',
-							error: error instanceof Error ? error.message : String(error),
-						}
-					}
+					},
 				},
 			},
 		})({
@@ -191,47 +199,49 @@ export default {
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem_Timestamp,
 			resolve: {
-				[RssItem_TimestampSelector.ItemTimestampMsSource]: async ({
-					$item,
-					timestampMs,
-					source,
-				}) => {
-				if (source !== Source.Rss_Rest)
-					throw new Error(`Rss_Rest: unsupported source ${source}`)
+				[RssItem_TimestampSelector.ItemTimestampMsSource]: {
+					resolve: async ({
+						$item,
+						timestampMs,
+						source,
+					}) => {
+					if (source !== Source.Rss_Rest)
+						throw new Error(`Rss_Rest: unsupported source ${source}`)
 
-				const {
-					normalizeRssFeedUrl,
-					rssItemIdentityFromParts,
-				} = await import('$/sources/Rss/Rest/constants.ts')
-				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl($item.$feed.feedUrl)
-				try {
-					const feedItem = (await getFeed(feedUrl)).items.find((candidate) => (
-						((identity) => (
-							identity?.itemIdentityKind === $item.itemIdentityKind
-							&& identity.itemIdentity === $item.itemIdentity
-						))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-					))
-					return {
-						$item: { [EntityMetaKey.Selector]: $item },
-						timestampMs,
-						source,
-						observed: feedItem != null,
-						reachable: true,
-						fetchWindowKind: 'Feed',
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
+					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
+					const feedUrl = normalizeRssFeedUrl($item.$feed.feedUrl)
+					try {
+						const feedItem = (await getFeed(feedUrl)).items.find((candidate) => (
+							((identity) => (
+								identity?.itemIdentityKind === $item.itemIdentityKind
+								&& identity.itemIdentity === $item.itemIdentity
+							))(rssItemIdentityFromParts(candidate.guid, candidate.link))
+						))
+						return {
+							$item: { [EntityMetaKey.Selector]: $item },
+							timestampMs,
+							source,
+							observed: feedItem != null,
+							reachable: true,
+							fetchWindowKind: 'Feed',
+						}
+					} catch (error) {
+						return {
+							$item: { [EntityMetaKey.Selector]: $item },
+							timestampMs,
+							source,
+							observed: false,
+							reachable: false,
+							fetchWindowKind: 'Feed',
+							error: error instanceof Error ? error.message : String(error),
+						}
 					}
-				} catch (error) {
-					return {
-						$item: { [EntityMetaKey.Selector]: $item },
-						timestampMs,
-						source,
-						observed: false,
-						reachable: false,
-						fetchWindowKind: 'Feed',
-						error: error instanceof Error ? error.message : String(error),
-					}
+				},
 				}
-			}
 			}
 		})({
 			$item: (snapshot) => snapshot.$item,

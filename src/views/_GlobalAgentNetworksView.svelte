@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAgentNetworkView from '$/views/_GlobalAgentNetworkView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAgentNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAgentNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(globalAgentNetworks) => [...new Map(globalAgentNetworks.values.map((globalAgentNetwork) => [globalAgentNetwork[EntityMetaKey.SelectorKey], globalAgentNetwork])).values()]}
+	getKey={(globalAgentNetwork) => globalAgentNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global agent networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAgentNetworks)}
-			{@const uniqueGlobalAgentNetworks = [...new Map(globalAgentNetworks.values.map((globalAgentNetwork) => [globalAgentNetwork[EntityMetaKey.SelectorKey], globalAgentNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAgentNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAgentNetworks.totalCount}
-				getKey={(globalAgentNetwork) => globalAgentNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAgentNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global agent networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAgentNetwork })}
-					{@const globalAgentNetworkFields = { ...globalAgentNetwork[EntityMetaKey.Selector], ...globalAgentNetwork }}
-					{@const selection = select(EntityType._GlobalAgentNetwork, globalAgentNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalAgentNetworkView
-						selection={selection}
-						prefetched={globalAgentNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAgentNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAgentNetwork })}
+		{@const globalAgentNetworkFields = { ...globalAgentNetwork[EntityMetaKey.Selector], ...globalAgentNetwork }}
+		{@const selection = select(EntityType._GlobalAgentNetwork, globalAgentNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalAgentNetworkView
+			selection={selection}
+			prefetched={globalAgentNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

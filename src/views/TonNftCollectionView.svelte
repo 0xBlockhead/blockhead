@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonNftCollection = $derived(selection({}))
+	const tonNftCollection = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON NFT collection')
 	const viewDomId = $derived('ton-nft-collection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonNftCollection}>
-			{#snippet Pending()}
-				{title || 'TON NFT collection'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonNftCollection}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -109,19 +111,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									collectionAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const collectionAddress = pendingEntity.collectionAddress}
-							{#if collectionAddress !== undefined && collectionAddress !== null}
-								<TruncatedValue value={String((collectionAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const collectionAddress = resolvedEntity.collectionAddress}
@@ -136,8 +132,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -185,11 +179,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -197,12 +188,12 @@
 
 				{#snippet SectionTonNftCollectionItems({ id, label, open })}
 					<TonNftItemsView
-						selection={
-							selection.$$items({
-								count: true,
-							})
-						}
+						selection={selection.$$items}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No items.'
 						open={open}
 						title={label}
@@ -212,12 +203,12 @@
 
 				{#snippet SectionTonNftCollectionTransfers({ id, label, open })}
 					<TonNftTransfersView
-						selection={
-							selection.$$transfers({
-								count: true,
-							})
-						}
+						selection={selection.$$transfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transfers.'
 						open={open}
 						title={label}
@@ -240,11 +231,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -252,12 +240,12 @@
 
 				{#snippet SectionTonNftCollectionTimestamps({ id, label, open })}
 					<TonNftCollection_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

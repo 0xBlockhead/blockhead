@@ -28,6 +28,7 @@
 			username: true,
 			profileUrl: true,
 			createdAt: true,
+			note: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.acct) ?? ''), String((pageSelection.entitySelector.username) ?? ''), String((pageSelection.entitySelector.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).acct) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).username) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')))

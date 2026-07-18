@@ -6,22 +6,21 @@ import {
 } from '$/constants/BitcoinNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
+	type EntitySelector,
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+import { ZcashShieldedPoolBlockStateSelector } from '$/schema/ZcashShieldedPoolBlockState.ts'
 import { Source } from '$/sources/Source.ts'
-import { ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
+import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { ZcashShieldedActionSelector } from '$/schema/ZcashShieldedAction.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertZcashMainnet = (network: NetworkId) => {
 	if (
@@ -44,6 +43,26 @@ const zcashShieldedActionRows = (
 	},
 	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>
 ) => [
+	...(transaction.vjoinsplit ?? []).map((joinSplit, indexInTransaction) => ({
+		[EntityMetaKey.Selector]: {
+			$transaction: entitySelector,
+			pool: ZcashShieldedPoolKind.Sprout,
+			actionKind: ZcashShieldedActionKind.JoinSplit,
+			indexInTransaction,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], '$pool')]: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					pool: ZcashShieldedPoolKind.Sprout,
+				},
+			},
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')]: ZcashShieldedActionKind.JoinSplit,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')]: joinSplit.nullifiers[0],
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')]: joinSplit.commitments[0],
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')]: undefined,
+		},
+	})),
 	...(transaction.vShieldedSpend ?? []).map((spend, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: entitySelector,
@@ -118,95 +137,149 @@ const getTransaction = async ({ $network, txId }: {
 	})
 }
 
+const validActionKindsByPool = {
+	[ZcashShieldedPoolKind.Sprout]: [ZcashShieldedActionKind.JoinSplit],
+	[ZcashShieldedPoolKind.Sapling]: [
+		ZcashShieldedActionKind.Spend,
+		ZcashShieldedActionKind.Output,
+	],
+	[ZcashShieldedPoolKind.Orchard]: [ZcashShieldedActionKind.Action],
+} as const
+
+const zcashNetworkApplicability = [
+	{
+		$network: {
+			caip2: bitcoinNetworkBySlug.zcash.caip2,
+		},
+	},
+	{
+		$network: {
+			slug: networkBySlug.zcash.slug,
+		},
+	},
+] as const
+
+const zcashPoolStateRows = async ($block: {
+	$network: NetworkId
+	height: bigint
+	hash?: string
+}) => {
+	assertZcashMainnet($block.$network)
+	const { getTreeState } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
+	const treeState = await getTreeState({
+		rpcUrl: bitcoinNetworkBySlug.zcash.zcashdRpcUrl,
+		block: $block.hash ?? Number($block.height),
+	})
+	if (
+		treeState.height !== Number($block.height)
+		|| ($block.hash != null && treeState.hash !== $block.hash)
+	)
+		throw new Error('Zcashd_JsonRpc: z_gettreestate returned a different block')
+
+	return [
+		{
+			pool: ZcashShieldedPoolKind.Sapling,
+			tree: treeState.sapling?.commitments,
+		},
+		{
+			pool: ZcashShieldedPoolKind.Orchard,
+			tree: treeState.orchard?.commitments,
+		},
+	].map(({ pool, tree }) => ({
+		[EntityMetaKey.Selector]: {
+			$block,
+			$pool: {
+				$network: $block.$network,
+				pool,
+			},
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(
+				EntityType.ZcashShieldedPoolBlockState,
+				[],
+				pool === ZcashShieldedPoolKind.Sapling ? 'saplingTree' : 'orchardTree'
+			)]: tree,
+		},
+	}))
+}
+
 export default {
 	source: Source.Zcashd_JsonRpc,
 
 	resolvers: [
 		defineResolver(Source.Zcashd_JsonRpc, {
-			entityType: EntityType.ZcashShieldedPool,
+			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[ZcashShieldedPoolSelector.NetworkPool]: async ({ $network, pool }) => {
-					assertZcashMainnet($network)
-					return (
-						pool === ZcashShieldedPoolKind.Sapling ?
-							{
-								activationNetworkUpgrade: 'Sapling',
-								noteProtocol: 'Sapling',
-							}
-						:
-							{
-								activationNetworkUpgrade: 'NU5',
-								noteProtocol: 'Orchard',
-							}
-					)
-				}
-			},
-		})({
-				activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
-				noteProtocol: (snapshot) => snapshot.noteProtocol,
-			}),
-
-		defineResolver(Source.Zcashd_JsonRpc, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
-					assertZcashMainnet(network)
-					return [
-						ZcashShieldedPoolKind.Sapling,
-						ZcashShieldedPoolKind.Orchard,
-					].map((pool) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							pool,
-						},
-					}))
-				}
-			},
-		})({
-				Zcash: {
-					$$shieldedPools: (pools) => pools,
+				[UtxoBlockSelector.NetworkHeight]: {
+					appliesTo: zcashNetworkApplicability,
+					resolve: zcashPoolStateRows,
 				},
+				[UtxoBlockSelector.NetworkHeightHash]: {
+					appliesTo: zcashNetworkApplicability,
+					resolve: zcashPoolStateRows,
+				},
+			},
+		})({
+				$$zcashShieldedPoolStates: (states) => states,
 			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
-					const transaction = await getTransaction(entitySelector)
-					return {
-						version: transaction.version,
-						lockTime: transaction.locktime,
-						sizeBytes: transaction.size,
-						weightUnits: transaction.weight,
-						$shieldedActions: zcashShieldedActionRows(
-							entitySelector,
-							transaction
-					),
-					}
+				[UtxoTransactionSelector.NetworkTxId]: {
+					appliesTo: zcashNetworkApplicability,
+					resolve: async (entitySelector) => {
+						const transaction = await getTransaction(entitySelector)
+							return {
+								version: transaction.version,
+								lockTime: transaction.locktime,
+								sizeBytes: transaction.size,
+								$shieldedActions: zcashShieldedActionRows(
+								entitySelector,
+								transaction
+						),
+						}
+					},
 				}
 			},
 		})({
-				version: (snapshot) => snapshot.version,
-				lockTime: (snapshot) => snapshot.lockTime,
-				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				weightUnits: (snapshot) => snapshot.weightUnits,
-				$$zcashShieldedActions: (snapshot) => snapshot.$shieldedActions,
+					version: (snapshot) => snapshot.version,
+					lockTime: (snapshot) => snapshot.lockTime,
+					sizeBytes: (snapshot) => snapshot.sizeBytes,
+					$$zcashShieldedActions: (snapshot) => snapshot.$shieldedActions,
 			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
-			resolve: {
-				[ZcashShieldedActionSelector.TransactionPoolActionKindIndexInTransaction]: async ({ $transaction, pool, actionKind, indexInTransaction }) => {
-					const shieldedAction = zcashShieldedActionRows(
-						$transaction,
-						await getTransaction($transaction)
-					).find((action) => (
-						action[EntityMetaKey.Selector].pool === pool
-					&& action[EntityMetaKey.Selector].actionKind === actionKind
-					&& action[EntityMetaKey.Selector].indexInTransaction === indexInTransaction
-						))
-					if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
-					return shieldedAction
+				resolve: {
+					[ZcashShieldedActionSelector.TransactionPoolActionKindIndexInTransaction]: {
+						appliesTo: [
+							{
+								$transaction: {
+									$network: zcashNetworkApplicability[0].$network,
+								},
+							},
+							{
+								$transaction: {
+									$network: zcashNetworkApplicability[1].$network,
+								},
+							},
+						],
+						resolve: async ({ $transaction, pool, actionKind, indexInTransaction }) => {
+							if (!validActionKindsByPool[pool].some((validActionKind) => validActionKind === actionKind))
+								throw new Error(`Zcashd_JsonRpc: invalid ${pool}/${actionKind} shielded action`)
+
+							const shieldedAction = zcashShieldedActionRows(
+							$transaction,
+							await getTransaction($transaction)
+						).find((action) => (
+							action[EntityMetaKey.Selector].pool === pool
+						&& action[EntityMetaKey.Selector].actionKind === actionKind
+						&& action[EntityMetaKey.Selector].indexInTransaction === indexInTransaction
+							))
+						if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
+						return shieldedAction
+					},
 				}
 			},
 		})({
@@ -214,7 +287,48 @@ export default {
 				actionKind: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')],
 				nullifier: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')],
 				noteCommitment: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')],
-				valueCommitment: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')],
-			}),
-	],
+					valueCommitment: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')],
+				}),
+
+			defineResolver(Source.Zcashd_JsonRpc, {
+				entityType: EntityType.ZcashShieldedPoolBlockState,
+				resolve: {
+					[ZcashShieldedPoolBlockStateSelector.BlockPool]: {
+						appliesTo: [
+							{
+								$block: {
+									$network: zcashNetworkApplicability[0].$network,
+								},
+								$pool: {
+									$network: zcashNetworkApplicability[0].$network,
+								},
+							},
+							{
+								$block: {
+									$network: zcashNetworkApplicability[1].$network,
+								},
+								$pool: {
+									$network: zcashNetworkApplicability[1].$network,
+								},
+							},
+						],
+						resolve: async ({ $block, $pool }) => {
+							assertZcashMainnet($block.$network)
+							assertZcashMainnet($pool.$network)
+							const state = (await zcashPoolStateRows({
+								...$block,
+								hash: 'hash' in $block ? $block.hash : undefined,
+							})).find((row) => row[EntityMetaKey.Selector].$pool.pool === $pool.pool)
+							if (state == null)
+								throw new Error(`Zcashd_JsonRpc: tree state is unsupported for ${$pool.pool}`)
+
+							return state
+						},
+					},
+				},
+			})({
+					saplingTree: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedPoolBlockState, [], 'saplingTree')],
+					orchardTree: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedPoolBlockState, [], 'orchardTree')],
+				}),
+		],
 }

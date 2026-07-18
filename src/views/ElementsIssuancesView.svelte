@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ElementsIssuanceView from '$/views/ElementsIssuanceView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					inputIndex: true,
-					$asset: true,
-					$reissuanceTokenAsset: true,
-					isReissuance: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsIssuance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ElementsIssuance}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				inputIndex: true,
+				$asset: true,
+				$reissuanceTokenAsset: true,
+				isReissuance: true,
+			},
+		})
+	}
+	getResourceItems={(elementsIssuances) => [...new Map(elementsIssuances.values.map((elementsIssuance) => [elementsIssuance[EntityMetaKey.SelectorKey], elementsIssuance])).values()]}
+	getKey={(elementsIssuance) => elementsIssuance[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Elements issuances yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(elementsIssuances)}
-			{@const uniqueElementsIssuances = [...new Map(elementsIssuances.values.map((elementsIssuance) => [elementsIssuance[EntityMetaKey.SelectorKey], elementsIssuance])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsIssuance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={elementsIssuances.totalCount}
-				getKey={(elementsIssuance) => elementsIssuance[EntityMetaKey.SelectorKey]}
-				items={uniqueElementsIssuances}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Elements issuances yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: elementsIssuance })}
-					{@const elementsIssuanceFields = { ...elementsIssuance[EntityMetaKey.Selector], ...elementsIssuance }}
-					{@const selection = select(EntityType.ElementsIssuance, elementsIssuance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ElementsIssuanceView
-						selection={selection}
-						prefetched={elementsIssuanceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ElementsIssuance}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: elementsIssuance })}
+		{@const elementsIssuanceFields = { ...elementsIssuance[EntityMetaKey.Selector], ...elementsIssuance }}
+		{@const selection = select(EntityType.ElementsIssuance, elementsIssuance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ElementsIssuanceView
+			selection={selection}
+			prefetched={elementsIssuanceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

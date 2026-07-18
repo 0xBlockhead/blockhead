@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaTokenCustomFeeView from '$/views/HederaTokenCustomFeeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenCustomFee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaTokenCustomFee}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaTokenCustomFees) => [...new Map(hederaTokenCustomFees.values.map((hederaTokenCustomFee) => [hederaTokenCustomFee[EntityMetaKey.SelectorKey], hederaTokenCustomFee])).values()]}
+	getKey={(hederaTokenCustomFee) => hederaTokenCustomFee[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera token custom fees yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaTokenCustomFees)}
-			{@const uniqueHederaTokenCustomFees = [...new Map(hederaTokenCustomFees.values.map((hederaTokenCustomFee) => [hederaTokenCustomFee[EntityMetaKey.SelectorKey], hederaTokenCustomFee])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaTokenCustomFee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaTokenCustomFees.totalCount}
-				getKey={(hederaTokenCustomFee) => hederaTokenCustomFee[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaTokenCustomFees}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera token custom fees yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaTokenCustomFee })}
-					{@const hederaTokenCustomFeeFields = { ...hederaTokenCustomFee[EntityMetaKey.Selector], ...hederaTokenCustomFee }}
-					{@const selection = select(EntityType.HederaTokenCustomFee, hederaTokenCustomFee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaTokenCustomFeeView
-						selection={selection}
-						prefetched={hederaTokenCustomFeeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaTokenCustomFee}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaTokenCustomFee })}
+		{@const hederaTokenCustomFeeFields = { ...hederaTokenCustomFee[EntityMetaKey.Selector], ...hederaTokenCustomFee }}
+		{@const selection = select(EntityType.HederaTokenCustomFee, hederaTokenCustomFee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaTokenCustomFeeView
+			selection={selection}
+			prefetched={hederaTokenCustomFeeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

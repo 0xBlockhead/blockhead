@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiObjectChangeView from '$/views/SuiObjectChangeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiObjectChange}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiObjectChange}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiObjectChanges) => [...new Map(suiObjectChanges.values.map((suiObjectChange) => [suiObjectChange[EntityMetaKey.SelectorKey], suiObjectChange])).values()]}
+	getKey={(suiObjectChange) => suiObjectChange[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui object changes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiObjectChanges)}
-			{@const uniqueSuiObjectChanges = [...new Map(suiObjectChanges.values.map((suiObjectChange) => [suiObjectChange[EntityMetaKey.SelectorKey], suiObjectChange])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiObjectChange}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiObjectChanges.totalCount}
-				getKey={(suiObjectChange) => suiObjectChange[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiObjectChanges}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui object changes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiObjectChange })}
-					{@const suiObjectChangeFields = { ...suiObjectChange[EntityMetaKey.Selector], ...suiObjectChange }}
-					{@const selection = select(EntityType.SuiObjectChange, suiObjectChange[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiObjectChangeView
-						selection={selection}
-						prefetched={suiObjectChangeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiObjectChange}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiObjectChange })}
+		{@const suiObjectChangeFields = { ...suiObjectChange[EntityMetaKey.Selector], ...suiObjectChange }}
+		{@const selection = select(EntityType.SuiObjectChange, suiObjectChange[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiObjectChangeView
+			selection={selection}
+			prefetched={suiObjectChangeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SorobanContractStorageEntry_TimestampView from '$/views/SorobanContractStorageEntry_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContractStorageEntry_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SorobanContractStorageEntry_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(sorobanContractStorageEntryTimestamps) => [...new Map(sorobanContractStorageEntryTimestamps.values.map((sorobanContractStorageEntryTimestamp) => [sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey], sorobanContractStorageEntryTimestamp])).values()]}
+	getKey={(sorobanContractStorageEntryTimestamp) => sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Soroban contract storage entry observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(sorobanContractStorageEntryTimestamps)}
-			{@const uniqueSorobanContractStorageEntryTimestamps = [...new Map(sorobanContractStorageEntryTimestamps.values.map((sorobanContractStorageEntryTimestamp) => [sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey], sorobanContractStorageEntryTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContractStorageEntry_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={sorobanContractStorageEntryTimestamps.totalCount}
-				getKey={(sorobanContractStorageEntryTimestamp) => sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSorobanContractStorageEntryTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Soroban contract storage entry observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: sorobanContractStorageEntryTimestamp })}
-					{@const sorobanContractStorageEntryTimestampFields = { ...sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], ...sorobanContractStorageEntryTimestamp }}
-					{@const selection = select(EntityType.SorobanContractStorageEntry_Timestamp, sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SorobanContractStorageEntry_TimestampView
-						selection={selection}
-						prefetched={sorobanContractStorageEntryTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SorobanContractStorageEntry_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: sorobanContractStorageEntryTimestamp })}
+		{@const sorobanContractStorageEntryTimestampFields = { ...sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], ...sorobanContractStorageEntryTimestamp }}
+		{@const selection = select(EntityType.SorobanContractStorageEntry_Timestamp, sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SorobanContractStorageEntry_TimestampView
+			selection={selection}
+			prefetched={sorobanContractStorageEntryTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -56,7 +56,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 	it('maps a provider-native model id to AiModel', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(model)))
 		const resolver = resolverFor(EntityType.AiModel)
-		const snapshot = await resolver.resolve[AiModelSelector.ProviderModelId]({
+		const snapshot = await resolver.resolve[AiModelSelector.ProviderModelId].resolve({
 			$provider,
 			providerModelId: model.id,
 		}, context)
@@ -80,7 +80,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 	it('maps a model result through an explicit AiProviderCatalogEntry', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(model)))
 		const resolver = resolverFor(EntityType.AiProviderCatalogEntry)
-		await expect(resolver.resolve[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId]({
+		await expect(resolver.resolve[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId].resolve({
 			$provider,
 			catalogKind: 'model',
 			providerEntryId: model.id,
@@ -98,7 +98,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 
 	it('maps the verified catalog endpoint to AiProviderApiOperation', async () => {
 		const resolver = resolverFor(EntityType.AiProviderApiOperation)
-		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId]({
+		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId].resolve({
 			$provider,
 			operationId: 'listModels',
 		}, context)).resolves.toMatchObject({
@@ -115,7 +115,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 
 	it('rejects unknown operation identities before provider work', async () => {
 		const resolver = resolverFor(EntityType.AiProviderApiOperation)
-		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId]({
+		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId].resolve({
 			$provider,
 			operationId: 'unknownOperation',
 		}, context)).rejects.toThrow('OpenAI_Rest: unsupported operation unknownOperation')

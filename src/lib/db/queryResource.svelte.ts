@@ -69,6 +69,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#started = false
 
 	#then = $derived.by((): Promise<Data>['then'] => {
+		this.#raw
 		return (onFulfilled, onRejected) => {
 			const releaseSource = this.#acquireSource()
 			untrack(() => {
@@ -168,6 +169,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		) {
 			this.#loading = true
 			this.#error = undefined
+			if (snapshot.data === undefined) {
+				this.#ready = false
+				this.#raw = undefined
+			}
 			if (
 				!this.#ready
 				&& !this.#pending

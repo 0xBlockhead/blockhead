@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IbcConnectionView from '$/views/IbcConnectionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					connectionId: true,
-					state: true,
-					clientId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IbcConnection}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				connectionId: true,
+				state: true,
+				clientId: true,
+			},
+		})
+	}
+	getResourceItems={(ibcConnections) => [...new Map(ibcConnections.values.map((ibcConnection) => [ibcConnection[EntityMetaKey.SelectorKey], ibcConnection])).values()]}
+	getKey={(ibcConnection) => ibcConnection[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No IBC connections yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ibcConnections)}
-			{@const uniqueIbcConnections = [...new Map(ibcConnections.values.map((ibcConnection) => [ibcConnection[EntityMetaKey.SelectorKey], ibcConnection])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ibcConnections.totalCount}
-				getKey={(ibcConnection) => ibcConnection[EntityMetaKey.SelectorKey]}
-				items={uniqueIbcConnections}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No IBC connections yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ibcConnection })}
-					{@const ibcConnectionFields = { ...ibcConnection[EntityMetaKey.Selector], ...ibcConnection }}
-					{@const selection = select(EntityType.IbcConnection, ibcConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IbcConnectionView
-						selection={selection}
-						prefetched={ibcConnectionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IbcConnection}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ibcConnection })}
+		{@const ibcConnectionFields = { ...ibcConnection[EntityMetaKey.Selector], ...ibcConnection }}
+		{@const selection = select(EntityType.IbcConnection, ibcConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IbcConnectionView
+			selection={selection}
+			prefetched={ibcConnectionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 </script>
@@ -63,91 +62,58 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					fastGwei: true,
-					timestampMs: true,
-					$network: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				fastGwei: true,
+				timestampMs: true,
+				$network: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkGasEstimateTimestamps) => [...new Map(evmNetworkGasEstimateTimestamps.values.map((evmNetworkGasEstimateTimestamp) => [evmNetworkGasEstimateTimestamp[EntityMetaKey.SelectorKey], evmNetworkGasEstimateTimestamp])).values()]}
+	getKey={(evmNetworkGasEstimateTimestamp) => evmNetworkGasEstimateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network gas estimate observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkGasEstimateTimestamps)}
-			{@const uniqueEvmNetworkGasEstimateTimestamps = [...new Map(evmNetworkGasEstimateTimestamps.values.map((evmNetworkGasEstimateTimestamp) => [evmNetworkGasEstimateTimestamp[EntityMetaKey.SelectorKey], evmNetworkGasEstimateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkGasEstimateTimestamps.totalCount}
-				getKey={(evmNetworkGasEstimateTimestamp) => evmNetworkGasEstimateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkGasEstimateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network gas estimate observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkGasEstimateTimestamp })}
-					{@const evmNetworkGasEstimateTimestampFields = { ...evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector], ...evmNetworkGasEstimateTimestamp }}
-					{@const selection = select(EntityType.EvmNetwork_GasEstimate_Timestamp, evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmNetworkGasEstimateTimestampHrefFields = { ...evmNetworkGasEstimateTimestamp, ...evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector] }}
-					<EvmNetwork_GasEstimate_TimestampView
-						selection={selection}
-						prefetched={evmNetworkGasEstimateTimestampFields}
-						href={
-							(evmNetworkGasEstimateTimestampHrefFields.timestampMs !== undefined && evmNetworkGasEstimateTimestampHrefFields.source !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(evmNetworkGasEstimateTimestampHrefFields.timestampMs ?? ''),
-								source: String(evmNetworkGasEstimateTimestampHrefFields.source ?? ''),
-								network: String(caip2StringFromValue(evmNetworkGasEstimateTimestampHrefFields.$network.caip2) ?? ''),
-							}) : evmNetworkGasEstimateTimestampHrefFields.timestampMs !== undefined && evmNetworkGasEstimateTimestampHrefFields.source !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(evmNetworkGasEstimateTimestampHrefFields.timestampMs ?? ''),
-								source: String(evmNetworkGasEstimateTimestampHrefFields.source ?? ''),
-								network: String(evmNetworkGasEstimateTimestampHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkGasEstimateTimestamp })}
+		{@const evmNetworkGasEstimateTimestampFields = { ...evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector], ...evmNetworkGasEstimateTimestamp }}
+		{@const selection = select(EntityType.EvmNetwork_GasEstimate_Timestamp, evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmNetworkGasEstimateTimestampHrefFields = { ...evmNetworkGasEstimateTimestamp, ...evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector] }}
+		<EvmNetwork_GasEstimate_TimestampView
+			selection={selection}
+			prefetched={evmNetworkGasEstimateTimestampFields}
+			href={
+				(evmNetworkGasEstimateTimestampHrefFields.timestampMs !== undefined && evmNetworkGasEstimateTimestampHrefFields.source !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(evmNetworkGasEstimateTimestampHrefFields.timestampMs ?? ''),
+					source: String(evmNetworkGasEstimateTimestampHrefFields.source ?? ''),
+					network: String(caip2StringFromValue(evmNetworkGasEstimateTimestampHrefFields.$network.caip2) ?? ''),
+				}) : evmNetworkGasEstimateTimestampHrefFields.timestampMs !== undefined && evmNetworkGasEstimateTimestampHrefFields.source !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network !== undefined && evmNetworkGasEstimateTimestampHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(evmNetworkGasEstimateTimestampHrefFields.timestampMs ?? ''),
+					source: String(evmNetworkGasEstimateTimestampHrefFields.source ?? ''),
+					network: String(evmNetworkGasEstimateTimestampHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAgentNetwork_TimestampView from '$/views/_GlobalAgentNetwork_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAgentNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAgentNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(globalAgentNetworkTimestamps) => [...new Map(globalAgentNetworkTimestamps.values.map((globalAgentNetworkTimestamp) => [globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey], globalAgentNetworkTimestamp])).values()]}
+	getKey={(globalAgentNetworkTimestamp) => globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global agent network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAgentNetworkTimestamps)}
-			{@const uniqueGlobalAgentNetworkTimestamps = [...new Map(globalAgentNetworkTimestamps.values.map((globalAgentNetworkTimestamp) => [globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey], globalAgentNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAgentNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAgentNetworkTimestamps.totalCount}
-				getKey={(globalAgentNetworkTimestamp) => globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAgentNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global agent network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAgentNetworkTimestamp })}
-					{@const globalAgentNetworkTimestampFields = { ...globalAgentNetworkTimestamp[EntityMetaKey.Selector], ...globalAgentNetworkTimestamp }}
-					{@const selection = select(EntityType._GlobalAgentNetwork_Timestamp, globalAgentNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalAgentNetwork_TimestampView
-						selection={selection}
-						prefetched={globalAgentNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAgentNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAgentNetworkTimestamp })}
+		{@const globalAgentNetworkTimestampFields = { ...globalAgentNetworkTimestamp[EntityMetaKey.Selector], ...globalAgentNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalAgentNetwork_Timestamp, globalAgentNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalAgentNetwork_TimestampView
+			selection={selection}
+			prefetched={globalAgentNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

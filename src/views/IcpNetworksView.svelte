@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-					$$timestamps: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+				$$timestamps: true,
+			},
+		})
+	}
+	getResourceItems={(icpNetworks) => [...new Map(icpNetworks.values.map((icpNetwork) => [icpNetwork[EntityMetaKey.SelectorKey], icpNetwork])).values()]}
+	getKey={(icpNetwork) => icpNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpNetworks)}
-			{@const uniqueIcpNetworks = [...new Map(icpNetworks.values.map((icpNetwork) => [icpNetwork[EntityMetaKey.SelectorKey], icpNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpNetworks.totalCount}
-				getKey={(icpNetwork) => icpNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpNetwork })}
-					{@const icpNetworkFields = { ...icpNetwork[EntityMetaKey.Selector], ...icpNetwork, $$timestamps: icpNetwork.$$timestamps }}
-					{@const selection = select(EntityType.IcpNetwork, icpNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpNetworkView
-						selection={selection}
-						prefetched={icpNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpNetwork })}
+		{@const icpNetworkFields = { ...icpNetwork[EntityMetaKey.Selector], ...icpNetwork, $$timestamps: icpNetwork.$$timestamps }}
+		{@const selection = select(EntityType.IcpNetwork, icpNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpNetworkView
+			selection={selection}
+			prefetched={icpNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

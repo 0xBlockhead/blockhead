@@ -23,7 +23,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.fromChainId,
+						reference: Number(params.fromChainId),
 					},
 				},
 				type: 'NativeCurrency',
@@ -33,7 +33,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.fromChainId,
+						reference: Number(params.fromChainId),
 					},
 				},
 				type: 'Erc20Token',
@@ -41,7 +41,7 @@
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: params.fromChainId,
+							reference: Number(params.fromChainId),
 						},
 					},
 					address: params.fromCoinInstanceSlug,
@@ -54,7 +54,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.toChainId,
+						reference: Number(params.toChainId),
 					},
 				},
 				type: 'NativeCurrency',
@@ -64,7 +64,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: params.toChainId,
+						reference: Number(params.toChainId),
 					},
 				},
 				type: 'Erc20Token',
@@ -72,7 +72,7 @@
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: params.toChainId,
+							reference: Number(params.toChainId),
 						},
 					},
 					address: params.toCoinInstanceSlug,

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiProgrammableTransactionCommand = $derived(selection({}))
+	const suiProgrammableTransactionCommand = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui programmable transaction command')
 	const viewDomId = $derived('sui-programmable-transaction-command-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiProgrammableTransactionCommand}>
-			{#snippet Pending()}
-				{title || 'Sui programmable transaction command'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiProgrammableTransactionCommand}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									commandIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const commandIndex = pendingEntity.commandIndex}
-							{#if commandIndex !== undefined && commandIndex !== null}
-								{String((commandIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const commandIndex = resolvedEntity.commandIndex}
@@ -123,19 +119,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									commandKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const commandKind = pendingEntity.commandKind}
-							{#if commandKind !== undefined && commandKind !== null}
-								{String((commandKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const commandKind = resolvedEntity.commandKind}
@@ -150,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							packageId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const packageId = pendingEntity.packageId}
-					{#if packageId !== undefined && packageId !== null}
-						<div>
-							<dt>package ID</dt>
-							<dd>
-								{String((packageId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const packageId = resolvedEntity.packageId}
@@ -185,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							moduleName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const moduleName = pendingEntity.moduleName}
-					{#if moduleName !== undefined && moduleName !== null}
-						<div>
-							<dt>module name</dt>
-							<dd>
-								{String((moduleName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const moduleName = resolvedEntity.moduleName}
@@ -220,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							functionName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const functionName = pendingEntity.functionName}
-					{#if functionName !== undefined && functionName !== null}
-						<div>
-							<dt>function name</dt>
-							<dd>
-								{String((functionName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const functionName = resolvedEntity.functionName}
@@ -258,19 +215,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									typeArguments: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const typeArguments = pendingEntity.typeArguments}
-							{#if typeArguments !== undefined && typeArguments !== null}
-								{typeArguments.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const typeArguments = resolvedEntity.typeArguments}

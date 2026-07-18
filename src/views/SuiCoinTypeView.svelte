@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiCoinType = $derived(selection({}))
+	const suiCoinType = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui coin type')
 	const viewDomId = $derived('sui-coin-type-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -73,16 +75,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiCoinType}>
-			{#snippet Pending()}
-				{title || 'Sui coin type'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiCoinType}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									coinType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const coinType = pendingEntity.coinType}
-							{#if coinType !== undefined && coinType !== null}
-								{String((coinType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const coinType = resolvedEntity.coinType}
@@ -131,8 +127,6 @@
 			<ResourceBoundary
 				resource={selection.$definingStruct}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(moveStruct)}
 					{#if moveStruct != null && moveStruct[EntityMetaKey.Selector] != null}
 						<div>
@@ -153,8 +147,6 @@
 			<ResourceBoundary
 				resource={selection.$treasuryCap}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(suiObject)}
 					{#if suiObject != null && suiObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,8 +167,6 @@
 			<ResourceBoundary
 				resource={selection.$assetInstance}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(assetInstance)}
 					{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -208,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decimals = pendingEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								{String((decimals) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decimals = resolvedEntity.decimals}
@@ -243,24 +222,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							symbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const symbol = pendingEntity.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const symbol = resolvedEntity.symbol}
@@ -278,24 +246,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							name: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const name = resolvedEntity.name}
@@ -313,24 +270,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							description: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const description = pendingEntity.description}
-					{#if description !== undefined && description !== null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								{String((description) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const description = resolvedEntity.description}
@@ -348,31 +294,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							iconUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const iconUrl = pendingEntity.iconUrl}
-					{#if iconUrl !== undefined && iconUrl !== null}
-						<div>
-							<dt>icon URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(iconUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(iconUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const iconUrl = resolvedEntity.iconUrl}
@@ -415,11 +343,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-a'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -427,12 +352,12 @@
 
 				{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
 					<SuiCoinBalance_TimestampsView
-						selection={
-							selection.$$balances({
-								count: true,
-							})
-						}
+						selection={selection.$$balances}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No balances.'
 						open={open}
 						title={label}
@@ -442,12 +367,12 @@
 
 				{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
 					<SuiObjectsView
-						selection={
-							selection.$$objects({
-								count: true,
-							})
-						}
+						selection={selection.$$objects}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No objects.'
 						open={open}
 						title={label}
@@ -470,11 +395,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity-b'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity continued</HeadingComponent>
 					</header>
@@ -482,12 +404,12 @@
 
 				{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
 					<SuiRegulatedCoinState_TimestampsView
-						selection={
-							selection.$$regulatedStates({
-								count: true,
-							})
-						}
+						selection={selection.$$regulatedStates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No regulated states.'
 						open={open}
 						title={label}

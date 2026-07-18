@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const a2aMessagePart = $derived(selection({
-		sources: [
-			Source.A2aService_Http,
-		],
+		sources: selection.sources,
 		fields: {
 			partKind: true,
 			mimeType: true,
@@ -75,52 +72,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={a2aMessagePart}>
-			{#snippet Pending()}
-				{[String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aMessagePart}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={a2aMessagePart}>
-			{#snippet Pending()}
-				{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={a2aMessagePart}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={a2aMessagePart}>
-			{#snippet Pending()}
-				{@const mimeType0 = pendingEntity.mimeType}
-				{#if mimeType0 !== undefined && mimeType0 !== null}
-					<span data-text="muted">
-						{String((mimeType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const mimeType0 = resolvedEntity.mimeType}
-				{#if mimeType0 !== undefined && mimeType0 !== null}
-					<span data-text="muted">
-						{String((mimeType0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const mimeType0 = pendingEntity.mimeType}
+			{#if mimeType0 !== undefined && mimeType0 !== null}
+				<span data-text="muted">
+					{String((mimeType0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={a2aMessagePart}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mimeType0 = resolvedEntity.mimeType}
+					{#if mimeType0 !== undefined && mimeType0 !== null}
+						<span data-text="muted">
+							{String((mimeType0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,8 +125,6 @@
 			<ResourceBoundary
 				resource={selection.$message}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(a2aMessage)}
 					{#if a2aMessage != null && a2aMessage[EntityMetaKey.Selector] != null}
 						<div>
@@ -150,8 +145,6 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(a2aArtifact)}
 					{#if a2aArtifact != null && a2aArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,19 +168,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									partIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const partIndex = pendingEntity.partIndex}
-							{#if partIndex !== undefined && partIndex !== null}
-								{String((partIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const partIndex = resolvedEntity.partIndex}
@@ -205,19 +192,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									partKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const partKind = pendingEntity.partKind}
-							{#if partKind !== undefined && partKind !== null}
-								{String((partKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const partKind = resolvedEntity.partKind}
@@ -232,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							text: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const text = pendingEntity.text}
-					{#if text !== undefined && text !== null}
-						<div>
-							<dt>text</dt>
-							<dd>
-								{String((text) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const text = resolvedEntity.text}
@@ -267,31 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							uri: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const uri = pendingEntity.uri}
-					{#if uri !== undefined && uri !== null}
-						<div>
-							<dt>URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(uri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(uri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const uri = resolvedEntity.uri}
@@ -316,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mimeType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mimeType = pendingEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
-						<div>
-							<dt>mime type</dt>
-							<dd>
-								{String((mimeType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mimeType = resolvedEntity.mimeType}
@@ -351,8 +292,6 @@
 			<ResourceBoundary
 				resource={selection.$aiArtifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>

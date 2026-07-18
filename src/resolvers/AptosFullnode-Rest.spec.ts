@@ -264,7 +264,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 	it('keys network observations by the source ledger version and maps only source time', async () => {
 		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
 		const networkResolver = resolverFor(EntityType.AptosNetwork)
-		const observations = await networkResolver.resolve[AptosNetworkSelector.Network](aptosNetwork, resolverContext)
+		const observations = await networkResolver.resolve[AptosNetworkSelector.Network].resolve(aptosNetwork, resolverContext)
 		expect(observations).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: aptosNetwork,
@@ -274,7 +274,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 		}])
 
 		const observationResolver = resolverFor(EntityType.AptosNetwork_Timestamp)
-		await expect(observationResolver.resolve[AptosNetwork_TimestampSelector.NetworkLedgerVersionSource](
+		await expect(observationResolver.resolve[AptosNetwork_TimestampSelector.NetworkLedgerVersionSource].resolve(
 			observations[0][EntityMetaKey.Selector],
 			resolverContext
 		)).resolves.toMatchObject({
@@ -286,7 +286,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 		})
 	})
 
-	it('materializes account observations, resources, and modules with exact parents', async () => {
+	it('materializes account observations and resources with exact parents', async () => {
 		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
 		vi.spyOn(queries, 'getAccount').mockResolvedValue(response({
 			sequence_number: '8',
@@ -300,20 +300,9 @@ describe('Aptos Fullnode resolver materialization', () => {
 				},
 			},
 		}]))
-		vi.spyOn(queries, 'getAccountModules').mockResolvedValue(response([{
-			bytecode: '0xa11ce',
-			abi: {
-				address: '0xa11ce',
-				name: 'payments',
-				friends: [],
-				exposed_functions: [],
-				structs: [],
-			},
-		}]))
-
 		const accountResolvers = aptosFullnodeResolvers.resolvers.filter((candidate) => candidate.entityType === EntityType.AptosAccount)
-		expect(accountResolvers).toHaveLength(3)
-		const accountSnapshots = await Promise.all(accountResolvers.map((resolver) => resolver.resolve[AptosAccountSelector.NetworkAddress](aptosAccount, resolverContext)))
+		expect(accountResolvers).toHaveLength(2)
+		const accountSnapshots = await Promise.all(accountResolvers.map((resolver) => resolver.resolve[AptosAccountSelector.NetworkAddress].resolve(aptosAccount, resolverContext)))
 		expect(accountSnapshots).toContainEqual([{
 			[EntityMetaKey.Selector]: {
 				$account: aptosAccount,
@@ -327,17 +316,9 @@ describe('Aptos Fullnode resolver materialization', () => {
 				resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
 			},
 		}])
-		expect(accountSnapshots).toContainEqual([{
-			[EntityMetaKey.Selector]: {
-				$network: canonicalNetwork,
-				address: '0xa11ce',
-				moduleName: 'payments',
-			},
-		}])
-
 		await expect(resolverFor(EntityType.AptosAccount_Timestamp).resolve[
 			AptosAccount_TimestampSelector.AccountLedgerVersionSource
-		]({
+		].resolve({
 			$account: aptosAccount,
 			ledgerVersion: 42n,
 			source: Source.AptosFullnode_Rest,
@@ -357,11 +338,11 @@ describe('Aptos Fullnode resolver materialization', () => {
 		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
 
 		const blockResolver = resolverFor(EntityType.AptosBlock)
-		const heightBlock = await blockResolver.resolve[AptosBlockSelector.NetworkHeight]({
+		const heightBlock = await blockResolver.resolve[AptosBlockSelector.NetworkHeight].resolve({
 			$network: aptosNetwork,
 			height: 9n,
 		}, resolverContext)
-		const versionBlock = await blockResolver.resolve[AptosBlockSelector.NetworkVersion]({
+		const versionBlock = await blockResolver.resolve[AptosBlockSelector.NetworkVersion].resolve({
 			$network: aptosNetwork,
 			version: 42n,
 		}, resolverContext)
@@ -377,8 +358,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 		expect(versionBlock).toEqual(heightBlock)
 
 		const transactionResolver = resolverFor(EntityType.AptosTransaction)
-		const byVersion = await transactionResolver.resolve[AptosTransactionSelector.NetworkVersion](aptosTransaction, resolverContext)
-		const byHash = await transactionResolver.resolve[AptosTransactionSelector.NetworkHash]({
+		const byVersion = await transactionResolver.resolve[AptosTransactionSelector.NetworkVersion].resolve(aptosTransaction, resolverContext)
+		const byHash = await transactionResolver.resolve[AptosTransactionSelector.NetworkHash].resolve({
 			$network: aptosNetwork,
 			hash: '0x42',
 		}, resolverContext)
@@ -395,7 +376,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 		await expect(resolverFor(EntityType.AptosEvent).resolve[
 			AptosEventSelector.NetworkTransactionVersionEventIndex
-		]({
+		].resolve({
 			$network: aptosNetwork,
 			transactionVersion: 42n,
 			eventIndex: 0,
@@ -407,7 +388,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 		await expect(resolverFor(EntityType.AptosStateChange).resolve[
 			AptosStateChangeSelector.TransactionChangeIndex
-		]({
+		].resolve({
 			$transaction: aptosTransaction,
 			changeIndex: 0,
 		}, resolverContext)).resolves.toMatchObject({
@@ -417,7 +398,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 		})
 		await expect(Promise.all([1, 2, 3, 4, 5].map((changeIndex) => resolverFor(EntityType.AptosStateChange).resolve[
 			AptosStateChangeSelector.TransactionChangeIndex
-		]({
+		].resolve({
 			$transaction: aptosTransaction,
 			changeIndex,
 		}, resolverContext)))).resolves.toMatchObject([
@@ -457,7 +438,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 		await expect(resolverFor(EntityType.AptosAccountResource_Timestamp).resolve[
 			AptosAccountResource_TimestampSelector.ResourceLedgerVersionSource
-		]({
+		].resolve({
 			$resource: {
 				$account: aptosAccount,
 				resourceType: '0x1::resource::Value',
@@ -470,7 +451,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 		const transactionObservation = await resolverFor(EntityType.AptosTransaction_Timestamp).resolve[
 			AptosTransaction_TimestampSelector.TransactionLedgerVersionSource
-		]({
+		].resolve({
 			$transaction: aptosTransaction,
 			ledgerVersion: 42n,
 			source: Source.AptosFullnode_Rest,
@@ -486,7 +467,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 				ledgerVersion: 'not-a-version',
 			},
 		})
-		await expect(resolverFor(EntityType.AptosNetwork).resolve[AptosNetworkSelector.Network](
+		await expect(resolverFor(EntityType.AptosNetwork).resolve[AptosNetworkSelector.Network].resolve(
 			aptosNetwork,
 			resolverContext
 		)).rejects.toThrow('malformed ledger version')
@@ -494,7 +475,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
 		await expect(resolverFor(EntityType.AptosNetwork_Timestamp).resolve[
 			AptosNetwork_TimestampSelector.NetworkLedgerVersionSource
-		]({
+		].resolve({
 			$network: aptosNetwork,
 			ledgerVersion: 41n,
 			source: Source.AptosFullnode_Rest,
@@ -502,7 +483,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 		await expect(resolverFor(EntityType.AptosNetwork_Timestamp).resolve[
 			AptosNetwork_TimestampSelector.NetworkLedgerVersionSource
-		]({
+		].resolve({
 			$network: aptosNetwork,
 			ledgerVersion: 42n,
 			source: Source.Constants_Internal,

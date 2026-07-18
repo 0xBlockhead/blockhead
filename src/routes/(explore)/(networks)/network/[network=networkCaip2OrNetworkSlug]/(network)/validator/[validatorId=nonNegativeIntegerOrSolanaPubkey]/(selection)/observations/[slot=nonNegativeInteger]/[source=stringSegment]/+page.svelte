@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}).source],
+			$validator: data.selector,
+			slot: Number(params.slot),
+			source: params.source,
+		}).source],
 		fields: {
 			status: true,
 			balanceGwei: true,

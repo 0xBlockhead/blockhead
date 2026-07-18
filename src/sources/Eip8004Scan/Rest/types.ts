@@ -35,6 +35,10 @@ export type Eip8004ScanAgentDetail = Eip8004ScanAgentListItem & {
 	}
 	services?: Record<string, {
 		endpoint?: string
+		name?: string
+		version?: string
+		protocol?: string
+		active?: boolean
 	}>
 }
 
@@ -55,6 +59,14 @@ export type NormalizedEip8004ScanAgent = {
 export type NormalizedEip8004ScanAgentDetail = NormalizedEip8004ScanAgent & {
 	agentUri: string
 	fetchedAt: number
+	services: {
+		endpointKind: string
+		endpointUrl: string
+		name?: string
+		version?: string
+		protocolKind?: string
+		active?: boolean
+	}[]
 	name?: string
 	description?: string
 	image?: string

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$actor: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmNetworkAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$actor: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(evmNetworkAccounts) => [...new Map(evmNetworkAccounts.values.map((evmNetworkAccount) => [evmNetworkAccount[EntityMetaKey.SelectorKey], evmNetworkAccount])).values()]}
+	getKey={(evmNetworkAccount) => evmNetworkAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No EVM network accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmNetworkAccounts)}
-			{@const uniqueEvmNetworkAccounts = [...new Map(evmNetworkAccounts.values.map((evmNetworkAccount) => [evmNetworkAccount[EntityMetaKey.SelectorKey], evmNetworkAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkAccounts.totalCount}
-				getKey={(evmNetworkAccount) => evmNetworkAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmNetworkAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No EVM network accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmNetworkAccount })}
-					{@const evmNetworkAccountFields = { ...evmNetworkAccount[EntityMetaKey.Selector], ...evmNetworkAccount }}
-					{@const selection = select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmNetworkAccountHrefFields = { ...evmNetworkAccount, ...evmNetworkAccount[EntityMetaKey.Selector] }}
-					<EvmNetworkAccountView
-						selection={selection}
-						prefetched={evmNetworkAccountFields}
-						href={
-							(evmNetworkAccountHrefFields.$actor !== undefined && evmNetworkAccountHrefFields.$actor.address !== undefined && evmNetworkAccountHrefFields.$network !== undefined && evmNetworkAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(evmNetworkAccountHrefFields.$actor.address ?? ''),
-								network: String(caip2StringFromValue(evmNetworkAccountHrefFields.$network.caip2) ?? ''),
-							}) : evmNetworkAccountHrefFields.$actor !== undefined && evmNetworkAccountHrefFields.$actor.address !== undefined && evmNetworkAccountHrefFields.$network !== undefined && evmNetworkAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(evmNetworkAccountHrefFields.$actor.address ?? ''),
-								network: String(evmNetworkAccountHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmNetworkAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: evmNetworkAccount })}
+		{@const evmNetworkAccountFields = { ...evmNetworkAccount[EntityMetaKey.Selector], ...evmNetworkAccount }}
+		{@const selection = select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmNetworkAccountHrefFields = { ...evmNetworkAccount, ...evmNetworkAccount[EntityMetaKey.Selector] }}
+		<EvmNetworkAccountView
+			selection={selection}
+			prefetched={evmNetworkAccountFields}
+			href={
+				(evmNetworkAccountHrefFields.$actor !== undefined && evmNetworkAccountHrefFields.$actor.address !== undefined && evmNetworkAccountHrefFields.$network !== undefined && evmNetworkAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(evmNetworkAccountHrefFields.$actor.address ?? ''),
+					network: String(caip2StringFromValue(evmNetworkAccountHrefFields.$network.caip2) ?? ''),
+				}) : evmNetworkAccountHrefFields.$actor !== undefined && evmNetworkAccountHrefFields.$actor.address !== undefined && evmNetworkAccountHrefFields.$network !== undefined && evmNetworkAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(evmNetworkAccountHrefFields.$actor.address ?? ''),
+					network: String(evmNetworkAccountHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadIntentQuoteView from '$/views/BlockheadIntentQuoteView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					providerProtocol: true,
-					source: true,
-					requestedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadIntentQuote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadIntentQuote}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				providerProtocol: true,
+				source: true,
+				requestedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadIntentQuotes) => [...new Map(blockheadIntentQuotes.values.map((blockheadIntentQuote) => [blockheadIntentQuote[EntityMetaKey.SelectorKey], blockheadIntentQuote])).values()]}
+	getKey={(blockheadIntentQuote) => blockheadIntentQuote[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead intent quotes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadIntentQuotes)}
-			{@const uniqueBlockheadIntentQuotes = [...new Map(blockheadIntentQuotes.values.map((blockheadIntentQuote) => [blockheadIntentQuote[EntityMetaKey.SelectorKey], blockheadIntentQuote])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadIntentQuote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadIntentQuotes.totalCount}
-				getKey={(blockheadIntentQuote) => blockheadIntentQuote[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadIntentQuotes}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead intent quotes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadIntentQuote })}
-					{@const blockheadIntentQuoteFields = { ...blockheadIntentQuote[EntityMetaKey.Selector], ...blockheadIntentQuote }}
-					{@const selection = select(EntityType.BlockheadIntentQuote, blockheadIntentQuote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadIntentQuoteView
-						selection={selection}
-						prefetched={blockheadIntentQuoteFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadIntentQuote}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadIntentQuote })}
+		{@const blockheadIntentQuoteFields = { ...blockheadIntentQuote[EntityMetaKey.Selector], ...blockheadIntentQuote }}
+		{@const selection = select(EntityType.BlockheadIntentQuote, blockheadIntentQuote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadIntentQuoteView
+			selection={selection}
+			prefetched={blockheadIntentQuoteFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

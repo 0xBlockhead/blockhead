@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 </script>
@@ -68,85 +67,51 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					id: true,
-					$network: true,
-				},
-				limit: 300,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LiquidityPool}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			fields: {
+				id: true,
+				$network: true,
+			},
+			limit: 300,
+		})
+	}
+	getResourceItems={(liquidityPools) => [...new Map(liquidityPools.values.map((liquidityPool) => [liquidityPool[EntityMetaKey.SelectorKey], liquidityPool])).values()]}
+	getKey={(liquidityPool) => liquidityPool[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Liquidity pools yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(liquidityPools)}
-			{@const uniqueLiquidityPools = [...new Map(liquidityPools.values.map((liquidityPool) => [liquidityPool[EntityMetaKey.SelectorKey], liquidityPool])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={liquidityPools.totalCount}
-				getKey={(liquidityPool) => liquidityPool[EntityMetaKey.SelectorKey]}
-				items={uniqueLiquidityPools}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Liquidity pools yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: liquidityPool })}
-					{@const liquidityPoolFields = { ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }}
-					{@const selection = select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const liquidityPoolHrefFields = { ...liquidityPool, ...liquidityPool[EntityMetaKey.Selector] }}
-					<LiquidityPoolView
-						selection={selection}
-						prefetched={liquidityPoolFields}
-						href={
-							(liquidityPoolHrefFields.id !== undefined && liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-								poolId: String(liquidityPoolHrefFields.id ?? ''),
-								chainId: String(liquidityPoolHrefFields.$network.caip2.reference ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LiquidityPool}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: liquidityPool })}
+		{@const liquidityPoolFields = { ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }}
+		{@const selection = select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const liquidityPoolHrefFields = { ...liquidityPool, ...liquidityPool[EntityMetaKey.Selector] }}
+		<LiquidityPoolView
+			selection={selection}
+			prefetched={liquidityPoolFields}
+			href={
+				(liquidityPoolHrefFields.id !== undefined && liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+					poolId: String(liquidityPoolHrefFields.id ?? ''),
+					chainId: String(liquidityPoolHrefFields.$network.caip2.reference ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

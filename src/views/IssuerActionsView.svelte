@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IssuerActionView from '$/views/IssuerActionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IssuerAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IssuerAction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(issuerActions) => [...new Map(issuerActions.values.map((issuerAction) => [issuerAction[EntityMetaKey.SelectorKey], issuerAction])).values()]}
+	getKey={(issuerAction) => issuerAction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Issuer actions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(issuerActions)}
-			{@const uniqueIssuerActions = [...new Map(issuerActions.values.map((issuerAction) => [issuerAction[EntityMetaKey.SelectorKey], issuerAction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IssuerAction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={issuerActions.totalCount}
-				getKey={(issuerAction) => issuerAction[EntityMetaKey.SelectorKey]}
-				items={uniqueIssuerActions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Issuer actions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: issuerAction })}
-					{@const issuerActionFields = { ...issuerAction[EntityMetaKey.Selector], ...issuerAction }}
-					{@const selection = select(EntityType.IssuerAction, issuerAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IssuerActionView
-						selection={selection}
-						prefetched={issuerActionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IssuerAction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: issuerAction })}
+		{@const issuerActionFields = { ...issuerAction[EntityMetaKey.Selector], ...issuerAction }}
+		{@const selection = select(EntityType.IssuerAction, issuerAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IssuerActionView
+			selection={selection}
+			prefetched={issuerActionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

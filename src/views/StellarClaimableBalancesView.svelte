@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarClaimableBalanceView from '$/views/StellarClaimableBalanceView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarClaimableBalance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarClaimableBalance}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarClaimableBalances) => [...new Map(stellarClaimableBalances.values.map((stellarClaimableBalance) => [stellarClaimableBalance[EntityMetaKey.SelectorKey], stellarClaimableBalance])).values()]}
+	getKey={(stellarClaimableBalance) => stellarClaimableBalance[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar claimable balances yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarClaimableBalances)}
-			{@const uniqueStellarClaimableBalances = [...new Map(stellarClaimableBalances.values.map((stellarClaimableBalance) => [stellarClaimableBalance[EntityMetaKey.SelectorKey], stellarClaimableBalance])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarClaimableBalance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarClaimableBalances.totalCount}
-				getKey={(stellarClaimableBalance) => stellarClaimableBalance[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarClaimableBalances}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar claimable balances yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarClaimableBalance })}
-					{@const stellarClaimableBalanceFields = { ...stellarClaimableBalance[EntityMetaKey.Selector], ...stellarClaimableBalance }}
-					{@const selection = select(EntityType.StellarClaimableBalance, stellarClaimableBalance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarClaimableBalanceView
-						selection={selection}
-						prefetched={stellarClaimableBalanceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarClaimableBalance}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarClaimableBalance })}
+		{@const stellarClaimableBalanceFields = { ...stellarClaimableBalance[EntityMetaKey.Selector], ...stellarClaimableBalance }}
+		{@const selection = select(EntityType.StellarClaimableBalance, stellarClaimableBalance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarClaimableBalanceView
+			selection={selection}
+			prefetched={stellarClaimableBalanceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

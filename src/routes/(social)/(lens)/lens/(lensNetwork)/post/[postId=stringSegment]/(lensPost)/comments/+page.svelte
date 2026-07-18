@@ -39,7 +39,7 @@
 		title='Lens post comments'
 		selection={
 			select(EntityType.LensPost, {
-				id: decodeURIComponent(params.postId),
+				id: params.postId,
 			}).$$comments({
 				sources: [
 					Source.Lens_Graphql,
@@ -48,5 +48,8 @@
 			})
 		}
 		id='comments'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

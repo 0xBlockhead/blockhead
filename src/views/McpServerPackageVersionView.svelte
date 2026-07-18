@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpServerPackageVersion = $derived(selection({
-		sources: [
-			Source.McpPackageRegistry_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			registryStatus: true,
 		},
@@ -74,78 +71,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mcpServerPackageVersion}>
-			{#snippet Pending()}
-				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'mcp server package version'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpServerPackageVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={mcpServerPackageVersion}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$package}
-				>
-					{#snippet children(mcpServerPackage)}
-						{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
-							<McpServerPackageView
-								selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-								prefetched={mcpServerPackage}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$package}
-				>
-					{#snippet children(mcpServerPackage)}
-						{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
-							<McpServerPackageView
-								selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-								prefetched={mcpServerPackage}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$package}
+					>
+						{#snippet children(mcpServerPackage)}
+							{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
+								<McpServerPackageView
+									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
+									prefetched={mcpServerPackage}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={mcpServerPackageVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$package}
+					>
+						{#snippet children(mcpServerPackage)}
+							{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
+								<McpServerPackageView
+									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
+									prefetched={mcpServerPackage}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={mcpServerPackageVersion}>
-			{#snippet Pending()}
-				{@const registryStatus0 = pendingEntity.registryStatus}
-				{#if registryStatus0 !== undefined && registryStatus0 !== null}
-					<span data-text="muted">
-						{String((registryStatus0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const registryStatus0 = resolvedEntity.registryStatus}
-				{#if registryStatus0 !== undefined && registryStatus0 !== null}
-					<span data-text="muted">
-						{String((registryStatus0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const registryStatus0 = pendingEntity.registryStatus}
+			{#if registryStatus0 !== undefined && registryStatus0 !== null}
+				<span data-text="muted">
+					{String((registryStatus0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={mcpServerPackageVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const registryStatus0 = resolvedEntity.registryStatus}
+					{#if registryStatus0 !== undefined && registryStatus0 !== null}
+						<span data-text="muted">
+							{String((registryStatus0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,8 +154,6 @@
 			<ResourceBoundary
 				resource={selection.$package}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(mcpServerPackage)}
 					{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,24 +174,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -210,8 +198,6 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -232,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryStatus = pendingEntity.registryStatus}
-					{#if registryStatus !== undefined && registryStatus !== null}
-						<div>
-							<dt>registry status</dt>
-							<dd>
-								{String((registryStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryStatus = resolvedEntity.registryStatus}
@@ -267,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isLatest: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isLatest = pendingEntity.isLatest}
-					{#if isLatest !== undefined && isLatest !== null}
-						<div>
-							<dt>is latest</dt>
-							<dd>
-								{isLatest ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isLatest = resolvedEntity.isLatest}
@@ -304,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							releaseDate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const releaseDate = pendingEntity.releaseDate}
-					{#if releaseDate !== undefined && releaseDate !== null}
-						<div>
-							<dt>release date</dt>
-							<dd>
-								<Timestamp timestamp={Number(releaseDate)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const releaseDate = resolvedEntity.releaseDate}
@@ -339,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							publishedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const publishedAt = pendingEntity.publishedAt}
-					{#if publishedAt !== undefined && publishedAt !== null}
-						<div>
-							<dt>published AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const publishedAt = resolvedEntity.publishedAt}
@@ -374,24 +316,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							packageRegistryType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const packageRegistryType = pendingEntity.packageRegistryType}
-					{#if packageRegistryType !== undefined && packageRegistryType !== null}
-						<div>
-							<dt>package registry type</dt>
-							<dd>
-								{String((packageRegistryType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const packageRegistryType = resolvedEntity.packageRegistryType}
@@ -409,31 +340,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							packageRegistryBaseUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const packageRegistryBaseUrl = pendingEntity.packageRegistryBaseUrl}
-					{#if packageRegistryBaseUrl !== undefined && packageRegistryBaseUrl !== null}
-						<div>
-							<dt>package registry base URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(packageRegistryBaseUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(packageRegistryBaseUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const packageRegistryBaseUrl = resolvedEntity.packageRegistryBaseUrl}
@@ -458,24 +371,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							packageIdentifier: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const packageIdentifier = pendingEntity.packageIdentifier}
-					{#if packageIdentifier !== undefined && packageIdentifier !== null}
-						<div>
-							<dt>package identifier</dt>
-							<dd>
-								{String((packageIdentifier) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const packageIdentifier = resolvedEntity.packageIdentifier}
@@ -493,24 +395,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							runtimeHint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const runtimeHint = pendingEntity.runtimeHint}
-					{#if runtimeHint !== undefined && runtimeHint !== null}
-						<div>
-							<dt>runtime hint</dt>
-							<dd>
-								{String((runtimeHint) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const runtimeHint = resolvedEntity.runtimeHint}
@@ -528,24 +419,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transportKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transportKind = pendingEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
-						<div>
-							<dt>transport kind</dt>
-							<dd>
-								{String((transportKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transportKind = resolvedEntity.transportKind}

@@ -17,21 +17,14 @@ import { _GlobalEnsNetwork_Timestamp as _GlobalEnsNetwork_TimestampSchema } from
 import { _GlobalEnsNetwork as _GlobalEnsNetworkSchema } from '$/schema/_GlobalEnsNetwork.ts'
 import { _GlobalEvmAbiCatalog_Timestamp as _GlobalEvmAbiCatalog_TimestampSchema } from '$/schema/_GlobalEvmAbiCatalog_Timestamp.ts'
 import { _GlobalEvmAbiCatalog as _GlobalEvmAbiCatalogSchema } from '$/schema/_GlobalEvmAbiCatalog.ts'
-import { _GlobalFarcasterNetwork_Timestamp as _GlobalFarcasterNetwork_TimestampSchema } from '$/schema/_GlobalFarcasterNetwork_Timestamp.ts'
-import { _GlobalFarcasterNetwork as _GlobalFarcasterNetworkSchema } from '$/schema/_GlobalFarcasterNetwork.ts'
 import { _GlobalIpfsAccess_Timestamp as _GlobalIpfsAccess_TimestampSchema } from '$/schema/_GlobalIpfsAccess_Timestamp.ts'
 import { _GlobalIpfsAccess as _GlobalIpfsAccessSchema } from '$/schema/_GlobalIpfsAccess.ts'
-import { _GlobalLensNetwork_Timestamp as _GlobalLensNetwork_TimestampSchema } from '$/schema/_GlobalLensNetwork_Timestamp.ts'
-import { _GlobalLensNetwork as _GlobalLensNetworkSchema } from '$/schema/_GlobalLensNetwork.ts'
 import { _GlobalNostrNetwork_Timestamp as _GlobalNostrNetwork_TimestampSchema } from '$/schema/_GlobalNostrNetwork_Timestamp.ts'
 import { _GlobalNostrNetwork as _GlobalNostrNetworkSchema } from '$/schema/_GlobalNostrNetwork.ts'
 import { _GlobalRedditNetwork_Timestamp as _GlobalRedditNetwork_TimestampSchema } from '$/schema/_GlobalRedditNetwork_Timestamp.ts'
 import { _GlobalRedditNetwork as _GlobalRedditNetworkSchema } from '$/schema/_GlobalRedditNetwork.ts'
-import { _GlobalRssNetwork_Timestamp as _GlobalRssNetwork_TimestampSchema } from '$/schema/_GlobalRssNetwork_Timestamp.ts'
-import { _GlobalRssNetwork as _GlobalRssNetworkSchema } from '$/schema/_GlobalRssNetwork.ts'
 import { _GlobalSwarmAccess_Timestamp as _GlobalSwarmAccess_TimestampSchema } from '$/schema/_GlobalSwarmAccess_Timestamp.ts'
 import { _GlobalSwarmAccess as _GlobalSwarmAccessSchema } from '$/schema/_GlobalSwarmAccess.ts'
-import { _GlobalXNetwork_Timestamp as _GlobalXNetwork_TimestampSchema } from '$/schema/_GlobalXNetwork_Timestamp.ts'
 import { _GlobalXNetwork as _GlobalXNetworkSchema } from '$/schema/_GlobalXNetwork.ts'
 import { _GlobalYoutubeNetwork_Timestamp as _GlobalYoutubeNetwork_TimestampSchema } from '$/schema/_GlobalYoutubeNetwork_Timestamp.ts'
 import { _GlobalYoutubeNetwork as _GlobalYoutubeNetworkSchema } from '$/schema/_GlobalYoutubeNetwork.ts'
@@ -67,6 +60,7 @@ import { AcpToolCall_Timestamp as AcpToolCall_TimestampSchema } from '$/schema/A
 import { AcpToolCall as AcpToolCallSchema } from '$/schema/AcpToolCall.ts'
 import { ActivityPubActor_Timestamp as ActivityPubActor_TimestampSchema } from '$/schema/ActivityPubActor_Timestamp.ts'
 import { ActivityPubActor as ActivityPubActorSchema } from '$/schema/ActivityPubActor.ts'
+import { ActivityPubInstance_Timestamp as ActivityPubInstance_TimestampSchema } from '$/schema/ActivityPubInstance_Timestamp.ts'
 import { ActivityPubInstance as ActivityPubInstanceSchema } from '$/schema/ActivityPubInstance.ts'
 import { ActivityPubInstanceModeratedDomain as ActivityPubInstanceModeratedDomainSchema } from '$/schema/ActivityPubInstanceModeratedDomain.ts'
 import { ActivityPubInstancePeer as ActivityPubInstancePeerSchema } from '$/schema/ActivityPubInstancePeer.ts'
@@ -727,6 +721,7 @@ import { NearReceipt as NearReceiptSchema } from '$/schema/NearReceipt.ts'
 import { NearTransaction as NearTransactionSchema } from '$/schema/NearTransaction.ts'
 import { NearValidator_Timestamp as NearValidator_TimestampSchema } from '$/schema/NearValidator_Timestamp.ts'
 import { NearValidator as NearValidatorSchema } from '$/schema/NearValidator.ts'
+import { Network_Activity_Day as Network_Activity_DaySchema } from '$/schema/Network_Activity_Day.ts'
 import { Network_Timestamp as Network_TimestampSchema } from '$/schema/Network_Timestamp.ts'
 import { Network as NetworkSchema } from '$/schema/Network.ts'
 import { NetworkEndpointObservation_Timestamp as NetworkEndpointObservation_TimestampSchema } from '$/schema/NetworkEndpointObservation_Timestamp.ts'
@@ -743,6 +738,7 @@ import { NostrReaction as NostrReactionSchema } from '$/schema/NostrReaction.ts'
 import { NostrRelay_Timestamp as NostrRelay_TimestampSchema } from '$/schema/NostrRelay_Timestamp.ts'
 import { NostrRelay as NostrRelaySchema } from '$/schema/NostrRelay.ts'
 import { NostrRepost as NostrRepostSchema } from '$/schema/NostrRepost.ts'
+import { NostrSearchQuery as NostrSearchQuerySchema } from '$/schema/NostrSearchQuery.ts'
 import { OracleFeed_Round as OracleFeed_RoundSchema } from '$/schema/OracleFeed_Round.ts'
 import { OracleFeed_Timestamp as OracleFeed_TimestampSchema } from '$/schema/OracleFeed_Timestamp.ts'
 import { OracleFeed as OracleFeedSchema } from '$/schema/OracleFeed.ts'
@@ -967,8 +963,6 @@ import { XrplAmm_Timestamp as XrplAmm_TimestampSchema } from '$/schema/XrplAmm_T
 import { XrplAmm as XrplAmmSchema } from '$/schema/XrplAmm.ts'
 import { XrplLedger as XrplLedgerSchema } from '$/schema/XrplLedger.ts'
 import { XrplLedgerEntry as XrplLedgerEntrySchema } from '$/schema/XrplLedgerEntry.ts'
-import { XrplNetwork_Timestamp as XrplNetwork_TimestampSchema } from '$/schema/XrplNetwork_Timestamp.ts'
-import { XrplNetwork as XrplNetworkSchema } from '$/schema/XrplNetwork.ts'
 import { XrplTransaction_Timestamp as XrplTransaction_TimestampSchema } from '$/schema/XrplTransaction_Timestamp.ts'
 import { XrplTransaction as XrplTransactionSchema } from '$/schema/XrplTransaction.ts'
 import { XrplTrustline_Timestamp as XrplTrustline_TimestampSchema } from '$/schema/XrplTrustline_Timestamp.ts'
@@ -1022,22 +1016,15 @@ const schemaChunk0 = [
 	_GlobalEnsNetwork_TimestampSchema,
 	_GlobalEvmAbiCatalogSchema,
 	_GlobalEvmAbiCatalog_TimestampSchema,
-	_GlobalFarcasterNetworkSchema,
-	_GlobalFarcasterNetwork_TimestampSchema,
 	_GlobalIpfsAccessSchema,
 	_GlobalIpfsAccess_TimestampSchema,
-	_GlobalLensNetworkSchema,
-	_GlobalLensNetwork_TimestampSchema,
 	_GlobalNostrNetworkSchema,
 	_GlobalNostrNetwork_TimestampSchema,
 	_GlobalRedditNetworkSchema,
 	_GlobalRedditNetwork_TimestampSchema,
-	_GlobalRssNetworkSchema,
-	_GlobalRssNetwork_TimestampSchema,
 	_GlobalSwarmAccessSchema,
 	_GlobalSwarmAccess_TimestampSchema,
 	_GlobalXNetworkSchema,
-	_GlobalXNetwork_TimestampSchema,
 	_GlobalYoutubeNetworkSchema,
 	_GlobalYoutubeNetwork_TimestampSchema,
 	A2aAgentCardSchema,
@@ -1055,9 +1042,6 @@ const schemaChunk0 = [
 	A2aTaskEventSchema,
 	AccountSchema,
 	AcpAgentProgramSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk1 = [
 	AcpAgentProgramVersionSchema,
 	AcpAgentRuntimeSchema,
 	AcpAgentRuntime_TimestampSchema,
@@ -1065,6 +1049,9 @@ const schemaChunk1 = [
 	AcpMessageSchema,
 	AcpMessagePartSchema,
 	AcpPermissionRequestSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk1 = [
 	AcpPromptTurnSchema,
 	AcpSessionSchema,
 	AcpSessionUpdateSchema,
@@ -1075,6 +1062,7 @@ const schemaChunk1 = [
 	ActivityPubActorSchema,
 	ActivityPubActor_TimestampSchema,
 	ActivityPubInstanceSchema,
+	ActivityPubInstance_TimestampSchema,
 	ActivityPubInstanceModeratedDomainSchema,
 	ActivityPubInstancePeerSchema,
 	ActivityPubNetworkSchema,
@@ -1108,15 +1096,15 @@ const schemaChunk1 = [
 	AlgorandAssetHolding_RoundSchema,
 	AlgorandBoxSchema,
 	AlgorandBox_RoundSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk2 = [
 	AlgorandNetworkSchema,
 	AlgorandNetwork_TimestampSchema,
 	AlgorandRoundSchema,
 	AlgorandTealProgramSchema,
 	AlgorandTealProgram_TimestampSchema,
 	AlgorandTransactionSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk2 = [
 	AlgorandTransactionGroupSchema,
 	AlgorandTransactionProofSchema,
 	AptosAccountSchema,
@@ -1161,15 +1149,15 @@ const schemaChunk2 = [
 	AvalancheBlockchainSchema,
 	AvalancheDelegatorSchema,
 	AvalanchePChainBlockSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk3 = [
 	AvalanchePChainTransactionSchema,
 	AvalanchePChainTransaction_TimestampSchema,
 	AvalancheSubnetSchema,
 	AvalancheSubnet_TimestampSchema,
 	AvalancheValidatorSchema,
 	AvalancheValidator_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk3 = [
 	BeaconAttestationSchema,
 	BeaconCommitteeSchema,
 	BeaconEpochSchema,
@@ -1214,15 +1202,15 @@ const schemaChunk3 = [
 	BlockheadAgentProfileSchema,
 	BlockheadAgentProgramInstallSchema,
 	BlockheadAgentProgramInstall_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk4 = [
 	BlockheadAgentProviderCallSchema,
 	BlockheadAlgorandParticipationKeySchema,
 	BlockheadAlgorandPendingTransactionSchema,
 	BlockheadAvalancheNodeStateSchema,
 	BlockheadAvalancheNodeState_TimestampSchema,
 	BlockheadBitTorrentClientStateSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk4 = [
 	BlockheadBitTorrentClientState_TimestampSchema,
 	BlockheadBitTorrentTransfer_TimestampSchema,
 	BlockheadBridgeIntentSchema,
@@ -1267,15 +1255,15 @@ const schemaChunk4 = [
 	BlockheadLitecoinMwebWalletState_TimestampSchema,
 	BlockheadLocalMediaIngestSchema,
 	BlockheadLocalMediaIngest_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk5 = [
 	BlockheadLogosBlockchainNodeStateSchema,
 	BlockheadLogosBlockchainNodeState_TimestampSchema,
 	BlockheadLogosBlockchainWalletKeyStateSchema,
 	BlockheadLogosBlockchainWalletKeyState_TimestampSchema,
 	BlockheadMoneroOutputStateSchema,
 	BlockheadMoneroOutputState_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk5 = [
 	BlockheadMoneroSubaddressStateSchema,
 	BlockheadMoneroSubaddressState_TimestampSchema,
 	BlockheadMoneroTransferStateSchema,
@@ -1320,15 +1308,15 @@ const schemaChunk5 = [
 	BlockheadWakuMessageObservation_TimestampSchema,
 	BlockheadWakuNodeStateSchema,
 	BlockheadWakuNodeState_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk6 = [
 	BlockheadWalletSchema,
 	BlockheadWalletAccountSchema,
 	BlockheadWalletAuthenticationSchema,
 	BlockheadWalletCapabilityGrantSchema,
 	BlockheadWalletConnectionSchema,
 	BlockheadWalletRequestSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk6 = [
 	BlockheadWalletRequest_TimestampSchema,
 	BlockheadWalletRequestCallSchema,
 	BlockheadWalletTransportSessionSchema,
@@ -1373,15 +1361,15 @@ const schemaChunk6 = [
 	CardanoGovernanceVoteSchema,
 	CardanoNativeAssetSchema,
 	CardanoNativeAsset_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk7 = [
 	CardanoNetwork_TimestampSchema,
 	CardanoProtocolParameters_EpochSchema,
 	CardanoScriptWitnessSchema,
 	CardanoStakeCredentialSchema,
 	CardanoStakeDelegation_EpochSchema,
 	CardanoStakePoolSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk7 = [
 	CardanoStakePool_TimestampSchema,
 	CardanoTransactionSchema,
 	CardanoTxInputSchema,
@@ -1426,15 +1414,15 @@ const schemaChunk7 = [
 	CronosNetworkProfileSchema,
 	CurrencySchema,
 	Currency_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk8 = [
 	DogecoinAuxPowMerkleBranchSchema,
 	DogecoinAuxPowParentBlockHeaderSchema,
 	DogecoinBlockAuxPowSchema,
 	DydxChainMarketSchema,
 	DydxChainMarket_TimestampSchema,
 	DydxChainNetworkSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk8 = [
 	DydxChainNetwork_TimestampSchema,
 	DydxChainOrderSchema,
 	DydxChainOrder_TimestampSchema,
@@ -1479,15 +1467,15 @@ const schemaChunk8 = [
 	Erc4337AccountFactory_TimestampSchema,
 	Erc4337BundlerSchema,
 	Erc4337Bundler_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk9 = [
 	Erc4337PaymasterSchema,
 	Erc4337Paymaster_TimestampSchema,
 	Erc4337SmartAccountSchema,
 	Erc4337SmartAccount_TimestampSchema,
 	Erc4626VaultSchema,
 	Erc4626Vault_BlockSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk9 = [
 	Erc4626Vault_TimestampSchema,
 	EthereumBeaconFinality_TimestampSchema,
 	EthereumConsensusUpgradeSchema,
@@ -1532,15 +1520,15 @@ const schemaChunk9 = [
 	EvmTransactionSchema,
 	EvmUserOperationSchema,
 	FarcasterCastSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk10 = [
 	FarcasterCast_TimestampSchema,
 	FarcasterCastEmbedSchema,
 	FarcasterChannelSchema,
 	FarcasterChannel_TimestampSchema,
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk10 = [
 	FarcasterUserSchema,
 	FarcasterUser_TimestampSchema,
 	FarcasterVerifiedAddressSchema,
@@ -1585,15 +1573,15 @@ const schemaChunk10 = [
 	GitTreeEntrySchema,
 	GitTreePathResolutionSchema,
 	HederaAccountSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk11 = [
 	HederaAccount_TimestampSchema,
 	HederaAllowanceSchema,
 	HederaAllowance_TimestampSchema,
 	HederaBlockSchema,
 	HederaContractSchema,
 	HederaContract_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk11 = [
 	HederaContractActionSchema,
 	HederaContractLogSchema,
 	HederaContractResultSchema,
@@ -1638,15 +1626,15 @@ const schemaChunk11 = [
 	HyperliquidSpotPair_TimestampSchema,
 	HyperliquidTransactionSchema,
 	HyperliquidTransaction_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk12 = [
 	HyperliquidValidatorSchema,
 	HyperliquidValidator_TimestampSchema,
 	HyperliquidVaultSchema,
 	HyperliquidVault_TimestampSchema,
 	HyperliquidVaultEquity_TimestampSchema,
 	IbcChannelSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk12 = [
 	IbcClientSchema,
 	IbcConnectionSchema,
 	IbcDenomTraceSchema,
@@ -1691,15 +1679,15 @@ const schemaChunk12 = [
 	LensNetworkSchema,
 	LensPostSchema,
 	LensPost_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk13 = [
 	LensUsernameSchema,
 	LensUsernameNamespaceSchema,
 	LeverageSchema,
 	LightningChannelSchema,
 	LightningChannel_TimestampSchema,
 	LightningNetworkSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk13 = [
 	LightningNetwork_TimestampSchema,
 	LightningNodeSchema,
 	LightningNode_TimestampSchema,
@@ -1744,15 +1732,15 @@ const schemaChunk13 = [
 	MoneroKeyImageSchema,
 	MoneroNetworkSchema,
 	MoneroNetwork_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk14 = [
 	MoneroRingSchema,
 	MoneroRingMemberSchema,
 	MoneroStealthOutputSchema,
 	MoneroTransactionSchema,
 	MoveFunctionSchema,
 	MoveModuleSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk14 = [
 	MoveModule_TimestampSchema,
 	MoveStructSchema,
 	NearAccessKeySchema,
@@ -1773,6 +1761,7 @@ const schemaChunk14 = [
 	NearValidatorSchema,
 	NearValidator_TimestampSchema,
 	NetworkSchema,
+	Network_Activity_DaySchema,
 	Network_TimestampSchema,
 	NetworkEndpointObservation_TimestampSchema,
 	NetworkStackSchema,
@@ -1788,6 +1777,7 @@ const schemaChunk14 = [
 	NostrRelaySchema,
 	NostrRelay_TimestampSchema,
 	NostrRepostSchema,
+	NostrSearchQuerySchema,
 	OracleFeedSchema,
 	OracleFeed_RoundSchema,
 	OracleFeed_TimestampSchema,
@@ -1797,13 +1787,13 @@ const schemaChunk14 = [
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
 	PolkadotAccountSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk15 = [
 	PolkadotAccount_TimestampSchema,
 	PolkadotAssetSchema,
 	PolkadotAsset_TimestampSchema,
 	PolkadotAssetBalance_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk15 = [
 	PolkadotBlockSchema,
 	PolkadotEventSchema,
 	PolkadotExtrinsicSchema,
@@ -1850,13 +1840,13 @@ const schemaChunk15 = [
 	SolanaBlockSchema,
 	SolanaInstructionSchema,
 	SolanaProgramSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk16 = [
 	SolanaTokenAccountSchema,
 	SolanaTokenAccount_TimestampSchema,
 	SolanaTokenMintSchema,
 	SolanaTokenMint_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk16 = [
 	SolanaTransactionSchema,
 	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
@@ -1903,13 +1893,13 @@ const schemaChunk16 = [
 	StellarTrustline_TimestampSchema,
 	SuiAccountSchema,
 	SuiBalanceChangeSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk17 = [
 	SuiCheckpointSchema,
 	SuiCoinBalance_TimestampSchema,
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk17 = [
 	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
 	SuiNetworkSchema,
@@ -1956,13 +1946,13 @@ const schemaChunk17 = [
 	TezosTokenBalance_TimestampSchema,
 	TezosTokenTransferSchema,
 	TokenMetadataDocumentSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk18 = [
 	TokenProgramExtension_TimestampSchema,
 	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk18 = [
 	TonContractSchema,
 	TonContract_TimestampSchema,
 	TonContractGetMethodSchema,
@@ -2009,13 +1999,13 @@ const schemaChunk18 = [
 	UtxoBlockSchema,
 	UtxoInputSchema,
 	UtxoOutputSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk19 = [
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
 	XmtpConversationSchema,
 	XmtpNetworkSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk19 = [
 	XNetworkSchema,
 	XPostSchema,
 	XPost_TimestampSchema,
@@ -2027,8 +2017,6 @@ const schemaChunk19 = [
 	XrplAmm_TimestampSchema,
 	XrplLedgerSchema,
 	XrplLedgerEntrySchema,
-	XrplNetworkSchema,
-	XrplNetwork_TimestampSchema,
 	XrplTransactionSchema,
 	XrplTransaction_TimestampSchema,
 	XrplTrustlineSchema,
@@ -2062,9 +2050,6 @@ const schemaChunk19 = [
 	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk20 = [
 	ZeroGStorageProofSchema,
 ] as const satisfies EntityDefinition[]
 
@@ -2089,9 +2074,639 @@ export const schema = [
 	...schemaChunk17,
 	...schemaChunk18,
 	...schemaChunk19,
-	...schemaChunk20,
 ] as const satisfies Schema
-export const schemaMeta = indexSchema(schema)
+const projectionConditionPlanByEntityTypeAndPath = {
+	'EvmCoinInstance\u001ENativeCurrency\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmCoinInstance',
+				facetPath: [],
+				fieldName: 'type',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'NativeCurrency',
+			},
+		],
+	},
+	'EvmCoinInstance\u001EErc20Token\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmCoinInstance',
+				facetPath: [],
+				fieldName: 'type',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Erc20Token',
+			},
+		],
+	},
+	'EvmLog\u001EEvent\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmLog',
+				facetPath: [],
+				fieldName: 'topic0',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				isOneOf: [
+					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					'0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
+					'0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb',
+				],
+			},
+		],
+	},
+	'EvmLog\u001EEvent\u001ETokenTransfer\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmLog',
+				facetPath: [],
+				fieldName: 'topic0',
+			},
+			{
+				entityType: 'EvmLog',
+				facetPath: [
+					'Event',
+				],
+				fieldName: 'signatureHash',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				isOneOf: [
+					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					'0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
+					'0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb',
+				],
+			},
+			{
+				dependencyIndex: 1,
+				isOneOf: [
+					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					'0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
+					'0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb',
+				],
+			},
+		],
+	},
+	'EvmNft\u001EEip8004Registration\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmNft',
+				facetPath: [],
+				fieldName: 'format',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Eip8004Registration',
+			},
+		],
+	},
+	'EvmTokenTransfer\u001ENft\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmTokenTransfer',
+				facetPath: [],
+				fieldName: 'standard',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				isOneOf: [
+					'ERC-721',
+					'ERC-1155',
+				],
+			},
+		],
+	},
+	'EvmTransaction\u001EContractCreation\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmTransaction',
+				facetPath: [],
+				fieldName: 'kind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'ContractCreation',
+			},
+		],
+	},
+	'EvmTransaction\u001EFeeMarket\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmTransaction',
+				facetPath: [],
+				fieldName: 'envelopeType',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				isOneOf: [
+					'FeeMarket',
+					'Blob',
+					'SetCode',
+				],
+			},
+		],
+	},
+	'EvmTransaction\u001EBlob\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmTransaction',
+				facetPath: [],
+				fieldName: 'envelopeType',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Blob',
+			},
+		],
+	},
+	'EvmTransaction\u001ESetCode\u001E': {
+		dependencies: [
+			{
+				entityType: 'EvmTransaction',
+				facetPath: [],
+				fieldName: 'envelopeType',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'SetCode',
+			},
+		],
+	},
+	'MarketAsset\u001ECoin\u001E': {
+		dependencies: [
+			{
+				entityType: 'MarketAsset',
+				facetPath: [],
+				fieldName: 'kind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Coin',
+			},
+		],
+	},
+	'MarketAsset\u001ECoinInstance\u001E': {
+		dependencies: [
+			{
+				entityType: 'MarketAsset',
+				facetPath: [],
+				fieldName: 'kind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'CoinInstance',
+			},
+		],
+	},
+	'MarketAsset\u001ECurrency\u001E': {
+		dependencies: [
+			{
+				entityType: 'MarketAsset',
+				facetPath: [],
+				fieldName: 'kind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Currency',
+			},
+		],
+	},
+	'Market\u001ESpot\u001E': {
+		dependencies: [
+			{
+				entityType: 'Market',
+				facetPath: [],
+				fieldName: 'marketKind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Spot',
+			},
+		],
+	},
+	'Market\u001EDerivative\u001E': {
+		dependencies: [
+			{
+				entityType: 'Market',
+				facetPath: [],
+				fieldName: 'marketKind',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				isOneOf: [
+					'Perpetual',
+					'Futures',
+				],
+			},
+		],
+	},
+	'Network\u001EEvm\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'Evm',
+			},
+		],
+	},
+	'Network\u001ECosmos\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'CosmosSdk',
+			},
+		],
+	},
+	'Network\u001EPolkadot\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'PolkadotRuntime',
+			},
+		],
+	},
+	'Network\u001ESolana\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'SolanaRuntime',
+			},
+		],
+	},
+	'Network\u001EUtxo\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'ledgerModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'Utxo',
+			},
+		],
+	},
+	'Network\u001ECashTokens\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'BitcoinCash',
+			},
+		],
+	},
+	'Network\u001EZcash\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'ZcashShielded',
+			},
+		],
+	},
+	'Network\u001EBittensor\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Bittensor',
+			},
+		],
+	},
+	'Network\u001EZeroG\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'ZeroG',
+			},
+		],
+	},
+	'Network\u001EFilecoin\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Filecoin',
+			},
+		],
+	},
+	'Network\u001ENear\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Near',
+			},
+		],
+	},
+	'Network\u001EMonero\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Monero',
+			},
+		],
+	},
+	'Network\u001ELightning\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Lightning',
+			},
+		],
+	},
+	'Network\u001ECardano\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Cardano',
+			},
+		],
+	},
+	'Network\u001ETron\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Tron',
+			},
+		],
+	},
+	'Network\u001ETon\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Ton',
+			},
+		],
+	},
+	'Network\u001EXrpl\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Xrpl',
+			},
+		],
+	},
+	'Network\u001EHedera\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Hedera',
+			},
+		],
+	},
+	'Network\u001EHyperliquid\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'Hyperliquid',
+			},
+		],
+	},
+	'Network\u001EEvm\u001EEthereumBeacon\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+			{
+				entityType: 'Network',
+				facetPath: [
+					'Evm',
+				],
+				fieldName: 'consensusProtocol',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'Evm',
+			},
+			{
+				dependencyIndex: 1,
+				is: 'EthereumBeacon',
+			},
+		],
+	},
+	'Network_Timestamp\u001ECosmos\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network_Timestamp',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'CosmosSdk',
+			},
+		],
+	},
+	'Network_Timestamp\u001EPolkadot\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network_Timestamp',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'PolkadotRuntime',
+			},
+		],
+	},
+	'Network_Timestamp\u001ESolana\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network_Timestamp',
+				facetPath: [],
+				fieldName: 'executionModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'SolanaRuntime',
+			},
+		],
+	},
+	'Network_Timestamp\u001EUtxo\u001E': {
+		dependencies: [
+			{
+				entityType: 'Network_Timestamp',
+				facetPath: [],
+				fieldName: 'ledgerModels',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				includes: 'Utxo',
+			},
+		],
+	},
+} as const
+export const schemaMeta = indexSchema(schema, projectionConditionPlanByEntityTypeAndPath)
 export const entityDefinitionByType = schemaMeta.entityDefinitionByType
 
 export interface RegisteredEntityDefinitionByType {
@@ -2112,22 +2727,15 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType._GlobalEnsNetwork_Timestamp]: typeof _GlobalEnsNetwork_TimestampSchema
 	readonly [EntityType._GlobalEvmAbiCatalog]: typeof _GlobalEvmAbiCatalogSchema
 	readonly [EntityType._GlobalEvmAbiCatalog_Timestamp]: typeof _GlobalEvmAbiCatalog_TimestampSchema
-	readonly [EntityType._GlobalFarcasterNetwork]: typeof _GlobalFarcasterNetworkSchema
-	readonly [EntityType._GlobalFarcasterNetwork_Timestamp]: typeof _GlobalFarcasterNetwork_TimestampSchema
 	readonly [EntityType._GlobalIpfsAccess]: typeof _GlobalIpfsAccessSchema
 	readonly [EntityType._GlobalIpfsAccess_Timestamp]: typeof _GlobalIpfsAccess_TimestampSchema
-	readonly [EntityType._GlobalLensNetwork]: typeof _GlobalLensNetworkSchema
-	readonly [EntityType._GlobalLensNetwork_Timestamp]: typeof _GlobalLensNetwork_TimestampSchema
 	readonly [EntityType._GlobalNostrNetwork]: typeof _GlobalNostrNetworkSchema
 	readonly [EntityType._GlobalNostrNetwork_Timestamp]: typeof _GlobalNostrNetwork_TimestampSchema
 	readonly [EntityType._GlobalRedditNetwork]: typeof _GlobalRedditNetworkSchema
 	readonly [EntityType._GlobalRedditNetwork_Timestamp]: typeof _GlobalRedditNetwork_TimestampSchema
-	readonly [EntityType._GlobalRssNetwork]: typeof _GlobalRssNetworkSchema
-	readonly [EntityType._GlobalRssNetwork_Timestamp]: typeof _GlobalRssNetwork_TimestampSchema
 	readonly [EntityType._GlobalSwarmAccess]: typeof _GlobalSwarmAccessSchema
 	readonly [EntityType._GlobalSwarmAccess_Timestamp]: typeof _GlobalSwarmAccess_TimestampSchema
 	readonly [EntityType._GlobalXNetwork]: typeof _GlobalXNetworkSchema
-	readonly [EntityType._GlobalXNetwork_Timestamp]: typeof _GlobalXNetwork_TimestampSchema
 	readonly [EntityType._GlobalYoutubeNetwork]: typeof _GlobalYoutubeNetworkSchema
 	readonly [EntityType._GlobalYoutubeNetwork_Timestamp]: typeof _GlobalYoutubeNetwork_TimestampSchema
 	readonly [EntityType.A2aAgentCard]: typeof A2aAgentCardSchema
@@ -2162,6 +2770,7 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.ActivityPubActor]: typeof ActivityPubActorSchema
 	readonly [EntityType.ActivityPubActor_Timestamp]: typeof ActivityPubActor_TimestampSchema
 	readonly [EntityType.ActivityPubInstance]: typeof ActivityPubInstanceSchema
+	readonly [EntityType.ActivityPubInstance_Timestamp]: typeof ActivityPubInstance_TimestampSchema
 	readonly [EntityType.ActivityPubInstanceModeratedDomain]: typeof ActivityPubInstanceModeratedDomainSchema
 	readonly [EntityType.ActivityPubInstancePeer]: typeof ActivityPubInstancePeerSchema
 	readonly [EntityType.ActivityPubNetwork]: typeof ActivityPubNetworkSchema
@@ -2821,6 +3430,7 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.NearValidator]: typeof NearValidatorSchema
 	readonly [EntityType.NearValidator_Timestamp]: typeof NearValidator_TimestampSchema
 	readonly [EntityType.Network]: typeof NetworkSchema
+	readonly [EntityType.Network_Activity_Day]: typeof Network_Activity_DaySchema
 	readonly [EntityType.Network_Timestamp]: typeof Network_TimestampSchema
 	readonly [EntityType.NetworkEndpointObservation_Timestamp]: typeof NetworkEndpointObservation_TimestampSchema
 	readonly [EntityType.NetworkStack]: typeof NetworkStackSchema
@@ -2836,6 +3446,7 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.NostrRelay]: typeof NostrRelaySchema
 	readonly [EntityType.NostrRelay_Timestamp]: typeof NostrRelay_TimestampSchema
 	readonly [EntityType.NostrRepost]: typeof NostrRepostSchema
+	readonly [EntityType.NostrSearchQuery]: typeof NostrSearchQuerySchema
 	readonly [EntityType.OracleFeed]: typeof OracleFeedSchema
 	readonly [EntityType.OracleFeed_Round]: typeof OracleFeed_RoundSchema
 	readonly [EntityType.OracleFeed_Timestamp]: typeof OracleFeed_TimestampSchema
@@ -3060,8 +3671,6 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.XrplAmm_Timestamp]: typeof XrplAmm_TimestampSchema
 	readonly [EntityType.XrplLedger]: typeof XrplLedgerSchema
 	readonly [EntityType.XrplLedgerEntry]: typeof XrplLedgerEntrySchema
-	readonly [EntityType.XrplNetwork]: typeof XrplNetworkSchema
-	readonly [EntityType.XrplNetwork_Timestamp]: typeof XrplNetwork_TimestampSchema
 	readonly [EntityType.XrplTransaction]: typeof XrplTransactionSchema
 	readonly [EntityType.XrplTransaction_Timestamp]: typeof XrplTransaction_TimestampSchema
 	readonly [EntityType.XrplTrustline]: typeof XrplTrustlineSchema
@@ -3098,5 +3707,7 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.ZeroGStorageProof]: typeof ZeroGStorageProofSchema
 }
 export type RegisteredEntityType = keyof RegisteredEntityDefinitionByType
-export type RegisteredSchema = typeof schema
+export type RegisteredSchema = typeof schema & {
+	readonly entityDefinitionByType: RegisteredEntityDefinitionByType
+}
 export type EntitySchemaFieldName<_EntityType extends RegisteredEntityType> = EntityFieldDefinitions<RegisteredEntityDefinitionByType[_EntityType]>['name']

@@ -2,6 +2,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -25,59 +26,55 @@ export default {
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork,
 			resolve: {
-				[ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId]: async ({ $network, consensusNetworkId }) => {
-				assertZeroGMainnet($network)
-				if (consensusNetworkId !== '0g-chain' && consensusNetworkId !== ('slug' in $network ? $network.slug : $network.caip2.reference)) {
-					throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${consensusNetworkId}`)
-				}
-				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
-				return {
-					$$timestamps: [
-						{
-							[EntityMetaKey.Selector]: {
-								$consensusNetwork: {
-									$network,
-									consensusNetworkId,
-								},
-								timestampMs: Date.now(),
-								source: Source.ZeroGChainScan_Rest,
-							},
-							$consensusNetwork: {
+				[ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId]: {
+					resolve: async ({ $network, consensusNetworkId }) => {
+					assertZeroGMainnet($network)
+					if (consensusNetworkId !== '0g-chain' && consensusNetworkId !== ('slug' in $network ? $network.slug : $network.caip2.reference)) {
+						throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${consensusNetworkId}`)
+					}
+					const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
+					return {
+						$$timestamps: [
+							{
 								[EntityMetaKey.Selector]: {
-									$network,
-									consensusNetworkId,
+									$consensusNetwork: {
+										$network,
+										consensusNetworkId,
+									},
+									timestampMs: Date.now(),
+									source: Source.ZeroGChainScan_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.ZeroGConsensusNetwork_Timestamp, [], 'sharedStakingStatusSource')]: getInfo().url,
 								},
 							},
-							timestampMs: Date.now(),
-							source: Source.ZeroGChainScan_Rest,
-							sharedStakingStatusSource: getInfo().url,
-						},
-					],
+						],
+					}
+				},
 				}
-			}
 			}
 		})({
-			$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-			})),
+		$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
 			resolve: {
-				[ZeroGConsensusNetwork_TimestampSelector.ConsensusNetworkTimestampMsSource]: async ({ $consensusNetwork, timestampMs, source }) => {
-				if (source !== Source.ZeroGChainScan_Rest) throw new Error(`ZeroGChainScan_Rest: unsupported source ${source}`)
-				assertZeroGMainnet($consensusNetwork.$network)
-				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
-				return {
-					$consensusNetwork: {
-						[EntityMetaKey.Selector]: $consensusNetwork,
-					},
-					timestampMs,
-					source: Source.ZeroGChainScan_Rest,
-					sharedStakingStatusSource: getInfo().url,
-				}
-			},
+				[ZeroGConsensusNetwork_TimestampSelector.ConsensusNetworkTimestampMsSource]: {
+					resolve: async ({ $consensusNetwork, timestampMs, source }) => {
+					if (source !== Source.ZeroGChainScan_Rest) throw new Error(`ZeroGChainScan_Rest: unsupported source ${source}`)
+					assertZeroGMainnet($consensusNetwork.$network)
+					const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
+					return {
+						$consensusNetwork: {
+							[EntityMetaKey.Selector]: $consensusNetwork,
+						},
+						timestampMs,
+						source: Source.ZeroGChainScan_Rest,
+						sharedStakingStatusSource: getInfo().url,
+					}
+				},
+				},
 			}
 		})({
 			$consensusNetwork: (timestamp) => timestamp.$consensusNetwork,

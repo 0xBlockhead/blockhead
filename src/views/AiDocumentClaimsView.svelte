@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiDocumentClaimView from '$/views/AiDocumentClaimView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					claimPath: true,
-					claimKind: true,
-					confidence: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiDocumentClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiDocumentClaim}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				claimPath: true,
+				claimKind: true,
+				confidence: true,
+			},
+		})
+	}
+	getResourceItems={(aiDocumentClaims) => [...new Map(aiDocumentClaims.values.map((aiDocumentClaim) => [aiDocumentClaim[EntityMetaKey.SelectorKey], aiDocumentClaim])).values()]}
+	getKey={(aiDocumentClaim) => aiDocumentClaim[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI document claims yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiDocumentClaims)}
-			{@const uniqueAiDocumentClaims = [...new Map(aiDocumentClaims.values.map((aiDocumentClaim) => [aiDocumentClaim[EntityMetaKey.SelectorKey], aiDocumentClaim])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiDocumentClaim}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiDocumentClaims.totalCount}
-				getKey={(aiDocumentClaim) => aiDocumentClaim[EntityMetaKey.SelectorKey]}
-				items={uniqueAiDocumentClaims}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI document claims yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiDocumentClaim })}
-					{@const aiDocumentClaimFields = { ...aiDocumentClaim[EntityMetaKey.Selector], ...aiDocumentClaim }}
-					{@const selection = select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiDocumentClaimView
-						selection={selection}
-						prefetched={aiDocumentClaimFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiDocumentClaim}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiDocumentClaim })}
+		{@const aiDocumentClaimFields = { ...aiDocumentClaim[EntityMetaKey.Selector], ...aiDocumentClaim }}
+		{@const selection = select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiDocumentClaimView
+			selection={selection}
+			prefetched={aiDocumentClaimFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

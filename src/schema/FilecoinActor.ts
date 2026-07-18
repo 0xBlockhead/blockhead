@@ -28,34 +28,13 @@ export const FilecoinActor = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	actorCodeCid: {
-		label: 'Actor code CID',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$timestamps: {
+		label: 'Observations',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.FilecoinActor_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
-	nonce: {
-		label: 'Nonce',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
-	},
-	balanceAttoFil: {
-		label: 'Balance attoFIL',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
 		],
 	},
 })({

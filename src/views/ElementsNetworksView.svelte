@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ElementsNetworkView from '$/views/ElementsNetworkView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$network: true,
-					federationName: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ElementsNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$network: true,
+				federationName: true,
+			},
+		})
+	}
+	getResourceItems={(elementsNetworks) => [...new Map(elementsNetworks.values.map((elementsNetwork) => [elementsNetwork[EntityMetaKey.SelectorKey], elementsNetwork])).values()]}
+	getKey={(elementsNetwork) => elementsNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Elements networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(elementsNetworks)}
-			{@const uniqueElementsNetworks = [...new Map(elementsNetworks.values.map((elementsNetwork) => [elementsNetwork[EntityMetaKey.SelectorKey], elementsNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ElementsNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={elementsNetworks.totalCount}
-				getKey={(elementsNetwork) => elementsNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueElementsNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Elements networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: elementsNetwork })}
-					{@const elementsNetworkFields = { ...elementsNetwork[EntityMetaKey.Selector], ...elementsNetwork }}
-					{@const selection = select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ElementsNetworkView
-						selection={selection}
-						prefetched={elementsNetworkFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ElementsNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: elementsNetwork })}
+		{@const elementsNetworkFields = { ...elementsNetwork[EntityMetaKey.Selector], ...elementsNetwork }}
+		{@const selection = select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ElementsNetworkView
+			selection={selection}
+			prefetched={elementsNetworkFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

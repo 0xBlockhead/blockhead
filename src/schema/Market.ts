@@ -89,4 +89,22 @@ export const Market = entity({
 			'marketKind',
 		],
 	},
+
+	facets: {
+		Spot: facet({
+			path: [
+				'marketKind',
+			],
+			is: 'Spot',
+		})({}),
+		Derivative: facet({
+			path: [
+				'marketKind',
+			],
+			isOneOf: [
+				'Perpetual',
+				'Futures',
+			],
+		})({}),
+	},
 })

@@ -88,6 +88,12 @@ export const YoutubeVideo = entity({
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$thumbnail: {
+		label: 'Thumbnail',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	$$timestamps: {
 		label: 'Observations',
 		type: EntityFieldType.EntitiesReference,

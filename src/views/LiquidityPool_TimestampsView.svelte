@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LiquidityPool_TimestampView from '$/views/LiquidityPool_TimestampView.svelte'
 </script>
@@ -62,91 +61,58 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					baseTokenSymbol: true,
-					quoteTokenSymbol: true,
-					priceUsd: true,
-					liquidityUsd: true,
-					timestampMs: true,
-					feedKey: true,
-					$liquidityPool: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LiquidityPool_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				baseTokenSymbol: true,
+				quoteTokenSymbol: true,
+				priceUsd: true,
+				liquidityUsd: true,
+				timestampMs: true,
+				feedKey: true,
+				$liquidityPool: true,
+			},
+		})
+	}
+	getResourceItems={(liquidityPoolTimestamps) => [...new Map(liquidityPoolTimestamps.values.map((liquidityPoolTimestamp) => [liquidityPoolTimestamp[EntityMetaKey.SelectorKey], liquidityPoolTimestamp])).values()]}
+	getKey={(liquidityPoolTimestamp) => liquidityPoolTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Liquidity pool observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(liquidityPoolTimestamps)}
-			{@const uniqueLiquidityPoolTimestamps = [...new Map(liquidityPoolTimestamps.values.map((liquidityPoolTimestamp) => [liquidityPoolTimestamp[EntityMetaKey.SelectorKey], liquidityPoolTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={liquidityPoolTimestamps.totalCount}
-				getKey={(liquidityPoolTimestamp) => liquidityPoolTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueLiquidityPoolTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Liquidity pool observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: liquidityPoolTimestamp })}
-					{@const liquidityPoolTimestampFields = { ...liquidityPoolTimestamp[EntityMetaKey.Selector], ...liquidityPoolTimestamp }}
-					{@const selection = select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const liquidityPoolTimestampHrefFields = { ...liquidityPoolTimestamp, ...liquidityPoolTimestamp[EntityMetaKey.Selector] }}
-					<LiquidityPool_TimestampView
-						selection={selection}
-						prefetched={liquidityPoolTimestampFields}
-						href={
-							(liquidityPoolTimestampHrefFields.timestampMs !== undefined && liquidityPoolTimestampHrefFields.feedKey !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
-								timestampMs: String(liquidityPoolTimestampHrefFields.timestampMs ?? ''),
-								feedKey: String(liquidityPoolTimestampHrefFields.feedKey ?? ''),
-								chainId: String(liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
-								poolId: String(liquidityPoolTimestampHrefFields.$liquidityPool.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LiquidityPool_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: liquidityPoolTimestamp })}
+		{@const liquidityPoolTimestampFields = { ...liquidityPoolTimestamp[EntityMetaKey.Selector], ...liquidityPoolTimestamp }}
+		{@const selection = select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const liquidityPoolTimestampHrefFields = { ...liquidityPoolTimestamp, ...liquidityPoolTimestamp[EntityMetaKey.Selector] }}
+		<LiquidityPool_TimestampView
+			selection={selection}
+			prefetched={liquidityPoolTimestampFields}
+			href={
+				(liquidityPoolTimestampHrefFields.timestampMs !== undefined && liquidityPoolTimestampHrefFields.feedKey !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+					timestampMs: String(liquidityPoolTimestampHrefFields.timestampMs ?? ''),
+					feedKey: encodeURIComponent(String(liquidityPoolTimestampHrefFields.feedKey ?? '')),
+					chainId: String(liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
+					poolId: String(liquidityPoolTimestampHrefFields.$liquidityPool.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

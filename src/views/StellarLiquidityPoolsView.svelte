@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarLiquidityPoolView from '$/views/StellarLiquidityPoolView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarLiquidityPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarLiquidityPool}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarLiquidityPools) => [...new Map(stellarLiquidityPools.values.map((stellarLiquidityPool) => [stellarLiquidityPool[EntityMetaKey.SelectorKey], stellarLiquidityPool])).values()]}
+	getKey={(stellarLiquidityPool) => stellarLiquidityPool[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar liquidity pools yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarLiquidityPools)}
-			{@const uniqueStellarLiquidityPools = [...new Map(stellarLiquidityPools.values.map((stellarLiquidityPool) => [stellarLiquidityPool[EntityMetaKey.SelectorKey], stellarLiquidityPool])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarLiquidityPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarLiquidityPools.totalCount}
-				getKey={(stellarLiquidityPool) => stellarLiquidityPool[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarLiquidityPools}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar liquidity pools yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarLiquidityPool })}
-					{@const stellarLiquidityPoolFields = { ...stellarLiquidityPool[EntityMetaKey.Selector], ...stellarLiquidityPool }}
-					{@const selection = select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarLiquidityPoolView
-						selection={selection}
-						prefetched={stellarLiquidityPoolFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarLiquidityPool}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarLiquidityPool })}
+		{@const stellarLiquidityPoolFields = { ...stellarLiquidityPool[EntityMetaKey.Selector], ...stellarLiquidityPool }}
+		{@const selection = select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarLiquidityPoolView
+			selection={selection}
+			prefetched={stellarLiquidityPoolFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

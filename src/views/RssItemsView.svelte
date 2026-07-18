@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RssItemView from '$/views/RssItemView.svelte'
 </script>
@@ -62,88 +61,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					itemIdentity: true,
-					publishedAt: true,
-					itemIdentityKind: true,
-					$feed: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssItem}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RssItem}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				itemIdentity: true,
+				publishedAt: true,
+				itemIdentityKind: true,
+				$feed: true,
+			},
+		})
+	}
+	getResourceItems={(rssItems) => [...new Map(rssItems.values.map((rssItem) => [rssItem[EntityMetaKey.SelectorKey], rssItem])).values()]}
+	getKey={(rssItem) => rssItem[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No RSS items yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(rssItems)}
-			{@const uniqueRssItems = [...new Map(rssItems.values.map((rssItem) => [rssItem[EntityMetaKey.SelectorKey], rssItem])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssItem}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssItems.totalCount}
-				getKey={(rssItem) => rssItem[EntityMetaKey.SelectorKey]}
-				items={uniqueRssItems}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No RSS items yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: rssItem })}
-					{@const rssItemFields = { ...rssItem[EntityMetaKey.Selector], ...rssItem }}
-					{@const selection = select(EntityType.RssItem, rssItem[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const rssItemHrefFields = { ...rssItem, ...rssItem[EntityMetaKey.Selector] }}
-					<RssItemView
-						selection={selection}
-						prefetched={rssItemFields}
-						href={
-							(rssItemHrefFields.itemIdentityKind !== undefined && rssItemHrefFields.itemIdentity !== undefined && rssItemHrefFields.$feed !== undefined && rssItemHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
-								itemIdentityKind: String(rssItemHrefFields.itemIdentityKind ?? ''),
-								itemIdentity: String(rssItemHrefFields.itemIdentity ?? ''),
-								feedUrl: String(rssItemHrefFields.$feed.feedUrl ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RssItem}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: rssItem })}
+		{@const rssItemFields = { ...rssItem[EntityMetaKey.Selector], ...rssItem }}
+		{@const selection = select(EntityType.RssItem, rssItem[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const rssItemHrefFields = { ...rssItem, ...rssItem[EntityMetaKey.Selector] }}
+		<RssItemView
+			selection={selection}
+			prefetched={rssItemFields}
+			href={
+				(rssItemHrefFields.itemIdentityKind !== undefined && rssItemHrefFields.itemIdentity !== undefined && rssItemHrefFields.$feed !== undefined && rssItemHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
+					itemIdentityKind: String(rssItemHrefFields.itemIdentityKind ?? ''),
+					itemIdentity: encodeURIComponent(String(rssItemHrefFields.itemIdentity ?? '')),
+					feedUrl: encodeURIComponent(String(rssItemHrefFields.$feed.feedUrl ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

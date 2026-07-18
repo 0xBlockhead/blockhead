@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DogecoinAuxPowMerkleBranchView from '$/views/DogecoinAuxPowMerkleBranchView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					branchKind: true,
-					$auxPow: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DogecoinAuxPowMerkleBranch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DogecoinAuxPowMerkleBranch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				branchKind: true,
+				$auxPow: true,
+			},
+		})
+	}
+	getResourceItems={(dogecoinAuxPowMerkleBranches) => [...new Map(dogecoinAuxPowMerkleBranches.values.map((dogecoinAuxPowMerkleBranch) => [dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey], dogecoinAuxPowMerkleBranch])).values()]}
+	getKey={(dogecoinAuxPowMerkleBranch) => dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dogecoin aux pow merkle branches yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dogecoinAuxPowMerkleBranches)}
-			{@const uniqueDogecoinAuxPowMerkleBranches = [...new Map(dogecoinAuxPowMerkleBranches.values.map((dogecoinAuxPowMerkleBranch) => [dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey], dogecoinAuxPowMerkleBranch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DogecoinAuxPowMerkleBranch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dogecoinAuxPowMerkleBranches.totalCount}
-				getKey={(dogecoinAuxPowMerkleBranch) => dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey]}
-				items={uniqueDogecoinAuxPowMerkleBranches}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dogecoin aux pow merkle branches yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dogecoinAuxPowMerkleBranch })}
-					{@const dogecoinAuxPowMerkleBranchFields = { ...dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], ...dogecoinAuxPowMerkleBranch }}
-					{@const selection = select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DogecoinAuxPowMerkleBranchView
-						selection={selection}
-						prefetched={dogecoinAuxPowMerkleBranchFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DogecoinAuxPowMerkleBranch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dogecoinAuxPowMerkleBranch })}
+		{@const dogecoinAuxPowMerkleBranchFields = { ...dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], ...dogecoinAuxPowMerkleBranch }}
+		{@const selection = select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DogecoinAuxPowMerkleBranchView
+			selection={selection}
+			prefetched={dogecoinAuxPowMerkleBranchFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

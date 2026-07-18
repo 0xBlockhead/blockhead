@@ -4,13 +4,19 @@
 	* @see https://docs.neynar.com/reference
 	*/
 
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	baseUrl,
-	neynarOrigins,
 } from '$/sources/Neynar/Rest/constants.ts'
+
+const neynarBinding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((binding) => binding.source === Source.Neynar_Rest)
 
 export const neynarRequestHeaders = (
 	publicEnv: SourcePublicEnv
@@ -33,17 +39,17 @@ export async function neynarFetch<T>(
 ): Promise<T | undefined> {
 	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
-	const res = await corsFetch(`${baseUrl}${path}`, {
-		origins: neynarOrigins,
-		init: {
-			...init,
-			headers: {
-				...headers,
-				...init?.headers,
-			},
+	if (neynarBinding == null)
+		throw new Error('Neynar_Rest: missing source binding')
+
+	const res = await sourceFetch(neynarBinding, `${baseUrl}${path}`, {
+		...init,
+		headers: {
+			...headers,
+			...init?.headers,
 		},
 	})
 	if (res.status === 401 || res.status === 403) return undefined
 	if (!res.ok) await throwHttpError('Neynar API', res)
-	return res.json<T>()
+	return res.json()
 }

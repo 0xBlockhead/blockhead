@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalIpfsAccessView from '$/views/_GlobalIpfsAccessView.svelte'
 </script>
@@ -62,78 +61,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalIpfsAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalIpfsAccess}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(globalIpfsAccesses) => [...new Map(globalIpfsAccesses.values.map((globalIpfsAccess) => [globalIpfsAccess[EntityMetaKey.SelectorKey], globalIpfsAccess])).values()]}
+	getKey={(globalIpfsAccess) => globalIpfsAccess[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global IPFS accesses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalIpfsAccesses)}
-			{@const uniqueGlobalIpfsAccesses = [...new Map(globalIpfsAccesses.values.map((globalIpfsAccess) => [globalIpfsAccess[EntityMetaKey.SelectorKey], globalIpfsAccess])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalIpfsAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalIpfsAccesses.totalCount}
-				getKey={(globalIpfsAccess) => globalIpfsAccess[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalIpfsAccesses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global IPFS accesses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalIpfsAccess })}
-					{@const globalIpfsAccessFields = { ...globalIpfsAccess[EntityMetaKey.Selector], ...globalIpfsAccess }}
-					{@const selection = select(EntityType._GlobalIpfsAccess, globalIpfsAccess[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const globalIpfsAccessHrefFields = { ...globalIpfsAccess, ...globalIpfsAccess[EntityMetaKey.Selector] }}
-					<GlobalIpfsAccessView
-						selection={selection}
-						prefetched={globalIpfsAccessFields}
-						href={(globalIpfsAccess[EntityMetaKey.Selector].scope === '_GlobalIpfsAccess' ? resolve('/ipfs/access') : undefined)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalIpfsAccess}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalIpfsAccess })}
+		{@const globalIpfsAccessFields = { ...globalIpfsAccess[EntityMetaKey.Selector], ...globalIpfsAccess }}
+		{@const selection = select(EntityType._GlobalIpfsAccess, globalIpfsAccess[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const globalIpfsAccessHrefFields = { ...globalIpfsAccess, ...globalIpfsAccess[EntityMetaKey.Selector] }}
+		<GlobalIpfsAccessView
+			selection={selection}
+			prefetched={globalIpfsAccessFields}
+			href={(globalIpfsAccess[EntityMetaKey.Selector].scope === '_GlobalIpfsAccess' ? resolve('/ipfs/access') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

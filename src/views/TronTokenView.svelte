@@ -43,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronToken = $derived(selection({}))
+	const tronToken = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tron token')
 	const viewDomId = $derived('tron-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tronToken}>
-			{#snippet Pending()}
-				{title || 'tron token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tronToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,19 +107,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									tokenId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const tokenId = pendingEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const tokenId = resolvedEntity.tokenId}
@@ -132,27 +128,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							standard: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const standard = pendingEntity.standard}
-					{#if standard !== undefined && standard !== null}
-						<div>
-							<dt>Standard</dt>
-							<dd>
-								{String((standard) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const standard = resolvedEntity.standard}
@@ -176,8 +158,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -204,8 +184,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tronContract)}
 					{#if tronContract != null && tronContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -226,27 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.TronScan_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							createdTimestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdTimestampMs = pendingEntity.createdTimestampMs}
-					{#if createdTimestampMs !== undefined && createdTimestampMs !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdTimestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdTimestampMs = resolvedEntity.createdTimestampMs}

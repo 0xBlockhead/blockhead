@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSiweChallengeView from '$/views/BlockheadSiweChallengeView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					domain: true,
-					verified: true,
-					issuedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSiweChallenge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadSiweChallenge}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				domain: true,
+				verified: true,
+				issuedAt: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadSiweChallenges) => [...new Map(blockheadSiweChallenges.values.map((blockheadSiweChallenge) => [blockheadSiweChallenge[EntityMetaKey.SelectorKey], blockheadSiweChallenge])).values()]}
+	getKey={(blockheadSiweChallenge) => blockheadSiweChallenge[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead siwe challenges yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadSiweChallenges)}
-			{@const uniqueBlockheadSiweChallenges = [...new Map(blockheadSiweChallenges.values.map((blockheadSiweChallenge) => [blockheadSiweChallenge[EntityMetaKey.SelectorKey], blockheadSiweChallenge])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSiweChallenge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSiweChallenges.totalCount}
-				getKey={(blockheadSiweChallenge) => blockheadSiweChallenge[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadSiweChallenges}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead siwe challenges yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadSiweChallenge })}
-					{@const blockheadSiweChallengeFields = { ...blockheadSiweChallenge[EntityMetaKey.Selector], ...blockheadSiweChallenge }}
-					{@const selection = select(EntityType.BlockheadSiweChallenge, blockheadSiweChallenge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadSiweChallengeView
-						selection={selection}
-						prefetched={blockheadSiweChallengeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadSiweChallenge}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadSiweChallenge })}
+		{@const blockheadSiweChallengeFields = { ...blockheadSiweChallenge[EntityMetaKey.Selector], ...blockheadSiweChallenge }}
+		{@const selection = select(EntityType.BlockheadSiweChallenge, blockheadSiweChallenge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadSiweChallengeView
+			selection={selection}
+			prefetched={blockheadSiweChallengeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lightningNodeTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			alias: true,
 			capacitySats: true,
@@ -73,35 +73,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={lightningNodeTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning node timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.alias) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={lightningNodeTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.alias) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lightningNodeTimestamp}>
-			{#snippet Pending()}
-				{@const capacitySats0 = pendingEntity.capacitySats}
-				{#if capacitySats0 !== undefined && capacitySats0 !== null}
-					<NumberValue value={Number(capacitySats0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const capacitySats0 = resolvedEntity.capacitySats}
-				{#if capacitySats0 !== undefined && capacitySats0 !== null}
-					<NumberValue value={Number(capacitySats0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const capacitySats0 = pendingEntity.capacitySats}
+					{#if capacitySats0 !== undefined && capacitySats0 !== null}
+						<NumberValue
+							value={capacitySats0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={lightningNodeTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const capacitySats0 = resolvedEntity.capacitySats}
+					{#if capacitySats0 !== undefined && capacitySats0 !== null}
+						<NumberValue
+							value={capacitySats0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -159,27 +157,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							color: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const color = pendingEntity.color}
-					{#if color !== undefined && color !== null}
-						<div>
-							<dt>Color</dt>
-							<dd>
-								{String((color) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const color = resolvedEntity.color}
@@ -197,28 +181,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-							Source.LightningLnd_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							channelCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const channelCount = pendingEntity.channelCount}
-					{#if channelCount !== undefined && channelCount !== null}
-						<div>
-							<dt>Channels</dt>
-							<dd>
-								{String((channelCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const channelCount = resolvedEntity.channelCount}
@@ -236,27 +205,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							firstSeenMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const firstSeenMs = pendingEntity.firstSeenMs}
-					{#if firstSeenMs !== undefined && firstSeenMs !== null}
-						<div>
-							<dt>First seen</dt>
-							<dd>
-								{String((firstSeenMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const firstSeenMs = resolvedEntity.firstSeenMs}
@@ -274,28 +229,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-							Source.LightningLnd_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							updatedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const updatedAtMs = pendingEntity.updatedAtMs}
-					{#if updatedAtMs !== undefined && updatedAtMs !== null}
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								{String((updatedAtMs) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const updatedAtMs = resolvedEntity.updatedAtMs}
@@ -313,27 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							countryCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const countryCode = pendingEntity.countryCode}
-					{#if countryCode !== undefined && countryCode !== null}
-						<div>
-							<dt>Country</dt>
-							<dd>
-								{String((countryCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const countryCode = resolvedEntity.countryCode}
@@ -351,27 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.LightningMempoolSpace_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							city: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const city = pendingEntity.city}
-					{#if city !== undefined && city !== null}
-						<div>
-							<dt>City</dt>
-							<dd>
-								{String((city) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const city = resolvedEntity.city}
@@ -392,22 +304,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: [
-									Source.LightningMempoolSpace_Rest,
-								],
+								sources: selection.sources,
 								fields: {
 									networkAddresses: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const networkAddresses = pendingEntity.networkAddresses}
-							{#if networkAddresses !== undefined && networkAddresses !== null}
-								<TruncatedValue value={networkAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const networkAddresses = resolvedEntity.networkAddresses}

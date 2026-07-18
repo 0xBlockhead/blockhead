@@ -119,3 +119,33 @@ export const fetchBrowseResult = async ({
 		`Unable to load bzz://${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''} from public gateways: ${failures.join('; ')}`
 	)
 }
+
+export const getGatewayReachability = async ({
+	signal,
+}: {
+	signal?: AbortSignal
+} = {}) => {
+	const reachableAccessEndpointCount = (
+		await Promise.all(gatewayUrls.map(async (gatewayUrl) => {
+			try {
+				return (
+					await corsFetch(gatewayUrl, {
+						origins: swarmGatewayOrigins,
+						init: {
+							method: 'HEAD',
+							signal,
+						},
+					})
+				).ok
+			} catch {
+				return false
+			}
+		}))
+	).filter(Boolean).length
+
+	return {
+		declaredAccessEndpointCount: gatewayUrls.length,
+		reachableAccessEndpointCount,
+		reachable: reachableAccessEndpointCount > 0,
+	}
+}

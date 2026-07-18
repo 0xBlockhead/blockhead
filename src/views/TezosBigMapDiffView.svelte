@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosBigMapDiff = $derived(selection({}))
+	const tezosBigMapDiff = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos big map diff')
 	const viewDomId = $derived('tezos-big-map-diff-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosBigMapDiff}>
-			{#snippet Pending()}
-				{title || 'tezos big map diff'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosBigMapDiff}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									bigMapId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const bigMapId = pendingEntity.bigMapId}
-							{#if bigMapId !== undefined && bigMapId !== null}
-								{String((bigMapId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const bigMapId = resolvedEntity.bigMapId}
@@ -125,19 +121,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									keyHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const keyHash = pendingEntity.keyHash}
-							{#if keyHash !== undefined && keyHash !== null}
-								<TruncatedValue value={String((keyHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keyHash = resolvedEntity.keyHash}
@@ -155,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									action: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const action = pendingEntity.action}
-							{#if action !== undefined && action !== null}
-								{String((action) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const action = resolvedEntity.action}
@@ -182,8 +166,6 @@
 			<ResourceBoundary
 				resource={selection.$bigMap}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosBigMap)}
 					{#if tezosBigMap != null && tezosBigMap[EntityMetaKey.Selector] != null}
 						<div>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAlgorandPendingTransactionView from '$/views/BlockheadAlgorandPendingTransactionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txId: true,
-					transactionType: true,
-					observedAtMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAlgorandPendingTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAlgorandPendingTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txId: true,
+				transactionType: true,
+				observedAtMs: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAlgorandPendingTransactions) => [...new Map(blockheadAlgorandPendingTransactions.values.map((blockheadAlgorandPendingTransaction) => [blockheadAlgorandPendingTransaction[EntityMetaKey.SelectorKey], blockheadAlgorandPendingTransaction])).values()]}
+	getKey={(blockheadAlgorandPendingTransaction) => blockheadAlgorandPendingTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead algorand pending transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAlgorandPendingTransactions)}
-			{@const uniqueBlockheadAlgorandPendingTransactions = [...new Map(blockheadAlgorandPendingTransactions.values.map((blockheadAlgorandPendingTransaction) => [blockheadAlgorandPendingTransaction[EntityMetaKey.SelectorKey], blockheadAlgorandPendingTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAlgorandPendingTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAlgorandPendingTransactions.totalCount}
-				getKey={(blockheadAlgorandPendingTransaction) => blockheadAlgorandPendingTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAlgorandPendingTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead algorand pending transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAlgorandPendingTransaction })}
-					{@const blockheadAlgorandPendingTransactionFields = { ...blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], ...blockheadAlgorandPendingTransaction }}
-					{@const selection = select(EntityType.BlockheadAlgorandPendingTransaction, blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAlgorandPendingTransactionView
-						selection={selection}
-						prefetched={blockheadAlgorandPendingTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAlgorandPendingTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAlgorandPendingTransaction })}
+		{@const blockheadAlgorandPendingTransactionFields = { ...blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], ...blockheadAlgorandPendingTransaction }}
+		{@const selection = select(EntityType.BlockheadAlgorandPendingTransaction, blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAlgorandPendingTransactionView
+			selection={selection}
+			prefetched={blockheadAlgorandPendingTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

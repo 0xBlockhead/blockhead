@@ -13,48 +13,50 @@ export default {
 		defineResolver(Source.GetBlockYellowstone_Grpc, {
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
-				[SolanaAccount_TimestampSelector.AccountSlotSource]: async ({ $account, slot, source }) => {
-					if (source !== Source.GetBlockYellowstone_Grpc)
-						throw new Error(`GetBlockYellowstone_Grpc: unsupported source ${source}`)
+				[SolanaAccount_TimestampSelector.AccountSlotSource]: {
+					resolve: async ({ $account, slot, source }) => {
+						if (source !== Source.GetBlockYellowstone_Grpc)
+							throw new Error(`GetBlockYellowstone_Grpc: unsupported source ${source}`)
 
-					const binding = sourceProviderDefinitions
-						.flatMap((provider) => provider.bindings)
-						.find((candidate) => (
-							candidate.source === Source.GetBlockYellowstone_Grpc
-							&& candidate.target.key === `${$account.$network.caip2.namespace}:${$account.$network.caip2.reference}`
-						))
-					if (
-						$account.$network.caip2.namespace !== networkBySlug.solana.caip2.namespace
-						|| $account.$network.caip2.reference !== networkBySlug.solana.caip2.reference
-						|| binding == null
-					)
-						throw new Error('GetBlockYellowstone_Grpc: unsupported network')
+						const binding = sourceProviderDefinitions
+							.flatMap((provider) => provider.bindings)
+							.find((candidate) => (
+								candidate.source === Source.GetBlockYellowstone_Grpc
+								&& candidate.target.key === `${$account.$network.caip2.namespace}:${$account.$network.caip2.reference}`
+							))
+						if (
+							$account.$network.caip2.namespace !== networkBySlug.solana.caip2.namespace
+							|| $account.$network.caip2.reference !== networkBySlug.solana.caip2.reference
+							|| binding == null
+						)
+							throw new Error('GetBlockYellowstone_Grpc: unsupported network')
 
-					const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-					for await (const update of subscribeSolanaAccountUpdates(binding, {
-						accounts: [$account.pubkey],
-						commitment: 'confirmed',
-					})) {
-						if (update.account !== $account.pubkey || BigInt(update.slot) !== slot)
-							continue
+						const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
+						for await (const update of subscribeSolanaAccountUpdates(binding, {
+							accounts: [$account.pubkey],
+							commitment: 'confirmed',
+						})) {
+							if (update.account !== $account.pubkey || BigInt(update.slot) !== slot)
+								continue
 
-						return {
-							timestampMs: update.timestampMs,
-							lamports: BigInt(update.lamports),
-							$ownerProgram: {
-								[EntityMetaKey.Selector]: {
-									$network: $account.$network,
-									programId: update.ownerProgramId,
+							return {
+								timestampMs: update.timestampMs,
+								lamports: BigInt(update.lamports),
+								$ownerProgram: {
+									[EntityMetaKey.Selector]: {
+										$network: $account.$network,
+										programId: update.ownerProgramId,
+									},
 								},
-							},
-							executable: update.executable,
-							rentEpoch: BigInt(update.rentEpoch),
-							spaceBytes: update.spaceBytes,
-							dataEncoding: update.dataEncoding,
+								executable: update.executable,
+								rentEpoch: BigInt(update.rentEpoch),
+								spaceBytes: update.spaceBytes,
+								dataEncoding: update.dataEncoding,
+							}
 						}
-					}
 
-					throw new Error(`GetBlockYellowstone_Grpc: account update not found at slot ${slot.toString()}`)
+						throw new Error(`GetBlockYellowstone_Grpc: account update not found at slot ${slot.toString()}`)
+					},
 				},
 			},
 			resolveLive: {

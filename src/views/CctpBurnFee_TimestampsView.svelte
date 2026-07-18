@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CctpBurnFee_TimestampView from '$/views/CctpBurnFee_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					$sourceDomain: true,
-					$destinationDomain: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpBurnFee_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CctpBurnFee_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				$sourceDomain: true,
+				$destinationDomain: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(cctpBurnFeeTimestamps) => [...new Map(cctpBurnFeeTimestamps.values.map((cctpBurnFeeTimestamp) => [cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey], cctpBurnFeeTimestamp])).values()]}
+	getKey={(cctpBurnFeeTimestamp) => cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No CCTP burn fee observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cctpBurnFeeTimestamps)}
-			{@const uniqueCctpBurnFeeTimestamps = [...new Map(cctpBurnFeeTimestamps.values.map((cctpBurnFeeTimestamp) => [cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey], cctpBurnFeeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpBurnFee_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cctpBurnFeeTimestamps.totalCount}
-				getKey={(cctpBurnFeeTimestamp) => cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCctpBurnFeeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No CCTP burn fee observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cctpBurnFeeTimestamp })}
-					{@const cctpBurnFeeTimestampFields = { ...cctpBurnFeeTimestamp[EntityMetaKey.Selector], ...cctpBurnFeeTimestamp }}
-					{@const selection = select(EntityType.CctpBurnFee_Timestamp, cctpBurnFeeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CctpBurnFee_TimestampView
-						selection={selection}
-						prefetched={cctpBurnFeeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CctpBurnFee_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cctpBurnFeeTimestamp })}
+		{@const cctpBurnFeeTimestampFields = { ...cctpBurnFeeTimestamp[EntityMetaKey.Selector], ...cctpBurnFeeTimestamp }}
+		{@const selection = select(EntityType.CctpBurnFee_Timestamp, cctpBurnFeeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CctpBurnFee_TimestampView
+			selection={selection}
+			prefetched={cctpBurnFeeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

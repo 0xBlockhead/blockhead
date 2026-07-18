@@ -41,7 +41,7 @@
 		selection={
 			select(EntityType.ActivityPubNote, {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localStatusId: decodeURIComponent(params.localStatusId),
+				localStatusId: params.localStatusId,
 			}).$$thread({
 				sources: [
 					Source.Mastodon_Rest,
@@ -50,5 +50,8 @@
 			})
 		}
 		id='thread'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$relay: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			name: true,
 			reachable: true,

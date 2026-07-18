@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpResourceTemplateView from '$/views/McpResourceTemplateView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					title: true,
-					mimeType: true,
-					name: true,
-					uriTemplate: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResourceTemplate}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpResourceTemplate}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				title: true,
+				mimeType: true,
+				name: true,
+				uriTemplate: true,
+			},
+		})
+	}
+	getResourceItems={(mcpResourceTemplates) => [...new Map(mcpResourceTemplates.values.map((mcpResourceTemplate) => [mcpResourceTemplate[EntityMetaKey.SelectorKey], mcpResourceTemplate])).values()]}
+	getKey={(mcpResourceTemplate) => mcpResourceTemplate[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp resource templates yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpResourceTemplates)}
-			{@const uniqueMcpResourceTemplates = [...new Map(mcpResourceTemplates.values.map((mcpResourceTemplate) => [mcpResourceTemplate[EntityMetaKey.SelectorKey], mcpResourceTemplate])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResourceTemplate}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpResourceTemplates.totalCount}
-				getKey={(mcpResourceTemplate) => mcpResourceTemplate[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpResourceTemplates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp resource templates yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpResourceTemplate })}
-					{@const mcpResourceTemplateFields = { ...mcpResourceTemplate[EntityMetaKey.Selector], ...mcpResourceTemplate }}
-					{@const selection = select(EntityType.McpResourceTemplate, mcpResourceTemplate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpResourceTemplateView
-						selection={selection}
-						prefetched={mcpResourceTemplateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpResourceTemplate}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpResourceTemplate })}
+		{@const mcpResourceTemplateFields = { ...mcpResourceTemplate[EntityMetaKey.Selector], ...mcpResourceTemplate }}
+		{@const selection = select(EntityType.McpResourceTemplate, mcpResourceTemplate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpResourceTemplateView
+			selection={selection}
+			prefetched={mcpResourceTemplateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

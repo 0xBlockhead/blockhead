@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconAttestationView from '$/views/BeaconAttestationView.svelte'
 </script>
@@ -63,90 +62,57 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInSlot: true,
-					slot: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconAttestation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BeaconAttestation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				indexInSlot: true,
+				slot: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(beaconAttestations) => [...new Map(beaconAttestations.values.map((beaconAttestation) => [beaconAttestation[EntityMetaKey.SelectorKey], beaconAttestation])).values()]}
+	getKey={(beaconAttestation) => beaconAttestation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Beacon attestations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(beaconAttestations)}
-			{@const uniqueBeaconAttestations = [...new Map(beaconAttestations.values.map((beaconAttestation) => [beaconAttestation[EntityMetaKey.SelectorKey], beaconAttestation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconAttestation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconAttestations.totalCount}
-				getKey={(beaconAttestation) => beaconAttestation[EntityMetaKey.SelectorKey]}
-				items={uniqueBeaconAttestations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Beacon attestations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: beaconAttestation })}
-					{@const beaconAttestationFields = { ...beaconAttestation[EntityMetaKey.Selector], ...beaconAttestation }}
-					{@const selection = select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const beaconAttestationHrefFields = { ...beaconAttestation, ...beaconAttestation[EntityMetaKey.Selector] }}
-					<BeaconAttestationView
-						selection={selection}
-						prefetched={beaconAttestationFields}
-						href={
-							(beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
-								slot: String(beaconAttestationHrefFields.slot ?? ''),
-								index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
-								network: String(caip2StringFromValue(beaconAttestationHrefFields.$network.caip2) ?? ''),
-							}) : beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
-								slot: String(beaconAttestationHrefFields.slot ?? ''),
-								index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
-								network: String(beaconAttestationHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BeaconAttestation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: beaconAttestation })}
+		{@const beaconAttestationFields = { ...beaconAttestation[EntityMetaKey.Selector], ...beaconAttestation }}
+		{@const selection = select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const beaconAttestationHrefFields = { ...beaconAttestation, ...beaconAttestation[EntityMetaKey.Selector] }}
+		<BeaconAttestationView
+			selection={selection}
+			prefetched={beaconAttestationFields}
+			href={
+				(beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
+					slot: String(beaconAttestationHrefFields.slot ?? ''),
+					index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
+					network: String(caip2StringFromValue(beaconAttestationHrefFields.$network.caip2) ?? ''),
+				}) : beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
+					slot: String(beaconAttestationHrefFields.slot ?? ''),
+					index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
+					network: String(beaconAttestationHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

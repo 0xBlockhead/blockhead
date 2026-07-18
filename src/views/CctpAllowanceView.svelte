@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cctpAllowance = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			allowance: true,
 			fetchedAt: true,
@@ -63,52 +64,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cctpAllowance}>
-			{#snippet Pending()}
-				{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpAllowance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cctpAllowance}>
-			{#snippet Pending()}
-				{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.allowance) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cctpAllowance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.allowance) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.apiHost) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cctpAllowance}>
-			{#snippet Pending()}
-				{@const fetchedAt0 = pendingEntity.fetchedAt}
-				{#if fetchedAt0 !== undefined && fetchedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(fetchedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const fetchedAt0 = resolvedEntity.fetchedAt}
-				{#if fetchedAt0 !== undefined && fetchedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(fetchedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const fetchedAt0 = pendingEntity.fetchedAt}
+			{#if fetchedAt0 !== undefined && fetchedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(fetchedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cctpAllowance}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const fetchedAt0 = resolvedEntity.fetchedAt}
+					{#if fetchedAt0 !== undefined && fetchedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(fetchedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									apiHost: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const apiHost = pendingEntity.apiHost}
-							{#if apiHost !== undefined && apiHost !== null}
-								{String((apiHost) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const apiHost = resolvedEntity.apiHost}
@@ -146,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							allowance: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const allowance = pendingEntity.allowance}
-					{#if allowance !== undefined && allowance !== null}
-						<div>
-							<dt>Allowance</dt>
-							<dd>
-								{String((allowance) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const allowance = resolvedEntity.allowance}
@@ -184,19 +168,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fetchedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fetchedAt = pendingEntity.fetchedAt}
-							{#if fetchedAt !== undefined && fetchedAt !== null}
-								<Timestamp timestamp={Number(fetchedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fetchedAt = resolvedEntity.fetchedAt}

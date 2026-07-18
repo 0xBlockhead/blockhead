@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(tonAccounts) => [...new Map(tonAccounts.values.map((tonAccount) => [tonAccount[EntityMetaKey.SelectorKey], tonAccount])).values()]}
+	getKey={(tonAccount) => tonAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonAccounts)}
-			{@const uniqueTonAccounts = [...new Map(tonAccounts.values.map((tonAccount) => [tonAccount[EntityMetaKey.SelectorKey], tonAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonAccounts.totalCount}
-				getKey={(tonAccount) => tonAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueTonAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonAccount })}
-					{@const tonAccountFields = { ...tonAccount[EntityMetaKey.Selector], ...tonAccount }}
-					{@const selection = select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const tonAccountHrefFields = { ...tonAccount, ...tonAccount[EntityMetaKey.Selector] }}
-					<TonAccountView
-						selection={selection}
-						prefetched={tonAccountFields}
-						href={
-							(tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(tonAccountHrefFields.address ?? ''),
-								network: String(caip2StringFromValue(tonAccountHrefFields.$network.caip2) ?? ''),
-							}) : tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(tonAccountHrefFields.address ?? ''),
-								network: String(tonAccountHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonAccount })}
+		{@const tonAccountFields = { ...tonAccount[EntityMetaKey.Selector], ...tonAccount }}
+		{@const selection = select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const tonAccountHrefFields = { ...tonAccount, ...tonAccount[EntityMetaKey.Selector] }}
+		<TonAccountView
+			selection={selection}
+			prefetched={tonAccountFields}
+			href={
+				(tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(tonAccountHrefFields.address ?? ''),
+					network: String(caip2StringFromValue(tonAccountHrefFields.$network.caip2) ?? ''),
+				}) : tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+					accountId: String(tonAccountHrefFields.address ?? ''),
+					network: String(tonAccountHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

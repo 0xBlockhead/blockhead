@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Currency_TimestampView from '$/views/Currency_TimestampView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$currency: true,
-					marketCap: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Currency_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Currency_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$currency: true,
+				marketCap: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(currencyTimestamps) => [...new Map(currencyTimestamps.values.map((currencyTimestamp) => [currencyTimestamp[EntityMetaKey.SelectorKey], currencyTimestamp])).values()]}
+	getKey={(currencyTimestamp) => currencyTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Currency observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(currencyTimestamps)}
-			{@const uniqueCurrencyTimestamps = [...new Map(currencyTimestamps.values.map((currencyTimestamp) => [currencyTimestamp[EntityMetaKey.SelectorKey], currencyTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Currency_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={currencyTimestamps.totalCount}
-				getKey={(currencyTimestamp) => currencyTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCurrencyTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Currency observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: currencyTimestamp })}
-					{@const currencyTimestampFields = { ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }}
-					{@const selection = select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const currencyTimestampHrefFields = { ...currencyTimestamp, ...currencyTimestamp[EntityMetaKey.Selector] }}
-					<Currency_TimestampView
-						selection={selection}
-						prefetched={currencyTimestampFields}
-						href={
-							(currencyTimestampHrefFields.timestampMs !== undefined && currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-								timestampMs: String(currencyTimestampHrefFields.timestampMs ?? ''),
-								iso4217: String(currencyTimestampHrefFields.$currency.iso4217 ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Currency_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: currencyTimestamp })}
+		{@const currencyTimestampFields = { ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }}
+		{@const selection = select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const currencyTimestampHrefFields = { ...currencyTimestamp, ...currencyTimestamp[EntityMetaKey.Selector] }}
+		<Currency_TimestampView
+			selection={selection}
+			prefetched={currencyTimestampFields}
+			href={
+				(currencyTimestampHrefFields.timestampMs !== undefined && currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(currencyTimestampHrefFields.timestampMs ?? ''),
+					iso4217: String(currencyTimestampHrefFields.$currency.iso4217 ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

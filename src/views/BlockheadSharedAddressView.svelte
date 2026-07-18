@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadSharedAddress = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			peerId: true,
 			sharedAt: true,
@@ -77,67 +74,75 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSharedAddress}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$account}
-				>
-					{#snippet children(evmAccount)}
-						<EvmAccountView
-							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-							prefetched={evmAccount}
-							href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$account}
+					>
+						{#snippet children(evmAccount)}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+							<EvmAccountView
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								prefetched={evmAccount}
+								href={
 								(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 									address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$account}
-				>
-					{#snippet children(evmAccount)}
-						<EvmAccountView
-							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-							prefetched={evmAccount}
-							href={
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadSharedAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$account}
+					>
+						{#snippet children(evmAccount)}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+							<EvmAccountView
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								prefetched={evmAccount}
+								href={
 								(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 									address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 								}) : undefined)
 							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadSharedAddress}>
-			{#snippet Pending()}
-				{@const sharedAt0 = pendingEntity.sharedAt}
-				{#if sharedAt0 !== undefined && sharedAt0 !== null}
-					<Timestamp timestamp={Number(sharedAt0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sharedAt0 = resolvedEntity.sharedAt}
-				{#if sharedAt0 !== undefined && sharedAt0 !== null}
-					<Timestamp timestamp={Number(sharedAt0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const sharedAt0 = pendingEntity.sharedAt}
+					{#if sharedAt0 !== undefined && sharedAt0 !== null}
+						<Timestamp timestamp={Number(sharedAt0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadSharedAddress}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sharedAt0 = resolvedEntity.sharedAt}
+					{#if sharedAt0 !== undefined && sharedAt0 !== null}
+						<Timestamp timestamp={Number(sharedAt0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +153,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}
@@ -230,19 +229,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									peerId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const peerId = pendingEntity.peerId}
-							{#if peerId !== undefined && peerId !== null}
-								{String((peerId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const peerId = resolvedEntity.peerId}
@@ -285,19 +278,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sharedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sharedAt = pendingEntity.sharedAt}
-							{#if sharedAt !== undefined && sharedAt !== null}
-								<Timestamp timestamp={Number(sharedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sharedAt = resolvedEntity.sharedAt}

@@ -19,7 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.LensPost_Timestamp, {
 		$post: {
-			id: decodeURIComponent(params.postId),
+			id: params.postId,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

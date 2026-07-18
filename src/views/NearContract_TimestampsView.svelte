@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearContract_TimestampView from '$/views/NearContract_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					codeHash: true,
-					blockHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearContract_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				codeHash: true,
+				blockHeight: true,
+			},
+		})
+	}
+	getResourceItems={(nearContractTimestamps) => [...new Map(nearContractTimestamps.values.map((nearContractTimestamp) => [nearContractTimestamp[EntityMetaKey.SelectorKey], nearContractTimestamp])).values()]}
+	getKey={(nearContractTimestamp) => nearContractTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near contract observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearContractTimestamps)}
-			{@const uniqueNearContractTimestamps = [...new Map(nearContractTimestamps.values.map((nearContractTimestamp) => [nearContractTimestamp[EntityMetaKey.SelectorKey], nearContractTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContract_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearContractTimestamps.totalCount}
-				getKey={(nearContractTimestamp) => nearContractTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNearContractTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near contract observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearContractTimestamp })}
-					{@const nearContractTimestampFields = { ...nearContractTimestamp[EntityMetaKey.Selector], ...nearContractTimestamp }}
-					{@const selection = select(EntityType.NearContract_Timestamp, nearContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearContract_TimestampView
-						selection={selection}
-						prefetched={nearContractTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearContract_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearContractTimestamp })}
+		{@const nearContractTimestampFields = { ...nearContractTimestamp[EntityMetaKey.Selector], ...nearContractTimestamp }}
+		{@const selection = select(EntityType.NearContract_Timestamp, nearContractTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearContract_TimestampView
+			selection={selection}
+			prefetched={nearContractTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

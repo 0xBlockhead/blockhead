@@ -23,10 +23,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$paymaster: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$paymaster: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			userOperationsCount: true,
 		},

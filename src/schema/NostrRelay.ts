@@ -23,6 +23,15 @@ export const NostrRelay = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	$$notes: {
+		label: 'Live notes',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.NostrNote,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
+	},
 	$$timestamps: {
 		label: 'Observations',
 		type: EntityFieldType.EntitiesReference,

@@ -20,13 +20,16 @@
 
 	const pageSelection = $derived(select(EntityType.YoutubePlaylist, data.selector, {
 		sources: [
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
 			Source.Constants_Internal,
 		],
 		fields: {
+			$thumbnail: true,
 			title: true,
+			$channel: true,
 			publishedAtMs: true,
 			description: true,
-			$channel: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist')))

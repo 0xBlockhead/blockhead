@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotAccountTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			freeBalancePlancks: true,
 			nonce: true,
@@ -84,64 +84,64 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={polkadotAccountTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={polkadotAccountTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotAccountTimestamp}>
-			{#snippet Pending()}
-				{@const nonce0 = pendingEntity.nonce}
-				{#if nonce0 !== undefined && nonce0 !== null}
-					<span data-text="muted">
-						{String((nonce0) ?? '')}
-					</span>
-				{/if}
-				{@const timestampMs1 = pendingEntity.timestampMs}
-				{#if timestampMs1 !== undefined && timestampMs1 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs1)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const nonce0 = resolvedEntity.nonce}
-				{#if nonce0 !== undefined && nonce0 !== null}
-					<span data-text="muted">
-						{String((nonce0) ?? '')}
-					</span>
-				{/if}
-				{@const timestampMs1 = resolvedEntity.timestampMs}
-				{#if timestampMs1 !== undefined && timestampMs1 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs1)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const nonce0 = pendingEntity.nonce}
+			{#if nonce0 !== undefined && nonce0 !== null}
+				<span data-text="muted">
+					{String((nonce0) ?? '')}
+				</span>
+			{/if}
+			{@const timestampMs1 = pendingEntity.timestampMs}
+			{#if timestampMs1 !== undefined && timestampMs1 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs1)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const nonce0 = resolvedEntity.nonce}
+					{#if nonce0 !== undefined && nonce0 !== null}
+						<span data-text="muted">
+							{String((nonce0) ?? '')}
+						</span>
+					{/if}
+					{@const timestampMs1 = resolvedEntity.timestampMs}
+					{#if timestampMs1 !== undefined && timestampMs1 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs1)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -182,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -209,27 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.SubstrateSidecar_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonce = pendingEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
-						<div>
-							<dt>Nonce</dt>
-							<dd>
-								{String((nonce) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonce = resolvedEntity.nonce}
@@ -247,27 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.SubstrateSidecar_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							freeBalancePlancks: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const freeBalancePlancks = pendingEntity.freeBalancePlancks}
-					{#if freeBalancePlancks !== undefined && freeBalancePlancks !== null}
-						<div>
-							<dt>Free balance plancks</dt>
-							<dd>
-								{String((freeBalancePlancks) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const freeBalancePlancks = resolvedEntity.freeBalancePlancks}

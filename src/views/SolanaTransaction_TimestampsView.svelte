@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaTransaction_TimestampView from '$/views/SolanaTransaction_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					slot: true,
-					status: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SolanaTransaction_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				slot: true,
+				status: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(solanaTransactionTimestamps) => [...new Map(solanaTransactionTimestamps.values.map((solanaTransactionTimestamp) => [solanaTransactionTimestamp[EntityMetaKey.SelectorKey], solanaTransactionTimestamp])).values()]}
+	getKey={(solanaTransactionTimestamp) => solanaTransactionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Solana transaction observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(solanaTransactionTimestamps)}
-			{@const uniqueSolanaTransactionTimestamps = [...new Map(solanaTransactionTimestamps.values.map((solanaTransactionTimestamp) => [solanaTransactionTimestamp[EntityMetaKey.SelectorKey], solanaTransactionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTransaction_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTransactionTimestamps.totalCount}
-				getKey={(solanaTransactionTimestamp) => solanaTransactionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSolanaTransactionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Solana transaction observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: solanaTransactionTimestamp })}
-					{@const solanaTransactionTimestampFields = { ...solanaTransactionTimestamp[EntityMetaKey.Selector], ...solanaTransactionTimestamp }}
-					{@const selection = select(EntityType.SolanaTransaction_Timestamp, solanaTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SolanaTransaction_TimestampView
-						selection={selection}
-						prefetched={solanaTransactionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SolanaTransaction_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: solanaTransactionTimestamp })}
+		{@const solanaTransactionTimestampFields = { ...solanaTransactionTimestamp[EntityMetaKey.Selector], ...solanaTransactionTimestamp }}
+		{@const selection = select(EntityType.SolanaTransaction_Timestamp, solanaTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SolanaTransaction_TimestampView
+			selection={selection}
+			prefetched={solanaTransactionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpSubnet = $derived(selection({}))
+	const icpSubnet = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP subnet')
 	const viewDomId = $derived('icp-subnet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -67,16 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpSubnet}>
-			{#snippet Pending()}
-				{title || 'ICP subnet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpSubnet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,19 +100,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									subnetId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const subnetId = pendingEntity.subnetId}
-							{#if subnetId !== undefined && subnetId !== null}
-								{String((subnetId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subnetId = resolvedEntity.subnetId}
@@ -143,11 +139,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -155,12 +148,12 @@
 
 				{#snippet SectionIcpSubnetCanisterRanges({ id, label, open })}
 					<IcpSubnetCanisterRange_TimestampsView
-						selection={
-							selection.$$canisterRanges({
-								count: true,
-							})
-						}
+						selection={selection.$$canisterRanges}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No canister ranges.'
 						open={open}
 						title={label}
@@ -170,12 +163,12 @@
 
 				{#snippet SectionIcpSubnetCanisters({ id, label, open })}
 					<IcpCanistersView
-						selection={
-							selection.$$canisters({
-								count: true,
-							})
-						}
+						selection={selection.$$canisters}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No canisters.'
 						open={open}
 						title={label}
@@ -198,11 +191,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -210,12 +200,12 @@
 
 				{#snippet SectionIcpSubnetTimestamps({ id, label, open })}
 					<IcpSubnet_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

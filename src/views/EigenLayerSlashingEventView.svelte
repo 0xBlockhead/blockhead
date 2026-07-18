@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,13 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eigenLayerSlashingEvent = $derived(selection({
-		sources: [
-			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			slashedShares: true,
 		},
@@ -83,104 +76,116 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerSlashingEvent}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$operator}
-				>
-					{#snippet children(eigenLayerOperator)}
-						{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
-							<EigenLayerOperatorView
-								selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-								prefetched={eigenLayerOperator}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$operator}
-				>
-					{#snippet children(eigenLayerOperator)}
-						{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
-							<EigenLayerOperatorView
-								selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-								prefetched={eigenLayerOperator}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$operator}
+					>
+						{#snippet children(eigenLayerOperator)}
+							{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
+								<EigenLayerOperatorView
+									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+									prefetched={eigenLayerOperator}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={eigenLayerSlashingEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$operator}
+					>
+						{#snippet children(eigenLayerOperator)}
+							{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
+								<EigenLayerOperatorView
+									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+									prefetched={eigenLayerOperator}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerSlashingEvent}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$avs}
-				>
-					{#snippet children(eigenLayerAvs)}
-						{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
-							<EigenLayerAvsView
-								selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-								prefetched={eigenLayerAvs}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$avs}
-				>
-					{#snippet children(eigenLayerAvs)}
-						{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
-							<EigenLayerAvsView
-								selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-								prefetched={eigenLayerAvs}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$avs}
+					>
+						{#snippet children(eigenLayerAvs)}
+							{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
+								<EigenLayerAvsView
+									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+									prefetched={eigenLayerAvs}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={eigenLayerSlashingEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$avs}
+					>
+						{#snippet children(eigenLayerAvs)}
+							{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
+								<EigenLayerAvsView
+									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+									prefetched={eigenLayerAvs}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerSlashingEvent}>
-			{#snippet Pending()}
-				{@const slashedShares0 = pendingEntity.slashedShares}
-				{#if slashedShares0 !== undefined && slashedShares0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(slashedShares0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slashedShares0 = resolvedEntity.slashedShares}
-				{#if slashedShares0 !== undefined && slashedShares0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(slashedShares0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const slashedShares0 = pendingEntity.slashedShares}
+			{#if slashedShares0 !== undefined && slashedShares0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={slashedShares0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={eigenLayerSlashingEvent}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slashedShares0 = resolvedEntity.slashedShares}
+					{#if slashedShares0 !== undefined && slashedShares0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={slashedShares0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -188,8 +193,6 @@
 			<ResourceBoundary
 				resource={selection.$operator}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
 						<div>
@@ -210,8 +213,6 @@
 			<ResourceBoundary
 				resource={selection.$avs}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
 						<div>
@@ -232,8 +233,6 @@
 			<ResourceBoundary
 				resource={selection.$strategy}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null && eigenLayerStrategy[EntityMetaKey.Selector] != null}
 						<div>
@@ -254,24 +253,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slashId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slashId = pendingEntity.slashId}
-					{#if slashId !== undefined && slashId !== null}
-						<div>
-							<dt>slash ID</dt>
-							<dd>
-								{String((slashId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slashId = resolvedEntity.slashId}
@@ -291,24 +279,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slashedShares: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slashedShares = pendingEntity.slashedShares}
-					{#if slashedShares !== undefined && slashedShares !== null}
-						<div>
-							<dt>slashed shares</dt>
-							<dd>
-								<NumberValue value={Number(slashedShares)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slashedShares = resolvedEntity.slashedShares}
@@ -316,7 +293,9 @@
 						<div>
 							<dt>slashed shares</dt>
 							<dd>
-								<NumberValue value={Number(slashedShares)} />
+								<NumberValue
+									value={slashedShares}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -326,24 +305,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slashedAmount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slashedAmount = pendingEntity.slashedAmount}
-					{#if slashedAmount !== undefined && slashedAmount !== null}
-						<div>
-							<dt>slashed amount</dt>
-							<dd>
-								<NumberValue value={Number(slashedAmount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slashedAmount = resolvedEntity.slashedAmount}
@@ -351,7 +319,9 @@
 						<div>
 							<dt>slashed amount</dt>
 							<dd>
-								<NumberValue value={Number(slashedAmount)} />
+								<NumberValue
+									value={slashedAmount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -361,24 +331,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reason: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reason = pendingEntity.reason}
-					{#if reason !== undefined && reason !== null}
-						<div>
-							<dt>reason</dt>
-							<dd>
-								{String((reason) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reason = resolvedEntity.reason}
@@ -425,24 +384,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transactionHash = pendingEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
-						<div>
-							<dt>transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transactionHash = resolvedEntity.transactionHash}
@@ -460,24 +408,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							logIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const logIndex = pendingEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
-						<div>
-							<dt>log index</dt>
-							<dd>
-								<NumberValue value={Number(logIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const logIndex = resolvedEntity.logIndex}
@@ -485,7 +422,9 @@
 						<div>
 							<dt>log index</dt>
 							<dd>
-								<NumberValue value={Number(logIndex)} />
+								<NumberValue
+									value={logIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -495,24 +434,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockNumber = pendingEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
-						<div>
-							<dt>Block number</dt>
-							<dd>
-								<NumberValue value={Number(blockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockNumber = resolvedEntity.blockNumber}
@@ -520,7 +448,9 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue value={Number(blockNumber)} />
+								<NumberValue
+									value={blockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -530,24 +460,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const timestampMs = resolvedEntity.timestampMs}
@@ -565,24 +484,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							source: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const source = pendingEntity.source}
-					{#if source !== undefined && source !== null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{String((source) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const source = resolvedEntity.source}

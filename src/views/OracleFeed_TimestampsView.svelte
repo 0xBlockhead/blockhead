@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OracleFeed_TimestampView from '$/views/OracleFeed_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					description: true,
-					latestRoundId: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.OracleFeed_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.OracleFeed_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				description: true,
+				latestRoundId: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(oracleFeedTimestamps) => [...new Map(oracleFeedTimestamps.values.map((oracleFeedTimestamp) => [oracleFeedTimestamp[EntityMetaKey.SelectorKey], oracleFeedTimestamp])).values()]}
+	getKey={(oracleFeedTimestamp) => oracleFeedTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Oracle feed observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(oracleFeedTimestamps)}
-			{@const uniqueOracleFeedTimestamps = [...new Map(oracleFeedTimestamps.values.map((oracleFeedTimestamp) => [oracleFeedTimestamp[EntityMetaKey.SelectorKey], oracleFeedTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.OracleFeed_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={oracleFeedTimestamps.totalCount}
-				getKey={(oracleFeedTimestamp) => oracleFeedTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueOracleFeedTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Oracle feed observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: oracleFeedTimestamp })}
-					{@const oracleFeedTimestampFields = { ...oracleFeedTimestamp[EntityMetaKey.Selector], ...oracleFeedTimestamp }}
-					{@const selection = select(EntityType.OracleFeed_Timestamp, oracleFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<OracleFeed_TimestampView
-						selection={selection}
-						prefetched={oracleFeedTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.OracleFeed_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: oracleFeedTimestamp })}
+		{@const oracleFeedTimestampFields = { ...oracleFeedTimestamp[EntityMetaKey.Selector], ...oracleFeedTimestamp }}
+		{@const selection = select(EntityType.OracleFeed_Timestamp, oracleFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<OracleFeed_TimestampView
+			selection={selection}
+			prefetched={oracleFeedTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

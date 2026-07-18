@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroRingMemberView from '$/views/MoneroRingMemberView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					memberIndex: true,
-					globalOutputIndex: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroRingMember}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoneroRingMember}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				memberIndex: true,
+				globalOutputIndex: true,
+			},
+		})
+	}
+	getResourceItems={(moneroRingMembers) => [...new Map(moneroRingMembers.values.map((moneroRingMember) => [moneroRingMember[EntityMetaKey.SelectorKey], moneroRingMember])).values()]}
+	getKey={(moneroRingMember) => moneroRingMember[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Monero ring members yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moneroRingMembers)}
-			{@const uniqueMoneroRingMembers = [...new Map(moneroRingMembers.values.map((moneroRingMember) => [moneroRingMember[EntityMetaKey.SelectorKey], moneroRingMember])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoneroRingMember}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moneroRingMembers.totalCount}
-				getKey={(moneroRingMember) => moneroRingMember[EntityMetaKey.SelectorKey]}
-				items={uniqueMoneroRingMembers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Monero ring members yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moneroRingMember })}
-					{@const moneroRingMemberFields = { ...moneroRingMember[EntityMetaKey.Selector], ...moneroRingMember }}
-					{@const selection = select(EntityType.MoneroRingMember, moneroRingMember[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoneroRingMemberView
-						selection={selection}
-						prefetched={moneroRingMemberFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoneroRingMember}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moneroRingMember })}
+		{@const moneroRingMemberFields = { ...moneroRingMember[EntityMetaKey.Selector], ...moneroRingMember }}
+		{@const selection = select(EntityType.MoneroRingMember, moneroRingMember[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoneroRingMemberView
+			selection={selection}
+			prefetched={moneroRingMemberFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpServer = $derived(selection({
-		sources: [
-			Source.Eip8004Scan_Rest,
-			Source.McpDeclared_Protocol,
-		],
+		sources: selection.sources,
 		fields: {
 			transportKind: true,
 			endpointUrl: true,
@@ -83,66 +79,66 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mcpServer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpServer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={mcpServer}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={mcpServer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={mcpServer}>
-			{#snippet Pending()}
-				{@const endpointUrl0 = pendingEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(endpointUrl0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(endpointUrl0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const endpointUrl0 = resolvedEntity.endpointUrl}
-				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-					<span data-text="muted">
-						<svelte:element
-							this={'a'}
-							href={String(endpointUrl0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(endpointUrl0)} />
-						</svelte:element>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const endpointUrl0 = pendingEntity.endpointUrl}
+			{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+				<span data-text="muted">
+					<svelte:element
+						this={'a'}
+						href={String(endpointUrl0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(endpointUrl0)} />
+					</svelte:element>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={mcpServer}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const endpointUrl0 = resolvedEntity.endpointUrl}
+					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+						<span data-text="muted">
+							<svelte:element
+								this={'a'}
+								href={String(endpointUrl0)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(endpointUrl0)} />
+							</svelte:element>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,19 +149,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									serverKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const serverKey = pendingEntity.serverKey}
-							{#if serverKey !== undefined && serverKey !== null}
-								{String((serverKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const serverKey = resolvedEntity.serverKey}
@@ -180,8 +170,6 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -207,8 +195,6 @@
 			<ResourceBoundary
 				resource={selection.$packageVersion}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(mcpServerPackageVersion)}
 					{#if mcpServerPackageVersion != null && mcpServerPackageVersion[EntityMetaKey.Selector] != null}
 						<div>
@@ -229,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transportKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transportKind = pendingEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
-						<div>
-							<dt>transport kind</dt>
-							<dd>
-								{String((transportKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transportKind = resolvedEntity.transportKind}
@@ -264,31 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endpointUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endpointUrl = pendingEntity.endpointUrl}
-					{#if endpointUrl !== undefined && endpointUrl !== null}
-						<div>
-							<dt>endpoint URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endpointUrl = resolvedEntity.endpointUrl}
@@ -331,11 +288,8 @@
 				}
 				data-card
 				class='network-view-collapsible-capabilities'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Capabilities</HeadingComponent>
 					</header>
@@ -343,12 +297,12 @@
 
 				{#snippet SectionMcpTools({ id, label, open })}
 					<McpToolsView
-						selection={
-							selection.$$tools({
-								count: true,
-							})
-						}
+						selection={selection.$$tools}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP tools.'
 						open={open}
 						title={label}
@@ -358,12 +312,12 @@
 
 				{#snippet SectionMcpPrompts({ id, label, open })}
 					<McpPromptsView
-						selection={
-							selection.$$prompts({
-								count: true,
-							})
-						}
+						selection={selection.$$prompts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP prompts.'
 						open={open}
 						title={label}
@@ -390,11 +344,8 @@
 				}
 				data-card
 				class='network-view-collapsible-resources'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Resources</HeadingComponent>
 					</header>
@@ -402,12 +353,12 @@
 
 				{#snippet SectionMcpResourceList({ id, label, open })}
 					<McpResourcesView
-						selection={
-							selection.$$resources({
-								count: true,
-							})
-						}
+						selection={selection.$$resources}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP resources.'
 						open={open}
 						title={label}
@@ -417,12 +368,12 @@
 
 				{#snippet SectionMcpResourceTemplates({ id, label, open })}
 					<McpResourceTemplatesView
-						selection={
-							selection.$$resourceTemplates({
-								count: true,
-							})
-						}
+						selection={selection.$$resourceTemplates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP resource templates.'
 						open={open}
 						title={label}
@@ -445,11 +396,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -457,12 +405,12 @@
 
 				{#snippet SectionMcpServerObservations({ id, label, open })}
 					<McpServer_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No MCP server observations.'
 						open={open}
 						title={label}

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterCastEmbedView from '$/views/FarcasterCastEmbedView.svelte'
 </script>
@@ -62,89 +61,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					title: true,
-					url: true,
-					$embeddedCast: true,
-					indexInCast: true,
-					$cast: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterCastEmbed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FarcasterCastEmbed}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				title: true,
+				url: true,
+				$embeddedCast: true,
+				indexInCast: true,
+				$cast: true,
+			},
+		})
+	}
+	getResourceItems={(farcasterCastEmbeds) => [...new Map(farcasterCastEmbeds.values.map((farcasterCastEmbed) => [farcasterCastEmbed[EntityMetaKey.SelectorKey], farcasterCastEmbed])).values()]}
+	getKey={(farcasterCastEmbed) => farcasterCastEmbed[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Farcaster cast embeds yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(farcasterCastEmbeds)}
-			{@const uniqueFarcasterCastEmbeds = [...new Map(farcasterCastEmbeds.values.map((farcasterCastEmbed) => [farcasterCastEmbed[EntityMetaKey.SelectorKey], farcasterCastEmbed])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterCastEmbed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterCastEmbeds.totalCount}
-				getKey={(farcasterCastEmbed) => farcasterCastEmbed[EntityMetaKey.SelectorKey]}
-				items={uniqueFarcasterCastEmbeds}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Farcaster cast embeds yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: farcasterCastEmbed })}
-					{@const farcasterCastEmbedFields = { ...farcasterCastEmbed[EntityMetaKey.Selector], ...farcasterCastEmbed }}
-					{@const selection = select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const farcasterCastEmbedHrefFields = { ...farcasterCastEmbed, ...farcasterCastEmbed[EntityMetaKey.Selector] }}
-					<FarcasterCastEmbedView
-						selection={selection}
-						prefetched={farcasterCastEmbedFields}
-						href={
-							(farcasterCastEmbedHrefFields.indexInCast !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
-								indexInCast: String(farcasterCastEmbedHrefFields.indexInCast ?? ''),
-								fid: String(farcasterCastEmbedHrefFields.$cast.fid ?? ''),
-								hash: String(farcasterCastEmbedHrefFields.$cast.hash ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FarcasterCastEmbed}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: farcasterCastEmbed })}
+		{@const farcasterCastEmbedFields = { ...farcasterCastEmbed[EntityMetaKey.Selector], ...farcasterCastEmbed }}
+		{@const selection = select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const farcasterCastEmbedHrefFields = { ...farcasterCastEmbed, ...farcasterCastEmbed[EntityMetaKey.Selector] }}
+		<FarcasterCastEmbedView
+			selection={selection}
+			prefetched={farcasterCastEmbedFields}
+			href={
+				(farcasterCastEmbedHrefFields.indexInCast !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
+					indexInCast: String(farcasterCastEmbedHrefFields.indexInCast ?? ''),
+					fid: String(farcasterCastEmbedHrefFields.$cast.fid ?? ''),
+					hash: String(farcasterCastEmbedHrefFields.$cast.hash ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

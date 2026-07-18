@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const utxoOutput = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			isSpent: true,
 		},
@@ -105,76 +106,80 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={utxoOutput}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$address}
-				>
-					{#snippet children(utxoAddress)}
-						{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
-									prefetched={utxoAddress}
-									href={
-										(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const isSpent1 = pendingEntity.isSpent}
-				{#if isSpent1 !== undefined && isSpent1 !== null}
-					<span data-text="muted">
-						{isSpent1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$address}
-				>
-					{#snippet children(utxoAddress)}
-						{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
-									prefetched={utxoAddress}
-									href={
-										(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const isSpent1 = resolvedEntity.isSpent}
-				{#if isSpent1 !== undefined && isSpent1 !== null}
-					<span data-text="muted">
-						{isSpent1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$address}
+			>
+				{#snippet children(utxoAddress)}
+					{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<UtxoAddressView
+								selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+								prefetched={utxoAddress}
+								href={
+									(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+										address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+										network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+										address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+										network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+			{@const isSpent1 = pendingEntity.isSpent}
+			{#if isSpent1 !== undefined && isSpent1 !== null}
+				<span data-text="muted">
+					{isSpent1 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={utxoOutput}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$address}
+					>
+						{#snippet children(utxoAddress)}
+							{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<UtxoAddressView
+										selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+										prefetched={utxoAddress}
+										href={
+											(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+												address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+												address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+												network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+					{@const isSpent1 = resolvedEntity.isSpent}
+					{#if isSpent1 !== undefined && isSpent1 !== null}
+						<span data-text="muted">
+							{isSpent1 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -185,24 +190,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<NumberValue value={Number(indexInTransaction)} />
+								<NumberValue
+									value={indexInTransaction}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -212,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							valueSats: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const valueSats = pendingEntity.valueSats}
-					{#if valueSats !== undefined && valueSats !== null}
-						<div>
-							<dt>Value</dt>
-							<dd>
-								<NumberValue value={Number(valueSats)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const valueSats = resolvedEntity.valueSats}
@@ -237,7 +227,9 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<NumberValue value={Number(valueSats)} />
+								<NumberValue
+									value={valueSats}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -247,8 +239,6 @@
 			<ResourceBoundary
 				resource={selection.$address}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
 						<div>
@@ -278,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptPubKeyType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptPubKeyType = pendingEntity.scriptPubKeyType}
-					{#if scriptPubKeyType !== undefined && scriptPubKeyType !== null}
-						<div>
-							<dt>Script pub key type</dt>
-							<dd>
-								{String((scriptPubKeyType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptPubKeyType = resolvedEntity.scriptPubKeyType}
@@ -313,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isSpent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isSpent = pendingEntity.isSpent}
-					{#if isSpent !== undefined && isSpent !== null}
-						<div>
-							<dt>Spent</dt>
-							<dd>
-								{isSpent ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isSpent = resolvedEntity.isSpent}
@@ -348,24 +316,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isConfidential: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isConfidential = pendingEntity.isConfidential}
-					{#if isConfidential !== undefined && isConfidential !== null}
-						<div>
-							<dt>Confidential</dt>
-							<dd>
-								{isConfidential ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isConfidential = resolvedEntity.isConfidential}
@@ -385,24 +342,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptPubKeyAsm: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptPubKeyAsm = pendingEntity.scriptPubKeyAsm}
-					{#if scriptPubKeyAsm !== undefined && scriptPubKeyAsm !== null}
-						<div>
-							<dt>Script pub key asm</dt>
-							<dd>
-								{String((scriptPubKeyAsm) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptPubKeyAsm = resolvedEntity.scriptPubKeyAsm}
@@ -420,24 +366,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptPubKeyHex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptPubKeyHex = pendingEntity.scriptPubKeyHex}
-					{#if scriptPubKeyHex !== undefined && scriptPubKeyHex !== null}
-						<div>
-							<dt>Script pub key hex</dt>
-							<dd>
-								{String((scriptPubKeyHex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptPubKeyHex = resolvedEntity.scriptPubKeyHex}
@@ -455,24 +390,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetCommitment: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetCommitment = pendingEntity.assetCommitment}
-					{#if assetCommitment !== undefined && assetCommitment !== null}
-						<div>
-							<dt>Asset commitment</dt>
-							<dd>
-								{String((assetCommitment) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetCommitment = resolvedEntity.assetCommitment}
@@ -490,24 +414,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							valueCommitment: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const valueCommitment = pendingEntity.valueCommitment}
-					{#if valueCommitment !== undefined && valueCommitment !== null}
-						<div>
-							<dt>Value commitment</dt>
-							<dd>
-								{String((valueCommitment) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const valueCommitment = resolvedEntity.valueCommitment}
@@ -525,24 +438,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nonceCommitment: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nonceCommitment = pendingEntity.nonceCommitment}
-					{#if nonceCommitment !== undefined && nonceCommitment !== null}
-						<div>
-							<dt>Nonce commitment</dt>
-							<dd>
-								{String((nonceCommitment) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nonceCommitment = resolvedEntity.nonceCommitment}
@@ -562,24 +464,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							surjectionProof: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const surjectionProof = pendingEntity.surjectionProof}
-					{#if surjectionProof !== undefined && surjectionProof !== null}
-						<div>
-							<dt>Surjection proof</dt>
-							<dd>
-								{String((surjectionProof) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const surjectionProof = resolvedEntity.surjectionProof}
@@ -597,24 +488,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rangeProof: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rangeProof = pendingEntity.rangeProof}
-					{#if rangeProof !== undefined && rangeProof !== null}
-						<div>
-							<dt>Range proof</dt>
-							<dd>
-								{String((rangeProof) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rangeProof = resolvedEntity.rangeProof}
@@ -632,8 +512,6 @@
 			<ResourceBoundary
 				resource={selection.$bitcoinCashCashTokenFungibleAmount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bitcoinCashCashTokenFungibleAmount)}
 					{#if bitcoinCashCashTokenFungibleAmount != null && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector] != null}
 						<div>
@@ -642,17 +520,6 @@
 								<BitcoinCashCashTokenFungibleAmountView
 									selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenFungibleAmount}
-									href={
-										(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-											outputIndex: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2) ?? ''),
-										}) : bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-											outputIndex: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -665,8 +532,6 @@
 			<ResourceBoundary
 				resource={selection.$bitcoinCashCashTokenNft}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(bitcoinCashCashTokenNft)}
 					{#if bitcoinCashCashTokenNft != null && bitcoinCashCashTokenNft[EntityMetaKey.Selector] != null}
 						<div>
@@ -675,17 +540,6 @@
 								<BitcoinCashCashTokenNftView
 									selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenNft}
-									href={
-										(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-											outputIndex: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(caip2StringFromValue(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2) ?? ''),
-										}) : bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-											outputIndex: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
-											transactionId: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
-											network: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.slug ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import QuilibriumShardView from '$/views/QuilibriumShardView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					shardKey: true,
-					$network: true,
-					shardKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumShard}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.QuilibriumShard}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				shardKey: true,
+				$network: true,
+				shardKind: true,
+			},
+		})
+	}
+	getResourceItems={(quilibriumShards) => [...new Map(quilibriumShards.values.map((quilibriumShard) => [quilibriumShard[EntityMetaKey.SelectorKey], quilibriumShard])).values()]}
+	getKey={(quilibriumShard) => quilibriumShard[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Quilibrium shards yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(quilibriumShards)}
-			{@const uniqueQuilibriumShards = [...new Map(quilibriumShards.values.map((quilibriumShard) => [quilibriumShard[EntityMetaKey.SelectorKey], quilibriumShard])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumShard}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={quilibriumShards.totalCount}
-				getKey={(quilibriumShard) => quilibriumShard[EntityMetaKey.SelectorKey]}
-				items={uniqueQuilibriumShards}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Quilibrium shards yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: quilibriumShard })}
-					{@const quilibriumShardFields = { ...quilibriumShard[EntityMetaKey.Selector], ...quilibriumShard }}
-					{@const selection = select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<QuilibriumShardView
-						selection={selection}
-						prefetched={quilibriumShardFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.QuilibriumShard}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: quilibriumShard })}
+		{@const quilibriumShardFields = { ...quilibriumShard[EntityMetaKey.Selector], ...quilibriumShard }}
+		{@const selection = select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<QuilibriumShardView
+			selection={selection}
+			prefetched={quilibriumShardFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

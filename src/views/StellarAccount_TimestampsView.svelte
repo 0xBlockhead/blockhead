@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarAccount_TimestampView from '$/views/StellarAccount_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarAccountTimestamps) => [...new Map(stellarAccountTimestamps.values.map((stellarAccountTimestamp) => [stellarAccountTimestamp[EntityMetaKey.SelectorKey], stellarAccountTimestamp])).values()]}
+	getKey={(stellarAccountTimestamp) => stellarAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarAccountTimestamps)}
-			{@const uniqueStellarAccountTimestamps = [...new Map(stellarAccountTimestamps.values.map((stellarAccountTimestamp) => [stellarAccountTimestamp[EntityMetaKey.SelectorKey], stellarAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarAccountTimestamps.totalCount}
-				getKey={(stellarAccountTimestamp) => stellarAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarAccountTimestamp })}
-					{@const stellarAccountTimestampFields = { ...stellarAccountTimestamp[EntityMetaKey.Selector], ...stellarAccountTimestamp }}
-					{@const selection = select(EntityType.StellarAccount_Timestamp, stellarAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarAccount_TimestampView
-						selection={selection}
-						prefetched={stellarAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarAccountTimestamp })}
+		{@const stellarAccountTimestampFields = { ...stellarAccountTimestamp[EntityMetaKey.Selector], ...stellarAccountTimestamp }}
+		{@const selection = select(EntityType.StellarAccount_Timestamp, stellarAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarAccount_TimestampView
+			selection={selection}
+			prefetched={stellarAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

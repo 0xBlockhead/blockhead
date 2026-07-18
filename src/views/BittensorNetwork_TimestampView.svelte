@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bittensorNetworkTimestamp = $derived(selection({
-		sources: [
-			Source.Bittensor_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			finalizedBlockNumber: true,
 			runtimeSpecName: true,
@@ -76,64 +73,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bittensorNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bittensorNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const finalizedBlockNumber0 = pendingEntity.finalizedBlockNumber}
-				{#if finalizedBlockNumber0 !== undefined && finalizedBlockNumber0 !== null}
-					<NumberValue value={Number(finalizedBlockNumber0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const finalizedBlockNumber0 = resolvedEntity.finalizedBlockNumber}
-				{#if finalizedBlockNumber0 !== undefined && finalizedBlockNumber0 !== null}
-					<NumberValue value={Number(finalizedBlockNumber0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const finalizedBlockNumber0 = pendingEntity.finalizedBlockNumber}
+					{#if finalizedBlockNumber0 !== undefined && finalizedBlockNumber0 !== null}
+						<NumberValue
+							value={finalizedBlockNumber0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedBlockNumber0 = resolvedEntity.finalizedBlockNumber}
+					{#if finalizedBlockNumber0 !== undefined && finalizedBlockNumber0 !== null}
+						<NumberValue
+							value={finalizedBlockNumber0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bittensorNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const runtimeSpecName0 = pendingEntity.runtimeSpecName}
-				{#if runtimeSpecName0 !== undefined && runtimeSpecName0 !== null}
-					<span data-text="muted">
-						{String((runtimeSpecName0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const runtimeSpecName0 = resolvedEntity.runtimeSpecName}
-				{#if runtimeSpecName0 !== undefined && runtimeSpecName0 !== null}
-					<span data-text="muted">
-						{String((runtimeSpecName0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const runtimeSpecName0 = pendingEntity.runtimeSpecName}
+			{#if runtimeSpecName0 !== undefined && runtimeSpecName0 !== null}
+				<span data-text="muted">
+					{String((runtimeSpecName0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const runtimeSpecName0 = resolvedEntity.runtimeSpecName}
+					{#if runtimeSpecName0 !== undefined && runtimeSpecName0 !== null}
+						<span data-text="muted">
+							{String((runtimeSpecName0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -168,19 +169,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -198,19 +193,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -225,24 +214,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							finalizedBlockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const finalizedBlockNumber = pendingEntity.finalizedBlockNumber}
-					{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
-						<div>
-							<dt>Finalized block number</dt>
-							<dd>
-								<NumberValue value={Number(finalizedBlockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const finalizedBlockNumber = resolvedEntity.finalizedBlockNumber}
@@ -250,7 +228,9 @@
 						<div>
 							<dt>Finalized block number</dt>
 							<dd>
-								<NumberValue value={Number(finalizedBlockNumber)} />
+								<NumberValue
+									value={finalizedBlockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -260,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							finalizedBlockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const finalizedBlockHash = pendingEntity.finalizedBlockHash}
-					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
-						<div>
-							<dt>Finalized block hash</dt>
-							<dd>
-								<TruncatedValue value={String((finalizedBlockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const finalizedBlockHash = resolvedEntity.finalizedBlockHash}
@@ -297,24 +266,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							runtimeSpecName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const runtimeSpecName = pendingEntity.runtimeSpecName}
-					{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
-						<div>
-							<dt>Runtime spec</dt>
-							<dd>
-								{String((runtimeSpecName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const runtimeSpecName = resolvedEntity.runtimeSpecName}
@@ -332,24 +290,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							runtimeSpecVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const runtimeSpecVersion = pendingEntity.runtimeSpecVersion}
-					{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
-						<div>
-							<dt>Runtime spec version</dt>
-							<dd>
-								<NumberValue value={Number(runtimeSpecVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const runtimeSpecVersion = resolvedEntity.runtimeSpecVersion}
@@ -357,7 +304,9 @@
 						<div>
 							<dt>Runtime spec version</dt>
 							<dd>
-								<NumberValue value={Number(runtimeSpecVersion)} />
+								<NumberValue
+									value={runtimeSpecVersion}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -367,24 +316,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							runtimeImplVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const runtimeImplVersion = pendingEntity.runtimeImplVersion}
-					{#if runtimeImplVersion !== undefined && runtimeImplVersion !== null}
-						<div>
-							<dt>Runtime implementation version</dt>
-							<dd>
-								<NumberValue value={Number(runtimeImplVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const runtimeImplVersion = resolvedEntity.runtimeImplVersion}
@@ -392,7 +330,9 @@
 						<div>
 							<dt>Runtime implementation version</dt>
 							<dd>
-								<NumberValue value={Number(runtimeImplVersion)} />
+								<NumberValue
+									value={runtimeImplVersion}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -402,24 +342,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerCount = pendingEntity.peerCount}
-					{#if peerCount !== undefined && peerCount !== null}
-						<div>
-							<dt>Peers</dt>
-							<dd>
-								<NumberValue value={Number(peerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerCount = resolvedEntity.peerCount}
@@ -427,7 +356,9 @@
 						<div>
 							<dt>Peers</dt>
 							<dd>
-								<NumberValue value={Number(peerCount)} />
+								<NumberValue
+									value={peerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -437,24 +368,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isSyncing: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isSyncing = pendingEntity.isSyncing}
-					{#if isSyncing !== undefined && isSyncing !== null}
-						<div>
-							<dt>Syncing</dt>
-							<dd>
-								{isSyncing ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isSyncing = resolvedEntity.isSyncing}
@@ -472,24 +392,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							shouldHavePeers: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const shouldHavePeers = pendingEntity.shouldHavePeers}
-					{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
-						<div>
-							<dt>Should have peers</dt>
-							<dd>
-								{shouldHavePeers ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const shouldHavePeers = resolvedEntity.shouldHavePeers}
@@ -509,24 +418,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetCount = pendingEntity.subnetCount}
-					{#if subnetCount !== undefined && subnetCount !== null}
-						<div>
-							<dt>Subnets</dt>
-							<dd>
-								<NumberValue value={Number(subnetCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetCount = resolvedEntity.subnetCount}
@@ -534,7 +432,9 @@
 						<div>
 							<dt>Subnets</dt>
 							<dd>
-								<NumberValue value={Number(subnetCount)} />
+								<NumberValue
+									value={subnetCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -544,24 +444,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetsInfoByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetsInfoByteLength = pendingEntity.subnetsInfoByteLength}
-					{#if subnetsInfoByteLength !== undefined && subnetsInfoByteLength !== null}
-						<div>
-							<dt>Subnet info bytes</dt>
-							<dd>
-								<NumberValue value={Number(subnetsInfoByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetsInfoByteLength = resolvedEntity.subnetsInfoByteLength}
@@ -569,7 +458,9 @@
 						<div>
 							<dt>Subnet info bytes</dt>
 							<dd>
-								<NumberValue value={Number(subnetsInfoByteLength)} />
+								<NumberValue
+									value={subnetsInfoByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -579,24 +470,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							dynamicInfoByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const dynamicInfoByteLength = pendingEntity.dynamicInfoByteLength}
-					{#if dynamicInfoByteLength !== undefined && dynamicInfoByteLength !== null}
-						<div>
-							<dt>Dynamic info bytes</dt>
-							<dd>
-								<NumberValue value={Number(dynamicInfoByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const dynamicInfoByteLength = resolvedEntity.dynamicInfoByteLength}
@@ -604,7 +484,9 @@
 						<div>
 							<dt>Dynamic info bytes</dt>
 							<dd>
-								<NumberValue value={Number(dynamicInfoByteLength)} />
+								<NumberValue
+									value={dynamicInfoByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -614,24 +496,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							metagraphsByteLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const metagraphsByteLength = pendingEntity.metagraphsByteLength}
-					{#if metagraphsByteLength !== undefined && metagraphsByteLength !== null}
-						<div>
-							<dt>Metagraph bytes</dt>
-							<dd>
-								<NumberValue value={Number(metagraphsByteLength)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const metagraphsByteLength = resolvedEntity.metagraphsByteLength}
@@ -639,7 +510,9 @@
 						<div>
 							<dt>Metagraph bytes</dt>
 							<dd>
-								<NumberValue value={Number(metagraphsByteLength)} />
+								<NumberValue
+									value={metagraphsByteLength}
+								/>
 							</dd>
 						</div>
 					{/if}

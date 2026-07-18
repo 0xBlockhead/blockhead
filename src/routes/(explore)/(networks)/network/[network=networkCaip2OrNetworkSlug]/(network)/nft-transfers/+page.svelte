@@ -52,6 +52,9 @@
 					})
 				}
 				id='nft-token-transfers'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import KaspaAddressUtxo_TimestampView from '$/views/KaspaAddressUtxo_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddressUtxo_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.KaspaAddressUtxo_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(kaspaAddressUtxoTimestamps) => [...new Map(kaspaAddressUtxoTimestamps.values.map((kaspaAddressUtxoTimestamp) => [kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey], kaspaAddressUtxoTimestamp])).values()]}
+	getKey={(kaspaAddressUtxoTimestamp) => kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Kaspa address UTXO observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(kaspaAddressUtxoTimestamps)}
-			{@const uniqueKaspaAddressUtxoTimestamps = [...new Map(kaspaAddressUtxoTimestamps.values.map((kaspaAddressUtxoTimestamp) => [kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey], kaspaAddressUtxoTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.KaspaAddressUtxo_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={kaspaAddressUtxoTimestamps.totalCount}
-				getKey={(kaspaAddressUtxoTimestamp) => kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueKaspaAddressUtxoTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Kaspa address UTXO observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: kaspaAddressUtxoTimestamp })}
-					{@const kaspaAddressUtxoTimestampFields = { ...kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], ...kaspaAddressUtxoTimestamp }}
-					{@const selection = select(EntityType.KaspaAddressUtxo_Timestamp, kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<KaspaAddressUtxo_TimestampView
-						selection={selection}
-						prefetched={kaspaAddressUtxoTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.KaspaAddressUtxo_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: kaspaAddressUtxoTimestamp })}
+		{@const kaspaAddressUtxoTimestampFields = { ...kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], ...kaspaAddressUtxoTimestamp }}
+		{@const selection = select(EntityType.KaspaAddressUtxo_Timestamp, kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<KaspaAddressUtxo_TimestampView
+			selection={selection}
+			prefetched={kaspaAddressUtxoTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					standard: true,
-					$assetInstance: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RegulatedAssetProfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RegulatedAssetProfile}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				standard: true,
+				$assetInstance: true,
+			},
+		})
+	}
+	getResourceItems={(regulatedAssetProfiles) => [...new Map(regulatedAssetProfiles.values.map((regulatedAssetProfile) => [regulatedAssetProfile[EntityMetaKey.SelectorKey], regulatedAssetProfile])).values()]}
+	getKey={(regulatedAssetProfile) => regulatedAssetProfile[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Regulated asset profiles yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(regulatedAssetProfiles)}
-			{@const uniqueRegulatedAssetProfiles = [...new Map(regulatedAssetProfiles.values.map((regulatedAssetProfile) => [regulatedAssetProfile[EntityMetaKey.SelectorKey], regulatedAssetProfile])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RegulatedAssetProfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={regulatedAssetProfiles.totalCount}
-				getKey={(regulatedAssetProfile) => regulatedAssetProfile[EntityMetaKey.SelectorKey]}
-				items={uniqueRegulatedAssetProfiles}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Regulated asset profiles yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: regulatedAssetProfile })}
-					{@const regulatedAssetProfileFields = { ...regulatedAssetProfile[EntityMetaKey.Selector], ...regulatedAssetProfile }}
-					{@const selection = select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RegulatedAssetProfileView
-						selection={selection}
-						prefetched={regulatedAssetProfileFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RegulatedAssetProfile}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: regulatedAssetProfile })}
+		{@const regulatedAssetProfileFields = { ...regulatedAssetProfile[EntityMetaKey.Selector], ...regulatedAssetProfile }}
+		{@const selection = select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RegulatedAssetProfileView
+			selection={selection}
+			prefetched={regulatedAssetProfileFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

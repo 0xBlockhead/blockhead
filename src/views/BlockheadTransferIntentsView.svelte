@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadTransferIntentView from '$/views/BlockheadTransferIntentView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$sessionAction: true,
-					amount: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadTransferIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadTransferIntent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$sessionAction: true,
+				amount: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadTransferIntents) => [...new Map(blockheadTransferIntents.values.map((blockheadTransferIntent) => [blockheadTransferIntent[EntityMetaKey.SelectorKey], blockheadTransferIntent])).values()]}
+	getKey={(blockheadTransferIntent) => blockheadTransferIntent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead transfer intents yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadTransferIntents)}
-			{@const uniqueBlockheadTransferIntents = [...new Map(blockheadTransferIntents.values.map((blockheadTransferIntent) => [blockheadTransferIntent[EntityMetaKey.SelectorKey], blockheadTransferIntent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadTransferIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadTransferIntents.totalCount}
-				getKey={(blockheadTransferIntent) => blockheadTransferIntent[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadTransferIntents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead transfer intents yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadTransferIntent })}
-					{@const blockheadTransferIntentFields = { ...blockheadTransferIntent[EntityMetaKey.Selector], ...blockheadTransferIntent }}
-					{@const selection = select(EntityType.BlockheadTransferIntent, blockheadTransferIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadTransferIntentView
-						selection={selection}
-						prefetched={blockheadTransferIntentFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadTransferIntent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadTransferIntent })}
+		{@const blockheadTransferIntentFields = { ...blockheadTransferIntent[EntityMetaKey.Selector], ...blockheadTransferIntent }}
+		{@const selection = select(EntityType.BlockheadTransferIntent, blockheadTransferIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadTransferIntentView
+			selection={selection}
+			prefetched={blockheadTransferIntentFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

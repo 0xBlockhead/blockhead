@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadActionOutcome_TimestampView from '$/views/BlockheadActionOutcome_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadActionOutcome_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadActionOutcome_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadActionOutcomeTimestamps) => [...new Map(blockheadActionOutcomeTimestamps.values.map((blockheadActionOutcomeTimestamp) => [blockheadActionOutcomeTimestamp[EntityMetaKey.SelectorKey], blockheadActionOutcomeTimestamp])).values()]}
+	getKey={(blockheadActionOutcomeTimestamp) => blockheadActionOutcomeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead action outcome observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadActionOutcomeTimestamps)}
-			{@const uniqueBlockheadActionOutcomeTimestamps = [...new Map(blockheadActionOutcomeTimestamps.values.map((blockheadActionOutcomeTimestamp) => [blockheadActionOutcomeTimestamp[EntityMetaKey.SelectorKey], blockheadActionOutcomeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadActionOutcome_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadActionOutcomeTimestamps.totalCount}
-				getKey={(blockheadActionOutcomeTimestamp) => blockheadActionOutcomeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadActionOutcomeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead action outcome observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadActionOutcomeTimestamp })}
-					{@const blockheadActionOutcomeTimestampFields = { ...blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], ...blockheadActionOutcomeTimestamp }}
-					{@const selection = select(EntityType.BlockheadActionOutcome_Timestamp, blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadActionOutcome_TimestampView
-						selection={selection}
-						prefetched={blockheadActionOutcomeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadActionOutcome_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadActionOutcomeTimestamp })}
+		{@const blockheadActionOutcomeTimestampFields = { ...blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], ...blockheadActionOutcomeTimestamp }}
+		{@const selection = select(EntityType.BlockheadActionOutcome_Timestamp, blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadActionOutcome_TimestampView
+			selection={selection}
+			prefetched={blockheadActionOutcomeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

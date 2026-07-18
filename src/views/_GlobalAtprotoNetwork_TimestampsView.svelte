@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalAtprotoNetwork_TimestampView from '$/views/_GlobalAtprotoNetwork_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAtprotoNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalAtprotoNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(globalAtprotoNetworkTimestamps) => [...new Map(globalAtprotoNetworkTimestamps.values.map((globalAtprotoNetworkTimestamp) => [globalAtprotoNetworkTimestamp[EntityMetaKey.SelectorKey], globalAtprotoNetworkTimestamp])).values()]}
+	getKey={(globalAtprotoNetworkTimestamp) => globalAtprotoNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AT Protocol hub observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalAtprotoNetworkTimestamps)}
-			{@const uniqueGlobalAtprotoNetworkTimestamps = [...new Map(globalAtprotoNetworkTimestamps.values.map((globalAtprotoNetworkTimestamp) => [globalAtprotoNetworkTimestamp[EntityMetaKey.SelectorKey], globalAtprotoNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAtprotoNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAtprotoNetworkTimestamps.totalCount}
-				getKey={(globalAtprotoNetworkTimestamp) => globalAtprotoNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalAtprotoNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AT Protocol hub observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalAtprotoNetworkTimestamp })}
-					{@const globalAtprotoNetworkTimestampFields = { ...globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], ...globalAtprotoNetworkTimestamp }}
-					{@const selection = select(EntityType._GlobalAtprotoNetwork_Timestamp, globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GlobalAtprotoNetwork_TimestampView
-						selection={selection}
-						prefetched={globalAtprotoNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalAtprotoNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalAtprotoNetworkTimestamp })}
+		{@const globalAtprotoNetworkTimestampFields = { ...globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], ...globalAtprotoNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalAtprotoNetwork_Timestamp, globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalAtprotoNetwork_TimestampView
+			selection={selection}
+			prefetched={globalAtprotoNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

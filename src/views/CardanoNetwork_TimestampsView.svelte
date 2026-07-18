@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoNetwork_TimestampView from '$/views/CardanoNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoNetworkTimestamps) => [...new Map(cardanoNetworkTimestamps.values.map((cardanoNetworkTimestamp) => [cardanoNetworkTimestamp[EntityMetaKey.SelectorKey], cardanoNetworkTimestamp])).values()]}
+	getKey={(cardanoNetworkTimestamp) => cardanoNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoNetworkTimestamps)}
-			{@const uniqueCardanoNetworkTimestamps = [...new Map(cardanoNetworkTimestamps.values.map((cardanoNetworkTimestamp) => [cardanoNetworkTimestamp[EntityMetaKey.SelectorKey], cardanoNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoNetworkTimestamps.totalCount}
-				getKey={(cardanoNetworkTimestamp) => cardanoNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoNetworkTimestamp })}
-					{@const cardanoNetworkTimestampFields = { ...cardanoNetworkTimestamp[EntityMetaKey.Selector], ...cardanoNetworkTimestamp }}
-					{@const selection = select(EntityType.CardanoNetwork_Timestamp, cardanoNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoNetwork_TimestampView
-						selection={selection}
-						prefetched={cardanoNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoNetworkTimestamp })}
+		{@const cardanoNetworkTimestampFields = { ...cardanoNetworkTimestamp[EntityMetaKey.Selector], ...cardanoNetworkTimestamp }}
+		{@const selection = select(EntityType.CardanoNetwork_Timestamp, cardanoNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoNetwork_TimestampView
+			selection={selection}
+			prefetched={cardanoNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

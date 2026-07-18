@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosMessageView from '$/views/CosmosMessageView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInTransaction: true,
-					typeUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosMessage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				indexInTransaction: true,
+				typeUrl: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosMessages) => [...new Map(cosmosMessages.values.map((cosmosMessage) => [cosmosMessage[EntityMetaKey.SelectorKey], cosmosMessage])).values()]}
+	getKey={(cosmosMessage) => cosmosMessage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos messages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosMessages)}
-			{@const uniqueCosmosMessages = [...new Map(cosmosMessages.values.map((cosmosMessage) => [cosmosMessage[EntityMetaKey.SelectorKey], cosmosMessage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosMessages.totalCount}
-				getKey={(cosmosMessage) => cosmosMessage[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosMessages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos messages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosMessage })}
-					{@const cosmosMessageFields = { ...cosmosMessage[EntityMetaKey.Selector], ...cosmosMessage }}
-					{@const selection = select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosMessageView
-						selection={selection}
-						prefetched={cosmosMessageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosMessage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosMessage })}
+		{@const cosmosMessageFields = { ...cosmosMessage[EntityMetaKey.Selector], ...cosmosMessage }}
+		{@const selection = select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosMessageView
+			selection={selection}
+			prefetched={cosmosMessageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

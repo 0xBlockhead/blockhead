@@ -21,6 +21,7 @@
 	const pageSelection = $derived(select(EntityType.RedditComment, data.selector, {
 		sources: [
 			Source.Constants_Internal,
+			Source.Reddit_PublicJson,
 		],
 		fields: {
 			body: true,

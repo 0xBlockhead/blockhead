@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cashuKeysetTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			active: true,
 			inputFeePpk: true,
@@ -70,35 +70,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cashuKeysetTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={cashuKeysetTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cashuKeysetTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.active) ?? ''), String((pendingEntity.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.active) ?? ''), String((resolvedEntity.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.active) ?? ''), String((pendingEntity.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cashuKeysetTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.active) ?? ''), String((resolvedEntity.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -150,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -177,27 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							active: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const active = pendingEntity.active}
-					{#if active !== undefined && active !== null}
-						<div>
-							<dt>active</dt>
-							<dd>
-								{active ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const active = resolvedEntity.active}
@@ -217,27 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
+						sources: selection.sources,
 						fields: {
 							inputFeePpk: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const inputFeePpk = pendingEntity.inputFeePpk}
-					{#if inputFeePpk !== undefined && inputFeePpk !== null}
-						<div>
-							<dt>input fee ppk</dt>
-							<dd>
-								<NumberValue value={Number(inputFeePpk)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const inputFeePpk = resolvedEntity.inputFeePpk}
@@ -245,7 +205,9 @@
 						<div>
 							<dt>input fee ppk</dt>
 							<dd>
-								<NumberValue value={Number(inputFeePpk)} />
+								<NumberValue
+									value={inputFeePpk}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -255,24 +217,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							finalExpiryMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const finalExpiryMs = pendingEntity.finalExpiryMs}
-					{#if finalExpiryMs !== undefined && finalExpiryMs !== null}
-						<div>
-							<dt>final expiry ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(finalExpiryMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const finalExpiryMs = resolvedEntity.finalExpiryMs}
@@ -290,24 +241,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listedByKeysEndpoint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listedByKeysEndpoint = pendingEntity.listedByKeysEndpoint}
-					{#if listedByKeysEndpoint !== undefined && listedByKeysEndpoint !== null}
-						<div>
-							<dt>listed by keys endpoint</dt>
-							<dd>
-								{listedByKeysEndpoint ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listedByKeysEndpoint = resolvedEntity.listedByKeysEndpoint}
@@ -325,24 +265,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listedByKeysetsEndpoint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listedByKeysetsEndpoint = pendingEntity.listedByKeysetsEndpoint}
-					{#if listedByKeysetsEndpoint !== undefined && listedByKeysetsEndpoint !== null}
-						<div>
-							<dt>listed by keysets endpoint</dt>
-							<dd>
-								{listedByKeysetsEndpoint ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listedByKeysetsEndpoint = resolvedEntity.listedByKeysetsEndpoint}

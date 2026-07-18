@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoveModuleView from '$/views/MoveModuleView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					moduleName: true,
-					address: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveModule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoveModule}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				moduleName: true,
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(moveModules) => [...new Map(moveModules.values.map((moveModule) => [moveModule[EntityMetaKey.SelectorKey], moveModule])).values()]}
+	getKey={(moveModule) => moveModule[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Move modules yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moveModules)}
-			{@const uniqueMoveModules = [...new Map(moveModules.values.map((moveModule) => [moveModule[EntityMetaKey.SelectorKey], moveModule])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveModule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moveModules.totalCount}
-				getKey={(moveModule) => moveModule[EntityMetaKey.SelectorKey]}
-				items={uniqueMoveModules}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Move modules yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moveModule })}
-					{@const moveModuleFields = { ...moveModule[EntityMetaKey.Selector], ...moveModule }}
-					{@const selection = select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoveModuleView
-						selection={selection}
-						prefetched={moveModuleFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoveModule}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moveModule })}
+		{@const moveModuleFields = { ...moveModule[EntityMetaKey.Selector], ...moveModule }}
+		{@const selection = select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoveModuleView
+			selection={selection}
+			prefetched={moveModuleFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

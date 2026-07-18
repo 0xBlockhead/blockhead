@@ -3,10 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +52,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
 </script>
@@ -62,82 +63,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.Lotus_JsonRpc,
-					Source.Filfox_Rest,
-				],
-				fields: {
-					address: true,
-					balanceAttoFil: true,
-					actorCodeCid: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinActor}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+			fields: {
+				address: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinActors) => [...new Map(filecoinActors.values.map((filecoinActor) => [filecoinActor[EntityMetaKey.SelectorKey], filecoinActor])).values()]}
+	getKey={(filecoinActor) => filecoinActor[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin actors yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinActors)}
-			{@const uniqueFilecoinActors = [...new Map(filecoinActors.values.map((filecoinActor) => [filecoinActor[EntityMetaKey.SelectorKey], filecoinActor])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinActors.totalCount}
-				getKey={(filecoinActor) => filecoinActor[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinActors}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin actors yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinActor })}
-					{@const filecoinActorFields = { ...filecoinActor[EntityMetaKey.Selector], ...filecoinActor }}
-					{@const selection = select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinActorView
-						selection={selection}
-						prefetched={filecoinActorFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinActor}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinActor })}
+		{@const filecoinActorFields = { ...filecoinActor[EntityMetaKey.Selector], ...filecoinActor }}
+		{@const selection = select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const filecoinActorHrefFields = { ...filecoinActor, ...filecoinActor[EntityMetaKey.Selector] }}
+		<FilecoinActorView
+			selection={selection}
+			prefetched={filecoinActorFields}
+			href={
+				(filecoinActorHrefFields.address !== undefined && filecoinActorHrefFields.$network !== undefined && filecoinActorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+					address: String(filecoinActorHrefFields.address ?? ''),
+					network: String(caip2StringFromValue(filecoinActorHrefFields.$network.caip2) ?? ''),
+				}) : filecoinActorHrefFields.address !== undefined && filecoinActorHrefFields.$network !== undefined && filecoinActorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+					address: String(filecoinActorHrefFields.address ?? ''),
+					network: String(filecoinActorHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

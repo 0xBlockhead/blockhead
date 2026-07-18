@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ZcashShieldedPoolView from '$/views/ZcashShieldedPoolView.svelte'
 </script>
@@ -63,89 +62,56 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					pool: true,
-					noteProtocol: true,
-					activationNetworkUpgrade: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZcashShieldedPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ZcashShieldedPool}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				pool: true,
+				noteProtocol: true,
+				activationNetworkUpgrade: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(zcashShieldedPools) => [...new Map(zcashShieldedPools.values.map((zcashShieldedPool) => [zcashShieldedPool[EntityMetaKey.SelectorKey], zcashShieldedPool])).values()]}
+	getKey={(zcashShieldedPool) => zcashShieldedPool[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Zcash shielded pools yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(zcashShieldedPools)}
-			{@const uniqueZcashShieldedPools = [...new Map(zcashShieldedPools.values.map((zcashShieldedPool) => [zcashShieldedPool[EntityMetaKey.SelectorKey], zcashShieldedPool])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZcashShieldedPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zcashShieldedPools.totalCount}
-				getKey={(zcashShieldedPool) => zcashShieldedPool[EntityMetaKey.SelectorKey]}
-				items={uniqueZcashShieldedPools}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Zcash shielded pools yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: zcashShieldedPool })}
-					{@const zcashShieldedPoolFields = { ...zcashShieldedPool[EntityMetaKey.Selector], ...zcashShieldedPool }}
-					{@const selection = select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const zcashShieldedPoolHrefFields = { ...zcashShieldedPool, ...zcashShieldedPool[EntityMetaKey.Selector] }}
-					<ZcashShieldedPoolView
-						selection={selection}
-						prefetched={zcashShieldedPoolFields}
-						href={
-							(zcashShieldedPoolHrefFields.pool !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-								pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
-								network: String(caip2StringFromValue(zcashShieldedPoolHrefFields.$network.caip2) ?? ''),
-							}) : zcashShieldedPoolHrefFields.pool !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-								pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
-								network: String(zcashShieldedPoolHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ZcashShieldedPool}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: zcashShieldedPool })}
+		{@const zcashShieldedPoolFields = { ...zcashShieldedPool[EntityMetaKey.Selector], ...zcashShieldedPool }}
+		{@const selection = select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const zcashShieldedPoolHrefFields = { ...zcashShieldedPool, ...zcashShieldedPool[EntityMetaKey.Selector] }}
+		<ZcashShieldedPoolView
+			selection={selection}
+			prefetched={zcashShieldedPoolFields}
+			href={
+				(zcashShieldedPoolHrefFields.pool !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+					pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
+					network: String(caip2StringFromValue(zcashShieldedPoolHrefFields.$network.caip2) ?? ''),
+				}) : zcashShieldedPoolHrefFields.pool !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+					pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
+					network: String(zcashShieldedPoolHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

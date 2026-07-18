@@ -41,7 +41,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const swapQuoteStep = $derived(selection({}))
+	const swapQuoteStep = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('swap quote step')
 	const viewDomId = $derived('swap-quote-step-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -65,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={swapQuoteStep}>
-			{#snippet Pending()}
-				{title || 'swap quote step'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={swapQuoteStep}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInQuote: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInQuote = pendingEntity.indexInQuote}
-							{#if indexInQuote !== undefined && indexInQuote !== null}
-								{String((indexInQuote) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInQuote = resolvedEntity.indexInQuote}
@@ -123,24 +119,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							providerStepId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const providerStepId = pendingEntity.providerStepId}
-					{#if providerStepId !== undefined && providerStepId !== null}
-						<div>
-							<dt>provider step ID</dt>
-							<dd>
-								{String((providerStepId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const providerStepId = resolvedEntity.providerStepId}
@@ -158,24 +143,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stepType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stepType = pendingEntity.stepType}
-					{#if stepType !== undefined && stepType !== null}
-						<div>
-							<dt>step type</dt>
-							<dd>
-								{String((stepType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stepType = resolvedEntity.stepType}
@@ -193,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocol = pendingEntity.protocol}
-					{#if protocol !== undefined && protocol !== null}
-						<div>
-							<dt>protocol</dt>
-							<dd>
-								{String((protocol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocol = resolvedEntity.protocol}
@@ -228,24 +191,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							poolId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const poolId = pendingEntity.poolId}
-					{#if poolId !== undefined && poolId !== null}
-						<div>
-							<dt>pool ID</dt>
-							<dd>
-								{String((poolId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const poolId = resolvedEntity.poolId}
@@ -263,8 +215,6 @@
 			<ResourceBoundary
 				resource={selection.$liquidityPool}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(liquidityPool)}
 					{#if liquidityPool != null && liquidityPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -291,8 +241,6 @@
 			<ResourceBoundary
 				resource={selection.$tokenIn}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -322,8 +270,6 @@
 			<ResourceBoundary
 				resource={selection.$tokenOut}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -353,24 +299,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amountIn: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountIn = pendingEntity.amountIn}
-					{#if amountIn !== undefined && amountIn !== null}
-						<div>
-							<dt>amount in</dt>
-							<dd>
-								{String((amountIn) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountIn = resolvedEntity.amountIn}
@@ -388,24 +323,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amountOut: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountOut = pendingEntity.amountOut}
-					{#if amountOut !== undefined && amountOut !== null}
-						<div>
-							<dt>amount out</dt>
-							<dd>
-								{String((amountOut) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountOut = resolvedEntity.amountOut}
@@ -423,24 +347,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							feeBps: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const feeBps = pendingEntity.feeBps}
-					{#if feeBps !== undefined && feeBps !== null}
-						<div>
-							<dt>fee bps</dt>
-							<dd>
-								{String((feeBps) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const feeBps = resolvedEntity.feeBps}
@@ -458,24 +371,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							shareBps: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const shareBps = pendingEntity.shareBps}
-					{#if shareBps !== undefined && shareBps !== null}
-						<div>
-							<dt>share bps</dt>
-							<dd>
-								{String((shareBps) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const shareBps = resolvedEntity.shareBps}
@@ -493,24 +395,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasEstimate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasEstimate = pendingEntity.gasEstimate}
-					{#if gasEstimate !== undefined && gasEstimate !== null}
-						<div>
-							<dt>gas estimate</dt>
-							<dd>
-								{String((gasEstimate) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasEstimate = resolvedEntity.gasEstimate}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCashuProof_TimestampView from '$/views/BlockheadCashuProof_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					state: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuProof_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCashuProof_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				state: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCashuProofTimestamps) => [...new Map(blockheadCashuProofTimestamps.values.map((blockheadCashuProofTimestamp) => [blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey], blockheadCashuProofTimestamp])).values()]}
+	getKey={(blockheadCashuProofTimestamp) => blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Cashu proof observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCashuProofTimestamps)}
-			{@const uniqueBlockheadCashuProofTimestamps = [...new Map(blockheadCashuProofTimestamps.values.map((blockheadCashuProofTimestamp) => [blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey], blockheadCashuProofTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCashuProof_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCashuProofTimestamps.totalCount}
-				getKey={(blockheadCashuProofTimestamp) => blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCashuProofTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Cashu proof observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCashuProofTimestamp })}
-					{@const blockheadCashuProofTimestampFields = { ...blockheadCashuProofTimestamp[EntityMetaKey.Selector], ...blockheadCashuProofTimestamp }}
-					{@const selection = select(EntityType.BlockheadCashuProof_Timestamp, blockheadCashuProofTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCashuProof_TimestampView
-						selection={selection}
-						prefetched={blockheadCashuProofTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCashuProof_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCashuProofTimestamp })}
+		{@const blockheadCashuProofTimestampFields = { ...blockheadCashuProofTimestamp[EntityMetaKey.Selector], ...blockheadCashuProofTimestamp }}
+		{@const selection = select(EntityType.BlockheadCashuProof_Timestamp, blockheadCashuProofTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCashuProof_TimestampView
+			selection={selection}
+			prefetched={blockheadCashuProofTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

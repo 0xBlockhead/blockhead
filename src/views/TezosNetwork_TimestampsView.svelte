@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosNetwork_TimestampView from '$/views/TezosNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosNetworkTimestamps) => [...new Map(tezosNetworkTimestamps.values.map((tezosNetworkTimestamp) => [tezosNetworkTimestamp[EntityMetaKey.SelectorKey], tezosNetworkTimestamp])).values()]}
+	getKey={(tezosNetworkTimestamp) => tezosNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosNetworkTimestamps)}
-			{@const uniqueTezosNetworkTimestamps = [...new Map(tezosNetworkTimestamps.values.map((tezosNetworkTimestamp) => [tezosNetworkTimestamp[EntityMetaKey.SelectorKey], tezosNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosNetworkTimestamps.totalCount}
-				getKey={(tezosNetworkTimestamp) => tezosNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosNetworkTimestamp })}
-					{@const tezosNetworkTimestampFields = { ...tezosNetworkTimestamp[EntityMetaKey.Selector], ...tezosNetworkTimestamp }}
-					{@const selection = select(EntityType.TezosNetwork_Timestamp, tezosNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosNetwork_TimestampView
-						selection={selection}
-						prefetched={tezosNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosNetworkTimestamp })}
+		{@const tezosNetworkTimestampFields = { ...tezosNetworkTimestamp[EntityMetaKey.Selector], ...tezosNetworkTimestamp }}
+		{@const selection = select(EntityType.TezosNetwork_Timestamp, tezosNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosNetwork_TimestampView
+			selection={selection}
+			prefetched={tezosNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

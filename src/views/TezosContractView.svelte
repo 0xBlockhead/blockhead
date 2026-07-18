@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosContract = $derived(selection({}))
+	const tezosContract = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('tezos contract')
 	const viewDomId = $derived('tezos-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tezosContract}>
-			{#snippet Pending()}
-				{title || 'tezos contract'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tezosContract}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -129,24 +125,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							scriptHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const scriptHash = pendingEntity.scriptHash}
-					{#if scriptHash !== undefined && scriptHash !== null}
-						<div>
-							<dt>script hash</dt>
-							<dd>
-								<TruncatedValue value={String((scriptHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const scriptHash = resolvedEntity.scriptHash}
@@ -164,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							codeHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const codeHash = pendingEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
-						<div>
-							<dt>code hash</dt>
-							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const codeHash = resolvedEntity.codeHash}
@@ -199,8 +173,6 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -221,8 +193,6 @@
 			<ResourceBoundary
 				resource={selection.$script}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tezosMichelsonScript)}
 					{#if tezosMichelsonScript != null && tezosMichelsonScript[EntityMetaKey.Selector] != null}
 						<div>
@@ -265,11 +235,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -277,12 +244,12 @@
 
 				{#snippet SectionTezosContractEntrypoints({ id, label, open })}
 					<TezosEntrypointsView
-						selection={
-							selection.$$entrypoints({
-								count: true,
-							})
-						}
+						selection={selection.$$entrypoints}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No entrypoints.'
 						open={open}
 						title={label}
@@ -292,12 +259,12 @@
 
 				{#snippet SectionTezosContractBigMaps({ id, label, open })}
 					<TezosBigMapsView
-						selection={
-							selection.$$bigMaps({
-								count: true,
-							})
-						}
+						selection={selection.$$bigMaps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No big maps.'
 						open={open}
 						title={label}
@@ -307,12 +274,12 @@
 
 				{#snippet SectionTezosContractOperations({ id, label, open })}
 					<TezosOperationsView
-						selection={
-							selection.$$operations({
-								count: true,
-							})
-						}
+						selection={selection.$$operations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No operations.'
 						open={open}
 						title={label}
@@ -335,11 +302,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -347,12 +311,12 @@
 
 				{#snippet SectionTezosContractTimestamps({ id, label, open })}
 					<TezosContract_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

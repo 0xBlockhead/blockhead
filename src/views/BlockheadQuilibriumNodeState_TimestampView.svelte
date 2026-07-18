@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,11 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadQuilibriumNodeStateTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-			Source.QuilibriumNodeMetrics_Prometheus,
-			Source.QuilibriumNode_Grpc,
-		],
+		sources: selection.sources,
 		fields: {
 			engineState: true,
 			latestFrameNumber: true,
@@ -76,58 +71,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.engineState) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium node state timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.engineState) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.engineState) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.engineState) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const latestFrameNumber0 = pendingEntity.latestFrameNumber}
-				{#if latestFrameNumber0 !== undefined && latestFrameNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(latestFrameNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const latestFrameNumber0 = resolvedEntity.latestFrameNumber}
-				{#if latestFrameNumber0 !== undefined && latestFrameNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(latestFrameNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const latestFrameNumber0 = pendingEntity.latestFrameNumber}
+			{#if latestFrameNumber0 !== undefined && latestFrameNumber0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={latestFrameNumber0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestFrameNumber0 = resolvedEntity.latestFrameNumber}
+					{#if latestFrameNumber0 !== undefined && latestFrameNumber0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={latestFrameNumber0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -179,19 +172,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -206,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeVersion = pendingEntity.nodeVersion}
-					{#if nodeVersion !== undefined && nodeVersion !== null}
-						<div>
-							<dt>node version</dt>
-							<dd>
-								{String((nodeVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeVersion = resolvedEntity.nodeVersion}
@@ -241,24 +217,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							engineState: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const engineState = pendingEntity.engineState}
-					{#if engineState !== undefined && engineState !== null}
-						<div>
-							<dt>engine state</dt>
-							<dd>
-								{String((engineState) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const engineState = resolvedEntity.engineState}
@@ -278,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestFrameNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestFrameNumber = pendingEntity.latestFrameNumber}
-					{#if latestFrameNumber !== undefined && latestFrameNumber !== null}
-						<div>
-							<dt>latest frame number</dt>
-							<dd>
-								<NumberValue value={Number(latestFrameNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestFrameNumber = resolvedEntity.latestFrameNumber}
@@ -303,7 +257,9 @@
 						<div>
 							<dt>latest frame number</dt>
 							<dd>
-								<NumberValue value={Number(latestFrameNumber)} />
+								<NumberValue
+									value={latestFrameNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -313,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestFrameHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestFrameHash = pendingEntity.latestFrameHash}
-					{#if latestFrameHash !== undefined && latestFrameHash !== null}
-						<div>
-							<dt>latest frame hash</dt>
-							<dd>
-								<TruncatedValue value={String((latestFrameHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestFrameHash = resolvedEntity.latestFrameHash}
@@ -348,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							difficulty: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const difficulty = pendingEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
-						<div>
-							<dt>difficulty</dt>
-							<dd>
-								<NumberValue value={Number(difficulty)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const difficulty = resolvedEntity.difficulty}
@@ -373,7 +307,9 @@
 						<div>
 							<dt>difficulty</dt>
 							<dd>
-								<NumberValue value={Number(difficulty)} />
+								<NumberValue
+									value={difficulty}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -385,24 +321,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerCount = pendingEntity.peerCount}
-					{#if peerCount !== undefined && peerCount !== null}
-						<div>
-							<dt>peer count</dt>
-							<dd>
-								<NumberValue value={Number(peerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerCount = resolvedEntity.peerCount}
@@ -410,7 +335,9 @@
 						<div>
 							<dt>peer count</dt>
 							<dd>
-								<NumberValue value={Number(peerCount)} />
+								<NumberValue
+									value={peerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -420,24 +347,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pendingMessageCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pendingMessageCount = pendingEntity.pendingMessageCount}
-					{#if pendingMessageCount !== undefined && pendingMessageCount !== null}
-						<div>
-							<dt>pending message count</dt>
-							<dd>
-								<NumberValue value={Number(pendingMessageCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pendingMessageCount = resolvedEntity.pendingMessageCount}
@@ -445,7 +361,9 @@
 						<div>
 							<dt>pending message count</dt>
 							<dd>
-								<NumberValue value={Number(pendingMessageCount)} />
+								<NumberValue
+									value={pendingMessageCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -455,24 +373,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							frameStoreHead: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const frameStoreHead = pendingEntity.frameStoreHead}
-					{#if frameStoreHead !== undefined && frameStoreHead !== null}
-						<div>
-							<dt>frame store head</dt>
-							<dd>
-								<NumberValue value={Number(frameStoreHead)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const frameStoreHead = resolvedEntity.frameStoreHead}
@@ -480,7 +387,9 @@
 						<div>
 							<dt>frame store head</dt>
 							<dd>
-								<NumberValue value={Number(frameStoreHead)} />
+								<NumberValue
+									value={frameStoreHead}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -490,24 +399,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSyncedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
-						<div>
-							<dt>last synced AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}

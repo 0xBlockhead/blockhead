@@ -37,12 +37,6 @@ export const SolanaTokenMint = entity({
 			Source.Solana_JsonRpc,
 		],
 	},
-	$$tokenAccounts: {
-		label: 'Token accounts',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.SolanaTokenAccount,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		NetworkMintAddress: [

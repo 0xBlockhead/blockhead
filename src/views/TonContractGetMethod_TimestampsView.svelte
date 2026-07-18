@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonContractGetMethod_TimestampView from '$/views/TonContractGetMethod_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContractGetMethod_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonContractGetMethod_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonContractGetMethodTimestamps) => [...new Map(tonContractGetMethodTimestamps.values.map((tonContractGetMethodTimestamp) => [tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey], tonContractGetMethodTimestamp])).values()]}
+	getKey={(tonContractGetMethodTimestamp) => tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON contract get method observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonContractGetMethodTimestamps)}
-			{@const uniqueTonContractGetMethodTimestamps = [...new Map(tonContractGetMethodTimestamps.values.map((tonContractGetMethodTimestamp) => [tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey], tonContractGetMethodTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonContractGetMethod_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonContractGetMethodTimestamps.totalCount}
-				getKey={(tonContractGetMethodTimestamp) => tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonContractGetMethodTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON contract get method observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonContractGetMethodTimestamp })}
-					{@const tonContractGetMethodTimestampFields = { ...tonContractGetMethodTimestamp[EntityMetaKey.Selector], ...tonContractGetMethodTimestamp }}
-					{@const selection = select(EntityType.TonContractGetMethod_Timestamp, tonContractGetMethodTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonContractGetMethod_TimestampView
-						selection={selection}
-						prefetched={tonContractGetMethodTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonContractGetMethod_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonContractGetMethodTimestamp })}
+		{@const tonContractGetMethodTimestampFields = { ...tonContractGetMethodTimestamp[EntityMetaKey.Selector], ...tonContractGetMethodTimestamp }}
+		{@const selection = select(EntityType.TonContractGetMethod_Timestamp, tonContractGetMethodTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonContractGetMethod_TimestampView
+			selection={selection}
+			prefetched={tonContractGetMethodTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

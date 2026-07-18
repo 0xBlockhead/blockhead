@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalRedditNetworkTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			reachable: true,
 			observedLinkCount: true,
@@ -69,58 +70,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={globalRedditNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.source) ?? ''), String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global Reddit network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.source) ?? ''), String((resolvedEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.source) ?? ''), String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalRedditNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.source) ?? ''), String((resolvedEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const observedLinkCount0 = pendingEntity.observedLinkCount}
-				{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
-					<span data-text="muted">
-						{String((observedLinkCount0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const observedLinkCount0 = resolvedEntity.observedLinkCount}
-				{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
-					<span data-text="muted">
-						{String((observedLinkCount0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const observedLinkCount0 = pendingEntity.observedLinkCount}
+			{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
+				<span data-text="muted">
+					{String((observedLinkCount0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={globalRedditNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const observedLinkCount0 = resolvedEntity.observedLinkCount}
+					{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
+						<span data-text="muted">
+							{String((observedLinkCount0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,19 +132,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -161,19 +156,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -188,24 +177,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reachable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reachable = pendingEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
-						<div>
-							<dt>Reachable</dt>
-							<dd>
-								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reachable = resolvedEntity.reachable}
@@ -223,24 +201,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							listingWindowKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const listingWindowKind = pendingEntity.listingWindowKind}
-					{#if listingWindowKind !== undefined && listingWindowKind !== null}
-						<div>
-							<dt>Listing window kind</dt>
-							<dd>
-								{String((listingWindowKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const listingWindowKind = resolvedEntity.listingWindowKind}
@@ -260,24 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observedSubredditCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observedSubredditCount = pendingEntity.observedSubredditCount}
-					{#if observedSubredditCount !== undefined && observedSubredditCount !== null}
-						<div>
-							<dt>Observed subreddit count</dt>
-							<dd>
-								{String((observedSubredditCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observedSubredditCount = resolvedEntity.observedSubredditCount}
@@ -295,24 +251,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							observedLinkCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const observedLinkCount = pendingEntity.observedLinkCount}
-					{#if observedLinkCount !== undefined && observedLinkCount !== null}
-						<div>
-							<dt>Observed link count</dt>
-							<dd>
-								{String((observedLinkCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const observedLinkCount = resolvedEntity.observedLinkCount}
@@ -330,24 +275,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seededSubredditCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seededSubredditCount = pendingEntity.seededSubredditCount}
-					{#if seededSubredditCount !== undefined && seededSubredditCount !== null}
-						<div>
-							<dt>Seeded subreddit count</dt>
-							<dd>
-								{String((seededSubredditCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seededSubredditCount = resolvedEntity.seededSubredditCount}
@@ -365,24 +299,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							seededLinkCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const seededLinkCount = pendingEntity.seededLinkCount}
-					{#if seededLinkCount !== undefined && seededLinkCount !== null}
-						<div>
-							<dt>Seeded link count</dt>
-							<dd>
-								{String((seededLinkCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const seededLinkCount = resolvedEntity.seededLinkCount}
@@ -402,24 +325,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rateLimitRemaining: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
-					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
-						<div>
-							<dt>Rate limit remaining</dt>
-							<dd>
-								{String((rateLimitRemaining) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rateLimitRemaining = resolvedEntity.rateLimitRemaining}

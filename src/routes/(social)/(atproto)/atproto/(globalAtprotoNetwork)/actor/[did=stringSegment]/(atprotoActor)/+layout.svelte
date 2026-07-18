@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,9 @@
 			{@const DetailView = AtprotoActorView}
 
 			<DetailView
-				selection={select(EntityType.AtprotoActor, data.selector)}
+				selection={select(EntityType.AtprotoActor, data.selector, { sources: [
+		Source.Atproto_Xrpc,
+	] })}
 				href={
 					resolve('/atproto/actor/[did=stringSegment]', {
 						did: params.did,

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					name: true,
-					id: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FarcasterChannel}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				name: true,
+				id: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(farcasterChannels) => [...new Map(farcasterChannels.values.map((farcasterChannel) => [farcasterChannel[EntityMetaKey.SelectorKey], farcasterChannel])).values()]}
+	getKey={(farcasterChannel) => farcasterChannel[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Farcaster channels yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(farcasterChannels)}
-			{@const uniqueFarcasterChannels = [...new Map(farcasterChannels.values.map((farcasterChannel) => [farcasterChannel[EntityMetaKey.SelectorKey], farcasterChannel])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterChannels.totalCount}
-				getKey={(farcasterChannel) => farcasterChannel[EntityMetaKey.SelectorKey]}
-				items={uniqueFarcasterChannels}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Farcaster channels yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: farcasterChannel })}
-					{@const farcasterChannelFields = { ...farcasterChannel[EntityMetaKey.Selector], ...farcasterChannel }}
-					{@const selection = select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const farcasterChannelHrefFields = { ...farcasterChannel, ...farcasterChannel[EntityMetaKey.Selector] }}
-					<FarcasterChannelView
-						selection={selection}
-						prefetched={farcasterChannelFields}
-						href={
-							(farcasterChannelHrefFields.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
-								channelId: String(farcasterChannelHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FarcasterChannel}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: farcasterChannel })}
+		{@const farcasterChannelFields = { ...farcasterChannel[EntityMetaKey.Selector], ...farcasterChannel }}
+		{@const selection = select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const farcasterChannelHrefFields = { ...farcasterChannel, ...farcasterChannel[EntityMetaKey.Selector] }}
+		<FarcasterChannelView
+			selection={selection}
+			prefetched={farcasterChannelFields}
+			href={
+				(farcasterChannelHrefFields.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+					channelId: String(farcasterChannelHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

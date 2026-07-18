@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					ticker: true,
-					marketKind: true,
-					baseAsset: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainMarket}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.DydxChainMarket}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				ticker: true,
+				marketKind: true,
+				baseAsset: true,
+			},
+		})
+	}
+	getResourceItems={(dydxChainMarkets) => [...new Map(dydxChainMarkets.values.map((dydxChainMarket) => [dydxChainMarket[EntityMetaKey.SelectorKey], dydxChainMarket])).values()]}
+	getKey={(dydxChainMarket) => dydxChainMarket[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dydx chain markets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(dydxChainMarkets)}
-			{@const uniqueDydxChainMarkets = [...new Map(dydxChainMarkets.values.map((dydxChainMarket) => [dydxChainMarket[EntityMetaKey.SelectorKey], dydxChainMarket])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.DydxChainMarket}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={dydxChainMarkets.totalCount}
-				getKey={(dydxChainMarket) => dydxChainMarket[EntityMetaKey.SelectorKey]}
-				items={uniqueDydxChainMarkets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dydx chain markets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: dydxChainMarket })}
-					{@const dydxChainMarketFields = { ...dydxChainMarket[EntityMetaKey.Selector], ...dydxChainMarket }}
-					{@const selection = select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<DydxChainMarketView
-						selection={selection}
-						prefetched={dydxChainMarketFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.DydxChainMarket}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: dydxChainMarket })}
+		{@const dydxChainMarketFields = { ...dydxChainMarket[EntityMetaKey.Selector], ...dydxChainMarket }}
+		{@const selection = select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<DydxChainMarketView
+			selection={selection}
+			prefetched={dydxChainMarketFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

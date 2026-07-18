@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -41,9 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ethereumConsensusUpgrade = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			protocol: true,
@@ -84,29 +81,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ethereumConsensusUpgrade}>
-			{#snippet Pending()}
-				{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ethereumConsensusUpgrade}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ethereumConsensusUpgrade}>
-			{#snippet Pending()}
-				{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={ethereumConsensusUpgrade}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -114,24 +111,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocol = pendingEntity.protocol}
-					{#if protocol !== undefined && protocol !== null}
-						<div>
-							<dt>Consensus fork</dt>
-							<dd>
-								{String((protocol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocol = resolvedEntity.protocol}
@@ -149,24 +135,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							activationBlock: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activationBlock = pendingEntity.activationBlock}
-					{#if activationBlock !== undefined && activationBlock !== null}
-						<div>
-							<dt>Activation block</dt>
-							<dd>
-								<NumberValue value={Number(activationBlock)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activationBlock = resolvedEntity.activationBlock}
@@ -174,7 +149,9 @@
 						<div>
 							<dt>Activation block</dt>
 							<dd>
-								<NumberValue value={Number(activationBlock)} />
+								<NumberValue
+									value={activationBlock}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -184,24 +161,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							activationEpoch: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activationEpoch = pendingEntity.activationEpoch}
-					{#if activationEpoch !== undefined && activationEpoch !== null}
-						<div>
-							<dt>Activation epoch</dt>
-							<dd>
-								<NumberValue value={Number(activationEpoch)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activationEpoch = resolvedEntity.activationEpoch}
@@ -209,7 +175,9 @@
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
-								<NumberValue value={Number(activationEpoch)} />
+								<NumberValue
+									value={activationEpoch}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -219,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							activationTimestampMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activationTimestampMs = pendingEntity.activationTimestampMs}
-					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
-						<div>
-							<dt>Activation time</dt>
-							<dd>
-								<Timestamp timestamp={Number(activationTimestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activationTimestampMs = resolvedEntity.activationTimestampMs}
@@ -255,24 +212,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								previousForkVersion: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const previousForkVersion = pendingEntity.previousForkVersion}
-						{#if previousForkVersion !== undefined && previousForkVersion !== null}
-							<div>
-								<dt>Previous fork version</dt>
-								<dd>
-									<TruncatedValue value={String((previousForkVersion) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const previousForkVersion = resolvedEntity.previousForkVersion}
@@ -292,24 +238,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								currentForkVersion: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const currentForkVersion = pendingEntity.currentForkVersion}
-						{#if currentForkVersion !== undefined && currentForkVersion !== null}
-							<div>
-								<dt>Current fork version</dt>
-								<dd>
-									<TruncatedValue value={String((currentForkVersion) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const currentForkVersion = resolvedEntity.currentForkVersion}
@@ -332,9 +267,6 @@
 			<SpecificationProposalsView
 				selection={
 						selection.$$proposals({
-							sources: [
-								Source.Constants_Internal,
-							],
 							count: true,
 						})
 					}

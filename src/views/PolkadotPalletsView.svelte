@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotPalletView from '$/views/PolkadotPalletView.svelte'
 </script>
@@ -63,88 +62,55 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					palletName: true,
-					index: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotPallet}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotPallet}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				palletName: true,
+				index: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotPallets) => [...new Map(polkadotPallets.values.map((polkadotPallet) => [polkadotPallet[EntityMetaKey.SelectorKey], polkadotPallet])).values()]}
+	getKey={(polkadotPallet) => polkadotPallet[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot pallets yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotPallets)}
-			{@const uniquePolkadotPallets = [...new Map(polkadotPallets.values.map((polkadotPallet) => [polkadotPallet[EntityMetaKey.SelectorKey], polkadotPallet])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotPallet}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotPallets.totalCount}
-				getKey={(polkadotPallet) => polkadotPallet[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotPallets}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot pallets yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotPallet })}
-					{@const polkadotPalletFields = { ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }}
-					{@const selection = select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const polkadotPalletHrefFields = { ...polkadotPallet, ...polkadotPallet[EntityMetaKey.Selector] }}
-					<PolkadotPalletView
-						selection={selection}
-						prefetched={polkadotPalletFields}
-						href={
-							(polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-								palletName: String(polkadotPalletHrefFields.palletName ?? ''),
-								network: String(caip2StringFromValue(polkadotPalletHrefFields.$network.caip2) ?? ''),
-							}) : polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-								palletName: String(polkadotPalletHrefFields.palletName ?? ''),
-								network: String(polkadotPalletHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotPallet}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotPallet })}
+		{@const polkadotPalletFields = { ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }}
+		{@const selection = select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const polkadotPalletHrefFields = { ...polkadotPallet, ...polkadotPallet[EntityMetaKey.Selector] }}
+		<PolkadotPalletView
+			selection={selection}
+			prefetched={polkadotPalletFields}
+			href={
+				(polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+					palletName: String(polkadotPalletHrefFields.palletName ?? ''),
+					network: String(caip2StringFromValue(polkadotPalletHrefFields.$network.caip2) ?? ''),
+				}) : polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+					palletName: String(polkadotPalletHrefFields.palletName ?? ''),
+					network: String(polkadotPalletHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

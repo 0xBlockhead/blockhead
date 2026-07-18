@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,13 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const starknetClass = $derived(selection({
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			contractClassVersion: true,
 			declaredAtBlockNumber: true,
@@ -79,52 +72,56 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetClass}>
-			{#snippet Pending()}
-				{[String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={starknetClass}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetClass}>
-			{#snippet Pending()}
-				{[String((pendingEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={starknetClass}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={starknetClass}>
-			{#snippet Pending()}
-				{@const declaredAtBlockNumber0 = pendingEntity.declaredAtBlockNumber}
-				{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(declaredAtBlockNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const declaredAtBlockNumber0 = resolvedEntity.declaredAtBlockNumber}
-				{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(declaredAtBlockNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const declaredAtBlockNumber0 = pendingEntity.declaredAtBlockNumber}
+			{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={declaredAtBlockNumber0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={starknetClass}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const declaredAtBlockNumber0 = resolvedEntity.declaredAtBlockNumber}
+					{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={declaredAtBlockNumber0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -146,19 +143,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									classHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const classHash = pendingEntity.classHash}
-							{#if classHash !== undefined && classHash !== null}
-								<TruncatedValue value={String((classHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const classHash = resolvedEntity.classHash}
@@ -173,24 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							contractClassVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const contractClassVersion = pendingEntity.contractClassVersion}
-					{#if contractClassVersion !== undefined && contractClassVersion !== null}
-						<div>
-							<dt>contract class version</dt>
-							<dd>
-								{String((contractClassVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const contractClassVersion = resolvedEntity.contractClassVersion}
@@ -208,24 +188,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sierraProgramHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sierraProgramHash = pendingEntity.sierraProgramHash}
-					{#if sierraProgramHash !== undefined && sierraProgramHash !== null}
-						<div>
-							<dt>sierra program hash</dt>
-							<dd>
-								<TruncatedValue value={String((sierraProgramHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sierraProgramHash = resolvedEntity.sierraProgramHash}
@@ -243,24 +212,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							casmClassHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const casmClassHash = pendingEntity.casmClassHash}
-					{#if casmClassHash !== undefined && casmClassHash !== null}
-						<div>
-							<dt>casm class hash</dt>
-							<dd>
-								<TruncatedValue value={String((casmClassHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const casmClassHash = resolvedEntity.casmClassHash}
@@ -280,24 +238,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							abiHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const abiHash = pendingEntity.abiHash}
-					{#if abiHash !== undefined && abiHash !== null}
-						<div>
-							<dt>ABI hash</dt>
-							<dd>
-								<TruncatedValue value={String((abiHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const abiHash = resolvedEntity.abiHash}
@@ -315,24 +262,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							declaredAtBlockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const declaredAtBlockNumber = pendingEntity.declaredAtBlockNumber}
-					{#if declaredAtBlockNumber !== undefined && declaredAtBlockNumber !== null}
-						<div>
-							<dt>declared at block number</dt>
-							<dd>
-								<NumberValue value={Number(declaredAtBlockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const declaredAtBlockNumber = resolvedEntity.declaredAtBlockNumber}
@@ -340,7 +276,9 @@
 						<div>
 							<dt>declared at block number</dt>
 							<dd>
-								<NumberValue value={Number(declaredAtBlockNumber)} />
+								<NumberValue
+									value={declaredAtBlockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -350,24 +288,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							declaredByTransactionHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const declaredByTransactionHash = pendingEntity.declaredByTransactionHash}
-					{#if declaredByTransactionHash !== undefined && declaredByTransactionHash !== null}
-						<div>
-							<dt>declared by transaction hash</dt>
-							<dd>
-								<TruncatedValue value={String((declaredByTransactionHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const declaredByTransactionHash = resolvedEntity.declaredByTransactionHash}

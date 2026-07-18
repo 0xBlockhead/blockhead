@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const avalancheDelegator = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			delegatorAddress: true,
 			stakeAmountNavax: true,
@@ -70,35 +71,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={avalancheDelegator}>
-			{#snippet Pending()}
-				{[String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={avalancheDelegator}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={avalancheDelegator}>
-			{#snippet Pending()}
-				{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
-				{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
-					<NumberValue value={Number(stakeAmountNavax0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const stakeAmountNavax0 = resolvedEntity.stakeAmountNavax}
-				{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
-					<NumberValue value={Number(stakeAmountNavax0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
+					{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
+						<NumberValue
+							value={stakeAmountNavax0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={avalancheDelegator}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const stakeAmountNavax0 = resolvedEntity.stakeAmountNavax}
+					{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
+						<NumberValue
+							value={stakeAmountNavax0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,19 +125,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									txId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const txId = pendingEntity.txId}
-							{#if txId !== undefined && txId !== null}
-								<TruncatedValue value={String((txId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const txId = resolvedEntity.txId}
@@ -147,24 +146,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							delegatorAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const delegatorAddress = pendingEntity.delegatorAddress}
-					{#if delegatorAddress !== undefined && delegatorAddress !== null}
-						<div>
-							<dt>delegator address</dt>
-							<dd>
-								<TruncatedValue value={String((delegatorAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const delegatorAddress = resolvedEntity.delegatorAddress}
@@ -184,24 +172,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeAmountNavax: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeAmountNavax = pendingEntity.stakeAmountNavax}
-					{#if stakeAmountNavax !== undefined && stakeAmountNavax !== null}
-						<div>
-							<dt>stake amount navax</dt>
-							<dd>
-								<NumberValue value={Number(stakeAmountNavax)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeAmountNavax = resolvedEntity.stakeAmountNavax}
@@ -209,7 +186,9 @@
 						<div>
 							<dt>stake amount navax</dt>
 							<dd>
-								<NumberValue value={Number(stakeAmountNavax)} />
+								<NumberValue
+									value={stakeAmountNavax}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -219,24 +198,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							potentialRewardNavax: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const potentialRewardNavax = pendingEntity.potentialRewardNavax}
-					{#if potentialRewardNavax !== undefined && potentialRewardNavax !== null}
-						<div>
-							<dt>potential reward navax</dt>
-							<dd>
-								<NumberValue value={Number(potentialRewardNavax)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const potentialRewardNavax = resolvedEntity.potentialRewardNavax}
@@ -244,7 +212,9 @@
 						<div>
 							<dt>potential reward navax</dt>
 							<dd>
-								<NumberValue value={Number(potentialRewardNavax)} />
+								<NumberValue
+									value={potentialRewardNavax}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -254,24 +224,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							startTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const startTimeMs = pendingEntity.startTimeMs}
-					{#if startTimeMs !== undefined && startTimeMs !== null}
-						<div>
-							<dt>start time ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(startTimeMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const startTimeMs = resolvedEntity.startTimeMs}
@@ -289,24 +248,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							endTimeMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const endTimeMs = pendingEntity.endTimeMs}
-					{#if endTimeMs !== undefined && endTimeMs !== null}
-						<div>
-							<dt>end time ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(endTimeMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const endTimeMs = resolvedEntity.endTimeMs}

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CctpFeeView from '$/views/CctpFeeView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					apiHost: true,
-					fromDomain: true,
-					toDomain: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpFee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CctpFee}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				apiHost: true,
+				fromDomain: true,
+				toDomain: true,
+			},
+		})
+	}
+	getResourceItems={(cctpFees) => [...new Map(cctpFees.values.map((cctpFee) => [cctpFee[EntityMetaKey.SelectorKey], cctpFee])).values()]}
+	getKey={(cctpFee) => cctpFee[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No CCTP fees yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cctpFees)}
-			{@const uniqueCctpFees = [...new Map(cctpFees.values.map((cctpFee) => [cctpFee[EntityMetaKey.SelectorKey], cctpFee])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpFee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cctpFees.totalCount}
-				getKey={(cctpFee) => cctpFee[EntityMetaKey.SelectorKey]}
-				items={uniqueCctpFees}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No CCTP fees yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cctpFee })}
-					{@const cctpFeeFields = { ...cctpFee[EntityMetaKey.Selector], ...cctpFee }}
-					{@const selection = select(EntityType.CctpFee, cctpFee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CctpFeeView
-						selection={selection}
-						prefetched={cctpFeeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CctpFee}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cctpFee })}
+		{@const cctpFeeFields = { ...cctpFee[EntityMetaKey.Selector], ...cctpFee }}
+		{@const selection = select(EntityType.CctpFee, cctpFee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CctpFeeView
+			selection={selection}
+			prefetched={cctpFeeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

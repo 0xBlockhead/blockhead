@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const elementsPeg = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			amountSats: true,
 		},
@@ -72,35 +73,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={elementsPeg}>
-			{#snippet Pending()}
-				{[String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || 'Elements peg'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.direction) ?? ''), String((resolvedEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={elementsPeg}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.direction) ?? ''), String((resolvedEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={elementsPeg}>
-			{#snippet Pending()}
-				{@const amountSats0 = pendingEntity.amountSats}
-				{#if amountSats0 !== undefined && amountSats0 !== null}
-					<NumberValue value={Number(amountSats0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amountSats0 = resolvedEntity.amountSats}
-				{#if amountSats0 !== undefined && amountSats0 !== null}
-					<NumberValue value={Number(amountSats0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const amountSats0 = pendingEntity.amountSats}
+					{#if amountSats0 !== undefined && amountSats0 !== null}
+						<NumberValue
+							value={amountSats0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={elementsPeg}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amountSats0 = resolvedEntity.amountSats}
+					{#if amountSats0 !== undefined && amountSats0 !== null}
+						<NumberValue
+							value={amountSats0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,19 +127,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									direction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const direction = pendingEntity.direction}
-							{#if direction !== undefined && direction !== null}
-								{String((direction) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const direction = resolvedEntity.direction}
@@ -152,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									pegTransactionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const pegTransactionId = pendingEntity.pegTransactionId}
-							{#if pegTransactionId !== undefined && pegTransactionId !== null}
-								<TruncatedValue value={String((pegTransactionId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const pegTransactionId = resolvedEntity.pegTransactionId}
@@ -179,24 +172,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							amountSats: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const amountSats = pendingEntity.amountSats}
-					{#if amountSats !== undefined && amountSats !== null}
-						<div>
-							<dt>Amount sats</dt>
-							<dd>
-								<NumberValue value={Number(amountSats)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const amountSats = resolvedEntity.amountSats}
@@ -204,7 +186,9 @@
 						<div>
 							<dt>Amount sats</dt>
 							<dd>
-								<NumberValue value={Number(amountSats)} />
+								<NumberValue
+									value={amountSats}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -214,8 +198,6 @@
 			<ResourceBoundary
 				resource={selection.$bitcoinTransaction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -245,8 +227,6 @@
 			<ResourceBoundary
 				resource={selection.$elementsTransaction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -278,24 +258,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							claimScript: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const claimScript = pendingEntity.claimScript}
-					{#if claimScript !== undefined && claimScript !== null}
-						<div>
-							<dt>Claim script</dt>
-							<dd>
-								<TruncatedValue value={String((claimScript) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const claimScript = resolvedEntity.claimScript}
@@ -313,24 +282,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pakProof: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pakProof = pendingEntity.pakProof}
-					{#if pakProof !== undefined && pakProof !== null}
-						<div>
-							<dt>PAK proof</dt>
-							<dd>
-								<TruncatedValue value={String((pakProof) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pakProof = resolvedEntity.pakProof}

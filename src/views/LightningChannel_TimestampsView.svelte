@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LightningChannel_TimestampView from '$/views/LightningChannel_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					capacitySats: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningChannel_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LightningChannel_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				capacitySats: true,
+			},
+		})
+	}
+	getResourceItems={(lightningChannelTimestamps) => [...new Map(lightningChannelTimestamps.values.map((lightningChannelTimestamp) => [lightningChannelTimestamp[EntityMetaKey.SelectorKey], lightningChannelTimestamp])).values()]}
+	getKey={(lightningChannelTimestamp) => lightningChannelTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning channel observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lightningChannelTimestamps)}
-			{@const uniqueLightningChannelTimestamps = [...new Map(lightningChannelTimestamps.values.map((lightningChannelTimestamp) => [lightningChannelTimestamp[EntityMetaKey.SelectorKey], lightningChannelTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningChannel_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningChannelTimestamps.totalCount}
-				getKey={(lightningChannelTimestamp) => lightningChannelTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueLightningChannelTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning channel observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lightningChannelTimestamp })}
-					{@const lightningChannelTimestampFields = { ...lightningChannelTimestamp[EntityMetaKey.Selector], ...lightningChannelTimestamp }}
-					{@const selection = select(EntityType.LightningChannel_Timestamp, lightningChannelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LightningChannel_TimestampView
-						selection={selection}
-						prefetched={lightningChannelTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LightningChannel_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lightningChannelTimestamp })}
+		{@const lightningChannelTimestampFields = { ...lightningChannelTimestamp[EntityMetaKey.Selector], ...lightningChannelTimestamp }}
+		{@const selection = select(EntityType.LightningChannel_Timestamp, lightningChannelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LightningChannel_TimestampView
+			selection={selection}
+			prefetched={lightningChannelTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

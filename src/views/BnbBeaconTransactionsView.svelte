@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BnbBeaconTransactionView from '$/views/BnbBeaconTransactionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					txHash: true,
-					txType: true,
-					tokenSymbol: true,
-					$block: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BnbBeaconTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				txHash: true,
+				txType: true,
+				tokenSymbol: true,
+				$block: true,
+			},
+		})
+	}
+	getResourceItems={(bnbBeaconTransactions) => [...new Map(bnbBeaconTransactions.values.map((bnbBeaconTransaction) => [bnbBeaconTransaction[EntityMetaKey.SelectorKey], bnbBeaconTransaction])).values()]}
+	getKey={(bnbBeaconTransaction) => bnbBeaconTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bnb beacon transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bnbBeaconTransactions)}
-			{@const uniqueBnbBeaconTransactions = [...new Map(bnbBeaconTransactions.values.map((bnbBeaconTransaction) => [bnbBeaconTransaction[EntityMetaKey.SelectorKey], bnbBeaconTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BnbBeaconTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bnbBeaconTransactions.totalCount}
-				getKey={(bnbBeaconTransaction) => bnbBeaconTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueBnbBeaconTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bnb beacon transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bnbBeaconTransaction })}
-					{@const bnbBeaconTransactionFields = { ...bnbBeaconTransaction[EntityMetaKey.Selector], ...bnbBeaconTransaction }}
-					{@const selection = select(EntityType.BnbBeaconTransaction, bnbBeaconTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BnbBeaconTransactionView
-						selection={selection}
-						prefetched={bnbBeaconTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BnbBeaconTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bnbBeaconTransaction })}
+		{@const bnbBeaconTransactionFields = { ...bnbBeaconTransaction[EntityMetaKey.Selector], ...bnbBeaconTransaction }}
+		{@const selection = select(EntityType.BnbBeaconTransaction, bnbBeaconTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BnbBeaconTransactionView
+			selection={selection}
+			prefetched={bnbBeaconTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

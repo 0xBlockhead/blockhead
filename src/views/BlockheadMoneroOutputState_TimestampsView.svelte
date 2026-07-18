@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadMoneroOutputState_TimestampView from '$/views/BlockheadMoneroOutputState_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					spent: true,
-					unlocked: true,
-					confirmations: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				spent: true,
+				unlocked: true,
+				confirmations: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadMoneroOutputStateTimestamps) => [...new Map(blockheadMoneroOutputStateTimestamps.values.map((blockheadMoneroOutputStateTimestamp) => [blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroOutputStateTimestamp])).values()]}
+	getKey={(blockheadMoneroOutputStateTimestamp) => blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead monero output state observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadMoneroOutputStateTimestamps)}
-			{@const uniqueBlockheadMoneroOutputStateTimestamps = [...new Map(blockheadMoneroOutputStateTimestamps.values.map((blockheadMoneroOutputStateTimestamp) => [blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroOutputStateTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadMoneroOutputStateTimestamps.totalCount}
-				getKey={(blockheadMoneroOutputStateTimestamp) => blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadMoneroOutputStateTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead monero output state observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadMoneroOutputStateTimestamp })}
-					{@const blockheadMoneroOutputStateTimestampFields = { ...blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroOutputStateTimestamp }}
-					{@const selection = select(EntityType.BlockheadMoneroOutputState_Timestamp, blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadMoneroOutputState_TimestampView
-						selection={selection}
-						prefetched={blockheadMoneroOutputStateTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadMoneroOutputStateTimestamp })}
+		{@const blockheadMoneroOutputStateTimestampFields = { ...blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroOutputStateTimestamp }}
+		{@const selection = select(EntityType.BlockheadMoneroOutputState_Timestamp, blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadMoneroOutputState_TimestampView
+			selection={selection}
+			prefetched={blockheadMoneroOutputStateTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

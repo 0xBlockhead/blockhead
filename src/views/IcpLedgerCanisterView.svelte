@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpLedgerCanister = $derived(selection({}))
+	const icpLedgerCanister = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP ledger canister')
 	const viewDomId = $derived('icp-ledger-canister-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -68,16 +70,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpLedgerCanister}>
-			{#snippet Pending()}
-				{title || 'ICP ledger canister'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpLedgerCanister}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -99,19 +101,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									ledgerStandard: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const ledgerStandard = pendingEntity.ledgerStandard}
-							{#if ledgerStandard !== undefined && ledgerStandard !== null}
-								{String((ledgerStandard) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ledgerStandard = resolvedEntity.ledgerStandard}
@@ -144,11 +140,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -156,12 +149,12 @@
 
 				{#snippet SectionIcpLedgerCanisterBlocks({ id, label, open })}
 					<IcpLedgerBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No blocks.'
 						open={open}
 						title={label}
@@ -171,12 +164,12 @@
 
 				{#snippet SectionIcpLedgerCanisterTransactions({ id, label, open })}
 					<IcpLedgerTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions.'
 						open={open}
 						title={label}
@@ -203,11 +196,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -215,12 +205,12 @@
 
 				{#snippet SectionIcpLedgerCanisterTimestamps({ id, label, open })}
 					<IcpLedgerCanister_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}
@@ -230,12 +220,12 @@
 
 				{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label, open })}
 					<IcpLedgerAccount_TimestampsView
-						selection={
-							selection.$$accountTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$accountTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No account timestamps.'
 						open={open}
 						title={label}

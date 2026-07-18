@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLightningInvoice = $derived(selection({
-		sources: [
-			Source.LightningLnd_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			memo: true,
 			valueMsat: true,
@@ -87,35 +84,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLightningInvoice}>
-			{#snippet Pending()}
-				{[String((pendingEntity.memo) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.memo) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.memo) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLightningInvoice}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.memo) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLightningInvoice}>
-			{#snippet Pending()}
-				{@const valueMsat0 = pendingEntity.valueMsat}
-				{#if valueMsat0 !== undefined && valueMsat0 !== null}
-					<NumberValue value={Number(valueMsat0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const valueMsat0 = resolvedEntity.valueMsat}
-				{#if valueMsat0 !== undefined && valueMsat0 !== null}
-					<NumberValue value={Number(valueMsat0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const valueMsat0 = pendingEntity.valueMsat}
+					{#if valueMsat0 !== undefined && valueMsat0 !== null}
+						<NumberValue
+							value={valueMsat0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadLightningInvoice}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const valueMsat0 = resolvedEntity.valueMsat}
+					{#if valueMsat0 !== undefined && valueMsat0 !== null}
+						<NumberValue
+							value={valueMsat0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -126,19 +127,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									paymentHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const paymentHash = pendingEntity.paymentHash}
-							{#if paymentHash !== undefined && paymentHash !== null}
-								<TruncatedValue value={String((paymentHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const paymentHash = resolvedEntity.paymentHash}
@@ -171,24 +166,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							valueMsat: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const valueMsat = pendingEntity.valueMsat}
-					{#if valueMsat !== undefined && valueMsat !== null}
-						<div>
-							<dt>Value msat</dt>
-							<dd>
-								<NumberValue value={Number(valueMsat)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const valueMsat = resolvedEntity.valueMsat}
@@ -196,7 +180,9 @@
 						<div>
 							<dt>Value msat</dt>
 							<dd>
-								<NumberValue value={Number(valueMsat)} />
+								<NumberValue
+									value={valueMsat}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -208,24 +194,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAtMs = pendingEntity.createdAtMs}
-					{#if createdAtMs !== undefined && createdAtMs !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAtMs = resolvedEntity.createdAtMs}
@@ -243,24 +218,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							expirySeconds: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const expirySeconds = pendingEntity.expirySeconds}
-					{#if expirySeconds !== undefined && expirySeconds !== null}
-						<div>
-							<dt>Expiry seconds</dt>
-							<dd>
-								<NumberValue value={Number(expirySeconds)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const expirySeconds = resolvedEntity.expirySeconds}
@@ -268,7 +232,9 @@
 						<div>
 							<dt>Expiry seconds</dt>
 							<dd>
-								<NumberValue value={Number(expirySeconds)} />
+								<NumberValue
+									value={expirySeconds}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -278,24 +244,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							private: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const privateValue = pendingEntity.private}
-					{#if privateValue !== undefined && privateValue !== null}
-						<div>
-							<dt>Private</dt>
-							<dd>
-								{privateValue ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const privateValue = resolvedEntity.private}
@@ -313,24 +268,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							addIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const addIndex = pendingEntity.addIndex}
-					{#if addIndex !== undefined && addIndex !== null}
-						<div>
-							<dt>Add index</dt>
-							<dd>
-								<NumberValue value={Number(addIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const addIndex = resolvedEntity.addIndex}
@@ -338,7 +282,9 @@
 						<div>
 							<dt>Add index</dt>
 							<dd>
-								<NumberValue value={Number(addIndex)} />
+								<NumberValue
+									value={addIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -350,8 +296,6 @@
 			<ResourceBoundary
 				resource={selection.$localNodeState}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadLightningNodeState)}
 					{#if blockheadLightningNodeState != null && blockheadLightningNodeState[EntityMetaKey.Selector] != null}
 						<div>
@@ -372,24 +316,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							paymentRequest: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const paymentRequest = pendingEntity.paymentRequest}
-					{#if paymentRequest !== undefined && paymentRequest !== null}
-						<div>
-							<dt>Payment request</dt>
-							<dd>
-								<TruncatedValue value={String((paymentRequest) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const paymentRequest = resolvedEntity.paymentRequest}

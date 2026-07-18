@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitcoinCashBcmrMetadataView from '$/views/BitcoinCashBcmrMetadataView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					symbol: true,
-					categoryId: true,
-					decimals: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitcoinCashBcmrMetadata}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitcoinCashBcmrMetadata}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				symbol: true,
+				categoryId: true,
+				decimals: true,
+			},
+		})
+	}
+	getResourceItems={(bitcoinCashBcmrMetadataEntries) => [...new Map(bitcoinCashBcmrMetadataEntries.values.map((bitcoinCashBcmrMetadata) => [bitcoinCashBcmrMetadata[EntityMetaKey.SelectorKey], bitcoinCashBcmrMetadata])).values()]}
+	getKey={(bitcoinCashBcmrMetadata) => bitcoinCashBcmrMetadata[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bitcoin Cash BCMR metadata entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitcoinCashBcmrMetadataEntries)}
-			{@const uniqueBitcoinCashBcmrMetadataEntries = [...new Map(bitcoinCashBcmrMetadataEntries.values.map((bitcoinCashBcmrMetadata) => [bitcoinCashBcmrMetadata[EntityMetaKey.SelectorKey], bitcoinCashBcmrMetadata])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitcoinCashBcmrMetadata}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitcoinCashBcmrMetadataEntries.totalCount}
-				getKey={(bitcoinCashBcmrMetadata) => bitcoinCashBcmrMetadata[EntityMetaKey.SelectorKey]}
-				items={uniqueBitcoinCashBcmrMetadataEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bitcoin Cash BCMR metadata entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitcoinCashBcmrMetadata })}
-					{@const bitcoinCashBcmrMetadataFields = { ...bitcoinCashBcmrMetadata[EntityMetaKey.Selector], ...bitcoinCashBcmrMetadata }}
-					{@const selection = select(EntityType.BitcoinCashBcmrMetadata, bitcoinCashBcmrMetadata[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitcoinCashBcmrMetadataView
-						selection={selection}
-						prefetched={bitcoinCashBcmrMetadataFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitcoinCashBcmrMetadata}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitcoinCashBcmrMetadata })}
+		{@const bitcoinCashBcmrMetadataFields = { ...bitcoinCashBcmrMetadata[EntityMetaKey.Selector], ...bitcoinCashBcmrMetadata }}
+		{@const selection = select(EntityType.BitcoinCashBcmrMetadata, bitcoinCashBcmrMetadata[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitcoinCashBcmrMetadataView
+			selection={selection}
+			prefetched={bitcoinCashBcmrMetadataFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpCanisterMethod_TimestampView from '$/views/IcpCanisterMethod_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanisterMethod_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpCanisterMethod_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpCanisterMethodTimestamps) => [...new Map(icpCanisterMethodTimestamps.values.map((icpCanisterMethodTimestamp) => [icpCanisterMethodTimestamp[EntityMetaKey.SelectorKey], icpCanisterMethodTimestamp])).values()]}
+	getKey={(icpCanisterMethodTimestamp) => icpCanisterMethodTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP canister method observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpCanisterMethodTimestamps)}
-			{@const uniqueIcpCanisterMethodTimestamps = [...new Map(icpCanisterMethodTimestamps.values.map((icpCanisterMethodTimestamp) => [icpCanisterMethodTimestamp[EntityMetaKey.SelectorKey], icpCanisterMethodTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanisterMethod_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpCanisterMethodTimestamps.totalCount}
-				getKey={(icpCanisterMethodTimestamp) => icpCanisterMethodTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpCanisterMethodTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP canister method observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpCanisterMethodTimestamp })}
-					{@const icpCanisterMethodTimestampFields = { ...icpCanisterMethodTimestamp[EntityMetaKey.Selector], ...icpCanisterMethodTimestamp }}
-					{@const selection = select(EntityType.IcpCanisterMethod_Timestamp, icpCanisterMethodTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpCanisterMethod_TimestampView
-						selection={selection}
-						prefetched={icpCanisterMethodTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpCanisterMethod_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpCanisterMethodTimestamp })}
+		{@const icpCanisterMethodTimestampFields = { ...icpCanisterMethodTimestamp[EntityMetaKey.Selector], ...icpCanisterMethodTimestamp }}
+		{@const selection = select(EntityType.IcpCanisterMethod_Timestamp, icpCanisterMethodTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpCanisterMethod_TimestampView
+			selection={selection}
+			prefetched={icpCanisterMethodTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

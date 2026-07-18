@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbBeaconToken = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			tokenName: true,
 			tokenType: true,
@@ -73,29 +74,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconToken}>
-			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbBeaconToken}>
-			{#snippet Pending()}
-				{[String((pendingEntity.tokenName) ?? ''), String((pendingEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.tokenName) ?? ''), String((resolvedEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.tokenName) ?? ''), String((pendingEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconToken}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.tokenName) ?? ''), String((resolvedEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -117,19 +118,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									symbol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const symbol = pendingEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const symbol = resolvedEntity.symbol}
@@ -144,24 +139,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							originalSymbol: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const originalSymbol = pendingEntity.originalSymbol}
-					{#if originalSymbol !== undefined && originalSymbol !== null}
-						<div>
-							<dt>original symbol</dt>
-							<dd>
-								{String((originalSymbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const originalSymbol = resolvedEntity.originalSymbol}
@@ -179,24 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenName = pendingEntity.tokenName}
-					{#if tokenName !== undefined && tokenName !== null}
-						<div>
-							<dt>token name</dt>
-							<dd>
-								{String((tokenName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenName = resolvedEntity.tokenName}
@@ -214,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tokenType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tokenType = pendingEntity.tokenType}
-					{#if tokenType !== undefined && tokenType !== null}
-						<div>
-							<dt>token type</dt>
-							<dd>
-								{String((tokenType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tokenType = resolvedEntity.tokenType}
@@ -249,24 +211,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ownerAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ownerAddress = pendingEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
-						<div>
-							<dt>owner address</dt>
-							<dd>
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ownerAddress = resolvedEntity.ownerAddress}
@@ -302,11 +253,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -314,12 +262,12 @@
 
 				{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
 					<BnbBeaconTokenTransfersView
-						selection={
-							selection.$$transfers({
-								count: true,
-							})
-						}
+						selection={selection.$$transfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transfers.'
 						open={open}
 						title={label}
@@ -329,12 +277,12 @@
 
 				{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
 					<BnbBeaconTokenMigrationsView
-						selection={
-							selection.$$migrations({
-								count: true,
-							})
-						}
+						selection={selection.$$migrations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No migrations.'
 						open={open}
 						title={label}
@@ -357,11 +305,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -369,12 +314,12 @@
 
 				{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
 					<BnbBeaconToken_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

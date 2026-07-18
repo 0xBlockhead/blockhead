@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EigenLayerStrategy_TimestampView from '$/views/EigenLayerStrategy_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$strategy: true,
-					timestampMs: true,
-					totalShares: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerStrategy_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EigenLayerStrategy_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$strategy: true,
+				timestampMs: true,
+				totalShares: true,
+			},
+		})
+	}
+	getResourceItems={(eigenLayerStrategyTimestamps) => [...new Map(eigenLayerStrategyTimestamps.values.map((eigenLayerStrategyTimestamp) => [eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey], eigenLayerStrategyTimestamp])).values()]}
+	getKey={(eigenLayerStrategyTimestamp) => eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Eigen layer strategy observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(eigenLayerStrategyTimestamps)}
-			{@const uniqueEigenLayerStrategyTimestamps = [...new Map(eigenLayerStrategyTimestamps.values.map((eigenLayerStrategyTimestamp) => [eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey], eigenLayerStrategyTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EigenLayerStrategy_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={eigenLayerStrategyTimestamps.totalCount}
-				getKey={(eigenLayerStrategyTimestamp) => eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueEigenLayerStrategyTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Eigen layer strategy observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: eigenLayerStrategyTimestamp })}
-					{@const eigenLayerStrategyTimestampFields = { ...eigenLayerStrategyTimestamp[EntityMetaKey.Selector], ...eigenLayerStrategyTimestamp }}
-					{@const selection = select(EntityType.EigenLayerStrategy_Timestamp, eigenLayerStrategyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<EigenLayerStrategy_TimestampView
-						selection={selection}
-						prefetched={eigenLayerStrategyTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EigenLayerStrategy_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: eigenLayerStrategyTimestamp })}
+		{@const eigenLayerStrategyTimestampFields = { ...eigenLayerStrategyTimestamp[EntityMetaKey.Selector], ...eigenLayerStrategyTimestamp }}
+		{@const selection = select(EntityType.EigenLayerStrategy_Timestamp, eigenLayerStrategyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<EigenLayerStrategy_TimestampView
+			selection={selection}
+			prefetched={eigenLayerStrategyTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

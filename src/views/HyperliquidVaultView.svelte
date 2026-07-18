@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidVault = $derived(selection({}))
+	const hyperliquidVault = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid vault')
 	const viewDomId = $derived('hyperliquid-vault-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidVault}>
-			{#snippet Pending()}
-				{title || 'hyperliquid vault'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidVault}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,19 +106,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									vaultAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const vaultAddress = pendingEntity.vaultAddress}
-							{#if vaultAddress !== undefined && vaultAddress !== null}
-								<TruncatedValue value={String((vaultAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const vaultAddress = resolvedEntity.vaultAddress}
@@ -131,8 +127,6 @@
 			<ResourceBoundary
 				resource={selection.$leader}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null && hyperliquidAccount[EntityMetaKey.Selector] != null}
 						<div>

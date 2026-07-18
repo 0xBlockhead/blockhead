@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,11 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadLightningNodeState = $derived(selection({
-		sources: [
-			Source.LightningLnd_Grpc,
-			Source.LightningLnd_Rest,
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			alias: true,
 		},
@@ -82,98 +77,102 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadLightningNodeState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadLightningNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLightningNodeState}>
-			{#snippet Pending()}
-				<LightningNetworkView
-					selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<LightningNetworkView
-					selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<LightningNetworkView
+						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadLightningNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<LightningNetworkView
+						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadLightningNodeState}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$node}
-				>
-					{#snippet children(lightningNode)}
-						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<LightningNodeView
-									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-									prefetched={lightningNode}
-									href={
-										(lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-											network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$node}
-				>
-					{#snippet children(lightningNode)}
-						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<LightningNodeView
-									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-									prefetched={lightningNode}
-									href={
-										(lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-											network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$node}
+			>
+				{#snippet children(lightningNode)}
+					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<LightningNodeView
+								selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+								prefetched={lightningNode}
+								href={
+									(lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+										pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
+										network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+										pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
+										network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadLightningNodeState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$node}
+					>
+						{#snippet children(lightningNode)}
+							{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<LightningNodeView
+										selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+										prefetched={lightningNode}
+										href={
+											(lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+												pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
+												network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : lightningNode[EntityMetaKey.Selector].publicKey !== undefined && lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+												pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
+												network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -184,19 +183,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									connectionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const connectionId = pendingEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const connectionId = resolvedEntity.connectionId}
@@ -222,24 +215,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lndPubkey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lndPubkey = pendingEntity.lndPubkey}
-					{#if lndPubkey !== undefined && lndPubkey !== null}
-						<div>
-							<dt>lnd public key</dt>
-							<dd>
-								{String((lndPubkey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lndPubkey = resolvedEntity.lndPubkey}
@@ -257,24 +239,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							alias: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const alias = pendingEntity.alias}
-					{#if alias !== undefined && alias !== null}
-						<div>
-							<dt>alias</dt>
-							<dd>
-								{String((alias) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const alias = resolvedEntity.alias}
@@ -292,8 +263,6 @@
 			<ResourceBoundary
 				resource={selection.$node}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
 						<div>
@@ -341,11 +310,8 @@
 				}
 				data-card
 				class='network-view-collapsible-channels'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Channels</HeadingComponent>
 					</header>
@@ -353,12 +319,12 @@
 
 				{#snippet SectionLightningNodeChannelStates({ id, label, open })}
 					<BlockheadLightningChannelStatesView
-						selection={
-							selection.$$channelStates({
-								count: true,
-							})
-						}
+						selection={selection.$$channelStates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No local channel states.'
 						open={open}
 						title={label}
@@ -368,12 +334,12 @@
 
 				{#snippet SectionLightningNodeChannels({ id, label, open })}
 					<LightningChannelsView
-						selection={
-							selection.$$channels({
-								count: true,
-							})
-						}
+						selection={selection.$$channels}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No public channel refs.'
 						open={open}
 						title={label}
@@ -400,11 +366,8 @@
 				}
 				data-card
 				class='network-view-collapsible-payments'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Payments</HeadingComponent>
 					</header>
@@ -412,12 +375,12 @@
 
 				{#snippet SectionLightningNodeInvoices({ id, label, open })}
 					<BlockheadLightningInvoicesView
-						selection={
-							selection.$$invoices({
-								count: true,
-							})
-						}
+						selection={selection.$$invoices}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No invoices.'
 						open={open}
 						title={label}
@@ -427,12 +390,12 @@
 
 				{#snippet SectionLightningNodePaymentList({ id, label, open })}
 					<BlockheadLightningPaymentsView
-						selection={
-							selection.$$payments({
-								count: true,
-							})
-						}
+						selection={selection.$$payments}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No payments.'
 						open={open}
 						title={label}
@@ -455,11 +418,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -467,12 +427,12 @@
 
 				{#snippet SectionLightningNodeTimestamps({ id, label, open })}
 					<BlockheadLightningNodeState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No node-state observations.'
 						open={open}
 						title={label}

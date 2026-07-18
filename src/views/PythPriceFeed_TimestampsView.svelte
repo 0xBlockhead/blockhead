@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PythPriceFeed_TimestampView from '$/views/PythPriceFeed_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					publishTimeMs: true,
-					price: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PythPriceFeed_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PythPriceFeed_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				publishTimeMs: true,
+				price: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(pythPriceFeedTimestamps) => [...new Map(pythPriceFeedTimestamps.values.map((pythPriceFeedTimestamp) => [pythPriceFeedTimestamp[EntityMetaKey.SelectorKey], pythPriceFeedTimestamp])).values()]}
+	getKey={(pythPriceFeedTimestamp) => pythPriceFeedTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Pyth price feed observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(pythPriceFeedTimestamps)}
-			{@const uniquePythPriceFeedTimestamps = [...new Map(pythPriceFeedTimestamps.values.map((pythPriceFeedTimestamp) => [pythPriceFeedTimestamp[EntityMetaKey.SelectorKey], pythPriceFeedTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PythPriceFeed_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={pythPriceFeedTimestamps.totalCount}
-				getKey={(pythPriceFeedTimestamp) => pythPriceFeedTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniquePythPriceFeedTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Pyth price feed observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: pythPriceFeedTimestamp })}
-					{@const pythPriceFeedTimestampFields = { ...pythPriceFeedTimestamp[EntityMetaKey.Selector], ...pythPriceFeedTimestamp }}
-					{@const selection = select(EntityType.PythPriceFeed_Timestamp, pythPriceFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PythPriceFeed_TimestampView
-						selection={selection}
-						prefetched={pythPriceFeedTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PythPriceFeed_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: pythPriceFeedTimestamp })}
+		{@const pythPriceFeedTimestampFields = { ...pythPriceFeedTimestamp[EntityMetaKey.Selector], ...pythPriceFeedTimestamp }}
+		{@const selection = select(EntityType.PythPriceFeed_Timestamp, pythPriceFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PythPriceFeed_TimestampView
+			selection={selection}
+			prefetched={pythPriceFeedTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

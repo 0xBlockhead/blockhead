@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PayoutClaim_TimestampView from '$/views/PayoutClaim_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PayoutClaim_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PayoutClaim_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(payoutClaimTimestamps) => [...new Map(payoutClaimTimestamps.values.map((payoutClaimTimestamp) => [payoutClaimTimestamp[EntityMetaKey.SelectorKey], payoutClaimTimestamp])).values()]}
+	getKey={(payoutClaimTimestamp) => payoutClaimTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Payout claim observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(payoutClaimTimestamps)}
-			{@const uniquePayoutClaimTimestamps = [...new Map(payoutClaimTimestamps.values.map((payoutClaimTimestamp) => [payoutClaimTimestamp[EntityMetaKey.SelectorKey], payoutClaimTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PayoutClaim_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={payoutClaimTimestamps.totalCount}
-				getKey={(payoutClaimTimestamp) => payoutClaimTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniquePayoutClaimTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Payout claim observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: payoutClaimTimestamp })}
-					{@const payoutClaimTimestampFields = { ...payoutClaimTimestamp[EntityMetaKey.Selector], ...payoutClaimTimestamp }}
-					{@const selection = select(EntityType.PayoutClaim_Timestamp, payoutClaimTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PayoutClaim_TimestampView
-						selection={selection}
-						prefetched={payoutClaimTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PayoutClaim_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: payoutClaimTimestamp })}
+		{@const payoutClaimTimestampFields = { ...payoutClaimTimestamp[EntityMetaKey.Selector], ...payoutClaimTimestamp }}
+		{@const selection = select(EntityType.PayoutClaim_Timestamp, payoutClaimTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PayoutClaim_TimestampView
+			selection={selection}
+			prefetched={payoutClaimTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

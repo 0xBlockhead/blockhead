@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpServerPackageVersionView from '$/views/McpServerPackageVersionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					version: true,
-					$package: true,
-					$artifact: true,
-					registryStatus: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServerPackageVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpServerPackageVersion}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				version: true,
+				$package: true,
+				$artifact: true,
+				registryStatus: true,
+			},
+		})
+	}
+	getResourceItems={(mcpServerPackageVersions) => [...new Map(mcpServerPackageVersions.values.map((mcpServerPackageVersion) => [mcpServerPackageVersion[EntityMetaKey.SelectorKey], mcpServerPackageVersion])).values()]}
+	getKey={(mcpServerPackageVersion) => mcpServerPackageVersion[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp server package versions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpServerPackageVersions)}
-			{@const uniqueMcpServerPackageVersions = [...new Map(mcpServerPackageVersions.values.map((mcpServerPackageVersion) => [mcpServerPackageVersion[EntityMetaKey.SelectorKey], mcpServerPackageVersion])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServerPackageVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpServerPackageVersions.totalCount}
-				getKey={(mcpServerPackageVersion) => mcpServerPackageVersion[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpServerPackageVersions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp server package versions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpServerPackageVersion })}
-					{@const mcpServerPackageVersionFields = { ...mcpServerPackageVersion[EntityMetaKey.Selector], ...mcpServerPackageVersion }}
-					{@const selection = select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpServerPackageVersionView
-						selection={selection}
-						prefetched={mcpServerPackageVersionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpServerPackageVersion}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpServerPackageVersion })}
+		{@const mcpServerPackageVersionFields = { ...mcpServerPackageVersion[EntityMetaKey.Selector], ...mcpServerPackageVersion }}
+		{@const selection = select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpServerPackageVersionView
+			selection={selection}
+			prefetched={mcpServerPackageVersionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

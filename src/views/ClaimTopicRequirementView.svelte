@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const claimTopicRequirement = $derived(selection({}))
+	const claimTopicRequirement = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('claim topic requirement')
 	const viewDomId = $derived('claim-topic-requirement-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={claimTopicRequirement}>
-			{#snippet Pending()}
-				{title || 'claim topic requirement'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={claimTopicRequirement}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									topicKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const topicKey = pendingEntity.topicKey}
-							{#if topicKey !== undefined && topicKey !== null}
-								{String((topicKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const topicKey = resolvedEntity.topicKey}
@@ -120,24 +116,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							claimTopic: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const claimTopic = pendingEntity.claimTopic}
-					{#if claimTopic !== undefined && claimTopic !== null}
-						<div>
-							<dt>claim topic</dt>
-							<dd>
-								{String((claimTopic) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const claimTopic = resolvedEntity.claimTopic}
@@ -155,24 +140,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							countryScope: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const countryScope = pendingEntity.countryScope}
-					{#if countryScope !== undefined && countryScope !== null}
-						<div>
-							<dt>country scope</dt>
-							<dd>
-								{String((countryScope) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const countryScope = resolvedEntity.countryScope}

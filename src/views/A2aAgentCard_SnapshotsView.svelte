@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aAgentCard_SnapshotView from '$/views/A2aAgentCard_SnapshotView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					version: true,
-					contentHash: true,
-					protocolVersion: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentCard_Snapshot}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aAgentCard_Snapshot}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				version: true,
+				contentHash: true,
+				protocolVersion: true,
+			},
+		})
+	}
+	getResourceItems={(a2aAgentCardSnapshots) => [...new Map(a2aAgentCardSnapshots.values.map((a2aAgentCardSnapshot) => [a2aAgentCardSnapshot[EntityMetaKey.SelectorKey], a2aAgentCardSnapshot])).values()]}
+	getKey={(a2aAgentCardSnapshot) => a2aAgentCardSnapshot[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A agent card snapshots yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aAgentCardSnapshots)}
-			{@const uniqueA2aAgentCardSnapshots = [...new Map(a2aAgentCardSnapshots.values.map((a2aAgentCardSnapshot) => [a2aAgentCardSnapshot[EntityMetaKey.SelectorKey], a2aAgentCardSnapshot])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentCard_Snapshot}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aAgentCardSnapshots.totalCount}
-				getKey={(a2aAgentCardSnapshot) => a2aAgentCardSnapshot[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aAgentCardSnapshots}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A agent card snapshots yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aAgentCardSnapshot })}
-					{@const a2aAgentCardSnapshotFields = { ...a2aAgentCardSnapshot[EntityMetaKey.Selector], ...a2aAgentCardSnapshot }}
-					{@const selection = select(EntityType.A2aAgentCard_Snapshot, a2aAgentCardSnapshot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aAgentCard_SnapshotView
-						selection={selection}
-						prefetched={a2aAgentCardSnapshotFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aAgentCard_Snapshot}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aAgentCardSnapshot })}
+		{@const a2aAgentCardSnapshotFields = { ...a2aAgentCardSnapshot[EntityMetaKey.Selector], ...a2aAgentCardSnapshot }}
+		{@const selection = select(EntityType.A2aAgentCard_Snapshot, a2aAgentCardSnapshot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aAgentCard_SnapshotView
+			selection={selection}
+			prefetched={a2aAgentCardSnapshotFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

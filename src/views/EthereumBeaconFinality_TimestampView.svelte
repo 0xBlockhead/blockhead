@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ethereumBeaconFinalityTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			finalizedCheckpointEpoch: true,
 		},
@@ -79,66 +80,74 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
-			{#snippet Pending()}
-				{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
-				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
-					<span>Finalized epoch </span>
-					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const finalizedCheckpointEpoch0 = resolvedEntity.finalizedCheckpointEpoch}
-				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
-					<span>Finalized epoch </span>
-					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
+					{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
+						<span>Finalized epoch </span>
+						<NumberValue
+							value={finalizedCheckpointEpoch0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedCheckpointEpoch0 = resolvedEntity.finalizedCheckpointEpoch}
+					{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
+						<span>Finalized epoch </span>
+						<NumberValue
+							value={finalizedCheckpointEpoch0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
-			{#snippet Pending()}
-				{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
-				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
-					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const finalizedCheckpointEpoch0 = resolvedEntity.finalizedCheckpointEpoch}
-				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
-					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
+					{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
+						<NumberValue
+							value={finalizedCheckpointEpoch0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedCheckpointEpoch0 = resolvedEntity.finalizedCheckpointEpoch}
+					{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
+						<NumberValue
+							value={finalizedCheckpointEpoch0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -179,24 +182,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									finalizedCheckpointEpoch: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const finalizedCheckpointEpoch = pendingEntity.finalizedCheckpointEpoch}
-							{#if finalizedCheckpointEpoch !== undefined && finalizedCheckpointEpoch !== null}
-								<NumberValue value={Number(finalizedCheckpointEpoch)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const finalizedCheckpointEpoch = resolvedEntity.finalizedCheckpointEpoch}
 							{#if finalizedCheckpointEpoch !== undefined && finalizedCheckpointEpoch !== null}
-								<NumberValue value={Number(finalizedCheckpointEpoch)} />
+								<NumberValue
+									value={finalizedCheckpointEpoch}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -209,19 +208,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									finalizedCheckpointRoot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const finalizedCheckpointRoot = pendingEntity.finalizedCheckpointRoot}
-							{#if finalizedCheckpointRoot !== undefined && finalizedCheckpointRoot !== null}
-								<TruncatedValue value={String((finalizedCheckpointRoot) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const finalizedCheckpointRoot = resolvedEntity.finalizedCheckpointRoot}
@@ -241,24 +234,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									currentJustifiedCheckpointEpoch: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const currentJustifiedCheckpointEpoch = pendingEntity.currentJustifiedCheckpointEpoch}
-							{#if currentJustifiedCheckpointEpoch !== undefined && currentJustifiedCheckpointEpoch !== null}
-								<NumberValue value={Number(currentJustifiedCheckpointEpoch)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const currentJustifiedCheckpointEpoch = resolvedEntity.currentJustifiedCheckpointEpoch}
 							{#if currentJustifiedCheckpointEpoch !== undefined && currentJustifiedCheckpointEpoch !== null}
-								<NumberValue value={Number(currentJustifiedCheckpointEpoch)} />
+								<NumberValue
+									value={currentJustifiedCheckpointEpoch}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -271,19 +260,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									currentJustifiedCheckpointRoot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const currentJustifiedCheckpointRoot = pendingEntity.currentJustifiedCheckpointRoot}
-							{#if currentJustifiedCheckpointRoot !== undefined && currentJustifiedCheckpointRoot !== null}
-								<TruncatedValue value={String((currentJustifiedCheckpointRoot) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const currentJustifiedCheckpointRoot = resolvedEntity.currentJustifiedCheckpointRoot}
@@ -301,24 +284,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									previousJustifiedCheckpointEpoch: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const previousJustifiedCheckpointEpoch = pendingEntity.previousJustifiedCheckpointEpoch}
-							{#if previousJustifiedCheckpointEpoch !== undefined && previousJustifiedCheckpointEpoch !== null}
-								<NumberValue value={Number(previousJustifiedCheckpointEpoch)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const previousJustifiedCheckpointEpoch = resolvedEntity.previousJustifiedCheckpointEpoch}
 							{#if previousJustifiedCheckpointEpoch !== undefined && previousJustifiedCheckpointEpoch !== null}
-								<NumberValue value={Number(previousJustifiedCheckpointEpoch)} />
+								<NumberValue
+									value={previousJustifiedCheckpointEpoch}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -331,19 +310,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									previousJustifiedCheckpointRoot: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const previousJustifiedCheckpointRoot = pendingEntity.previousJustifiedCheckpointRoot}
-							{#if previousJustifiedCheckpointRoot !== undefined && previousJustifiedCheckpointRoot !== null}
-								<TruncatedValue value={String((previousJustifiedCheckpointRoot) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const previousJustifiedCheckpointRoot = resolvedEntity.previousJustifiedCheckpointRoot}

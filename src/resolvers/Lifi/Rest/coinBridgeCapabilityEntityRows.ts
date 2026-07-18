@@ -1,14 +1,22 @@
-import { bridgeToolByKey, bridgeTools } from '$/constants/Bridge.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { bridgeToolByKey } from '$/constants/Bridge.ts'
+import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiBridgeTool } from '$/sources/Lifi/Rest/types.ts'
 
 
-type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
-
-type CoinBridgeCapabilityEntitySelector = EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
+type CoinBridgeCapabilityEntitySelector = (
+	Omit<
+		EntitySelector<typeof schema, EntityType.CoinBridgeCapability>,
+		'$fromInstance' | '$toInstance'
+	>
+	& {
+		readonly $fromInstance: CoinInstanceEntitySelector
+		readonly $toInstance: CoinInstanceEntitySelector
+	}
+)
 
 const bridgeToolsCatalogKeys = new Set<string>(
 	Object.keys(bridgeToolByKey).map((key) => String(key))
@@ -51,11 +59,7 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	const seenKeys = new Set<string>()
 	const rows: {
 		[EntityMetaKey.Selector]: CoinBridgeCapabilityEntitySelector
-		toolKey: string
-		railId: (typeof bridgeTools)[number]['railId']
-		settlementModel: (typeof bridgeTools)[number]['settlementModel']
-		verificationModel: (typeof bridgeTools)[number]['verificationModel']
-		assetOutcome: (typeof bridgeTools)[number]['assetOutcome']
+		[EntityMetaKey.Fields]: Record<string, string>
 	}[] = []
 
 	for (const tool of tools) {
@@ -85,8 +89,13 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 
 			rows.push({
 				[EntityMetaKey.Selector]: capabilityId,
-				toolKey: tool.key,
-				...mechanics,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'toolKey')]: tool.key,
+					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'railId')]: mechanics.railId,
+					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'settlementModel')]: mechanics.settlementModel,
+					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'verificationModel')]: mechanics.verificationModel,
+					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'assetOutcome')]: mechanics.assetOutcome,
+				},
 			})
 		}
 	}

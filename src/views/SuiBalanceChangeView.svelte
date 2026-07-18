@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiBalanceChange = $derived(selection({}))
+	const suiBalanceChange = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui balance change')
 	const viewDomId = $derived('sui-balance-change-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiBalanceChange}>
-			{#snippet Pending()}
-				{title || 'Sui balance change'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiBalanceChange}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									changeIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const changeIndex = pendingEntity.changeIndex}
-							{#if changeIndex !== undefined && changeIndex !== null}
-								{String((changeIndex) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const changeIndex = resolvedEntity.changeIndex}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							coinType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const coinType = pendingEntity.coinType}
-					{#if coinType !== undefined && coinType !== null}
-						<div>
-							<dt>coin type</dt>
-							<dd>
-								{String((coinType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const coinType = resolvedEntity.coinType}
@@ -156,8 +141,6 @@
 			<ResourceBoundary
 				resource={selection.$coinType}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(suiCoinType)}
 					{#if suiCoinType != null && suiCoinType[EntityMetaKey.Selector] != null}
 						<div>
@@ -181,19 +164,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									amountDelta: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const amountDelta = pendingEntity.amountDelta}
-							{#if amountDelta !== undefined && amountDelta !== null}
-								{String((amountDelta) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const amountDelta = resolvedEntity.amountDelta}

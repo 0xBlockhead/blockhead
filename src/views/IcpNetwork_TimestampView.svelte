@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpNetworkTimestamp = $derived(selection({}))
+	const icpNetworkTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('ICP network timestamp')
 	const viewDomId = $derived('icp-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={icpNetworkTimestamp}>
-			{#snippet Pending()}
-				{title || 'ICP network timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={icpNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -151,24 +141,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							registryVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const registryVersion = pendingEntity.registryVersion}
-					{#if registryVersion !== undefined && registryVersion !== null}
-						<div>
-							<dt>registry version</dt>
-							<dd>
-								{String((registryVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const registryVersion = resolvedEntity.registryVersion}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetCount = pendingEntity.subnetCount}
-					{#if subnetCount !== undefined && subnetCount !== null}
-						<div>
-							<dt>subnet count</dt>
-							<dd>
-								{String((subnetCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetCount = resolvedEntity.subnetCount}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							canisterCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const canisterCount = pendingEntity.canisterCount}
-					{#if canisterCount !== undefined && canisterCount !== null}
-						<div>
-							<dt>canister count</dt>
-							<dd>
-								{String((canisterCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const canisterCount = resolvedEntity.canisterCount}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							boundaryNodeCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const boundaryNodeCount = pendingEntity.boundaryNodeCount}
-					{#if boundaryNodeCount !== undefined && boundaryNodeCount !== null}
-						<div>
-							<dt>boundary node count</dt>
-							<dd>
-								{String((boundaryNodeCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const boundaryNodeCount = resolvedEntity.boundaryNodeCount}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rootKeyHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rootKeyHash = pendingEntity.rootKeyHash}
-					{#if rootKeyHash !== undefined && rootKeyHash !== null}
-						<div>
-							<dt>root key hash</dt>
-							<dd>
-								<TruncatedValue value={String((rootKeyHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rootKeyHash = resolvedEntity.rootKeyHash}

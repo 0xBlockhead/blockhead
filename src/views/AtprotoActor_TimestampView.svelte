@@ -9,7 +9,10 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -38,8 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoActorTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')
+	const atprotoActorTimestamp = $derived(selection({
+		sources: selection.sources,
+		fields: {
+			displayName: true,
+			handle: true,
+		},
+	}))
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.handle) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')
 	const viewDomId = $derived('atproto-actor-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -47,6 +56,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -56,32 +66,67 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			did: String(pendingEntity.$actor.did ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			did: encodeURIComponent(String(pendingEntity.$actor.did ?? '')),
 		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<ResourceBoundary resource={atprotoActorTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
 
+	{#snippet Icon()}
+		<ResourceBoundary resource={atprotoActorTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const reference = entity.$icon}
+				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+					<MediaView
+						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
+						prefetched={reference}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.handle) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={atprotoActorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.handle) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={atprotoActorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -92,19 +137,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -116,30 +155,163 @@
 				</dd>
 			</div>
 
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Observed handle</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									handle: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const handle = resolvedEntity.handle}
+							{#if handle !== undefined && handle !== null}
+								<span>@</span>
+								{String((handle) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Atproto_Xrpc,
-						],
+						sources: selection.sources,
+						fields: {
+							displayName: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const displayName = resolvedEntity.displayName}
+					{#if displayName !== undefined && displayName !== null}
+						<div>
+							<dt>Display name</dt>
+							<dd>
+								{String((displayName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							indexedAt: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const indexedAt = resolvedEntity.indexedAt}
+					{#if indexedAt !== undefined && indexedAt !== null}
+						<div>
+							<dt>Indexed</dt>
+							<dd>
+								<Timestamp timestamp={Number(indexedAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$icon}
+			>
+				{#snippet children(media)}
+					{#if media != null && media[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Avatar</dt>
+							<dd>
+								<MediaView
+									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+									prefetched={media}
+									href={
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
+										}) : undefined)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$banner}
+			>
+				{#snippet children(media)}
+					{#if media != null && media[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Banner</dt>
+							<dd>
+								<MediaView
+									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+									prefetched={media}
+									href={
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
+										}) : undefined)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
 						fields: {
 							followersCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followersCount = pendingEntity.followersCount}
-					{#if followersCount !== undefined && followersCount !== null}
-						<div>
-							<dt>Followers</dt>
-							<dd>
-								<NumberValue value={Number(followersCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followersCount = resolvedEntity.followersCount}
@@ -147,7 +319,9 @@
 						<div>
 							<dt>Followers</dt>
 							<dd>
-								<NumberValue value={Number(followersCount)} />
+								<NumberValue
+									value={followersCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -157,27 +331,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Atproto_Xrpc,
-						],
+						sources: selection.sources,
 						fields: {
 							followsCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followsCount = pendingEntity.followsCount}
-					{#if followsCount !== undefined && followsCount !== null}
-						<div>
-							<dt>Following</dt>
-							<dd>
-								<NumberValue value={Number(followsCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followsCount = resolvedEntity.followsCount}
@@ -185,7 +345,9 @@
 						<div>
 							<dt>Following</dt>
 							<dd>
-								<NumberValue value={Number(followsCount)} />
+								<NumberValue
+									value={followsCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -195,27 +357,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Atproto_Xrpc,
-						],
+						sources: selection.sources,
 						fields: {
 							postsCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const postsCount = pendingEntity.postsCount}
-					{#if postsCount !== undefined && postsCount !== null}
-						<div>
-							<dt>Posts</dt>
-							<dd>
-								<NumberValue value={Number(postsCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const postsCount = resolvedEntity.postsCount}
@@ -223,12 +371,33 @@
 						<div>
 							<dt>Posts</dt>
 							<dd>
-								<NumberValue value={Number(postsCount)} />
+								<NumberValue
+									value={postsCount}
+								/>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources,
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const description = resolvedEntity.description}
+				{#if description !== undefined && description !== null && description !== ''}
+					<p data-text="long-text">{String((description) ?? '')}</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

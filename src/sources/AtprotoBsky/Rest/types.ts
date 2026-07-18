@@ -18,6 +18,10 @@ export type BskyAppViewProfile = {
 	indexedAt?: string
 }
 
+export type AtprotoIdentityResolveHandleResponse = {
+	did: string
+}
+
 export type BskyAppViewPostRecord = {
 	$type?: string
 	text: string

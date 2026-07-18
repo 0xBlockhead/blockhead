@@ -20,8 +20,8 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SwarmResource, {
-		reference: swarmResourceReferenceFromRouteParam(decodeURIComponent(params.reference)),
-		contentPath: swarmResourceContentPathFromRouteParam(decodeURIComponent(params.contentPath)),
+		reference: swarmResourceReferenceFromRouteParam(params.reference),
+		contentPath: swarmResourceContentPathFromRouteParam(params.contentPath),
 	}, {
 		sources: [
 			Source.Swarm_Rest,

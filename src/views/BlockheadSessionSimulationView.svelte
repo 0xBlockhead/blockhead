@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadSessionSimulation = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			status: true,
 			createdAt: true,
@@ -79,84 +76,92 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSessionSimulation}>
-			{#snippet Pending()}
-				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadSessionSimulation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadSessionSimulation}>
-			{#snippet Pending()}
-				{@const createdAt0 = pendingEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<Timestamp timestamp={Number(createdAt0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<Timestamp timestamp={Number(createdAt0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const createdAt0 = pendingEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<Timestamp timestamp={Number(createdAt0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadSessionSimulation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt0 = resolvedEntity.createdAt}
+					{#if createdAt0 !== undefined && createdAt0 !== null}
+						<Timestamp timestamp={Number(createdAt0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadSessionSimulation}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$session}
-				>
-					{#snippet children(blockheadSession)}
-						<span data-text="muted">
-							<BlockheadSessionView
-								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-								prefetched={blockheadSession}
-								href={
-									(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
-										sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$session}
-				>
-					{#snippet children(blockheadSession)}
-						<span data-text="muted">
-							<BlockheadSessionView
-								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-								prefetched={blockheadSession}
-								href={
-									(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
-										sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$session}
+			>
+				{#snippet children(blockheadSession)}
+					{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<BlockheadSessionView
+							selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
+							prefetched={blockheadSession}
+							href={
+								(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+									sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadSessionSimulation}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$session}
+					>
+						{#snippet children(blockheadSession)}
+							{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<BlockheadSessionView
+									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
+									prefetched={blockheadSession}
+									href={
+										(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+											sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -192,19 +197,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									status: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const status = pendingEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const status = resolvedEntity.status}
@@ -222,19 +221,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const createdAt = pendingEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdAt = resolvedEntity.createdAt}
@@ -249,24 +242,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							completedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const completedAt = pendingEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
-						<div>
-							<dt>completed AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const completedAt = resolvedEntity.completedAt}
@@ -287,19 +269,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									paramsHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const paramsHash = pendingEntity.paramsHash}
-							{#if paramsHash !== undefined && paramsHash !== null}
-								<TruncatedValue value={String((paramsHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const paramsHash = resolvedEntity.paramsHash}
@@ -316,24 +292,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							forkBlockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const forkBlockNumber = pendingEntity.forkBlockNumber}
-					{#if forkBlockNumber !== undefined && forkBlockNumber !== null}
-						<div>
-							<dt>fork block number</dt>
-							<dd>
-								<NumberValue value={Number(forkBlockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const forkBlockNumber = resolvedEntity.forkBlockNumber}
@@ -341,7 +306,9 @@
 						<div>
 							<dt>fork block number</dt>
 							<dd>
-								<NumberValue value={Number(forkBlockNumber)} />
+								<NumberValue
+									value={forkBlockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -351,24 +318,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							actionCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const actionCount = pendingEntity.actionCount}
-					{#if actionCount !== undefined && actionCount !== null}
-						<div>
-							<dt>action count</dt>
-							<dd>
-								<NumberValue value={Number(actionCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const actionCount = resolvedEntity.actionCount}
@@ -376,7 +332,9 @@
 						<div>
 							<dt>action count</dt>
 							<dd>
-								<NumberValue value={Number(actionCount)} />
+								<NumberValue
+									value={actionCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -386,24 +344,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gasUsed = pendingEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
-						<div>
-							<dt>gas used</dt>
-							<dd>
-								<NumberValue value={Number(gasUsed)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gasUsed = resolvedEntity.gasUsed}
@@ -411,7 +358,9 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								<NumberValue value={Number(gasUsed)} />
+								<NumberValue
+									value={gasUsed}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -421,24 +370,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							resultPayloadHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const resultPayloadHash = pendingEntity.resultPayloadHash}
-					{#if resultPayloadHash !== undefined && resultPayloadHash !== null}
-						<div>
-							<dt>result payload hash</dt>
-							<dd>
-								<TruncatedValue value={String((resultPayloadHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const resultPayloadHash = resolvedEntity.resultPayloadHash}
@@ -456,24 +394,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

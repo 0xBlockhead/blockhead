@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
 </script>
@@ -69,89 +68,55 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					hash: true,
-					successful: true,
-					$network: true,
-				},
-				limit: 16,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmUserOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmUserOperation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			fields: {
+				hash: true,
+				successful: true,
+				$network: true,
+			},
+			limit: 16,
+		})
+	}
+	getResourceItems={(evmUserOperations) => [...new Map(evmUserOperations.values.map((evmUserOperation) => [evmUserOperation[EntityMetaKey.SelectorKey], evmUserOperation])).values()]}
+	getKey={(evmUserOperation) => evmUserOperation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No User operations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmUserOperations)}
-			{@const uniqueEvmUserOperations = [...new Map(evmUserOperations.values.map((evmUserOperation) => [evmUserOperation[EntityMetaKey.SelectorKey], evmUserOperation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmUserOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmUserOperations.totalCount}
-				getKey={(evmUserOperation) => evmUserOperation[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmUserOperations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No User operations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmUserOperation })}
-					{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
-					{@const selection = select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
-					<EvmUserOperationView
-						selection={selection}
-						prefetched={evmUserOperationFields}
-						href={
-							(evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
-								network: String(caip2StringFromValue(evmUserOperationHrefFields.$network.caip2) ?? ''),
-							}) : evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
-								network: String(evmUserOperationHrefFields.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmUserOperation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: evmUserOperation })}
+		{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
+		{@const selection = select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
+		<EvmUserOperationView
+			selection={selection}
+			prefetched={evmUserOperationFields}
+			href={
+				(evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+					userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
+					network: String(caip2StringFromValue(evmUserOperationHrefFields.$network.caip2) ?? ''),
+				}) : evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+					userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
+					network: String(evmUserOperationHrefFields.$network.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

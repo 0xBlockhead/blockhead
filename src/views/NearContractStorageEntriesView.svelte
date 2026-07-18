@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearContractStorageEntryView from '$/views/NearContractStorageEntryView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					keyBase64: true,
-					valueHash: true,
-					blockHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContractStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearContractStorageEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				keyBase64: true,
+				valueHash: true,
+				blockHeight: true,
+			},
+		})
+	}
+	getResourceItems={(nearContractStorageEntries) => [...new Map(nearContractStorageEntries.values.map((nearContractStorageEntry) => [nearContractStorageEntry[EntityMetaKey.SelectorKey], nearContractStorageEntry])).values()]}
+	getKey={(nearContractStorageEntry) => nearContractStorageEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near contract storage entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearContractStorageEntries)}
-			{@const uniqueNearContractStorageEntries = [...new Map(nearContractStorageEntries.values.map((nearContractStorageEntry) => [nearContractStorageEntry[EntityMetaKey.SelectorKey], nearContractStorageEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearContractStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearContractStorageEntries.totalCount}
-				getKey={(nearContractStorageEntry) => nearContractStorageEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueNearContractStorageEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near contract storage entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearContractStorageEntry })}
-					{@const nearContractStorageEntryFields = { ...nearContractStorageEntry[EntityMetaKey.Selector], ...nearContractStorageEntry }}
-					{@const selection = select(EntityType.NearContractStorageEntry, nearContractStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearContractStorageEntryView
-						selection={selection}
-						prefetched={nearContractStorageEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearContractStorageEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearContractStorageEntry })}
+		{@const nearContractStorageEntryFields = { ...nearContractStorageEntry[EntityMetaKey.Selector], ...nearContractStorageEntry }}
+		{@const selection = select(EntityType.NearContractStorageEntry, nearContractStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearContractStorageEntryView
+			selection={selection}
+			prefetched={nearContractStorageEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

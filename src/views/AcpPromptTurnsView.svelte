@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpPromptTurnView from '$/views/AcpPromptTurnView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					turnId: true,
-					stopReason: true,
-					startedAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpPromptTurn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpPromptTurn}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				turnId: true,
+				stopReason: true,
+				startedAt: true,
+			},
+		})
+	}
+	getResourceItems={(acpPromptTurns) => [...new Map(acpPromptTurns.values.map((acpPromptTurn) => [acpPromptTurn[EntityMetaKey.SelectorKey], acpPromptTurn])).values()]}
+	getKey={(acpPromptTurn) => acpPromptTurn[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP prompt turns yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpPromptTurns)}
-			{@const uniqueAcpPromptTurns = [...new Map(acpPromptTurns.values.map((acpPromptTurn) => [acpPromptTurn[EntityMetaKey.SelectorKey], acpPromptTurn])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpPromptTurn}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpPromptTurns.totalCount}
-				getKey={(acpPromptTurn) => acpPromptTurn[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpPromptTurns}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP prompt turns yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpPromptTurn })}
-					{@const acpPromptTurnFields = { ...acpPromptTurn[EntityMetaKey.Selector], ...acpPromptTurn }}
-					{@const selection = select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpPromptTurnView
-						selection={selection}
-						prefetched={acpPromptTurnFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpPromptTurn}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpPromptTurn })}
+		{@const acpPromptTurnFields = { ...acpPromptTurn[EntityMetaKey.Selector], ...acpPromptTurn }}
+		{@const selection = select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpPromptTurnView
+			selection={selection}
+			prefetched={acpPromptTurnFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

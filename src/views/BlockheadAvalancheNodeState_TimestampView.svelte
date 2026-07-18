@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAvalancheNodeStateTimestamp = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			nodeVersion: true,
 			networkName: true,
@@ -74,58 +71,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.nodeVersion) ?? ''), String((pendingEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead avalanche node state timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nodeVersion) ?? ''), String((resolvedEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.nodeVersion) ?? ''), String((pendingEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.nodeVersion) ?? ''), String((resolvedEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-			{#snippet Pending()}
-				{@const connectedPeerCount0 = pendingEntity.connectedPeerCount}
-				{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(connectedPeerCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const connectedPeerCount0 = resolvedEntity.connectedPeerCount}
-				{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(connectedPeerCount0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const connectedPeerCount0 = pendingEntity.connectedPeerCount}
+			{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={connectedPeerCount0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const connectedPeerCount0 = resolvedEntity.connectedPeerCount}
+					{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={connectedPeerCount0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -177,19 +172,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -204,24 +193,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							networkName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const networkName = pendingEntity.networkName}
-					{#if networkName !== undefined && networkName !== null}
-						<div>
-							<dt>network name</dt>
-							<dd>
-								{String((networkName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const networkName = resolvedEntity.networkName}
@@ -241,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeVersion = pendingEntity.nodeVersion}
-					{#if nodeVersion !== undefined && nodeVersion !== null}
-						<div>
-							<dt>node version</dt>
-							<dd>
-								{String((nodeVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeVersion = resolvedEntity.nodeVersion}
@@ -276,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							databaseVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const databaseVersion = pendingEntity.databaseVersion}
-					{#if databaseVersion !== undefined && databaseVersion !== null}
-						<div>
-							<dt>database version</dt>
-							<dd>
-								{String((databaseVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const databaseVersion = resolvedEntity.databaseVersion}
@@ -311,24 +267,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							gitCommit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const gitCommit = pendingEntity.gitCommit}
-					{#if gitCommit !== undefined && gitCommit !== null}
-						<div>
-							<dt>Git commit</dt>
-							<dd>
-								{String((gitCommit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const gitCommit = resolvedEntity.gitCommit}
@@ -346,24 +291,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rpcProtocolVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rpcProtocolVersion = pendingEntity.rpcProtocolVersion}
-					{#if rpcProtocolVersion !== undefined && rpcProtocolVersion !== null}
-						<div>
-							<dt>RPC protocol version</dt>
-							<dd>
-								{String((rpcProtocolVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rpcProtocolVersion = resolvedEntity.rpcProtocolVersion}
@@ -383,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							connectedPeerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const connectedPeerCount = pendingEntity.connectedPeerCount}
-					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
-						<div>
-							<dt>connected peer count</dt>
-							<dd>
-								<NumberValue value={Number(connectedPeerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const connectedPeerCount = resolvedEntity.connectedPeerCount}
@@ -408,7 +331,9 @@
 						<div>
 							<dt>connected peer count</dt>
 							<dd>
-								<NumberValue value={Number(connectedPeerCount)} />
+								<NumberValue
+									value={connectedPeerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -418,24 +343,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							uptimePercent: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const uptimePercent = pendingEntity.uptimePercent}
-					{#if uptimePercent !== undefined && uptimePercent !== null}
-						<div>
-							<dt>uptime percent</dt>
-							<dd>
-								<NumberValue value={Number(uptimePercent)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const uptimePercent = resolvedEntity.uptimePercent}
@@ -443,7 +357,9 @@
 						<div>
 							<dt>uptime percent</dt>
 							<dd>
-								<NumberValue value={Number(uptimePercent)} />
+								<NumberValue
+									value={uptimePercent}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -453,24 +369,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSyncedAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
-						<div>
-							<dt>last synced AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}

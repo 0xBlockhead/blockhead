@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadWalletAccountView from '$/views/BlockheadWalletAccountView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					caip10: true,
-					address: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadWalletAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				caip10: true,
+				address: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadWalletAccounts) => [...new Map(blockheadWalletAccounts.values.map((blockheadWalletAccount) => [blockheadWalletAccount[EntityMetaKey.SelectorKey], blockheadWalletAccount])).values()]}
+	getKey={(blockheadWalletAccount) => blockheadWalletAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead wallet accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadWalletAccounts)}
-			{@const uniqueBlockheadWalletAccounts = [...new Map(blockheadWalletAccounts.values.map((blockheadWalletAccount) => [blockheadWalletAccount[EntityMetaKey.SelectorKey], blockheadWalletAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletAccounts.totalCount}
-				getKey={(blockheadWalletAccount) => blockheadWalletAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadWalletAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead wallet accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadWalletAccount })}
-					{@const blockheadWalletAccountFields = { ...blockheadWalletAccount[EntityMetaKey.Selector], ...blockheadWalletAccount }}
-					{@const selection = select(EntityType.BlockheadWalletAccount, blockheadWalletAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadWalletAccountView
-						selection={selection}
-						prefetched={blockheadWalletAccountFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadWalletAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadWalletAccount })}
+		{@const blockheadWalletAccountFields = { ...blockheadWalletAccount[EntityMetaKey.Selector], ...blockheadWalletAccount }}
+		{@const selection = select(EntityType.BlockheadWalletAccount, blockheadWalletAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadWalletAccountView
+			selection={selection}
+			prefetched={blockheadWalletAccountFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

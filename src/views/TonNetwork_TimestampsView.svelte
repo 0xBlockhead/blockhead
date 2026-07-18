@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonNetwork_TimestampView from '$/views/TonNetwork_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonNetworkTimestamps) => [...new Map(tonNetworkTimestamps.values.map((tonNetworkTimestamp) => [tonNetworkTimestamp[EntityMetaKey.SelectorKey], tonNetworkTimestamp])).values()]}
+	getKey={(tonNetworkTimestamp) => tonNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonNetworkTimestamps)}
-			{@const uniqueTonNetworkTimestamps = [...new Map(tonNetworkTimestamps.values.map((tonNetworkTimestamp) => [tonNetworkTimestamp[EntityMetaKey.SelectorKey], tonNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonNetworkTimestamps.totalCount}
-				getKey={(tonNetworkTimestamp) => tonNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueTonNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonNetworkTimestamp })}
-					{@const tonNetworkTimestampFields = { ...tonNetworkTimestamp[EntityMetaKey.Selector], ...tonNetworkTimestamp }}
-					{@const selection = select(EntityType.TonNetwork_Timestamp, tonNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonNetwork_TimestampView
-						selection={selection}
-						prefetched={tonNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonNetworkTimestamp })}
+		{@const tonNetworkTimestampFields = { ...tonNetworkTimestamp[EntityMetaKey.Selector], ...tonNetworkTimestamp }}
+		{@const selection = select(EntityType.TonNetwork_Timestamp, tonNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonNetwork_TimestampView
+			selection={selection}
+			prefetched={tonNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

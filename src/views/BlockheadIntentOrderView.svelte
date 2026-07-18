@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadIntentOrder = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			source: true,
 			orderId: true,
@@ -78,52 +75,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadIntentOrder}>
-			{#snippet Pending()}
-				{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadIntentOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadIntentOrder}>
-			{#snippet Pending()}
-				{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadIntentOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadIntentOrder}>
-			{#snippet Pending()}
-				{@const submittedAt0 = pendingEntity.submittedAt}
-				{#if submittedAt0 !== undefined && submittedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(submittedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const submittedAt0 = resolvedEntity.submittedAt}
-				{#if submittedAt0 !== undefined && submittedAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(submittedAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const submittedAt0 = pendingEntity.submittedAt}
+			{#if submittedAt0 !== undefined && submittedAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(submittedAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadIntentOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const submittedAt0 = resolvedEntity.submittedAt}
+					{#if submittedAt0 !== undefined && submittedAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(submittedAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,19 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									id: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const id = pendingEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const id = resolvedEntity.id}
@@ -164,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -194,19 +179,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									orderId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const orderId = pendingEntity.orderId}
-							{#if orderId !== undefined && orderId !== null}
-								{String((orderId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const orderId = resolvedEntity.orderId}
@@ -221,8 +200,6 @@
 			<ResourceBoundary
 				resource={selection.$quote}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadIntentQuote)}
 					{#if blockheadIntentQuote != null && blockheadIntentQuote[EntityMetaKey.Selector] != null}
 						<div>
@@ -243,8 +220,6 @@
 			<ResourceBoundary
 				resource={selection.$sessionAction}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 						<div>
@@ -268,19 +243,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									providerProtocol: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const providerProtocol = pendingEntity.providerProtocol}
-							{#if providerProtocol !== undefined && providerProtocol !== null}
-								{String((providerProtocol) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const providerProtocol = resolvedEntity.providerProtocol}
@@ -300,19 +269,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									submittedAt: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const submittedAt = pendingEntity.submittedAt}
-							{#if submittedAt !== undefined && submittedAt !== null}
-								<Timestamp timestamp={Number(submittedAt)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const submittedAt = resolvedEntity.submittedAt}
@@ -327,24 +290,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							signatureHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const signatureHash = pendingEntity.signatureHash}
-					{#if signatureHash !== undefined && signatureHash !== null}
-						<div>
-							<dt>signature hash</dt>
-							<dd>
-								<TruncatedValue value={String((signatureHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const signatureHash = resolvedEntity.signatureHash}
@@ -362,24 +314,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							orderPayloadHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const orderPayloadHash = pendingEntity.orderPayloadHash}
-					{#if orderPayloadHash !== undefined && orderPayloadHash !== null}
-						<div>
-							<dt>order payload hash</dt>
-							<dd>
-								<TruncatedValue value={String((orderPayloadHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const orderPayloadHash = resolvedEntity.orderPayloadHash}

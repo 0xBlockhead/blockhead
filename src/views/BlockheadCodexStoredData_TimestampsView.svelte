@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadCodexStoredData_TimestampView from '$/views/BlockheadCodexStoredData_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					downloadStatus: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCodexStoredData_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadCodexStoredData_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				downloadStatus: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadCodexStoredDataTimestamps) => [...new Map(blockheadCodexStoredDataTimestamps.values.map((blockheadCodexStoredDataTimestamp) => [blockheadCodexStoredDataTimestamp[EntityMetaKey.SelectorKey], blockheadCodexStoredDataTimestamp])).values()]}
+	getKey={(blockheadCodexStoredDataTimestamp) => blockheadCodexStoredDataTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead codex stored data observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadCodexStoredDataTimestamps)}
-			{@const uniqueBlockheadCodexStoredDataTimestamps = [...new Map(blockheadCodexStoredDataTimestamps.values.map((blockheadCodexStoredDataTimestamp) => [blockheadCodexStoredDataTimestamp[EntityMetaKey.SelectorKey], blockheadCodexStoredDataTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadCodexStoredData_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadCodexStoredDataTimestamps.totalCount}
-				getKey={(blockheadCodexStoredDataTimestamp) => blockheadCodexStoredDataTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadCodexStoredDataTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead codex stored data observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadCodexStoredDataTimestamp })}
-					{@const blockheadCodexStoredDataTimestampFields = { ...blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], ...blockheadCodexStoredDataTimestamp }}
-					{@const selection = select(EntityType.BlockheadCodexStoredData_Timestamp, blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadCodexStoredData_TimestampView
-						selection={selection}
-						prefetched={blockheadCodexStoredDataTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadCodexStoredData_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadCodexStoredDataTimestamp })}
+		{@const blockheadCodexStoredDataTimestampFields = { ...blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], ...blockheadCodexStoredDataTimestamp }}
+		{@const selection = select(EntityType.BlockheadCodexStoredData_Timestamp, blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadCodexStoredData_TimestampView
+			selection={selection}
+			prefetched={blockheadCodexStoredDataTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

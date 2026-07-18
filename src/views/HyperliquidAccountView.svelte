@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidAccount = $derived(selection({}))
+	const hyperliquidAccount = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid account')
 	const viewDomId = $derived('hyperliquid-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -72,16 +74,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidAccount}>
-			{#snippet Pending()}
-				{title || 'hyperliquid account'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidAccount}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -110,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									address: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const address = pendingEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const address = resolvedEntity.address}
@@ -140,19 +136,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									accountRole: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const accountRole = pendingEntity.accountRole}
-							{#if accountRole !== undefined && accountRole !== null}
-								<TruncatedValue value={String((accountRole) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const accountRole = resolvedEntity.accountRole}
@@ -167,8 +157,6 @@
 			<ResourceBoundary
 				resource={selection.$masterAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null && hyperliquidAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -189,8 +177,6 @@
 			<ResourceBoundary
 				resource={selection.$agentAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null && hyperliquidAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,11 +219,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -245,12 +228,12 @@
 
 				{#snippet SectionHyperliquidAccountOrders({ id, label, open })}
 					<HyperliquidOrdersView
-						selection={
-							selection.$$orders({
-								count: true,
-							})
-						}
+						selection={selection.$$orders}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No orders.'
 						open={open}
 						title={label}
@@ -260,12 +243,12 @@
 
 				{#snippet SectionHyperliquidAccountFills({ id, label, open })}
 					<HyperliquidFillsView
-						selection={
-							selection.$$fills({
-								count: true,
-							})
-						}
+						selection={selection.$$fills}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No fills.'
 						open={open}
 						title={label}
@@ -275,12 +258,12 @@
 
 				{#snippet SectionHyperliquidAccountVaultEquities({ id, label, open })}
 					<HyperliquidVaultEquity_TimestampsView
-						selection={
-							selection.$$vaultEquities({
-								count: true,
-							})
-						}
+						selection={selection.$$vaultEquities}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No vault equities.'
 						open={open}
 						title={label}
@@ -303,11 +286,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -315,12 +295,12 @@
 
 				{#snippet SectionHyperliquidAccountTimestamps({ id, label, open })}
 					<HyperliquidAccount_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

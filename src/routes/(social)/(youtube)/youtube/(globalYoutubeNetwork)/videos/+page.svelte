@@ -18,14 +18,14 @@
 
 
 <svelte:head>
-	<title>YouTube Videos • Blockhead</title>
+	<title>Popular YouTube videos (bounded provider chart) • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeVideosView
 		href={resolve('/youtube/videos')}
-		title='YouTube Videos'
+		title='Popular YouTube videos (bounded provider chart)'
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
@@ -37,5 +37,8 @@
 			})
 		}
 		id='observed-videos'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
 	/>
 </Page>

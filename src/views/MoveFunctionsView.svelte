@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoveFunctionView from '$/views/MoveFunctionView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					functionName: true,
-					visibility: true,
-					$module: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveFunction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoveFunction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				functionName: true,
+				visibility: true,
+				$module: true,
+			},
+		})
+	}
+	getResourceItems={(moveFunctions) => [...new Map(moveFunctions.values.map((moveFunction) => [moveFunction[EntityMetaKey.SelectorKey], moveFunction])).values()]}
+	getKey={(moveFunction) => moveFunction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Move functions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moveFunctions)}
-			{@const uniqueMoveFunctions = [...new Map(moveFunctions.values.map((moveFunction) => [moveFunction[EntityMetaKey.SelectorKey], moveFunction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveFunction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moveFunctions.totalCount}
-				getKey={(moveFunction) => moveFunction[EntityMetaKey.SelectorKey]}
-				items={uniqueMoveFunctions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Move functions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moveFunction })}
-					{@const moveFunctionFields = { ...moveFunction[EntityMetaKey.Selector], ...moveFunction }}
-					{@const selection = select(EntityType.MoveFunction, moveFunction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoveFunctionView
-						selection={selection}
-						prefetched={moveFunctionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoveFunction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moveFunction })}
+		{@const moveFunctionFields = { ...moveFunction[EntityMetaKey.Selector], ...moveFunction }}
+		{@const selection = select(EntityType.MoveFunction, moveFunction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoveFunctionView
+			selection={selection}
+			prefetched={moveFunctionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

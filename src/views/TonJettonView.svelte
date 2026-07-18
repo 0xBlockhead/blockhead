@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonJetton = $derived(selection({}))
+	const tonJetton = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('TON jetton')
 	const viewDomId = $derived('ton-jetton-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tonJetton}>
-			{#snippet Pending()}
-				{title || 'TON jetton'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={tonJetton}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -109,19 +111,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									masterAddress: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const masterAddress = pendingEntity.masterAddress}
-							{#if masterAddress !== undefined && masterAddress !== null}
-								<TruncatedValue value={String((masterAddress) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const masterAddress = resolvedEntity.masterAddress}
@@ -136,8 +132,6 @@
 			<ResourceBoundary
 				resource={selection.$masterAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -181,11 +175,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -193,12 +184,12 @@
 
 				{#snippet SectionTonJettonTransfers({ id, label, open })}
 					<TonJettonTransfersView
-						selection={
-							selection.$$transfers({
-								count: true,
-							})
-						}
+						selection={selection.$$transfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transfers.'
 						open={open}
 						title={label}
@@ -225,11 +216,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -237,12 +225,12 @@
 
 				{#snippet SectionTonJettonBalanceTimestamps({ id, label, open })}
 					<TonJettonBalance_TimestampsView
-						selection={
-							selection.$$balanceTimestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$balanceTimestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No balance timestamps.'
 						open={open}
 						title={label}
@@ -252,12 +240,12 @@
 
 				{#snippet SectionTonJettonTimestamps({ id, label, open })}
 					<TonJetton_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No timestamps.'
 						open={open}
 						title={label}

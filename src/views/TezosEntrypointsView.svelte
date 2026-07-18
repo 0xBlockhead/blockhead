@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosEntrypointView from '$/views/TezosEntrypointView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosEntrypoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosEntrypoint}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosEntrypoints) => [...new Map(tezosEntrypoints.values.map((tezosEntrypoint) => [tezosEntrypoint[EntityMetaKey.SelectorKey], tezosEntrypoint])).values()]}
+	getKey={(tezosEntrypoint) => tezosEntrypoint[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos entrypoints yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosEntrypoints)}
-			{@const uniqueTezosEntrypoints = [...new Map(tezosEntrypoints.values.map((tezosEntrypoint) => [tezosEntrypoint[EntityMetaKey.SelectorKey], tezosEntrypoint])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosEntrypoint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosEntrypoints.totalCount}
-				getKey={(tezosEntrypoint) => tezosEntrypoint[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosEntrypoints}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos entrypoints yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosEntrypoint })}
-					{@const tezosEntrypointFields = { ...tezosEntrypoint[EntityMetaKey.Selector], ...tezosEntrypoint }}
-					{@const selection = select(EntityType.TezosEntrypoint, tezosEntrypoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosEntrypointView
-						selection={selection}
-						prefetched={tezosEntrypointFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosEntrypoint}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosEntrypoint })}
+		{@const tezosEntrypointFields = { ...tezosEntrypoint[EntityMetaKey.Selector], ...tezosEntrypoint }}
+		{@const selection = select(EntityType.TezosEntrypoint, tezosEntrypoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosEntrypointView
+			selection={selection}
+			prefetched={tezosEntrypointFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

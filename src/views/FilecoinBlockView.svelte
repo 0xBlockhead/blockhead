@@ -44,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const filecoinBlock = $derived(selection({
-		sources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'filecoin block')
 	const viewDomId = $derived('filecoin-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -75,29 +72,28 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={filecoinBlock}>
-			{#snippet Pending()}
-				{@const cid0 = pendingEntity.cid}
-				{#if cid0 !== undefined && cid0 !== null}
-					<TruncatedValue value={String((cid0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const cid0 = resolvedEntity.cid}
-				{#if cid0 !== undefined && cid0 !== null}
-					<TruncatedValue value={String((cid0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const cid0 = pendingEntity.cid}
+					{#if cid0 !== undefined && cid0 !== null}
+						<TruncatedValue value={String((cid0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={filecoinBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const cid0 = resolvedEntity.cid}
+					{#if cid0 !== undefined && cid0 !== null}
+						<TruncatedValue value={String((cid0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={filecoinBlock}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={
 						selection.$miner({
 							sources: [
 								Source.Lotus_JsonRpc,
@@ -105,24 +101,35 @@
 							],
 						})
 					}
-				>
-					{#snippet children(filecoinMiner)}
-						{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
-							<FilecoinMinerView
-								selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
-								prefetched={filecoinMiner}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
+					>
+						{#snippet children(filecoinMiner)}
+							{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
+								<FilecoinMinerView
+									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
+									prefetched={filecoinMiner}
+									href={
+									(filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+										minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+										network: String(caip2StringFromValue(filecoinMiner[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+										minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+										network: String(filecoinMiner[EntityMetaKey.Selector].$network.slug ?? ''),
+									}) : undefined)
+								}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={filecoinBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
 						selection.$miner({
 							sources: [
 								Source.Lotus_JsonRpc,
@@ -130,77 +137,93 @@
 							],
 						})
 					}
-				>
-					{#snippet children(filecoinMiner)}
-						{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
-							<FilecoinMinerView
-								selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
-								prefetched={filecoinMiner}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					>
+						{#snippet children(filecoinMiner)}
+							{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
+								<FilecoinMinerView
+									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
+									prefetched={filecoinMiner}
+									href={
+									(filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+										minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+										network: String(caip2StringFromValue(filecoinMiner[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+										minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+										network: String(filecoinMiner[EntityMetaKey.Selector].$network.slug ?? ''),
+									}) : undefined)
+								}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={filecoinBlock}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
-						selection.$tipset({
-							sources: [
-								Source.Lotus_JsonRpc,
-								Source.Filfox_Rest,
-							],
-						})
-					}
-				>
-					{#snippet children(filecoinTipset)}
-						{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<FilecoinTipsetView
-									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
-									prefetched={filecoinTipset}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection.$tipset({
-							sources: [
-								Source.Lotus_JsonRpc,
-								Source.Filfox_Rest,
-							],
-						})
-					}
-				>
-					{#snippet children(filecoinTipset)}
-						{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<FilecoinTipsetView
-									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
-									prefetched={filecoinTipset}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={
+					selection.$tipset({
+						sources: [
+							Source.Lotus_JsonRpc,
+							Source.Filfox_Rest,
+						],
+					})
+				}
+			>
+				{#snippet children(filecoinTipset)}
+					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<FilecoinTipsetView
+								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
+								prefetched={filecoinTipset}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={filecoinBlock}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
+							selection.$tipset({
+								sources: [
+									Source.Lotus_JsonRpc,
+									Source.Filfox_Rest,
+								],
+							})
+						}
+					>
+						{#snippet children(filecoinTipset)}
+							{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<FilecoinTipsetView
+										selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
+										prefetched={filecoinTipset}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -229,19 +252,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cid = pendingEntity.cid}
-							{#if cid !== undefined && cid !== null}
-								<TruncatedValue value={String((cid) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cid = resolvedEntity.cid}
@@ -263,8 +280,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -292,8 +307,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(filecoinMiner)}
 					{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
 						<div>
@@ -302,6 +315,15 @@
 								<FilecoinMinerView
 									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 									prefetched={filecoinMiner}
+									href={
+										(filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+											minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+											network: String(caip2StringFromValue(filecoinMiner[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : filecoinMiner[EntityMetaKey.Selector].minerAddress !== undefined && filecoinMiner[EntityMetaKey.Selector].$network !== undefined && filecoinMiner[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+											minerAddress: String(filecoinMiner[EntityMetaKey.Selector].minerAddress ?? ''),
+											network: String(filecoinMiner[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -314,27 +336,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							ticketVrFProof: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ticketVrFProof = pendingEntity.ticketVrFProof}
-					{#if ticketVrFProof !== undefined && ticketVrFProof !== null}
-						<div>
-							<dt>Ticket VRF proof</dt>
-							<dd>
-								<TruncatedValue value={String((ticketVrFProof) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ticketVrFProof = resolvedEntity.ticketVrFProof}
@@ -352,27 +360,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							winCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const winCount = pendingEntity.winCount}
-					{#if winCount !== undefined && winCount !== null}
-						<div>
-							<dt>Win count</dt>
-							<dd>
-								<NumberValue value={Number(winCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const winCount = resolvedEntity.winCount}
@@ -380,7 +374,9 @@
 						<div>
 							<dt>Win count</dt>
 							<dd>
-								<NumberValue value={Number(winCount)} />
+								<NumberValue
+									value={winCount}
+								/>
 							</dd>
 						</div>
 					{/if}

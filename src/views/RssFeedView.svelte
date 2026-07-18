@@ -40,10 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const rssFeed = $derived(selection({
-		sources: [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			title: true,
 			description: true,
@@ -74,7 +71,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-			feedUrl: String(pendingEntity.feedUrl ?? ''),
+			feedUrl: encodeURIComponent(String(pendingEntity.feedUrl ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -82,58 +79,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={rssFeed}>
-			{#snippet Pending()}
-				{[String((pendingEntity.title) ?? ''), String((pendingEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || title || 'RSS feed'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.title) ?? ''), String((pendingEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={rssFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={rssFeed}>
-			{#snippet Pending()}
-				{@const feedUrl0 = pendingEntity.feedUrl}
-				{#if feedUrl0 !== undefined && feedUrl0 !== null}
-					<TruncatedValue value={String((feedUrl0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const feedUrl0 = resolvedEntity.feedUrl}
-				{#if feedUrl0 !== undefined && feedUrl0 !== null}
-					<TruncatedValue value={String((feedUrl0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const feedUrl0 = pendingEntity.feedUrl}
+					{#if feedUrl0 !== undefined && feedUrl0 !== null}
+						<TruncatedValue value={String((feedUrl0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={rssFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feedUrl0 = resolvedEntity.feedUrl}
+					{#if feedUrl0 !== undefined && feedUrl0 !== null}
+						<TruncatedValue value={String((feedUrl0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={rssFeed}>
-			{#snippet Pending()}
-				{@const lastBuildDate0 = pendingEntity.lastBuildDate}
-				{#if lastBuildDate0 !== undefined && lastBuildDate0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(lastBuildDate0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const lastBuildDate0 = resolvedEntity.lastBuildDate}
-				{#if lastBuildDate0 !== undefined && lastBuildDate0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(lastBuildDate0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const lastBuildDate0 = pendingEntity.lastBuildDate}
+			{#if lastBuildDate0 !== undefined && lastBuildDate0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(lastBuildDate0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={rssFeed}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const lastBuildDate0 = resolvedEntity.lastBuildDate}
+					{#if lastBuildDate0 !== undefined && lastBuildDate0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(lastBuildDate0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,26 +141,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									feedUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const feedUrl = pendingEntity.feedUrl}
-							{#if feedUrl !== undefined && feedUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(feedUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(feedUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const feedUrl = resolvedEntity.feedUrl}
@@ -187,31 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							link: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const link = pendingEntity.link}
-					{#if link !== undefined && link !== null}
-						<div>
-							<dt>Link</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(link)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(link)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const link = resolvedEntity.link}
@@ -238,31 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							siteUrl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const siteUrl = pendingEntity.siteUrl}
-					{#if siteUrl !== undefined && siteUrl !== null}
-						<div>
-							<dt>Site URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(siteUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(siteUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const siteUrl = resolvedEntity.siteUrl}
@@ -289,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							language: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const language = pendingEntity.language}
-					{#if language !== undefined && language !== null}
-						<div>
-							<dt>Language</dt>
-							<dd>
-								{String((language) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const language = resolvedEntity.language}
@@ -326,24 +263,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastBuildDate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastBuildDate = pendingEntity.lastBuildDate}
-					{#if lastBuildDate !== undefined && lastBuildDate !== null}
-						<div>
-							<dt>Last build</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastBuildDate)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastBuildDate = resolvedEntity.lastBuildDate}
@@ -362,6 +288,7 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: selection.sources,
 					fields: {
 						description: true,
 					},

@@ -6,13 +6,22 @@ import type {
 	BlockfrostBlock,
 	BlockfrostBlocks,
 	BlockfrostCommittee,
+	BlockfrostCommitteeVotes,
 	BlockfrostDReps,
+	BlockfrostDRep,
+	BlockfrostDRepMetadata,
+	BlockfrostDRepVotes,
 	BlockfrostEpoch,
 	BlockfrostGovernanceProposals,
+	BlockfrostGovernanceProposal,
+	BlockfrostGovernanceProposalMetadata,
+	BlockfrostGovernanceProposalVotes,
 	BlockfrostHealth,
 	BlockfrostNetwork,
 	BlockfrostProtocolParameters,
 	BlockfrostStakePools,
+	BlockfrostStakePool,
+	BlockfrostStakePoolMetadata,
 	BlockfrostTransactions,
 } from '$/sources/Blockfrost/Rest/types.ts'
 
@@ -40,6 +49,14 @@ const get = <_Response>(binding: SourceBinding, path: string) => (
 		path,
 	})
 )
+
+const getOptional = async <_Response>(binding: SourceBinding, path: string) => {
+	try {
+		return await get<_Response>(binding, path)
+	} catch {
+		return undefined
+	}
+}
 
 const listPage = <_Response>(
 	binding: SourceBinding,
@@ -105,8 +122,28 @@ export const listStakePools = (binding: SourceBinding, count: number) => (
 	listPage<BlockfrostStakePools[number]>(binding, 'pools', count)
 )
 
+export const getStakePool = (binding: SourceBinding, poolId: string) => (
+	get<BlockfrostStakePool>(binding, `pools/${encodeURIComponent(poolId)}`)
+)
+
+export const getStakePoolMetadata = (binding: SourceBinding, poolId: string) => (
+	getOptional<BlockfrostStakePoolMetadata>(binding, `pools/${encodeURIComponent(poolId)}/metadata`)
+)
+
 export const listDReps = (binding: SourceBinding, count: number) => (
 	listPage<BlockfrostDReps[number]>(binding, 'governance/dreps', count)
+)
+
+export const getDRep = (binding: SourceBinding, drepId: string) => (
+	get<BlockfrostDRep>(binding, `governance/dreps/${encodeURIComponent(drepId)}`)
+)
+
+export const getDRepMetadata = (binding: SourceBinding, drepId: string) => (
+	getOptional<BlockfrostDRepMetadata>(binding, `governance/dreps/${encodeURIComponent(drepId)}/metadata`)
+)
+
+export const listDRepVotes = (binding: SourceBinding, drepId: string, count: number) => (
+	listPage<BlockfrostDRepVotes[number]>(binding, `governance/dreps/${encodeURIComponent(drepId)}/votes`, count)
 )
 
 export const listGovernanceProposals = (
@@ -114,6 +151,31 @@ export const listGovernanceProposals = (
 	count: number
 ) => (
 	listPage<BlockfrostGovernanceProposals[number]>(binding, 'governance/proposals', count)
+)
+
+export const getGovernanceProposal = (
+	binding: SourceBinding,
+	transactionHash: string,
+	certificateIndex: number
+) => (
+	get<BlockfrostGovernanceProposal>(binding, `governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}`)
+)
+
+export const getGovernanceProposalMetadata = (
+	binding: SourceBinding,
+	transactionHash: string,
+	certificateIndex: number
+) => (
+	getOptional<BlockfrostGovernanceProposalMetadata>(binding, `governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/metadata`)
+)
+
+export const listGovernanceProposalVotes = (
+	binding: SourceBinding,
+	transactionHash: string,
+	certificateIndex: number,
+	count: number
+) => (
+	listPage<BlockfrostGovernanceProposalVotes[number]>(binding, `governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/votes`, count)
 )
 
 export const listAssets = (binding: SourceBinding, count: number) => (
@@ -126,4 +188,8 @@ export const getLatestProtocolParameters = (binding: SourceBinding) => (
 
 export const getCommittee = (binding: SourceBinding) => (
 	get<BlockfrostCommittee>(binding, 'governance/committee')
+)
+
+export const listCommitteeVotes = (binding: SourceBinding, count: number) => (
+	listPage<BlockfrostCommitteeVotes[number]>(binding, 'governance/committee/votes', count)
 )

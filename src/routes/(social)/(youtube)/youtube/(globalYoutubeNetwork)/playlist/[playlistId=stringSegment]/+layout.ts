@@ -15,7 +15,7 @@ export const load: LayoutLoad = ({ params }) => {
 		schema,
 		YoutubePlaylistSchema,
 		{
-			playlistId: params.playlistId,
+			playlistId: decodeURIComponent(params.playlistId),
 		}
 	)
 	if (youtubePlaylistPlaylistIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubePlaylist selector')

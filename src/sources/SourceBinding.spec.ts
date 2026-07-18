@@ -37,6 +37,9 @@ import {
 	remoteLiveBindings,
 } from '$/sources/index.server.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
+import { redditTextGet } from '$/sources/RedditPublic/Rest/client.ts'
+import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
 import { validateSourceBinding } from '$/sources/validateSourceBindings.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 
@@ -372,6 +375,67 @@ describe('source binding indexes', () => {
 		))).toBe(true)
 	})
 
+	it('keeps live social HTTP on the proxy for non-CORS provider endpoints', () => {
+		expect(sourceBindings
+			.filter((binding) => [
+				Source.Neynar_Rest,
+				Source.Reddit_PublicJson,
+				Source.Snapchain_Rest,
+			].includes(binding.source))
+			.map((binding) => ({
+				source: binding.source,
+				delivery: binding.delivery,
+				endpoints: binding.endpoints.map((endpoint) => ({
+					locator: endpoint.locator,
+					corsEnabled: endpoint.corsEnabled,
+				})),
+			})))
+			.toEqual([
+				{
+					source: Source.Neynar_Rest,
+					delivery: SourceDelivery.HttpProxy,
+					endpoints: [
+						{
+							locator: 'https://api.neynar.com',
+							corsEnabled: false,
+						},
+					],
+				},
+				{
+					source: Source.Reddit_PublicJson,
+					delivery: SourceDelivery.HttpProxy,
+					endpoints: [
+						{
+							locator: 'https://www.reddit.com',
+							corsEnabled: false,
+						},
+					],
+				},
+				{
+					source: Source.Snapchain_Rest,
+					delivery: SourceDelivery.HttpProxy,
+					endpoints: [
+						{
+							locator: 'https://hub.pinata.cloud',
+							corsEnabled: false,
+						},
+						{
+							locator: 'https://snap.farcaster.xyz:3381',
+							corsEnabled: false,
+						},
+						{
+							locator: 'https://pop.farcaster.xyz:3381',
+							corsEnabled: false,
+						},
+						{
+							locator: 'https://haatz.quilibrium.com',
+							corsEnabled: false,
+						},
+					],
+				},
+			])
+	})
+
 	it('keeps public config credentials schema-backed', () => {
 		expect(sourceBindings.flatMap((binding) => (
 			binding.credentials.flatMap((credential) => (
@@ -443,6 +507,28 @@ describe('source binding indexes', () => {
 					signal: expect.any(AbortSignal),
 				})
 			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('routes live social clients through their generated HTTP proxy identities', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockImplementation(async () => new Response('{}'))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await redditTextGet('/r/popular/.rss')
+			await neynarFetch(
+				{ PUBLIC_NEYNAR_API_KEY: 'test-key' },
+				'/v2/farcaster/feed/?feed_type=filter&filter_type=global_trending'
+			)
+			await snapchainGet('/v1/fids', { pageSize: 100 })
+
+			expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+				expect.stringMatching(/^\/api-proxy\/Reddit_PublicJson-\d+\/0\/https%3A%2F%2Fwww\.reddit\.com%2Fr%2Fpopular%2F\.rss$/),
+				expect.stringMatching(/^\/api-proxy\/Neynar_Rest-\d+\/0\/https%3A%2F%2Fapi\.neynar\.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending$/),
+				expect.stringMatching(/^\/api-proxy\/Snapchain_Rest-\d+\/0\/https%3A%2F%2Fhub\.pinata\.cloud%2Fv1%2Ffids%3FpageSize%3D100$/),
+			])
 		} finally {
 			vi.unstubAllGlobals()
 		}

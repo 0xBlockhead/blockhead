@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,11 @@
 			{@const DetailView = FarcasterChannelView}
 
 			<DetailView
-				selection={select(EntityType.FarcasterChannel, data.selector)}
+				selection={select(EntityType.FarcasterChannel, data.selector, { sources: [
+		Source.Farcaster_Rest,
+		Source.Neynar_Rest,
+		Source.Snapchain_Rest,
+	] })}
 				href={
 					resolve('/farcaster/channel/[channelId=stringSegment]', {
 						channelId: params.channelId,

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiCoinBalance_TimestampView from '$/views/SuiCoinBalance_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiCoinBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiCoinBalance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiCoinBalanceTimestamps) => [...new Map(suiCoinBalanceTimestamps.values.map((suiCoinBalanceTimestamp) => [suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey], suiCoinBalanceTimestamp])).values()]}
+	getKey={(suiCoinBalanceTimestamp) => suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui coin balance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiCoinBalanceTimestamps)}
-			{@const uniqueSuiCoinBalanceTimestamps = [...new Map(suiCoinBalanceTimestamps.values.map((suiCoinBalanceTimestamp) => [suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey], suiCoinBalanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiCoinBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiCoinBalanceTimestamps.totalCount}
-				getKey={(suiCoinBalanceTimestamp) => suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiCoinBalanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui coin balance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiCoinBalanceTimestamp })}
-					{@const suiCoinBalanceTimestampFields = { ...suiCoinBalanceTimestamp[EntityMetaKey.Selector], ...suiCoinBalanceTimestamp }}
-					{@const selection = select(EntityType.SuiCoinBalance_Timestamp, suiCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiCoinBalance_TimestampView
-						selection={selection}
-						prefetched={suiCoinBalanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiCoinBalance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiCoinBalanceTimestamp })}
+		{@const suiCoinBalanceTimestampFields = { ...suiCoinBalanceTimestamp[EntityMetaKey.Selector], ...suiCoinBalanceTimestamp }}
+		{@const selection = select(EntityType.SuiCoinBalance_Timestamp, suiCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiCoinBalance_TimestampView
+			selection={selection}
+			prefetched={suiCoinBalanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoStakePool_TimestampView from '$/views/CardanoStakePool_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakePool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoStakePool_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoStakePoolTimestamps) => [...new Map(cardanoStakePoolTimestamps.values.map((cardanoStakePoolTimestamp) => [cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey], cardanoStakePoolTimestamp])).values()]}
+	getKey={(cardanoStakePoolTimestamp) => cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano stake pool observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoStakePoolTimestamps)}
-			{@const uniqueCardanoStakePoolTimestamps = [...new Map(cardanoStakePoolTimestamps.values.map((cardanoStakePoolTimestamp) => [cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey], cardanoStakePoolTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoStakePool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoStakePoolTimestamps.totalCount}
-				getKey={(cardanoStakePoolTimestamp) => cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoStakePoolTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano stake pool observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoStakePoolTimestamp })}
-					{@const cardanoStakePoolTimestampFields = { ...cardanoStakePoolTimestamp[EntityMetaKey.Selector], ...cardanoStakePoolTimestamp }}
-					{@const selection = select(EntityType.CardanoStakePool_Timestamp, cardanoStakePoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoStakePool_TimestampView
-						selection={selection}
-						prefetched={cardanoStakePoolTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoStakePool_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoStakePoolTimestamp })}
+		{@const cardanoStakePoolTimestampFields = { ...cardanoStakePoolTimestamp[EntityMetaKey.Selector], ...cardanoStakePoolTimestamp }}
+		{@const selection = select(EntityType.CardanoStakePool_Timestamp, cardanoStakePoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoStakePool_TimestampView
+			selection={selection}
+			prefetched={cardanoStakePoolTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

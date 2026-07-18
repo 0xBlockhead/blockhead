@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuWalletState = $derived(selection({}))
+	const blockheadCashuWalletState = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state')
 	const viewDomId = $derived('blockhead-cashu-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,61 +73,69 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadCashuWalletState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu wallet state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadCashuWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadCashuWalletState}>
-			{#snippet Pending()}
-				{@const unit0 = pendingEntity.unit}
-				{#if unit0 !== undefined && unit0 !== null}
-					{String((unit0) ?? '')}
-				{/if}
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const unit0 = pendingEntity.unit}
+					{#if unit0 !== undefined && unit0 !== null}
+						{String((unit0) ?? '')}
+					{/if}
 
-				<ResourceBoundary
-					resource={selection.$mint}
-				>
-					{#snippet children(cashuMint)}
-						<CashuMintView
-							selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
-							prefetched={cashuMint}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+					<ResourceBoundary
+						resource={selection.$mint}
+					>
+						{#snippet children(cashuMint)}
+							{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
+							<CashuMintView
+								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+								prefetched={cashuMint}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadCashuWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const unit0 = resolvedEntity.unit}
+					{#if unit0 !== undefined && unit0 !== null}
+						{String((unit0) ?? '')}
+					{/if}
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const unit0 = resolvedEntity.unit}
-				{#if unit0 !== undefined && unit0 !== null}
-					{String((unit0) ?? '')}
-				{/if}
-
-				<ResourceBoundary
-					resource={selection.$mint}
-				>
-					{#snippet children(cashuMint)}
-						<CashuMintView
-							selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
-							prefetched={cashuMint}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+					<ResourceBoundary
+						resource={selection.$mint}
+					>
+						{#snippet children(cashuMint)}
+							{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
+							<CashuMintView
+								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+								prefetched={cashuMint}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,19 +146,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									walletId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const walletId = pendingEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const walletId = resolvedEntity.walletId}
@@ -163,8 +167,6 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -208,26 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									mintUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const mintUrl = pendingEntity.mintUrl}
-							{#if mintUrl !== undefined && mintUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(mintUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(mintUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const mintUrl = resolvedEntity.mintUrl}
@@ -252,19 +241,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									unit: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const unit = pendingEntity.unit}
-							{#if unit !== undefined && unit !== null}
-								{String((unit) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const unit = resolvedEntity.unit}
@@ -297,11 +280,8 @@
 				}
 				data-card
 				class='network-view-collapsible-balance'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balance</HeadingComponent>
 					</header>
@@ -309,12 +289,12 @@
 
 				{#snippet SectionCashuProofs({ id, label, open })}
 					<BlockheadCashuProofsView
-						selection={
-							selection.$$proofs({
-								count: true,
-							})
-						}
+						selection={selection.$$proofs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No proofs found.'
 						open={open}
 						title={label}
@@ -324,12 +304,12 @@
 
 				{#snippet SectionCashuTokens({ id, label, open })}
 					<BlockheadCashuTokensView
-						selection={
-							selection.$$tokens({
-								count: true,
-							})
-						}
+						selection={selection.$$tokens}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No tokens found.'
 						open={open}
 						title={label}
@@ -356,11 +336,8 @@
 				}
 				data-card
 				class='network-view-collapsible-quotes'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Quotes</HeadingComponent>
 					</header>
@@ -368,12 +345,12 @@
 
 				{#snippet SectionCashuMintQuotes({ id, label, open })}
 					<BlockheadCashuMintQuotesView
-						selection={
-							selection.$$mintQuotes({
-								count: true,
-							})
-						}
+						selection={selection.$$mintQuotes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No mint quotes found.'
 						open={open}
 						title={label}
@@ -383,12 +360,12 @@
 
 				{#snippet SectionCashuMeltQuotes({ id, label, open })}
 					<BlockheadCashuMeltQuotesView
-						selection={
-							selection.$$meltQuotes({
-								count: true,
-							})
-						}
+						selection={selection.$$meltQuotes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No melt quotes found.'
 						open={open}
 						title={label}
@@ -411,11 +388,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -423,12 +397,12 @@
 
 				{#snippet SectionCashuWalletTimestamps({ id, label, open })}
 					<BlockheadCashuWalletState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No observations yet.'
 						open={open}
 						title={label}

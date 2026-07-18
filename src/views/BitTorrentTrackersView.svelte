@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BitTorrentTrackerView from '$/views/BitTorrentTrackerView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					trackerUrl: true,
-					trackerKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentTracker}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BitTorrentTracker}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				trackerUrl: true,
+				trackerKind: true,
+			},
+		})
+	}
+	getResourceItems={(bitTorrentTrackers) => [...new Map(bitTorrentTrackers.values.map((bitTorrentTracker) => [bitTorrentTracker[EntityMetaKey.SelectorKey], bitTorrentTracker])).values()]}
+	getKey={(bitTorrentTracker) => bitTorrentTracker[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Bit torrent trackers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(bitTorrentTrackers)}
-			{@const uniqueBitTorrentTrackers = [...new Map(bitTorrentTrackers.values.map((bitTorrentTracker) => [bitTorrentTracker[EntityMetaKey.SelectorKey], bitTorrentTracker])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitTorrentTracker}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitTorrentTrackers.totalCount}
-				getKey={(bitTorrentTracker) => bitTorrentTracker[EntityMetaKey.SelectorKey]}
-				items={uniqueBitTorrentTrackers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Bit torrent trackers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: bitTorrentTracker })}
-					{@const bitTorrentTrackerFields = { ...bitTorrentTracker[EntityMetaKey.Selector], ...bitTorrentTracker }}
-					{@const selection = select(EntityType.BitTorrentTracker, bitTorrentTracker[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BitTorrentTrackerView
-						selection={selection}
-						prefetched={bitTorrentTrackerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BitTorrentTracker}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: bitTorrentTracker })}
+		{@const bitTorrentTrackerFields = { ...bitTorrentTracker[EntityMetaKey.Selector], ...bitTorrentTracker }}
+		{@const selection = select(EntityType.BitTorrentTracker, bitTorrentTracker[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BitTorrentTrackerView
+			selection={selection}
+			prefetched={bitTorrentTrackerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

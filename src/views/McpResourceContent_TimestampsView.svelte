@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpResourceContent_TimestampView from '$/views/McpResourceContent_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					contentKind: true,
-					mimeType: true,
-					error: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResourceContent_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpResourceContent_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				contentKind: true,
+				mimeType: true,
+				error: true,
+			},
+		})
+	}
+	getResourceItems={(mcpResourceContentTimestamps) => [...new Map(mcpResourceContentTimestamps.values.map((mcpResourceContentTimestamp) => [mcpResourceContentTimestamp[EntityMetaKey.SelectorKey], mcpResourceContentTimestamp])).values()]}
+	getKey={(mcpResourceContentTimestamp) => mcpResourceContentTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp resource content observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpResourceContentTimestamps)}
-			{@const uniqueMcpResourceContentTimestamps = [...new Map(mcpResourceContentTimestamps.values.map((mcpResourceContentTimestamp) => [mcpResourceContentTimestamp[EntityMetaKey.SelectorKey], mcpResourceContentTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpResourceContent_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpResourceContentTimestamps.totalCount}
-				getKey={(mcpResourceContentTimestamp) => mcpResourceContentTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpResourceContentTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp resource content observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpResourceContentTimestamp })}
-					{@const mcpResourceContentTimestampFields = { ...mcpResourceContentTimestamp[EntityMetaKey.Selector], ...mcpResourceContentTimestamp }}
-					{@const selection = select(EntityType.McpResourceContent_Timestamp, mcpResourceContentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpResourceContent_TimestampView
-						selection={selection}
-						prefetched={mcpResourceContentTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpResourceContent_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpResourceContentTimestamp })}
+		{@const mcpResourceContentTimestampFields = { ...mcpResourceContentTimestamp[EntityMetaKey.Selector], ...mcpResourceContentTimestamp }}
+		{@const selection = select(EntityType.McpResourceContent_Timestamp, mcpResourceContentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpResourceContent_TimestampView
+			selection={selection}
+			prefetched={mcpResourceContentTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

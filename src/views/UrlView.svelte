@@ -38,7 +38,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const url = $derived(selection({}))
+	const url = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'URL')
 	const viewDomId = $derived('url-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -56,7 +58,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-			url: String(pendingEntity.url ?? ''),
+			url: encodeURIComponent(String(pendingEntity.url ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -64,55 +66,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={url}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={url}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<svelte:element
+							this={'a'}
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</svelte:element>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={url}>
-			{#snippet Pending()}
-				{@const url0 = pendingEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<TruncatedValue value={String((url0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const url0 = resolvedEntity.url}
-				{#if url0 !== undefined && url0 !== null}
-					<TruncatedValue value={String((url0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const url0 = pendingEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<TruncatedValue value={String((url0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={url}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url0 = resolvedEntity.url}
+					{#if url0 !== undefined && url0 !== null}
+						<TruncatedValue value={String((url0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -129,26 +131,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									url: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const url = pendingEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const url = resolvedEntity.url}

@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensAccountTimestamp = $derived(selection({
-		sources: [
-			Source.Lens_Graphql,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('Lens account observation')
 	const viewDomId = $derived('lens-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -76,53 +73,53 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={lensAccountTimestamp}>
-			{#snippet Pending()}
-				<LensAccountView
-					selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<LensAccountView
+						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$account.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<LensAccountView
-					selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={lensAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<LensAccountView
+						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+						href={
 						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
 							address: String(selection.entitySelector.$account.address ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lensAccountTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={lensAccountTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -180,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							followerCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followerCount = pendingEntity.followerCount}
-					{#if followerCount !== undefined && followerCount !== null}
-						<div>
-							<dt>Followers</dt>
-							<dd>
-								<NumberValue value={Number(followerCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followerCount = resolvedEntity.followerCount}
@@ -205,7 +185,9 @@
 						<div>
 							<dt>Followers</dt>
 							<dd>
-								<NumberValue value={Number(followerCount)} />
+								<NumberValue
+									value={followerCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -217,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							followingCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const followingCount = pendingEntity.followingCount}
-					{#if followingCount !== undefined && followingCount !== null}
-						<div>
-							<dt>Following</dt>
-							<dd>
-								<NumberValue value={Number(followingCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const followingCount = resolvedEntity.followingCount}
@@ -242,7 +213,9 @@
 						<div>
 							<dt>Following</dt>
 							<dd>
-								<NumberValue value={Number(followingCount)} />
+								<NumberValue
+									value={followingCount}
+								/>
 							</dd>
 						</div>
 					{/if}

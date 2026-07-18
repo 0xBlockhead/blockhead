@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ensNameTimestamp = $derived(selection({
-		sources: [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('ENS name observation')
 	const viewDomId = $derived('ens-name-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -72,7 +68,7 @@
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
-			ensName: String(pendingEntity.$name.name ?? ''),
+			ensName: encodeURIComponent(String(pendingEntity.$name.name ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -80,53 +76,53 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={ensNameTimestamp}>
-			{#snippet Pending()}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<EnsNameView
-					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={ensNameTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<EnsNameView
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						href={
 						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: String(selection.entitySelector.$name.name ?? ''),
+							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={ensNameTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={ensNameTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,7 +134,7 @@
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
 							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-								ensName: String(selection.entitySelector.$name.name ?? ''),
+								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -155,19 +151,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -187,19 +177,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -216,8 +200,6 @@
 			<ResourceBoundary
 				resource={selection.$resolvedActor}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -245,8 +227,6 @@
 			<ResourceBoundary
 				resource={selection.$resolverContract}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -278,8 +258,6 @@
 			<ResourceBoundary
 				resource={selection.$ownerActor}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -307,24 +285,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subdomainCount: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subdomainCount = pendingEntity.subdomainCount}
-					{#if subdomainCount !== undefined && subdomainCount !== null}
-						<div>
-							<dt>Subdomains</dt>
-							<dd>
-								<NumberValue value={Number(subdomainCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subdomainCount = resolvedEntity.subdomainCount}
@@ -332,7 +299,9 @@
 						<div>
 							<dt>Subdomains</dt>
 							<dd>
-								<NumberValue value={Number(subdomainCount)} />
+								<NumberValue
+									value={subdomainCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -344,24 +313,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ttl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ttl = pendingEntity.ttl}
-					{#if ttl !== undefined && ttl !== null}
-						<div>
-							<dt>TTL</dt>
-							<dd>
-								{String((ttl) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ttl = resolvedEntity.ttl}
@@ -381,24 +339,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isMigrated: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isMigrated = pendingEntity.isMigrated}
-					{#if isMigrated !== undefined && isMigrated !== null}
-						<div>
-							<dt>Migrated</dt>
-							<dd>
-								{isMigrated ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isMigrated = resolvedEntity.isMigrated}

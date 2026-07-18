@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FilecoinSector_TimestampView from '$/views/FilecoinSector_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					$sector: true,
-					height: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinSector_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FilecoinSector_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				$sector: true,
+				height: true,
+			},
+		})
+	}
+	getResourceItems={(filecoinSectorTimestamps) => [...new Map(filecoinSectorTimestamps.values.map((filecoinSectorTimestamp) => [filecoinSectorTimestamp[EntityMetaKey.SelectorKey], filecoinSectorTimestamp])).values()]}
+	getKey={(filecoinSectorTimestamp) => filecoinSectorTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Filecoin sector observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(filecoinSectorTimestamps)}
-			{@const uniqueFilecoinSectorTimestamps = [...new Map(filecoinSectorTimestamps.values.map((filecoinSectorTimestamp) => [filecoinSectorTimestamp[EntityMetaKey.SelectorKey], filecoinSectorTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FilecoinSector_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={filecoinSectorTimestamps.totalCount}
-				getKey={(filecoinSectorTimestamp) => filecoinSectorTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueFilecoinSectorTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Filecoin sector observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: filecoinSectorTimestamp })}
-					{@const filecoinSectorTimestampFields = { ...filecoinSectorTimestamp[EntityMetaKey.Selector], ...filecoinSectorTimestamp }}
-					{@const selection = select(EntityType.FilecoinSector_Timestamp, filecoinSectorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FilecoinSector_TimestampView
-						selection={selection}
-						prefetched={filecoinSectorTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FilecoinSector_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: filecoinSectorTimestamp })}
+		{@const filecoinSectorTimestampFields = { ...filecoinSectorTimestamp[EntityMetaKey.Selector], ...filecoinSectorTimestamp }}
+		{@const selection = select(EntityType.FilecoinSector_Timestamp, filecoinSectorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FilecoinSector_TimestampView
+			selection={selection}
+			prefetched={filecoinSectorTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

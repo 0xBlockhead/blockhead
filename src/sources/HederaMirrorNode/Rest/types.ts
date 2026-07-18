@@ -14,3 +14,15 @@ export type HederaMirrorNodeBlock = {
 		to: string
 	}
 }
+
+export type HederaMirrorNodeBlocks = {
+	blocks: HederaMirrorNodeBlock[]
+	links: {
+		next: string | null
+	}
+}
+
+// https://docs.hedera.com/api-reference/accounts/get-account-by-alias-id-or-evm-address
+export type HederaMirrorNodeAccount = {
+	account: string
+}

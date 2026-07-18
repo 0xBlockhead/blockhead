@@ -74,7 +74,7 @@ abbr.entity-heading-tip {
 		color: var(--color-text-muted);
 		letter-spacing: 0.05em;
 	}
-	
+
 	&[data-text~="vertical"] {
 		word-break: break-all;
 	}
@@ -652,6 +652,9 @@ summary {
 	}
 	&[data-row~='align-baseline'] {
 		align-items: baseline;
+	}
+	&[data-row~='align-stretch'] {
+		align-items: stretch;
 	}
 
 	&[data-row~='gap-0'] {

@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const starknetNetworkTimestamp = $derived(selection({
-		sources: [
-			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			latestBlockNumber: true,
 		},
@@ -77,66 +70,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetNetworkTimestamp}>
-			{#snippet Pending()}
-				<StarknetNetworkView
-					selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<StarknetNetworkView
-					selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<StarknetNetworkView
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={starknetNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<StarknetNetworkView
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={starknetNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={starknetNetworkTimestamp}>
-			{#snippet Pending()}
-				{@const latestBlockNumber0 = pendingEntity.latestBlockNumber}
-				{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(latestBlockNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const latestBlockNumber0 = resolvedEntity.latestBlockNumber}
-				{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(latestBlockNumber0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const latestBlockNumber0 = pendingEntity.latestBlockNumber}
+			{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
+				<span data-text="muted">
+					<NumberValue
+						value={latestBlockNumber0}
+					/>
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={starknetNetworkTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestBlockNumber0 = resolvedEntity.latestBlockNumber}
+					{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
+						<span data-text="muted">
+							<NumberValue
+								value={latestBlockNumber0}
+							/>
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -158,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -188,19 +179,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -215,24 +200,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestBlockNumber: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestBlockNumber = pendingEntity.latestBlockNumber}
-					{#if latestBlockNumber !== undefined && latestBlockNumber !== null}
-						<div>
-							<dt>latest block number</dt>
-							<dd>
-								<NumberValue value={Number(latestBlockNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestBlockNumber = resolvedEntity.latestBlockNumber}
@@ -240,7 +214,9 @@
 						<div>
 							<dt>latest block number</dt>
 							<dd>
-								<NumberValue value={Number(latestBlockNumber)} />
+								<NumberValue
+									value={latestBlockNumber}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -250,24 +226,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							latestBlockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const latestBlockHash = pendingEntity.latestBlockHash}
-					{#if latestBlockHash !== undefined && latestBlockHash !== null}
-						<div>
-							<dt>latest block hash</dt>
-							<dd>
-								<TruncatedValue value={String((latestBlockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const latestBlockHash = resolvedEntity.latestBlockHash}
@@ -287,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							syncing: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const syncing = pendingEntity.syncing}
-					{#if syncing !== undefined && syncing !== null}
-						<div>
-							<dt>syncing</dt>
-							<dd>
-								{syncing ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const syncing = resolvedEntity.syncing}
@@ -322,24 +276,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							protocolVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const protocolVersion = pendingEntity.protocolVersion}
-					{#if protocolVersion !== undefined && protocolVersion !== null}
-						<div>
-							<dt>protocol version</dt>
-							<dd>
-								{String((protocolVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const protocolVersion = resolvedEntity.protocolVersion}
@@ -357,24 +300,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							pendingBlockHash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const pendingBlockHash = pendingEntity.pendingBlockHash}
-					{#if pendingBlockHash !== undefined && pendingBlockHash !== null}
-						<div>
-							<dt>pending block hash</dt>
-							<dd>
-								<TruncatedValue value={String((pendingBlockHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const pendingBlockHash = resolvedEntity.pendingBlockHash}

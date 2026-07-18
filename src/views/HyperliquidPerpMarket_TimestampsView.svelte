@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidPerpMarket_TimestampView from '$/views/HyperliquidPerpMarket_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidPerpMarket_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HyperliquidPerpMarket_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hyperliquidPerpMarketTimestamps) => [...new Map(hyperliquidPerpMarketTimestamps.values.map((hyperliquidPerpMarketTimestamp) => [hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey], hyperliquidPerpMarketTimestamp])).values()]}
+	getKey={(hyperliquidPerpMarketTimestamp) => hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hyperliquid perp market observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hyperliquidPerpMarketTimestamps)}
-			{@const uniqueHyperliquidPerpMarketTimestamps = [...new Map(hyperliquidPerpMarketTimestamps.values.map((hyperliquidPerpMarketTimestamp) => [hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey], hyperliquidPerpMarketTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HyperliquidPerpMarket_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hyperliquidPerpMarketTimestamps.totalCount}
-				getKey={(hyperliquidPerpMarketTimestamp) => hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHyperliquidPerpMarketTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hyperliquid perp market observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hyperliquidPerpMarketTimestamp })}
-					{@const hyperliquidPerpMarketTimestampFields = { ...hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], ...hyperliquidPerpMarketTimestamp }}
-					{@const selection = select(EntityType.HyperliquidPerpMarket_Timestamp, hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HyperliquidPerpMarket_TimestampView
-						selection={selection}
-						prefetched={hyperliquidPerpMarketTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HyperliquidPerpMarket_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hyperliquidPerpMarketTimestamp })}
+		{@const hyperliquidPerpMarketTimestampFields = { ...hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], ...hyperliquidPerpMarketTimestamp }}
+		{@const selection = select(EntityType.HyperliquidPerpMarket_Timestamp, hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HyperliquidPerpMarket_TimestampView
+			selection={selection}
+			prefetched={hyperliquidPerpMarketTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

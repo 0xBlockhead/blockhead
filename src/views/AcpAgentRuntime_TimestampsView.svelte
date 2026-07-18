@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpAgentRuntime_TimestampView from '$/views/AcpAgentRuntime_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					protocolVersion: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentRuntime_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpAgentRuntime_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				protocolVersion: true,
+			},
+		})
+	}
+	getResourceItems={(acpAgentRuntimeTimestamps) => [...new Map(acpAgentRuntimeTimestamps.values.map((acpAgentRuntimeTimestamp) => [acpAgentRuntimeTimestamp[EntityMetaKey.SelectorKey], acpAgentRuntimeTimestamp])).values()]}
+	getKey={(acpAgentRuntimeTimestamp) => acpAgentRuntimeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP agent runtime observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpAgentRuntimeTimestamps)}
-			{@const uniqueAcpAgentRuntimeTimestamps = [...new Map(acpAgentRuntimeTimestamps.values.map((acpAgentRuntimeTimestamp) => [acpAgentRuntimeTimestamp[EntityMetaKey.SelectorKey], acpAgentRuntimeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpAgentRuntime_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpAgentRuntimeTimestamps.totalCount}
-				getKey={(acpAgentRuntimeTimestamp) => acpAgentRuntimeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpAgentRuntimeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP agent runtime observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpAgentRuntimeTimestamp })}
-					{@const acpAgentRuntimeTimestampFields = { ...acpAgentRuntimeTimestamp[EntityMetaKey.Selector], ...acpAgentRuntimeTimestamp }}
-					{@const selection = select(EntityType.AcpAgentRuntime_Timestamp, acpAgentRuntimeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpAgentRuntime_TimestampView
-						selection={selection}
-						prefetched={acpAgentRuntimeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpAgentRuntime_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpAgentRuntimeTimestamp })}
+		{@const acpAgentRuntimeTimestampFields = { ...acpAgentRuntimeTimestamp[EntityMetaKey.Selector], ...acpAgentRuntimeTimestamp }}
+		{@const selection = select(EntityType.AcpAgentRuntime_Timestamp, acpAgentRuntimeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpAgentRuntime_TimestampView
+			selection={selection}
+			prefetched={acpAgentRuntimeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
@@ -62,85 +61,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					displayName: true,
-					username: true,
-					fid: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterUser}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FarcasterUser}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				displayName: true,
+				username: true,
+				fid: true,
+			},
+		})
+	}
+	getResourceItems={(farcasterUsers) => [...new Map(farcasterUsers.values.map((farcasterUser) => [farcasterUser[EntityMetaKey.SelectorKey], farcasterUser])).values()]}
+	getKey={(farcasterUser) => farcasterUser[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Farcaster users yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(farcasterUsers)}
-			{@const uniqueFarcasterUsers = [...new Map(farcasterUsers.values.map((farcasterUser) => [farcasterUser[EntityMetaKey.SelectorKey], farcasterUser])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterUser}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterUsers.totalCount}
-				getKey={(farcasterUser) => farcasterUser[EntityMetaKey.SelectorKey]}
-				items={uniqueFarcasterUsers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Farcaster users yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: farcasterUser })}
-					{@const farcasterUserFields = { ...farcasterUser[EntityMetaKey.Selector], ...farcasterUser }}
-					{@const selection = select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const farcasterUserHrefFields = { ...farcasterUser, ...farcasterUser[EntityMetaKey.Selector] }}
-					<FarcasterUserView
-						selection={selection}
-						prefetched={farcasterUserFields}
-						href={
-							(farcasterUserHrefFields.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
-								userId: String(farcasterUserHrefFields.fid ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FarcasterUser}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: farcasterUser })}
+		{@const farcasterUserFields = { ...farcasterUser[EntityMetaKey.Selector], ...farcasterUser }}
+		{@const selection = select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const farcasterUserHrefFields = { ...farcasterUser, ...farcasterUser[EntityMetaKey.Selector] }}
+		<FarcasterUserView
+			selection={selection}
+			prefetched={farcasterUserFields}
+			href={
+				(farcasterUserHrefFields.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
+					userId: String(farcasterUserHrefFields.fid ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

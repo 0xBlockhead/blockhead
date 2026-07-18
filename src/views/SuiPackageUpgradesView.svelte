@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiPackageUpgradeView from '$/views/SuiPackageUpgradeView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiPackageUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiPackageUpgrade}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiPackageUpgrades) => [...new Map(suiPackageUpgrades.values.map((suiPackageUpgrade) => [suiPackageUpgrade[EntityMetaKey.SelectorKey], suiPackageUpgrade])).values()]}
+	getKey={(suiPackageUpgrade) => suiPackageUpgrade[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui package upgrades yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiPackageUpgrades)}
-			{@const uniqueSuiPackageUpgrades = [...new Map(suiPackageUpgrades.values.map((suiPackageUpgrade) => [suiPackageUpgrade[EntityMetaKey.SelectorKey], suiPackageUpgrade])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiPackageUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiPackageUpgrades.totalCount}
-				getKey={(suiPackageUpgrade) => suiPackageUpgrade[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiPackageUpgrades}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui package upgrades yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiPackageUpgrade })}
-					{@const suiPackageUpgradeFields = { ...suiPackageUpgrade[EntityMetaKey.Selector], ...suiPackageUpgrade }}
-					{@const selection = select(EntityType.SuiPackageUpgrade, suiPackageUpgrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiPackageUpgradeView
-						selection={selection}
-						prefetched={suiPackageUpgradeFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiPackageUpgrade}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiPackageUpgrade })}
+		{@const suiPackageUpgradeFields = { ...suiPackageUpgrade[EntityMetaKey.Selector], ...suiPackageUpgrade }}
+		{@const selection = select(EntityType.SuiPackageUpgrade, suiPackageUpgrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiPackageUpgradeView
+			selection={selection}
+			prefetched={suiPackageUpgradeFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

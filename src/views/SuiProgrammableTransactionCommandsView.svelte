@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiProgrammableTransactionCommandView from '$/views/SuiProgrammableTransactionCommandView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiProgrammableTransactionCommand}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiProgrammableTransactionCommand}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiProgrammableTransactionCommands) => [...new Map(suiProgrammableTransactionCommands.values.map((suiProgrammableTransactionCommand) => [suiProgrammableTransactionCommand[EntityMetaKey.SelectorKey], suiProgrammableTransactionCommand])).values()]}
+	getKey={(suiProgrammableTransactionCommand) => suiProgrammableTransactionCommand[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui programmable transaction commands yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiProgrammableTransactionCommands)}
-			{@const uniqueSuiProgrammableTransactionCommands = [...new Map(suiProgrammableTransactionCommands.values.map((suiProgrammableTransactionCommand) => [suiProgrammableTransactionCommand[EntityMetaKey.SelectorKey], suiProgrammableTransactionCommand])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiProgrammableTransactionCommand}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiProgrammableTransactionCommands.totalCount}
-				getKey={(suiProgrammableTransactionCommand) => suiProgrammableTransactionCommand[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiProgrammableTransactionCommands}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui programmable transaction commands yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiProgrammableTransactionCommand })}
-					{@const suiProgrammableTransactionCommandFields = { ...suiProgrammableTransactionCommand[EntityMetaKey.Selector], ...suiProgrammableTransactionCommand }}
-					{@const selection = select(EntityType.SuiProgrammableTransactionCommand, suiProgrammableTransactionCommand[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiProgrammableTransactionCommandView
-						selection={selection}
-						prefetched={suiProgrammableTransactionCommandFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiProgrammableTransactionCommand}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiProgrammableTransactionCommand })}
+		{@const suiProgrammableTransactionCommandFields = { ...suiProgrammableTransactionCommand[EntityMetaKey.Selector], ...suiProgrammableTransactionCommand }}
+		{@const selection = select(EntityType.SuiProgrammableTransactionCommand, suiProgrammableTransactionCommand[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiProgrammableTransactionCommandView
+			selection={selection}
+			prefetched={suiProgrammableTransactionCommandFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

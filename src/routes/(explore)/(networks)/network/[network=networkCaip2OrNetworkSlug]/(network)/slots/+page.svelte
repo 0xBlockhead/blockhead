@@ -52,6 +52,9 @@
 					})
 				}
 				id='beacon-slots'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

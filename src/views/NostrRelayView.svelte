@@ -42,16 +42,21 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrRelay = $derived(selection({}))
+	const nostrRelay = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived([String((pendingEntity.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')
 	const viewDomId = $derived('nostr-relay-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrRelay_TimestampsView from '$/views/NostrRelay_TimestampsView.svelte'
 	import NostrRelay_TimestampView from '$/views/NostrRelay_TimestampView.svelte'
+	import NostrNotesView from '$/views/NostrNotesView.svelte'
 </script>
 
 
@@ -62,7 +67,7 @@
 	title={title ?? titleFallback}
 	href={
 		href ?? (pendingEntity.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
-			relayKey: String(pendingEntity.relayUrl ?? ''),
+			relayKey: encodeURIComponent(String(pendingEntity.relayUrl ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -70,22 +75,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nostrRelay}>
-			{#snippet Pending()}
-				{@const relayUrl0 = pendingEntity.relayUrl}
-				{#if relayUrl0 !== undefined && relayUrl0 !== null}
-					<TruncatedValue value={String((relayUrl0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const relayUrl0 = resolvedEntity.relayUrl}
-				{#if relayUrl0 !== undefined && relayUrl0 !== null}
-					<TruncatedValue value={String((relayUrl0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const relayUrl0 = pendingEntity.relayUrl}
+					{#if relayUrl0 !== undefined && relayUrl0 !== null}
+						<TruncatedValue value={String((relayUrl0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={nostrRelay}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const relayUrl0 = resolvedEntity.relayUrl}
+					{#if relayUrl0 !== undefined && relayUrl0 !== null}
+						<TruncatedValue value={String((relayUrl0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -130,13 +135,15 @@
 										(nostrRelayTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && nostrRelayTimestamp[EntityMetaKey.Selector].source !== undefined && nostrRelayTimestamp[EntityMetaKey.Selector].$relay !== undefined && nostrRelayTimestamp[EntityMetaKey.Selector].$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 											timestampMs: String(nostrRelayTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
 											source: String(nostrRelayTimestamp[EntityMetaKey.Selector].source ?? ''),
-											relayKey: String(nostrRelayTimestamp[EntityMetaKey.Selector].$relay.relayUrl ?? ''),
+											relayKey: encodeURIComponent(String(nostrRelayTimestamp[EntityMetaKey.Selector].$relay.relayUrl ?? '')),
 										}) : undefined)
 									}
 									prefetched={{ ...nostrRelayTimestampSelector, ...nostrRelayTimestamp }}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -151,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									relayUrl: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const relayUrl = pendingEntity.relayUrl}
-							{#if relayUrl !== undefined && relayUrl !== null}
-								<TruncatedValue value={String((relayUrl) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const relayUrl = resolvedEntity.relayUrl}
@@ -194,6 +195,50 @@
 				emptyText='No Nostr relay observations.'
 				id='NostrRelay_TimestampsView-timestamps'
 			/>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-relay-live'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-relay-live-notes',
+							label: 'Live notes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-live'
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Live relay activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNostrRelayLiveNotes({ id, label, open })}
+					<NostrNotesView
+						selection={
+							selection.$$notes({
+								sources: [
+									Source.NostrRelay_WebSocket,
+								],
+							})
+						}
+						href={resolve('/nostr/notes')}
+						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No live notes received.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

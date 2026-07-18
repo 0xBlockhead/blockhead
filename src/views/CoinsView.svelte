@@ -58,7 +58,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 </script>
@@ -70,273 +69,52 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$logo: true,
-					symbol: true,
-					name: true,
-					coinId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Coin}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
-
-		{#snippet children(coins)}
-			{@const uniqueCoins = [...new Map(coins.values.map((coin) => [coin[EntityMetaKey.SelectorKey], coin])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Coin}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={coins.totalCount}
-				getKey={(coin) => coin[EntityMetaKey.SelectorKey]}
-				items={uniqueCoins}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Coins yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: coin })}
-					{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
-					{@const selection = select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
-					<CoinView
-						selection={selection}
-						prefetched={coinFields}
-						href={
-							(coinHrefFields.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
-								coinId: String(coinHrefFields.coinId ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Coin}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
-
-<CollapsibleTabs
-	id={`${id}:hub-spot-quotes`}
-	sectionIdPrefix={id}
-	sections={[
-		{ id: 'prices-spot', label: 'Spot quote index' },
-	]}
-	class="coins-view-collapsible-quotes"
-	data-card
-	scrollContainerProps={{
-		'data-row': 'start align-start',
-		style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-	}}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Coin}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$logo: true,
+				symbol: true,
+				name: true,
+				coinId: true,
+			},
+		})
+	}
+	getResourceItems={(coins) => [...new Map(coins.values.map((coin) => [coin[EntityMetaKey.SelectorKey], coin])).values()]}
+	getKey={(coin) => coin[EntityMetaKey.SelectorKey]}
+	{placeholderText}
 >
-	{#snippet Summary()}
-		<header
-			data-row-item="flexible"
-			data-row="wrap gap-4"
-		>
-			<Heading>Spot quotes</Heading>
-		</header>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Coins yet.</p>
+		{/if}
 	{/snippet}
 
-	{#snippet SectionPricesSpot({ id, label })}
-		<p data-text="muted">
-			Point-in-time spot and index readings. Venue order books live under markets.
-		</p>
-
-		<MarketPricesView
-			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/markets')}
-			selection={select(
-				EntityType._Global,
-				{ scope: '$$marketPrices' }
-			).$$marketPrices}
-			{id}
+	{#snippet Item({ item: coin })}
+		{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
+		{@const selection = select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
+		<CoinView
+			selection={selection}
+			prefetched={coinFields}
+			href={
+				(coinHrefFields.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
+					coinId: String(coinHrefFields.coinId ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
 			open={false}
-			title={label}
 		/>
 	{/snippet}
-</CollapsibleTabs>
-
-<CollapsibleTabs
-	id={`${id}:hub-ohlc-ranges`}
-	sectionIdPrefix={id}
-	sections={[
-		{ id: 'ohlc-candles-preview', label: 'Candle index' },
-	]}
-	class="coins-view-collapsible-ohlc"
-	data-card
-	scrollContainerProps={{
-		'data-row': 'start align-start',
-		style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-	}}
->
-	{#snippet Summary()}
-		<header
-			data-row-item="flexible"
-			data-row="wrap gap-4"
-		>
-			<Heading>OHLC ranges</Heading>
-		</header>
-	{/snippet}
-
-	{#snippet SectionOhlcCandlesPreview({ id, label })}
-		<div data-row="wrap align-center gap-2">
-			<span>OHLC candles</span>
-			<Tooltip contentProps={{ side: 'top' }}>
-				{#snippet Content()}
-					<p>
-						Each row is one <code>Market_TimeInterval_Timestamp</code> candle.
-					</p>
-				{/snippet}
-
-				<abbr
-					class="entity-heading-tip"
-					aria-label="OHLC schema"
-				>i</abbr>
-			</Tooltip>
-		</div>
-
-		<Market_TimeInterval_TimestampsView
-			CollapsibleProps={{ canToggle: false }}
-			selection={select(
-				EntityType._Global,
-				{ scope: '$$marketTimeIntervalTimestamps' }
-			).$$marketTimeIntervalTimestamps}
-			{id}
-			open
-			title={label}
-		/>
-	{/snippet}
-</CollapsibleTabs>
-
-<CollapsibleTabs
-	id={`${id}:hub-markets`}
-	sectionIdPrefix={id}
-	sections={[
-		{ id: 'markets-index', label: 'Market index' },
-	]}
-	class="coins-view-collapsible-markets"
-	data-card
-	scrollContainerProps={{
-		'data-row': 'start align-start',
-		style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-	}}
->
-	{#snippet Summary()}
-		<header
-			data-row-item="flexible"
-			data-row="wrap gap-4"
-		>
-			<Heading>Markets</Heading>
-		</header>
-	{/snippet}
-
-	{#snippet SectionMarketsIndex({ id, label })}
-		<div data-row="wrap align-center gap-2">
-			<a href={resolve('/markets')}>All markets</a>
-			<Tooltip contentProps={{ side: 'top' }}>
-				{#snippet Content()}
-					<p>
-						<code>Market</code> rows connect base asset, quote asset, venue, and market kind.
-					</p>
-				{/snippet}
-
-				<abbr
-					class="entity-heading-tip"
-					aria-label="Market graph"
-				>i</abbr>
-			</Tooltip>
-		</div>
-
-		<MarketsView
-			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/markets')}
-			selection={select(
-				EntityType._Global,
-				{ scope: '$$markets' }
-			).$$markets}
-			{id}
-			open={false}
-			title={label}
-		/>
-	{/snippet}
-</CollapsibleTabs>
-
-<CollapsibleTabs
-	id={`${id}:hub-deployments`}
-	sectionIdPrefix={id}
-	sections={[
-		{ id: 'deployments-eth', label: 'Sample deployments' },
-	]}
-	class="coins-view-collapsible-deployments"
-	data-card
-	scrollContainerProps={{
-		'data-row': 'start align-start',
-		style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-	}}
->
-	{#snippet Summary()}
-		<header
-			data-row-item="flexible"
-			data-row="wrap gap-4"
-		>
-			<Heading>Deployments</Heading>
-		</header>
-	{/snippet}
-
-	{#snippet SectionDeploymentsEth({ id, label })}
-		<p data-text="muted">
-			Per-chain deployments are listed on each coin detail page. Preview for catalog
-			<a href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}>ETH</a>:
-		</p>
-
-		<EvmCoinInstancesView
-			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}
-			selection={select(
-				EntityType.Coin,
-				{ coinId: CoinId.ETH }
-			).$$coinInstances}
-			{id}
-			open={false}
-			title={label}
-		/>
-	{/snippet}
-</CollapsibleTabs>
+</EntitiesList>

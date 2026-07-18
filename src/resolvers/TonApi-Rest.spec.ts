@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { TonAccountSelector } from '$/schema/TonAccount.ts'
+import { TonJettonSelector } from '$/schema/TonJetton.ts'
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import accountFixtureJson from '$/sources/TonApi/Rest/fixtures/account.json'
@@ -30,17 +36,15 @@ const tonApiBinding = sourceProviderDefinitions
 if (tonApiBinding == null)
 	throw new Error('TonApi-Rest spec missing source binding')
 
-const accountResolver = tonApiResolvers.resolvers[0]
+const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.TonAccount
+))
+const jettonResolver = tonApiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.TonJetton
+))
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+if (accountResolver == null || jettonResolver == null)
+	throw new Error('TonApi-Rest spec missing account or jetton resolver')
 
 describe('TonAPI account transport', () => {
 	beforeEach(() => {
@@ -83,19 +87,39 @@ describe('TonAPI account resolver', () => {
 
 	it('maps canonical raw address coordinates for NetworkAddress', async () => {
 		sourceGetJson.mockResolvedValueOnce(accountFixture)
+		vi.spyOn(Date, 'now').mockReturnValueOnce(1_750_000_000_000)
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress](
+		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
 			{
 				$network: {
 					slug: 'ton',
 				},
 				address: 'EQ/a+b',
-			},
-			resolverContext
+			}
 		)).resolves.toEqual({
 			workchain: 0,
 			addressHash: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$account: {
+							$network: {
+								slug: 'ton',
+							},
+							address: 'EQ/a+b',
+						},
+						timestampMs: 1_750_000_000_000,
+						source: Source.TonApi_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'balanceNano')]: BigInt(accountFixture.balance),
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'status')]: accountFixture.status,
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastActivityTimestampMs')]: accountFixture.last_activity * 1_000,
+					},
+				},
+			],
 		})
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
 	it('fails closed when TonAPI does not return a canonical raw address', async () => {
@@ -104,14 +128,13 @@ describe('TonAPI account resolver', () => {
 			address: 'EQ_not_a_raw_address',
 		})
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress](
+		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
 			{
 				$network: {
 					slug: 'ton',
 				},
 				address: 'EQ/a+b',
-			},
-			resolverContext
+			}
 		)).rejects.toThrow('malformed raw address')
 	})
 
@@ -121,27 +144,92 @@ describe('TonAPI account resolver', () => {
 			address: '9007199254740992:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 		})
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress](
+		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
 			{
 				$network: {
 					slug: 'ton',
 				},
 				address: 'EQ/a+b',
-			},
-			resolverContext
+			}
 		)).rejects.toThrow('malformed workchain')
 	})
 
 	it('rejects a non-TON parent before transport', async () => {
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress](
+		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
 			{
 				$network: {
 					slug: 'ethereum',
 				},
 				address: 'EQ/a+b',
-			},
-			resolverContext
+			}
 		)).rejects.toThrow('unsupported network')
 		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+})
+
+describe('TonAPI jetton resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('maps a typed master-account response without changing the requested jetton identity', async () => {
+		sourceGetJson.mockResolvedValueOnce(accountFixture)
+
+		await expect(jettonResolver.resolve[
+			TonJettonSelector.NetworkMasterAddress
+		].resolve(
+			{
+				$network: {
+					slug: 'ton',
+				},
+				masterAddress: 'EQ/a+b',
+				}
+			)).resolves.toEqual({
+			$masterAccount: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'ton',
+					},
+					address: accountFixture.address,
+				},
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			tonApiBinding,
+			'https://tonapi.io/v2/accounts/EQ%2Fa%2Bb'
+		)
+	})
+
+	it('rejects a non-TON parent before transport', async () => {
+		await expect(jettonResolver.resolve[
+			TonJettonSelector.NetworkMasterAddress
+		].resolve(
+			{
+				$network: {
+					slug: 'ethereum',
+				},
+				masterAddress: 'EQ/a+b',
+				}
+			)).rejects.toThrow('unsupported network')
+
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects malformed provider account identity instead of fabricating a master account', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...accountFixture,
+			address: 'EQ_not_a_raw_address',
+		})
+
+		await expect(jettonResolver.resolve[
+			TonJettonSelector.NetworkMasterAddress
+		].resolve(
+			{
+				$network: {
+					slug: 'ton',
+				},
+				masterAddress: 'EQ/a+b',
+				}
+			)).rejects.toThrow('malformed raw address')
 	})
 })

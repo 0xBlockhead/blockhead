@@ -110,7 +110,7 @@ describe('Envio HyperRPC resolver', () => {
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
 		const resolver = envioHyperRpc.resolvers[0]
-		const resolved = await resolver.resolve[EvmTransactionSelector.EvmNetworkTxHash]({
+		const resolved = await resolver.resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
 			$network: network,
 			txHash: transaction.hash,
 		}, context)
@@ -184,7 +184,7 @@ describe('Envio HyperRPC resolver', () => {
 	})
 
 	it('rejects unsupported networks before either RPC call', async () => {
-		await expect(envioHyperRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash]({
+		await expect(envioHyperRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
 			$network: {
 				caip2: {
 					namespace: 'eip155',

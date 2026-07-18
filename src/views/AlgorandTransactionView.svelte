@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const algorandTransaction = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			transactionType: true,
 			sender: true,
@@ -70,52 +71,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandTransaction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={algorandTransaction}>
-			{#snippet Pending()}
-				{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={algorandTransaction}>
-			{#snippet Pending()}
-				{@const sender0 = pendingEntity.sender}
-				{#if sender0 !== undefined && sender0 !== null}
-					<span data-text="muted">
-						{String((sender0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sender0 = resolvedEntity.sender}
-				{#if sender0 !== undefined && sender0 !== null}
-					<span data-text="muted">
-						{String((sender0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const sender0 = pendingEntity.sender}
+			{#if sender0 !== undefined && sender0 !== null}
+				<span data-text="muted">
+					{String((sender0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={algorandTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sender0 = resolvedEntity.sender}
+					{#if sender0 !== undefined && sender0 !== null}
+						<span data-text="muted">
+							{String((sender0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									txId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const txId = pendingEntity.txId}
-							{#if txId !== undefined && txId !== null}
-								{String((txId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const txId = resolvedEntity.txId}
@@ -164,24 +159,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							round: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const round = pendingEntity.round}
-					{#if round !== undefined && round !== null}
-						<div>
-							<dt>round</dt>
-							<dd>
-								{String((round) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const round = resolvedEntity.round}
@@ -202,19 +186,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									sender: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const sender = pendingEntity.sender}
-							{#if sender !== undefined && sender !== null}
-								{String((sender) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const sender = resolvedEntity.sender}
@@ -232,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionType = pendingEntity.transactionType}
-							{#if transactionType !== undefined && transactionType !== null}
-								{String((transactionType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionType = resolvedEntity.transactionType}
@@ -261,24 +233,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fee = pendingEntity.fee}
-					{#if fee !== undefined && fee !== null}
-						<div>
-							<dt>fee</dt>
-							<dd>
-								{String((fee) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fee = resolvedEntity.fee}
@@ -296,24 +257,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							group: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const group = pendingEntity.group}
-					{#if group !== undefined && group !== null}
-						<div>
-							<dt>group</dt>
-							<dd>
-								{String((group) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const group = resolvedEntity.group}
@@ -331,8 +281,6 @@
 			<ResourceBoundary
 				resource={selection.$group}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(algorandTransactionGroup)}
 					{#if algorandTransactionGroup != null && algorandTransactionGroup[EntityMetaKey.Selector] != null}
 						<div>
@@ -353,24 +301,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							parentTransactionId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const parentTransactionId = pendingEntity.parentTransactionId}
-					{#if parentTransactionId !== undefined && parentTransactionId !== null}
-						<div>
-							<dt>parent transaction ID</dt>
-							<dd>
-								{String((parentTransactionId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const parentTransactionId = resolvedEntity.parentTransactionId}
@@ -388,24 +325,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							innerTransactionIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const innerTransactionIndex = pendingEntity.innerTransactionIndex}
-					{#if innerTransactionIndex !== undefined && innerTransactionIndex !== null}
-						<div>
-							<dt>inner transaction index</dt>
-							<dd>
-								{String((innerTransactionIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const innerTransactionIndex = resolvedEntity.innerTransactionIndex}
@@ -428,19 +354,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									logs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const logs = pendingEntity.logs}
-							{#if logs !== undefined && logs !== null}
-								{logs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const logs = resolvedEntity.logs}

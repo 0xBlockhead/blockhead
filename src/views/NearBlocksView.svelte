@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearBlockView from '$/views/NearBlockView.svelte'
 </script>
@@ -62,83 +61,49 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				sources: [
-					Source.NearRpc_JsonRpc,
-					Source.NearBlocks_Rest,
-					Source.ThreeXpl_Rest,
-				],
-				fields: {
-					height: true,
-					hash: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearBlock}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: [
+				Source.NearRpc_JsonRpc,
+				Source.NearBlocks_Rest,
+				Source.ThreeXpl_Rest,
+			],
+			fields: {
+				height: true,
+				hash: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(nearBlocks) => [...new Map(nearBlocks.values.map((nearBlock) => [nearBlock[EntityMetaKey.SelectorKey], nearBlock])).values()]}
+	getKey={(nearBlock) => nearBlock[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near blocks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearBlocks)}
-			{@const uniqueNearBlocks = [...new Map(nearBlocks.values.map((nearBlock) => [nearBlock[EntityMetaKey.SelectorKey], nearBlock])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearBlocks.totalCount}
-				getKey={(nearBlock) => nearBlock[EntityMetaKey.SelectorKey]}
-				items={uniqueNearBlocks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near blocks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearBlock })}
-					{@const nearBlockFields = { ...nearBlock[EntityMetaKey.Selector], ...nearBlock }}
-					{@const selection = select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearBlockView
-						selection={selection}
-						prefetched={nearBlockFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearBlock}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearBlock })}
+		{@const nearBlockFields = { ...nearBlock[EntityMetaKey.Selector], ...nearBlock }}
+		{@const selection = select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearBlockView
+			selection={selection}
+			prefetched={nearBlockFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

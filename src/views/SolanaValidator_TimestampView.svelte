@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const solanaValidatorTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			delinquent: true,
 			timestampMs: true,
@@ -72,58 +72,62 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={solanaValidatorTimestamp}>
-			{#snippet Pending()}
-				{@const slot0 = pendingEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<NumberValue value={Number(slot0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slot0 = resolvedEntity.slot}
-				{#if slot0 !== undefined && slot0 !== null}
-					<NumberValue value={Number(slot0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const slot0 = pendingEntity.slot}
+					{#if slot0 !== undefined && slot0 !== null}
+						<NumberValue
+							value={slot0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={solanaValidatorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot0 = resolvedEntity.slot}
+					{#if slot0 !== undefined && slot0 !== null}
+						<NumberValue
+							value={slot0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaValidatorTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || title || 'solana validator timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={solanaValidatorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaValidatorTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(timestampMs0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={solanaValidatorTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(timestampMs0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,19 +158,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -181,27 +179,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							nodePubkey: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodePubkey = pendingEntity.nodePubkey}
-					{#if nodePubkey !== undefined && nodePubkey !== null}
-						<div>
-							<dt>Node public key</dt>
-							<dd>
-								{String((nodePubkey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodePubkey = resolvedEntity.nodePubkey}
@@ -219,27 +203,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							activatedStakeLamports: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const activatedStakeLamports = pendingEntity.activatedStakeLamports}
-					{#if activatedStakeLamports !== undefined && activatedStakeLamports !== null}
-						<div>
-							<dt>Activated stake</dt>
-							<dd>
-								{String((activatedStakeLamports) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const activatedStakeLamports = resolvedEntity.activatedStakeLamports}
@@ -257,27 +227,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							commission: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const commission = pendingEntity.commission}
-					{#if commission !== undefined && commission !== null}
-						<div>
-							<dt>Commission</dt>
-							<dd>
-								{String((commission) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const commission = resolvedEntity.commission}
@@ -295,27 +251,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							lastVoteSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastVoteSlot = pendingEntity.lastVoteSlot}
-					{#if lastVoteSlot !== undefined && lastVoteSlot !== null}
-						<div>
-							<dt>Last vote slot</dt>
-							<dd>
-								{String((lastVoteSlot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastVoteSlot = resolvedEntity.lastVoteSlot}
@@ -333,27 +275,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							rootSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rootSlot = pendingEntity.rootSlot}
-					{#if rootSlot !== undefined && rootSlot !== null}
-						<div>
-							<dt>Root slot</dt>
-							<dd>
-								{String((rootSlot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rootSlot = resolvedEntity.rootSlot}

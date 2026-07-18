@@ -9,8 +9,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { EvmTopicHash } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -40,9 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmTopic = $derived(selection({
-		sources: [
-			Source.Openchain_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			signatures: true,
 		},
@@ -64,7 +61,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.hex !== undefined ? resolve('/evm/topic/[hex=zeroExHex]', {
+		href ?? (pendingEntity.hex !== undefined ? resolve('/evm/topic/[hex=evmTopicHash]', {
 			hex: String(pendingEntity.hex ?? ''),
 		}) : undefined)
 	}
@@ -101,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hex = pendingEntity.hex}
-							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String((hex) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hex = resolvedEntity.hex}

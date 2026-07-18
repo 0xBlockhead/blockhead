@@ -1,6 +1,7 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import {
+	SourceEndpointKind,
 	SourceOperationGroup,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
@@ -40,14 +41,36 @@ const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
 	(voltaireJsonRpcTransportCandidate) => voltaireJsonRpcTransportCandidate.chainId
 )
 
+const voltaireBindings = sourceProviders
+	.filter((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
+	.flatMap((sourceProvider) => sourceProvider.bindings)
+
 export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
 	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
 		.map(([chainId, entries]) => [
 			Number(chainId),
-			entries.map((entry) => ({
-				...entry,
-				origins: voltaireJsonRpcOriginsByChainId[Number(chainId)],
-			})),
+			entries.flatMap((entry) => {
+				const binding = voltaireBindings.find((candidate) => (
+					candidate.target.key === chainId
+					&& candidate.endpoints.some((endpoint) => (
+						endpoint.locator === entry.rpcUrl
+						&& (
+							(entry.transportType === TransportType.Http
+								&& endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+							|| (entry.transportType === TransportType.WebSocket
+								&& endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+						)
+					))
+				))
+				return binding == null ?
+					[]
+				:
+					[{
+						...entry,
+						binding,
+						origins: voltaireJsonRpcOriginsByChainId[Number(chainId)],
+					}]
+			}),
 		])
 )
 
@@ -66,14 +89,10 @@ export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
 		})
 )
 
-const voltaireBindings = sourceProviders
-	.filter((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
-	.flatMap((sourceProvider) => sourceProvider.bindings)
-
 export type Provider = {
 	request: (request: {
 		method: string
-		params?: readonly unknown[]
+		params?: JsonValue[]
 	}) => Promise<unknown>
 }
 
@@ -139,14 +158,30 @@ export const getEvmExecutionJsonRpcBinding = ({
 export const getProviderForExecutionUrl = async ({
 	url,
 	transportType,
+	binding,
 }: {
 	url: string
 	transportType: TransportType
+	binding?: SourceBinding
 }): Promise<Provider> => (
 	transportType === TransportType.WebSocket ?
-		getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(url))
+		typeof window === 'undefined' ?
+			getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(url))
+		:
+			Promise.reject(new Error('Voltaire_JsonRpc: RemoteLive WebSocket is unavailable directly in the browser'))
 	:
-		getVoltaireProviderRuntime().then(({ HttpProvider }) => new HttpProvider(url))
+		binding == null ?
+			getVoltaireProviderRuntime().then(({ HttpProvider }) => new HttpProvider(url))
+		:
+			Promise.resolve({
+				request: ({ method, params }) => jsonRpc<JsonValue>({
+					rpcUrl: url,
+					origins: [],
+					binding,
+					method,
+					params: params ?? [],
+				}),
+			})
 )
 
 const jsonValueFromProviderRequest = async (
@@ -215,17 +250,20 @@ export const getChainHeadNumberForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 }): Promise<bigint> => {
 	if (transportType === TransportType.Http)
-		return BigInt(await getEvmBlockNumber({ rpcUrl, origins }))
+		return BigInt(await getEvmBlockNumber({ rpcUrl, origins, binding }))
 
 	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
+		binding,
 	})
 	const hexUnknown = await provider.request({
 		method: 'eth_blockNumber',
@@ -240,12 +278,14 @@ export const getBlockByNumberForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	blockNumber,
 	fullTransactions = false,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	blockNumber: bigint | 'latest'
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => {
@@ -253,6 +293,7 @@ export const getBlockByNumberForRpcUrl = async ({
 		const block = await getEvmBlockByNumber({
 			rpcUrl,
 			origins,
+			binding,
 			blockNumber,
 			txObjects: fullTransactions,
 		})
@@ -287,6 +328,7 @@ export const getBlockByNumberForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
+				binding,
 			})).request({
 				method: 'eth_getBlockByNumber',
 				params: [
@@ -302,12 +344,14 @@ export const getBlockByHashForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	blockHash,
 	fullTransactions = false,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	blockHash: `0x${string}`
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => {
@@ -315,6 +359,7 @@ export const getBlockByHashForRpcUrl = async ({
 		const block = await getEvmBlockByHash({
 			rpcUrl,
 			origins,
+			binding,
 			blockHash,
 			txObjects: fullTransactions,
 		})
@@ -349,6 +394,7 @@ export const getBlockByHashForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
+				binding,
 			})).request({
 				method: 'eth_getBlockByHash',
 				params: [
@@ -364,11 +410,13 @@ export const getRecentBlockWiresForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	recentBlockDepth,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	recentBlockDepth: number
 }): Promise<{
 	blockNumbers: bigint[]
@@ -378,6 +426,7 @@ export const getRecentBlockWiresForRpcUrl = async ({
 		rpcUrl,
 		origins,
 		transportType,
+		binding,
 	})
 	const blockNumbers = (
 		Array.from(
@@ -395,6 +444,7 @@ export const getRecentBlockWiresForRpcUrl = async ({
 						rpcUrl,
 						origins,
 						transportType,
+						binding,
 						blockNumber,
 						fullTransactions: false,
 					}),
@@ -411,17 +461,20 @@ export const getTransactionByHashForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	txHash,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
 	if (transportType === TransportType.Http)
 		return getEvmTransactionByHash({
 			rpcUrl,
 			origins,
+			binding,
 			txHash,
 		})
 
@@ -430,6 +483,7 @@ export const getTransactionByHashForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
+				binding,
 			})).request({
 				method: 'eth_getTransactionByHash',
 				params: [txHash],
@@ -442,17 +496,20 @@ export const getTransactionReceiptForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	txHash,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => {
 	if (transportType === TransportType.Http)
 		return getEvmTransactionReceipt({
 			rpcUrl,
 			origins,
+			binding,
 			txHash,
 		})
 
@@ -461,6 +518,7 @@ export const getTransactionReceiptForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
+				binding,
 			})).request({
 				method: 'eth_getTransactionReceipt',
 				params: [txHash],
@@ -473,11 +531,13 @@ export const debugTraceTransactionForRpcUrl = async ({
 	rpcUrl,
 	origins,
 	transportType,
+	binding,
 	txHash,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
 	transportType: TransportType
+	binding: SourceBinding
 	txHash: `0x${string}`
 }) => {
 	if (transportType === TransportType.Http) {
@@ -485,6 +545,7 @@ export const debugTraceTransactionForRpcUrl = async ({
 			const traceJson = await jsonRpc<JsonValue>({
 				rpcUrl,
 				origins,
+				binding,
 				method: 'debug_traceTransaction',
 				params: [
 					txHash,
@@ -502,6 +563,7 @@ export const debugTraceTransactionForRpcUrl = async ({
 			(await getProviderForExecutionUrl({
 				url: rpcUrl,
 				transportType,
+				binding,
 			})).request({
 				method: 'debug_traceTransaction',
 				params: [

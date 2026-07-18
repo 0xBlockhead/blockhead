@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,10 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalActivityPubNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-			Source.Mastodon_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('global ActivityPub network')
 	const viewDomId = $derived('-global-activity-pub-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -52,11 +48,7 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
-	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import ActivityPubInstancesView from '$/views/ActivityPubInstancesView.svelte'
-	import ActivityPubInstancePeersView from '$/views/ActivityPubInstancePeersView.svelte'
-	import ActivityPubInstanceModeratedDomainsView from '$/views/ActivityPubInstanceModeratedDomainsView.svelte'
 	import GlobalActivityPubNetwork_TimestampsView from '$/views/_GlobalActivityPubNetwork_TimestampsView.svelte'
 </script>
 
@@ -72,29 +64,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalActivityPubNetwork}>
-			{#snippet Pending()}
-				{title || 'global ActivityPub network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalActivityPubNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={globalActivityPubNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalActivityPubNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,19 +97,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scope: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scope = pendingEntity.scope}
-							{#if scope !== undefined && scope !== null}
-								{String((scope) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scope = resolvedEntity.scope}
@@ -139,14 +125,6 @@
 				sections={
 					[
 						{
-							id: 'activitypub-actors',
-							label: 'Actors',
-						},
-						{
-							id: 'activitypub-notes',
-							label: 'Notes',
-						},
-						{
 							id: 'activitypub-instances',
 							label: 'Instances',
 						},
@@ -154,116 +132,22 @@
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Directory</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet SectionActivitypubActors({ id, label, open })}
-					<ActivityPubActorsView
-						selection={
-							selection.$$observedActors({
-								count: true,
-							})
-						}
-						href={resolve('/activitypub/actors')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No ActivityPub actors in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionActivitypubNotes({ id, label, open })}
-					<ActivityPubNotesView
-						selection={
-							selection.$$observedNotes({
-								count: true,
-							})
-						}
-						href={resolve('/activitypub/notes')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No ActivityPub notes in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
 				{#snippet SectionActivitypubInstances({ id, label, open })}
 					<ActivityPubInstancesView
-						selection={
-							selection.$$instances({
-								count: true,
-							})
-						}
+						selection={selection.$$instances}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ActivityPub instances declared.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-activitypub-federation'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'activitypub-peers',
-							label: 'Instance peers',
-						},
-						{
-							id: 'activitypub-moderated-domains',
-							label: 'Moderated domains',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-federation'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Federation</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet SectionActivitypubPeers({ id, label, open })}
-					<ActivityPubInstancePeersView
-						selection={
-							selection.$$instancePeers({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No ActivityPub instance peers in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionActivitypubModeratedDomains({ id, label, open })}
-					<ActivityPubInstanceModeratedDomainsView
-						selection={
-							selection.$$instanceModeratedDomains({
-								count: true,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No ActivityPub moderated domains in this observed.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -285,11 +169,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -297,12 +178,12 @@
 
 				{#snippet SectionActivitypubHubObservations({ id, label, open })}
 					<GlobalActivityPubNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No ActivityPub hub observations yet.'
 						open={open}
 						title={label}

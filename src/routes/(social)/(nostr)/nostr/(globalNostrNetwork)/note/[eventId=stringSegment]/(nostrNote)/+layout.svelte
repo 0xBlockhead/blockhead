@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,11 @@
 			{@const DetailView = NostrNoteView}
 
 			<DetailView
-				selection={select(EntityType.NostrNote, data.selector)}
+				selection={select(EntityType.NostrNote, data.selector, { sources: [
+		Source.Constants_Internal,
+		Source.NostrBand_Rest,
+		Source.Primal_Rest,
+	] })}
 				href={
 					resolve('/nostr/note/[eventId=stringSegment]', {
 						eventId: params.eventId,

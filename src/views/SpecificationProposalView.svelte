@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
 
 
@@ -38,11 +37,9 @@
 		>
 	> = $props()
 
-	const selectedViewSources = $derived(specificationProposalSourceSelectionByKey[[String(selection.entitySelector.realm), String(selection.entitySelector.category)].join(':')] ?? defaultSpecificationProposalSources)
-
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const specificationProposal = $derived(selection({
-		sources: selectedViewSources,
+		sources: selection.sources,
 		fields: {
 			documentTitle: true,
 			documentStatus: true,
@@ -127,25 +124,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selectedViewSources,
+						sources: selection.sources,
 						fields: {
 							documentCategory: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const documentCategory = pendingEntity.documentCategory}
-					{#if documentCategory !== undefined && documentCategory !== null}
-						<div>
-							<dt>Category</dt>
-							<dd>
-								{String((documentCategory) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const documentCategory = resolvedEntity.documentCategory}
@@ -163,25 +148,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selectedViewSources,
+						sources: selection.sources,
 						fields: {
 							documentStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const documentStatus = pendingEntity.documentStatus}
-					{#if documentStatus !== undefined && documentStatus !== null}
-						<div>
-							<dt>Status</dt>
-							<dd>
-								{String((documentStatus) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const documentStatus = resolvedEntity.documentStatus}
@@ -205,28 +178,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: selectedViewSources,
+									sources: selection.sources,
 									fields: {
 										realm: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const realm = pendingEntity.realm}
-								{#if realm !== undefined && realm !== null}
-									<a
-										href={
-											resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-												specificationRealmSlug: specificationRealmById[String(({ value: realm, ...pendingEntity }).value)].slug,
-											})
-										}
-									>
-										{String((specificationRealmById[String(realm)]?.label ?? (String((realm) ?? ''))) ?? '')}
-									</a>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const realm = resolvedEntity.realm}
@@ -254,29 +212,13 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: selectedViewSources,
+									sources: selection.sources,
 									fields: {
 										category: true,
 									},
 								})
 							}
 						>
-							{#snippet Pending()}
-								{@const category = pendingEntity.category}
-								{#if category !== undefined && category !== null}
-									<a
-										href={
-											resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-												specificationRealmSlug: specificationRealmById[String(({ value: category, ...pendingEntity }).realm)].slug,
-												proposalKindSlug: proposalCategoryById[String(({ value: category, ...pendingEntity }).category)].slug,
-											})
-										}
-									>
-										{String((proposalCategoryById[String(category)]?.label ?? (String((category) ?? ''))) ?? '')}
-									</a>
-								{/if}
-							{/snippet}
-
 							{#snippet children(entity)}
 								{@const resolvedEntity = { ...pendingEntity, ...entity }}
 								{@const category = resolvedEntity.category}
@@ -307,7 +249,7 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selectedViewSources,
+						sources: selection.sources,
 						fields: {
 							documentBody: true,
 						},

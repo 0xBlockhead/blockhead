@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetworkGasEstimateTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			fastGwei: true,
 		},
@@ -80,78 +81,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
-			{#snippet Pending()}
-				{[(String((pendingEntity.fastGwei) ?? '') ? String((pendingEntity.fastGwei) ?? '') + ' gwei' : ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM network gas estimate timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.fastGwei) ?? '') ? String((resolvedEntity.fastGwei) ?? '') + ' gwei' : ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[(String((pendingEntity.fastGwei) ?? '') ? String((pendingEntity.fastGwei) ?? '') + ' gwei' : ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[(String((resolvedEntity.fastGwei) ?? '') ? String((resolvedEntity.fastGwei) ?? '') + ' gwei' : ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
-			{#snippet Pending()}
-				{@const fastGwei0 = pendingEntity.fastGwei}
-				{#if fastGwei0 !== undefined && fastGwei0 !== null}
-					<NumberValue value={Number(fastGwei0)} />
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const fastGwei0 = pendingEntity.fastGwei}
+					{#if fastGwei0 !== undefined && fastGwei0 !== null}
+						<NumberValue
+							value={fastGwei0}
+						/>
 
-					<span> gwei</span>
-				{/if}
-			{/snippet}
+						<span> gwei</span>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const fastGwei0 = resolvedEntity.fastGwei}
+					{#if fastGwei0 !== undefined && fastGwei0 !== null}
+						<NumberValue
+							value={fastGwei0}
+						/>
 
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const fastGwei0 = resolvedEntity.fastGwei}
-				{#if fastGwei0 !== undefined && fastGwei0 !== null}
-					<NumberValue value={Number(fastGwei0)} />
-
-					<span> gwei</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+						<span> gwei</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
-			{#snippet Pending()}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<span data-text="muted">
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			</span>
+		{:else}
+			<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<span data-text="muted">
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							href={
+								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -159,26 +164,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							slowGwei: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const slowGwei = pendingEntity.slowGwei}
-					{#if slowGwei !== undefined && slowGwei !== null}
-						<div>
-							<dt>Slow</dt>
-							<dd>
-								<NumberValue value={Number(slowGwei)} />
-
-								<span> gwei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const slowGwei = resolvedEntity.slowGwei}
@@ -186,7 +178,9 @@
 						<div>
 							<dt>Slow</dt>
 							<dd>
-								<NumberValue value={Number(slowGwei)} />
+								<NumberValue
+									value={slowGwei}
+								/>
 
 								<span> gwei</span>
 							</dd>
@@ -198,26 +192,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							averageGwei: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const averageGwei = pendingEntity.averageGwei}
-					{#if averageGwei !== undefined && averageGwei !== null}
-						<div>
-							<dt>Average</dt>
-							<dd>
-								<NumberValue value={Number(averageGwei)} />
-
-								<span> gwei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const averageGwei = resolvedEntity.averageGwei}
@@ -225,7 +206,9 @@
 						<div>
 							<dt>Average</dt>
 							<dd>
-								<NumberValue value={Number(averageGwei)} />
+								<NumberValue
+									value={averageGwei}
+								/>
 
 								<span> gwei</span>
 							</dd>
@@ -237,26 +220,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fastGwei: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fastGwei = pendingEntity.fastGwei}
-					{#if fastGwei !== undefined && fastGwei !== null}
-						<div>
-							<dt>Fast</dt>
-							<dd>
-								<NumberValue value={Number(fastGwei)} />
-
-								<span> gwei</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fastGwei = resolvedEntity.fastGwei}
@@ -264,7 +234,9 @@
 						<div>
 							<dt>Fast</dt>
 							<dd>
-								<NumberValue value={Number(fastGwei)} />
+								<NumberValue
+									value={fastGwei}
+								/>
 
 								<span> gwei</span>
 							</dd>
@@ -281,19 +253,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -311,19 +277,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -338,24 +298,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							transport: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const transport = pendingEntity.transport}
-					{#if transport !== undefined && transport !== null}
-						<div>
-							<dt>Transport</dt>
-							<dd>
-								{String((transport) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const transport = resolvedEntity.transport}

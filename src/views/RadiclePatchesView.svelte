@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadiclePatchView from '$/views/RadiclePatchView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadiclePatch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadiclePatch}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radiclePatches) => [...new Map(radiclePatches.values.map((radiclePatch) => [radiclePatch[EntityMetaKey.SelectorKey], radiclePatch])).values()]}
+	getKey={(radiclePatch) => radiclePatch[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle patches yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radiclePatches)}
-			{@const uniqueRadiclePatches = [...new Map(radiclePatches.values.map((radiclePatch) => [radiclePatch[EntityMetaKey.SelectorKey], radiclePatch])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadiclePatch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radiclePatches.totalCount}
-				getKey={(radiclePatch) => radiclePatch[EntityMetaKey.SelectorKey]}
-				items={uniqueRadiclePatches}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle patches yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radiclePatch })}
-					{@const radiclePatchFields = { ...radiclePatch[EntityMetaKey.Selector], ...radiclePatch }}
-					{@const selection = select(EntityType.RadiclePatch, radiclePatch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadiclePatchView
-						selection={selection}
-						prefetched={radiclePatchFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadiclePatch}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radiclePatch })}
+		{@const radiclePatchFields = { ...radiclePatch[EntityMetaKey.Selector], ...radiclePatch }}
+		{@const selection = select(EntityType.RadiclePatch, radiclePatch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadiclePatchView
+			selection={selection}
+			prefetched={radiclePatchFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

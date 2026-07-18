@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpServer_TimestampView from '$/views/McpServer_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					error: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServer_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpServer_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				error: true,
+			},
+		})
+	}
+	getResourceItems={(mcpServerTimestamps) => [...new Map(mcpServerTimestamps.values.map((mcpServerTimestamp) => [mcpServerTimestamp[EntityMetaKey.SelectorKey], mcpServerTimestamp])).values()]}
+	getKey={(mcpServerTimestamp) => mcpServerTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Mcp server observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpServerTimestamps)}
-			{@const uniqueMcpServerTimestamps = [...new Map(mcpServerTimestamps.values.map((mcpServerTimestamp) => [mcpServerTimestamp[EntityMetaKey.SelectorKey], mcpServerTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServer_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpServerTimestamps.totalCount}
-				getKey={(mcpServerTimestamp) => mcpServerTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpServerTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Mcp server observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpServerTimestamp })}
-					{@const mcpServerTimestampFields = { ...mcpServerTimestamp[EntityMetaKey.Selector], ...mcpServerTimestamp }}
-					{@const selection = select(EntityType.McpServer_Timestamp, mcpServerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpServer_TimestampView
-						selection={selection}
-						prefetched={mcpServerTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpServer_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpServerTimestamp })}
+		{@const mcpServerTimestampFields = { ...mcpServerTimestamp[EntityMetaKey.Selector], ...mcpServerTimestamp }}
+		{@const selection = select(EntityType.McpServer_Timestamp, mcpServerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpServer_TimestampView
+			selection={selection}
+			prefetched={mcpServerTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

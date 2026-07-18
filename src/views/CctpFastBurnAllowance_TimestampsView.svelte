@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CctpFastBurnAllowance_TimestampView from '$/views/CctpFastBurnAllowance_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					allowanceUsdc: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpFastBurnAllowance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CctpFastBurnAllowance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				allowanceUsdc: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(cctpFastBurnAllowanceTimestamps) => [...new Map(cctpFastBurnAllowanceTimestamps.values.map((cctpFastBurnAllowanceTimestamp) => [cctpFastBurnAllowanceTimestamp[EntityMetaKey.SelectorKey], cctpFastBurnAllowanceTimestamp])).values()]}
+	getKey={(cctpFastBurnAllowanceTimestamp) => cctpFastBurnAllowanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No CCTP fast burn allowance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cctpFastBurnAllowanceTimestamps)}
-			{@const uniqueCctpFastBurnAllowanceTimestamps = [...new Map(cctpFastBurnAllowanceTimestamps.values.map((cctpFastBurnAllowanceTimestamp) => [cctpFastBurnAllowanceTimestamp[EntityMetaKey.SelectorKey], cctpFastBurnAllowanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CctpFastBurnAllowance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cctpFastBurnAllowanceTimestamps.totalCount}
-				getKey={(cctpFastBurnAllowanceTimestamp) => cctpFastBurnAllowanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCctpFastBurnAllowanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No CCTP fast burn allowance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cctpFastBurnAllowanceTimestamp })}
-					{@const cctpFastBurnAllowanceTimestampFields = { ...cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], ...cctpFastBurnAllowanceTimestamp }}
-					{@const selection = select(EntityType.CctpFastBurnAllowance_Timestamp, cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CctpFastBurnAllowance_TimestampView
-						selection={selection}
-						prefetched={cctpFastBurnAllowanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CctpFastBurnAllowance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cctpFastBurnAllowanceTimestamp })}
+		{@const cctpFastBurnAllowanceTimestampFields = { ...cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], ...cctpFastBurnAllowanceTimestamp }}
+		{@const selection = select(EntityType.CctpFastBurnAllowance_Timestamp, cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CctpFastBurnAllowance_TimestampView
+			selection={selection}
+			prefetched={cctpFastBurnAllowanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

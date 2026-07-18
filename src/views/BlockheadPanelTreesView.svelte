@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
 </script>
@@ -62,82 +61,49 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					id: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPanelTree}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadPanelTree}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				id: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadPanelTrees) => [...new Map(blockheadPanelTrees.values.map((blockheadPanelTree) => [blockheadPanelTree[EntityMetaKey.SelectorKey], blockheadPanelTree])).values()]}
+	getKey={(blockheadPanelTree) => blockheadPanelTree[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Dashboards yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadPanelTrees)}
-			{@const uniqueBlockheadPanelTrees = [...new Map(blockheadPanelTrees.values.map((blockheadPanelTree) => [blockheadPanelTree[EntityMetaKey.SelectorKey], blockheadPanelTree])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPanelTree}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadPanelTrees.totalCount}
-				getKey={(blockheadPanelTree) => blockheadPanelTree[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadPanelTrees}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Dashboards yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadPanelTree })}
-					{@const blockheadPanelTreeFields = { ...blockheadPanelTree[EntityMetaKey.Selector], ...blockheadPanelTree }}
-					{@const selection = select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const blockheadPanelTreeHrefFields = { ...blockheadPanelTree, ...blockheadPanelTree[EntityMetaKey.Selector] }}
-					<BlockheadPanelTreeView
-						selection={selection}
-						prefetched={blockheadPanelTreeFields}
-						href={
-							(blockheadPanelTreeHrefFields.id !== undefined ? resolve('/~/dashboard/[dashboardId=stringSegment]', {
-								dashboardId: String(blockheadPanelTreeHrefFields.id ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadPanelTree}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadPanelTree })}
+		{@const blockheadPanelTreeFields = { ...blockheadPanelTree[EntityMetaKey.Selector], ...blockheadPanelTree }}
+		{@const selection = select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const blockheadPanelTreeHrefFields = { ...blockheadPanelTree, ...blockheadPanelTree[EntityMetaKey.Selector] }}
+		<BlockheadPanelTreeView
+			selection={selection}
+			prefetched={blockheadPanelTreeFields}
+			href={
+				(blockheadPanelTreeHrefFields.id !== undefined ? resolve('/~/dashboard/[dashboardId=stringSegment]', {
+					dashboardId: String(blockheadPanelTreeHrefFields.id ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

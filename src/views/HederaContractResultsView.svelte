@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaContractResultView from '$/views/HederaContractResultView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaContractResult}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaContractResult}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaContractResults) => [...new Map(hederaContractResults.values.map((hederaContractResult) => [hederaContractResult[EntityMetaKey.SelectorKey], hederaContractResult])).values()]}
+	getKey={(hederaContractResult) => hederaContractResult[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera contract results yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaContractResults)}
-			{@const uniqueHederaContractResults = [...new Map(hederaContractResults.values.map((hederaContractResult) => [hederaContractResult[EntityMetaKey.SelectorKey], hederaContractResult])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaContractResult}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaContractResults.totalCount}
-				getKey={(hederaContractResult) => hederaContractResult[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaContractResults}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera contract results yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaContractResult })}
-					{@const hederaContractResultFields = { ...hederaContractResult[EntityMetaKey.Selector], ...hederaContractResult }}
-					{@const selection = select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaContractResultView
-						selection={selection}
-						prefetched={hederaContractResultFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaContractResult}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaContractResult })}
+		{@const hederaContractResultFields = { ...hederaContractResult[EntityMetaKey.Selector], ...hederaContractResult }}
+		{@const selection = select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaContractResultView
+			selection={selection}
+			prefetched={hederaContractResultFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

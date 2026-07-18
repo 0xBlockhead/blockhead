@@ -5,8 +5,6 @@ import {
 	type BridgeToolRow,
 } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
@@ -14,13 +12,15 @@ import {
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
+	parseEntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { schema } from '$/schema/index.ts'
+import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
@@ -94,22 +94,8 @@ const urlEntitiesFromBlockExplorerCatalog = (
 		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
 		const hrefAsUrlString = UrlString(url)
 		if (hrefAsUrlString instanceof type.errors) return []
-		const catalogIconResolved = (
-			explorer.icon == null || explorer.icon === '' ?
-				undefined
-			:
-				resolveMediaUrlTransport(explorer.icon)?.url
-		)
-		let catalogIconAsUrlString: typeof hrefAsUrlString | undefined
-		if (catalogIconResolved != null) {
-			const iconParsed = UrlString(catalogIconResolved)
-			if (!(iconParsed instanceof type.errors)) catalogIconAsUrlString = iconParsed
-		}
 		return [{
 			[EntityMetaKey.Selector]: { url: hrefAsUrlString },
-			...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
-			...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
-			...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
 		} satisfies Entity<typeof schema, EntityType.Url>]
 	})
 
@@ -137,29 +123,16 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 			namespace: 'eip155' as const,
 			reference: String(lifiChain.id),
 		} },
-		...((
-			iconMedia
-		) => (
-			iconMedia != null && {
-				$icon: iconMedia,
-			}
-		))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
-		executionEndpoints: (
-			metamaskRpcUrls
-				.map((url) => (
-					{
-						url,
-						serviceProvider: ExecutionRpcProvider.Unknown,
-						transportType: (
-							url.toLowerCase().startsWith('ws') ?
-								TransportType.WebSocket
-							:
-								TransportType.Http
-						),
-					}
-				))
-		),
-		$$rpcUrls: urlEntitiesFromFaucetUrlStrings(metamaskRpcUrls),
+		[EntityMetaKey.Fields]: {
+			...((
+				iconMedia
+			) => (
+				iconMedia != null && {
+					[entityFieldAddressKey(EntityType.Network, [], '$icon')]: iconMedia,
+				}
+			))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
+			[entityFieldAddressKey(EntityType.Network, ['Evm'], '$$rpcUrls')]: urlEntitiesFromFaucetUrlStrings(metamaskRpcUrls),
+		},
 	}
 }
 
@@ -179,7 +152,20 @@ const coinBridgeCapabilityRowsForCoin = async (
 			.filter((token) => token.coinKey === coinId)
 			.flatMap((token) => {
 				const coinInstance = coinInstanceRefFromLifiToken(token)
-				return coinInstance == null ? [] : [coinInstance]
+				if (coinInstance == null)
+					return []
+
+				const parsedSelector = parseEntitySelector(
+					schema,
+					entityDefinitionByType[EntityType.EvmCoinInstance],
+					coinInstance[EntityMetaKey.Selector]
+				)
+				return parsedSelector instanceof type.errors ?
+					[]
+				:
+					[{
+						[EntityMetaKey.Selector]: parsedSelector,
+					}]
 			}),
 		await fetchTools()
 	)
@@ -214,31 +200,35 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
-					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
-					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
-					return networkEntityFieldsFromLifiChain(lifiChain)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, context) => {
+						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+						const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
+						if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
+						return networkEntityFieldsFromLifiChain(lifiChain)
+					},
 				}
 			},
 		})({
-				$icon: (network) => network.$icon,
+				$icon: (network) => network[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.Network, [], '$icon')],
 				Evm: {
-					$$rpcUrls: (network) => network.$$rpcUrls,
+					$$rpcUrls: (network) => network[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.Network, ['Evm'], '$$rpcUrls')],
 				},
 			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
-				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
-					const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
-					if (coinBridgeCapabilityFields == null)
-						throw new Error(`Lifi_Rest: unknown LI.FI tool key ${toolKey}`)
-					return {
-						toolKey: coinBridgeCapabilityFields.key,
-						...coinBridgeCapabilityFields,
-					}
+				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: {
+					resolve: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
+						const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
+						if (coinBridgeCapabilityFields == null)
+							throw new Error(`Lifi_Rest: unknown LI.FI tool key ${toolKey}`)
+						return {
+							toolKey: coinBridgeCapabilityFields.key,
+							...coinBridgeCapabilityFields,
+						}
+					},
 				}
 			},
 		})({
@@ -252,15 +242,17 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
 			resolve: {
-				[BridgeRouteSelector.Quote]: async (entitySelector) => {
-					const { fetchBridgeRouteBundleForQuoteId } = await import(
-						'$/resolvers/Lifi/Rest/routes.ts'
-					)
-					const bundle = await fetchBridgeRouteBundleForQuoteId(entitySelector)
-					return {
-						...bundle.routeFields,
-						$$steps: bundle.steps,
-					}
+				[BridgeRouteSelector.Quote]: {
+					resolve: async (entitySelector) => {
+						const { fetchBridgeRouteBundleForQuoteId } = await import(
+							'$/resolvers/Lifi/Rest/routes.ts'
+						)
+						const bundle = await fetchBridgeRouteBundleForQuoteId(entitySelector)
+						return {
+							...bundle.routeFields,
+							$$steps: bundle.steps,
+						}
+					},
 				}
 			},
 		})({
@@ -278,39 +270,39 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
-				[BridgeRouteStepSelector.RouteIndexInRoute]: async ({ $route, indexInRoute }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
-					const { fetchBridgeRouteBundleForQuoteId } = await import(
-						'$/resolvers/Lifi/Rest/routes.ts'
-					)
-					const bundle = await fetchBridgeRouteBundleForQuoteId($route)
-					const step = bundle.steps[indexInRoute]
-					if (step == null)
-						throw new Error(
-							`Lifi_Rest: BridgeRouteStep index ${indexInRoute} missing on quote route`
+				[BridgeRouteStepSelector.RouteIndexInRoute]: {
+					resolve: async ({ $route, indexInRoute }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
+						const { fetchBridgeRouteBundleForQuoteId } = await import(
+							'$/resolvers/Lifi/Rest/routes.ts'
 						)
-					const { [EntityMetaKey.Selector]: _id, ...fields } = step
-					return fields
+						const bundle = await fetchBridgeRouteBundleForQuoteId($route)
+						const step = bundle.steps[indexInRoute]
+						const { [EntityMetaKey.Selector]: _id, ...fields } = step
+						return fields
+					},
 				}
 			},
 		})({
-				stepType: (step) => step.stepType,
-				tool: (step) => step.tool,
-				$fromNetwork: (step) => step.$fromNetwork,
-				$toNetwork: (step) => step.$toNetwork,
-				$fromToken: (step) => step.$fromToken,
-				$toToken: (step) => step.$toToken,
-				railId: (step) => step.railId,
-				settlementModel: (step) => step.settlementModel,
-				verificationModel: (step) => step.verificationModel,
-				assetOutcome: (step) => step.assetOutcome,
+				stepType: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'stepType')],
+				tool: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'tool')],
+				$fromNetwork: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromNetwork')],
+				$toNetwork: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toNetwork')],
+				$fromToken: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromToken')],
+				$toToken: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toToken')],
+				railId: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'railId')],
+				settlementModel: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'settlementModel')],
+				verificationModel: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'verificationModel')],
+				assetOutcome: (step) => step[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'assetOutcome')],
 			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					return (await fetchChains()).chains.map(networkEntityFieldsFromLifiChain)
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+						return (await fetchChains()).chains.map(networkEntityFieldsFromLifiChain)
+					},
 				}
 			},
 		})({
@@ -320,8 +312,10 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async (entitySelector) => {
-					return coinBridgeCapabilityRowsForCoin(entitySelector)
+				[CoinSelector.CoinId]: {
+					resolve: async (entitySelector) => {
+						return coinBridgeCapabilityRowsForCoin(entitySelector)
+					},
 				}
 			},
 		})({
@@ -331,21 +325,25 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
-					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
-					)
-					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
-					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
+				[EvmCoinInstanceSelector.NetworkType]: {
+					resolve: async (entitySelector, context) => {
+						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
+						)
+						const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
+						const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
+						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
+					},
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
-					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
-					)
-					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
-					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
+				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+					resolve: async (entitySelector, context) => {
+						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
+						)
+						const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
+						const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
+						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
+					},
 				},
 			},
 		})({
@@ -360,21 +358,25 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
-					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
-					)
-					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
-					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
+				[EvmCoinInstanceSelector.NetworkType]: {
+					resolve: async (entitySelector, context) => {
+						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
+						)
+						const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
+						const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
+						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
+					},
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
-					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
-					)
-					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
-					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
+				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+					resolve: async (entitySelector, context) => {
+						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
+						)
+						const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
+						const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
+						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
+					},
 				},
 			},
 		})({
@@ -389,24 +391,26 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async ({ caip2 }, _context) => {
-					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
-					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
-					return urlEntitiesFromBlockExplorerCatalog(
-						blockExplorerLikeFromExplorersAndInfoUrl({
-							explorers: (
-							(lifiChain.metamask?.blockExplorerUrls ?? [])
-								.map((u) => u.trim())
-								.filter((u) => u.length > 0)
-								.map((url) => ({
-									name: '',
-									url,
-								}))
-							),
-							infoURL: undefined,
-						})
-					)
+				[NetworkSelector.Caip2]: {
+					resolve: async ({ caip2 }, _context) => {
+						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+						const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
+						if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
+						return urlEntitiesFromBlockExplorerCatalog(
+							blockExplorerLikeFromExplorersAndInfoUrl({
+								explorers: (
+								(lifiChain.metamask?.blockExplorerUrls ?? [])
+									.map((u) => u.trim())
+									.filter((u) => u.length > 0)
+									.map((url) => ({
+										name: '',
+										url,
+									}))
+								),
+								infoURL: undefined,
+							})
+						)
+					},
 				}
 			},
 		})({

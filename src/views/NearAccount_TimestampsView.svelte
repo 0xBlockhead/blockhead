@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NearAccount_TimestampView from '$/views/NearAccount_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					amountYoctoNear: true,
-					blockHeight: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NearAccount_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				amountYoctoNear: true,
+				blockHeight: true,
+			},
+		})
+	}
+	getResourceItems={(nearAccountTimestamps) => [...new Map(nearAccountTimestamps.values.map((nearAccountTimestamp) => [nearAccountTimestamp[EntityMetaKey.SelectorKey], nearAccountTimestamp])).values()]}
+	getKey={(nearAccountTimestamp) => nearAccountTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Near account observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(nearAccountTimestamps)}
-			{@const uniqueNearAccountTimestamps = [...new Map(nearAccountTimestamps.values.map((nearAccountTimestamp) => [nearAccountTimestamp[EntityMetaKey.SelectorKey], nearAccountTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NearAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nearAccountTimestamps.totalCount}
-				getKey={(nearAccountTimestamp) => nearAccountTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNearAccountTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Near account observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: nearAccountTimestamp })}
-					{@const nearAccountTimestampFields = { ...nearAccountTimestamp[EntityMetaKey.Selector], ...nearAccountTimestamp }}
-					{@const selection = select(EntityType.NearAccount_Timestamp, nearAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NearAccount_TimestampView
-						selection={selection}
-						prefetched={nearAccountTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NearAccount_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: nearAccountTimestamp })}
+		{@const nearAccountTimestampFields = { ...nearAccountTimestamp[EntityMetaKey.Selector], ...nearAccountTimestamp }}
+		{@const selection = select(EntityType.NearAccount_Timestamp, nearAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NearAccount_TimestampView
+			selection={selection}
+			prefetched={nearAccountTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

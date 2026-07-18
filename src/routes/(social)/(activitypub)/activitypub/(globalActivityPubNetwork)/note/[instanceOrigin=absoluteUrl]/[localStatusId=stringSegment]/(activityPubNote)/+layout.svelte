@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -39,7 +40,9 @@
 			{@const DetailView = ActivityPubNoteView}
 
 			<DetailView
-				selection={select(EntityType.ActivityPubNote, data.selector)}
+				selection={select(EntityType.ActivityPubNote, data.selector, { sources: [
+		Source.Mastodon_Rest,
+	] })}
 				href={
 					resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 						instanceOrigin: params.instanceOrigin,

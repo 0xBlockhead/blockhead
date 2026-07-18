@@ -36,7 +36,7 @@ describe('MLflow resolver mappings', () => {
 			},
 		})
 		const { mlflowResolvers } = await import('$/resolvers/Mlflow-Rest.ts')
-		const model = await mlflowResolvers[0].resolve.ProviderModelId({
+		const model = await mlflowResolvers[0].resolve.ProviderModelId.resolve({
 			$provider: {
 				providerId: 'mlflow',
 			},
@@ -74,7 +74,7 @@ describe('MLflow resolver mappings', () => {
 			}],
 		})
 		const { mlflowResolvers } = await import('$/resolvers/Mlflow-Rest.ts')
-		const version = await mlflowResolvers[1].resolve.ModelVersionId({
+		const version = await mlflowResolvers[1].resolve.ModelVersionId.resolve({
 			$model: {
 				$provider: {
 					providerId: 'mlflow',
@@ -92,7 +92,7 @@ describe('MLflow resolver mappings', () => {
 			},
 		})
 
-		const artifact = await mlflowResolvers[2].resolve.ProviderArtifactId({
+		const artifact = await mlflowResolvers[2].resolve.ProviderArtifactId.resolve({
 			$provider: {
 				providerId: 'mlflow',
 			},
@@ -104,7 +104,7 @@ describe('MLflow resolver mappings', () => {
 
 	it('fails closed when the MLflow endpoint is not configured', async () => {
 		const { mlflowResolvers } = await import('$/resolvers/Mlflow-Rest.ts')
-		await expect(mlflowResolvers[0].resolve.ProviderModelId({
+		await expect(mlflowResolvers[0].resolve.ProviderModelId.resolve({
 			$provider: {
 				providerId: 'mlflow',
 			},

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarAsset = $derived(selection({}))
+	const stellarAsset = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar asset')
 	const viewDomId = $derived('stellar-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -71,16 +73,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarAsset}>
-			{#snippet Pending()}
-				{title || 'stellar asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetKey = pendingEntity.assetKey}
-							{#if assetKey !== undefined && assetKey !== null}
-								{String((assetKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetKey = resolvedEntity.assetKey}
@@ -132,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetKind = pendingEntity.assetKind}
-							{#if assetKind !== undefined && assetKind !== null}
-								{String((assetKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetKind = resolvedEntity.assetKind}
@@ -159,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							assetCode: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const assetCode = pendingEntity.assetCode}
-					{#if assetCode !== undefined && assetCode !== null}
-						<div>
-							<dt>asset code</dt>
-							<dd>
-								{String((assetCode) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const assetCode = resolvedEntity.assetCode}
@@ -194,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							issuer: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const issuer = pendingEntity.issuer}
-					{#if issuer !== undefined && issuer !== null}
-						<div>
-							<dt>issuer</dt>
-							<dd>
-								<TruncatedValue value={String((issuer) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const issuer = resolvedEntity.issuer}
@@ -229,8 +197,6 @@
 			<ResourceBoundary
 				resource={selection.$issuerAccount}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -273,11 +239,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -285,12 +248,12 @@
 
 				{#snippet SectionStellarAssetClaimableBalances({ id, label, open })}
 					<StellarClaimableBalancesView
-						selection={
-							selection.$$claimableBalances({
-								count: true,
-							})
-						}
+						selection={selection.$$claimableBalances}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No claimable balances.'
 						open={open}
 						title={label}
@@ -300,12 +263,12 @@
 
 				{#snippet SectionStellarAssetLiquidityPools({ id, label, open })}
 					<StellarLiquidityPoolsView
-						selection={
-							selection.$$liquidityPools({
-								count: true,
-							})
-						}
+						selection={selection.$$liquidityPools}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No liquidity pools.'
 						open={open}
 						title={label}
@@ -315,12 +278,12 @@
 
 				{#snippet SectionStellarAssetTrustlines({ id, label, open })}
 					<StellarTrustlinesView
-						selection={
-							selection.$$trustlines({
-								count: true,
-							})
-						}
+						selection={selection.$$trustlines}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trustlines.'
 						open={open}
 						title={label}
@@ -347,11 +310,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -359,12 +319,12 @@
 
 				{#snippet SectionStellarAssetOffers({ id, label, open })}
 					<StellarOffersView
-						selection={
-							selection.$$offers({
-								count: true,
-							})
-						}
+						selection={selection.$$offers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No offers.'
 						open={open}
 						title={label}
@@ -374,12 +334,12 @@
 
 				{#snippet SectionStellarAssetTrades({ id, label, open })}
 					<StellarTradesView
-						selection={
-							selection.$$trades({
-								count: true,
-							})
-						}
+						selection={selection.$$trades}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No trades.'
 						open={open}
 						title={label}

@@ -20,13 +20,16 @@
 
 	const pageSelection = $derived(select(EntityType.YoutubeVideo, data.selector, {
 		sources: [
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
 			Source.Constants_Internal,
 		],
 		fields: {
+			$thumbnail: true,
 			title: true,
+			$author: true,
 			publishedAtMs: true,
 			description: true,
-			$author: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video')))

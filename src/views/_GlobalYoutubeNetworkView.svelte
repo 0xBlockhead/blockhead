@@ -39,9 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalYoutubeNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived(['YouTube'].filter(Boolean).join(' ') || 'YouTube network')
 	const viewDomId = $derived('-global-youtube-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -68,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalYoutubeNetwork}>
-			{#snippet Pending()}
-				{['YouTube'].filter(Boolean).join(' ') || title || 'YouTube network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{['YouTube'].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{['YouTube'].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalYoutubeNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{['YouTube'].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -88,19 +86,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									scope: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const scope = pendingEntity.scope}
-							{#if scope !== undefined && scope !== null}
-								{String(('YouTube') ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const scope = resolvedEntity.scope}
@@ -123,27 +115,24 @@
 					[
 						{
 							id: 'youtube-channels',
-							label: 'Channels',
+							label: 'Popular-chart channels',
 						},
 						{
 							id: 'youtube-videos',
-							label: 'Videos',
+							label: 'Popular videos (provider-default region and category; Piped US)',
 						},
 						{
 							id: 'youtube-playlists',
-							label: 'Playlists',
+							label: 'Seeded-channel playlists',
 						},
 					]
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Directory</HeadingComponent>
+						<HeadingComponent>Bounded discovery</HeadingComponent>
 					</header>
 				{/snippet}
 
@@ -154,12 +143,17 @@
 								sources: [
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
+									Source.Piped_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/youtube/channels')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No popular-chart channels available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -172,12 +166,18 @@
 							selection.$$observedVideos({
 								sources: [
 									Source.Constants_Internal,
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/youtube/videos')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No popular videos (provider-default region and category; piped us) available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -192,11 +192,15 @@
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
-								count: true,
 							})
 						}
 						href={resolve('/youtube/playlists')}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
+						emptyText='No seeded-channel playlists available.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

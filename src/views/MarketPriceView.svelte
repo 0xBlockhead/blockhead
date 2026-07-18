@@ -43,7 +43,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketPrice = $derived(selection({}))
+	const marketPrice = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Market price')
 	const viewDomId = $derived('market-price-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -76,11 +78,10 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={marketPrice}>
-			{#snippet Pending()}
-				<MarketView
-					selection={select(EntityType.Market, selection.entitySelector.$market)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<MarketView
+						selection={select(EntityType.Market, selection.entitySelector.$market)}
+						href={
 						(selection.entitySelector.$market.marketKind !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.assetKey !== undefined && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.assetKey !== undefined && selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base.kind !== undefined && selection.entitySelector.$market.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 							marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
 							base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
@@ -90,16 +91,16 @@
 							quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<MarketView
-					selection={select(EntityType.Market, selection.entitySelector.$market)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={marketPrice}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<MarketView
+						selection={select(EntityType.Market, selection.entitySelector.$market)}
+						href={
 						(selection.entitySelector.$market.marketKind !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.assetKey !== undefined && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.assetKey !== undefined && selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base.kind !== undefined && selection.entitySelector.$market.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 							marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
 							base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
@@ -109,19 +110,19 @@
 							quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={marketPrice}>
-			{#snippet Pending()}
-				<MarketView
-					selection={select(EntityType.Market, selection.entitySelector.$market)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<MarketView
+						selection={select(EntityType.Market, selection.entitySelector.$market)}
+						href={
 						(selection.entitySelector.$market.marketKind !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.assetKey !== undefined && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.assetKey !== undefined && selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base.kind !== undefined && selection.entitySelector.$market.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 							marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
 							base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
@@ -131,16 +132,16 @@
 							quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<MarketView
-					selection={select(EntityType.Market, selection.entitySelector.$market)}
-					href={
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={marketPrice}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<MarketView
+						selection={select(EntityType.Market, selection.entitySelector.$market)}
+						href={
 						(selection.entitySelector.$market.marketKind !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.assetKey !== undefined && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.assetKey !== undefined && selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base.kind !== undefined && selection.entitySelector.$market.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
 							marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
 							base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
@@ -150,11 +151,12 @@
 							quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -202,7 +204,7 @@
 									href={
 										(marketTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && marketTimestamp[EntityMetaKey.Selector].feedKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.marketKind !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue.marketVenueId !== undefined && marketTimestamp[EntityMetaKey.Selector].$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$base.kind !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
 											timestampMs: String(marketTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
-											feedKey: String(marketTimestamp[EntityMetaKey.Selector].feedKey ?? ''),
+											feedKey: encodeURIComponent(String(marketTimestamp[EntityMetaKey.Selector].feedKey ?? '')),
 											marketKind: String(marketTimestamp[EntityMetaKey.Selector].$market.marketKind ?? ''),
 											base: String(marketTimestamp[EntityMetaKey.Selector].$market.$base.assetKey ?? ''),
 											quote: String(marketTimestamp[EntityMetaKey.Selector].$market.$quote.assetKey ?? ''),
@@ -215,6 +217,8 @@
 									layout={EntityLayout.Value}
 									open={false}
 								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest quote available.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

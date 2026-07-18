@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConnection_TimestampView from '$/views/BlockheadAgentConnection_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					latencyMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConnection_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentConnection_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				latencyMs: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentConnectionTimestamps) => [...new Map(blockheadAgentConnectionTimestamps.values.map((blockheadAgentConnectionTimestamp) => [blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey], blockheadAgentConnectionTimestamp])).values()]}
+	getKey={(blockheadAgentConnectionTimestamp) => blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead agent connection observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentConnectionTimestamps)}
-			{@const uniqueBlockheadAgentConnectionTimestamps = [...new Map(blockheadAgentConnectionTimestamps.values.map((blockheadAgentConnectionTimestamp) => [blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey], blockheadAgentConnectionTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConnection_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentConnectionTimestamps.totalCount}
-				getKey={(blockheadAgentConnectionTimestamp) => blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentConnectionTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead agent connection observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentConnectionTimestamp })}
-					{@const blockheadAgentConnectionTimestampFields = { ...blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], ...blockheadAgentConnectionTimestamp }}
-					{@const selection = select(EntityType.BlockheadAgentConnection_Timestamp, blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAgentConnection_TimestampView
-						selection={selection}
-						prefetched={blockheadAgentConnectionTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentConnection_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentConnectionTimestamp })}
+		{@const blockheadAgentConnectionTimestampFields = { ...blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], ...blockheadAgentConnectionTimestamp }}
+		{@const selection = select(EntityType.BlockheadAgentConnection_Timestamp, blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAgentConnection_TimestampView
+			selection={selection}
+			prefetched={blockheadAgentConnectionTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

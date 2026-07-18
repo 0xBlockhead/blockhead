@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bnbBeaconNetwork = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			decommissionedAtMs: true,
 		},
@@ -77,57 +78,57 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={bnbBeaconNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bnbBeaconNetwork}>
-			{#snippet Pending()}
-				{@const decommissionedAtMs0 = pendingEntity.decommissionedAtMs}
-				{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
-					<Timestamp timestamp={Number(decommissionedAtMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const decommissionedAtMs0 = resolvedEntity.decommissionedAtMs}
-				{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
-					<Timestamp timestamp={Number(decommissionedAtMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const decommissionedAtMs0 = pendingEntity.decommissionedAtMs}
+					{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
+						<Timestamp timestamp={Number(decommissionedAtMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bnbBeaconNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const decommissionedAtMs0 = resolvedEntity.decommissionedAtMs}
+					{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
+						<Timestamp timestamp={Number(decommissionedAtMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,24 +154,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							decommissionedAtMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const decommissionedAtMs = pendingEntity.decommissionedAtMs}
-					{#if decommissionedAtMs !== undefined && decommissionedAtMs !== null}
-						<div>
-							<dt>decommissioned AT ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(decommissionedAtMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const decommissionedAtMs = resolvedEntity.decommissionedAtMs}
@@ -188,24 +178,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fusionDeadlineMs: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fusionDeadlineMs = pendingEntity.fusionDeadlineMs}
-					{#if fusionDeadlineMs !== undefined && fusionDeadlineMs !== null}
-						<div>
-							<dt>fusion deadline ms</dt>
-							<dd>
-								<Timestamp timestamp={Number(fusionDeadlineMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fusionDeadlineMs = resolvedEntity.fusionDeadlineMs}
@@ -245,11 +224,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -257,12 +233,12 @@
 
 				{#snippet SectionBnbBeaconChainObservations({ id, label, open })}
 					<BnbBeaconNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No observations yet.'
 						open={open}
 						title={label}
@@ -272,12 +248,12 @@
 
 				{#snippet SectionBnbBeaconChainBlocks({ id, label, open })}
 					<BnbBeaconBlocksView
-						selection={
-							selection.$$blocks({
-								count: true,
-							})
-						}
+						selection={selection.$$blocks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No blocks found.'
 						open={open}
 						title={label}
@@ -287,12 +263,12 @@
 
 				{#snippet SectionBnbBeaconChainTransactions({ id, label, open })}
 					<BnbBeaconTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No transactions found.'
 						open={open}
 						title={label}
@@ -315,11 +291,8 @@
 				}
 				data-card
 				class='network-view-collapsible-validators'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Validators</HeadingComponent>
 					</header>
@@ -327,12 +300,12 @@
 
 				{#snippet SectionBnbBeaconValidatorList({ id, label, open })}
 					<BnbValidatorsView
-						selection={
-							selection.$$validators({
-								count: true,
-							})
-						}
+						selection={selection.$$validators}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No validators found.'
 						open={open}
 						title={label}
@@ -359,11 +332,8 @@
 				}
 				data-card
 				class='network-view-collapsible-tokens-migration'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Tokens and migration</HeadingComponent>
 					</header>
@@ -371,12 +341,12 @@
 
 				{#snippet SectionBnbBeaconTokens({ id, label, open })}
 					<BnbBeaconTokensView
-						selection={
-							selection.$$tokens({
-								count: true,
-							})
-						}
+						selection={selection.$$tokens}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No tokens found.'
 						open={open}
 						title={label}
@@ -386,12 +356,12 @@
 
 				{#snippet SectionBnbBeaconMigrations({ id, label, open })}
 					<BnbBeaconTokenMigrationsView
-						selection={
-							selection.$$migrationRecords({
-								count: true,
-							})
-						}
+						selection={selection.$$migrationRecords}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No migration records found.'
 						open={open}
 						title={label}

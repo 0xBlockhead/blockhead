@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoveStructView from '$/views/MoveStructView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					structName: true,
-					isEvent: true,
-					isNative: true,
-					$module: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveStruct}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.MoveStruct}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				structName: true,
+				isEvent: true,
+				isNative: true,
+				$module: true,
+			},
+		})
+	}
+	getResourceItems={(moveStructs) => [...new Map(moveStructs.values.map((moveStruct) => [moveStruct[EntityMetaKey.SelectorKey], moveStruct])).values()]}
+	getKey={(moveStruct) => moveStruct[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Move structs yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(moveStructs)}
-			{@const uniqueMoveStructs = [...new Map(moveStructs.values.map((moveStruct) => [moveStruct[EntityMetaKey.SelectorKey], moveStruct])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MoveStruct}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={moveStructs.totalCount}
-				getKey={(moveStruct) => moveStruct[EntityMetaKey.SelectorKey]}
-				items={uniqueMoveStructs}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Move structs yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: moveStruct })}
-					{@const moveStructFields = { ...moveStruct[EntityMetaKey.Selector], ...moveStruct }}
-					{@const selection = select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<MoveStructView
-						selection={selection}
-						prefetched={moveStructFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.MoveStruct}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: moveStruct })}
+		{@const moveStructFields = { ...moveStruct[EntityMetaKey.Selector], ...moveStruct }}
+		{@const selection = select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<MoveStructView
+			selection={selection}
+			prefetched={moveStructFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

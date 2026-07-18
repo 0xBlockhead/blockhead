@@ -19,13 +19,13 @@
 
 	const pageSelection = $derived(select(EntityType.BlockheadBridgeTransaction, {
 		$account: {
-			interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.address),
+			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.address),
 		},
 		$sourceTx: {
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: params.chainId,
+					reference: Number(params.chainId),
 				},
 			},
 			txHash: decodeURIComponent(params.sourceTxHash),

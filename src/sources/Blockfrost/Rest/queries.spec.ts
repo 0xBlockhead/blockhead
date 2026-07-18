@@ -15,11 +15,15 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getDRepMetadata,
+	getGovernanceProposalMetadata,
+	getStakePoolMetadata,
 	getCommittee,
 	getBlock,
 	getLatestProtocolParameters,
 	listAssets,
 	listBlocks,
+	listCommitteeVotes,
 	listDReps,
 	listGovernanceProposals,
 	listLatestBlockTransactions,
@@ -148,6 +152,39 @@ describe('Blockfrost REST transport', () => {
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/epochs/latest/parameters',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee',
+		])
+	})
+
+	it('loads official committee votes and treats metadata transport failures as optional', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([
+				{
+					tx_hash: 'vote-hash',
+					voter_hot_id: 'cc_hot1example',
+					proposal_id: 'gov_action1example',
+					proposal_tx_hash: 'proposal-hash',
+					proposal_index: 1,
+					governance_type: 'info_action',
+					vote: 'yes',
+					metadata_url: null,
+					metadata_hash: null,
+					block_height: 1_000,
+					block_time: 1_700_000_000,
+				},
+			]))
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+			.mockRejectedValueOnce(new Error('metadata transport unavailable'))
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+
+		await expect(listCommitteeVotes(binding, 16)).resolves.toHaveLength(1)
+		await expect(getGovernanceProposalMetadata(binding, 'proposal-hash', 1)).resolves.toBeUndefined()
+		await expect(getDRepMetadata(binding, 'drep1example')).resolves.toBeUndefined()
+		await expect(getStakePoolMetadata(binding, 'pool1example')).resolves.toBeUndefined()
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee/votes?count=16',
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals/proposal-hash/1/metadata',
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/dreps/drep1example/metadata',
+			'https://cardano-mainnet.blockfrost.io/api/v0/pools/pool1example/metadata',
 		])
 	})
 

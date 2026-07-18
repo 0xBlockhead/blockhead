@@ -25,12 +25,12 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$hub: {
-			scope: '_GlobalIpfsAccess',
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$hub: {
+				scope: '_GlobalIpfsAccess',
+			},
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			declaredAccessEndpointCount: true,
 			reachableAccessEndpointCount: true,

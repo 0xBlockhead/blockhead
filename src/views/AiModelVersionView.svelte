@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiModelVersion = $derived(selection({
-		sources: [
-			Source.HuggingFaceHub_Rest,
-			Source.Mlflow_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			mlflowRegisteredModelName: true,
 			mlflowModelVersion: true,
@@ -76,78 +72,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={aiModelVersion}>
-			{#snippet Pending()}
-				{[String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={aiModelVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiModelVersion}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$model}
-				>
-					{#snippet children(aiModel)}
-						{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-							<AiModelView
-								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-								prefetched={aiModel}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$model}
-				>
-					{#snippet children(aiModel)}
-						{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-							<AiModelView
-								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-								prefetched={aiModel}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$model}
+					>
+						{#snippet children(aiModel)}
+							{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+								<AiModelView
+									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+									prefetched={aiModel}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={aiModelVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$model}
+					>
+						{#snippet children(aiModel)}
+							{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+								<AiModelView
+									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+									prefetched={aiModel}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aiModelVersion}>
-			{#snippet Pending()}
-				{@const quantization0 = pendingEntity.quantization}
-				{#if quantization0 !== undefined && quantization0 !== null}
-					<span data-text="muted">
-						{String((quantization0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const quantization0 = resolvedEntity.quantization}
-				{#if quantization0 !== undefined && quantization0 !== null}
-					<span data-text="muted">
-						{String((quantization0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const quantization0 = pendingEntity.quantization}
+			{#if quantization0 !== undefined && quantization0 !== null}
+				<span data-text="muted">
+					{String((quantization0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={aiModelVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quantization0 = resolvedEntity.quantization}
+					{#if quantization0 !== undefined && quantization0 !== null}
+						<span data-text="muted">
+							{String((quantization0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,8 +155,6 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -177,24 +175,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							versionId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const versionId = pendingEntity.versionId}
-					{#if versionId !== undefined && versionId !== null}
-						<div>
-							<dt>version ID</dt>
-							<dd>
-								{String((versionId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const versionId = resolvedEntity.versionId}
@@ -212,8 +199,6 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -234,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							huggingFaceRepo: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const huggingFaceRepo = pendingEntity.huggingFaceRepo}
-					{#if huggingFaceRepo !== undefined && huggingFaceRepo !== null}
-						<div>
-							<dt>hugging face repo</dt>
-							<dd>
-								{String((huggingFaceRepo) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const huggingFaceRepo = resolvedEntity.huggingFaceRepo}
@@ -269,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							revision: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const revision = pendingEntity.revision}
-					{#if revision !== undefined && revision !== null}
-						<div>
-							<dt>revision</dt>
-							<dd>
-								{String((revision) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const revision = resolvedEntity.revision}
@@ -306,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mlflowRegisteredModelName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mlflowRegisteredModelName = pendingEntity.mlflowRegisteredModelName}
-					{#if mlflowRegisteredModelName !== undefined && mlflowRegisteredModelName !== null}
-						<div>
-							<dt>mlflow registered model name</dt>
-							<dd>
-								{String((mlflowRegisteredModelName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mlflowRegisteredModelName = resolvedEntity.mlflowRegisteredModelName}
@@ -341,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mlflowModelVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mlflowModelVersion = pendingEntity.mlflowModelVersion}
-					{#if mlflowModelVersion !== undefined && mlflowModelVersion !== null}
-						<div>
-							<dt>mlflow model version</dt>
-							<dd>
-								{String((mlflowModelVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mlflowModelVersion = resolvedEntity.mlflowModelVersion}
@@ -376,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							onnxIrVersion: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const onnxIrVersion = pendingEntity.onnxIrVersion}
-					{#if onnxIrVersion !== undefined && onnxIrVersion !== null}
-						<div>
-							<dt>onnx ir version</dt>
-							<dd>
-								{String((onnxIrVersion) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const onnxIrVersion = resolvedEntity.onnxIrVersion}
@@ -413,24 +343,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const createdAt = pendingEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const createdAt = resolvedEntity.createdAt}
@@ -448,24 +367,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							trainingCutoff: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const trainingCutoff = pendingEntity.trainingCutoff}
-					{#if trainingCutoff !== undefined && trainingCutoff !== null}
-						<div>
-							<dt>training cutoff</dt>
-							<dd>
-								<Timestamp timestamp={Number(trainingCutoff)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const trainingCutoff = resolvedEntity.trainingCutoff}
@@ -483,24 +391,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							quantization: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const quantization = pendingEntity.quantization}
-					{#if quantization !== undefined && quantization !== null}
-						<div>
-							<dt>quantization</dt>
-							<dd>
-								{String((quantization) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const quantization = resolvedEntity.quantization}
@@ -518,24 +415,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fineTuneKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fineTuneKind = pendingEntity.fineTuneKind}
-					{#if fineTuneKind !== undefined && fineTuneKind !== null}
-						<div>
-							<dt>fine tune kind</dt>
-							<dd>
-								{String((fineTuneKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fineTuneKind = resolvedEntity.fineTuneKind}

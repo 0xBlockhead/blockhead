@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4626Vault_TimestampView from '$/views/Erc4626Vault_TimestampView.svelte'
 </script>
@@ -61,77 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					apyTotal: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4626Vault_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Erc4626Vault_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				apyTotal: true,
+			},
+		})
+	}
+	getResourceItems={(erc4626VaultTimestamps) => [...new Map(erc4626VaultTimestamps.values.map((erc4626VaultTimestamp) => [erc4626VaultTimestamp[EntityMetaKey.SelectorKey], erc4626VaultTimestamp])).values()]}
+	getKey={(erc4626VaultTimestamp) => erc4626VaultTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Erc4626 vault observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(erc4626VaultTimestamps)}
-			{@const uniqueErc4626VaultTimestamps = [...new Map(erc4626VaultTimestamps.values.map((erc4626VaultTimestamp) => [erc4626VaultTimestamp[EntityMetaKey.SelectorKey], erc4626VaultTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4626Vault_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4626VaultTimestamps.totalCount}
-				getKey={(erc4626VaultTimestamp) => erc4626VaultTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueErc4626VaultTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Erc4626 vault observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: erc4626VaultTimestamp })}
-					{@const erc4626VaultTimestampFields = { ...erc4626VaultTimestamp[EntityMetaKey.Selector], ...erc4626VaultTimestamp }}
-					{@const selection = select(EntityType.Erc4626Vault_Timestamp, erc4626VaultTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<Erc4626Vault_TimestampView
-						selection={selection}
-						prefetched={erc4626VaultTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Erc4626Vault_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: erc4626VaultTimestamp })}
+		{@const erc4626VaultTimestampFields = { ...erc4626VaultTimestamp[EntityMetaKey.Selector], ...erc4626VaultTimestamp }}
+		{@const selection = select(EntityType.Erc4626Vault_Timestamp, erc4626VaultTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<Erc4626Vault_TimestampView
+			selection={selection}
+			prefetched={erc4626VaultTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

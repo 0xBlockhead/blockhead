@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpSubnetCanisterRange_TimestampView from '$/views/IcpSubnetCanisterRange_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpSubnetCanisterRangeTimestamps) => [...new Map(icpSubnetCanisterRangeTimestamps.values.map((icpSubnetCanisterRangeTimestamp) => [icpSubnetCanisterRangeTimestamp[EntityMetaKey.SelectorKey], icpSubnetCanisterRangeTimestamp])).values()]}
+	getKey={(icpSubnetCanisterRangeTimestamp) => icpSubnetCanisterRangeTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP subnet canister range observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpSubnetCanisterRangeTimestamps)}
-			{@const uniqueIcpSubnetCanisterRangeTimestamps = [...new Map(icpSubnetCanisterRangeTimestamps.values.map((icpSubnetCanisterRangeTimestamp) => [icpSubnetCanisterRangeTimestamp[EntityMetaKey.SelectorKey], icpSubnetCanisterRangeTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpSubnetCanisterRangeTimestamps.totalCount}
-				getKey={(icpSubnetCanisterRangeTimestamp) => icpSubnetCanisterRangeTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpSubnetCanisterRangeTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP subnet canister range observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpSubnetCanisterRangeTimestamp })}
-					{@const icpSubnetCanisterRangeTimestampFields = { ...icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], ...icpSubnetCanisterRangeTimestamp }}
-					{@const selection = select(EntityType.IcpSubnetCanisterRange_Timestamp, icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpSubnetCanisterRange_TimestampView
-						selection={selection}
-						prefetched={icpSubnetCanisterRangeTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpSubnetCanisterRangeTimestamp })}
+		{@const icpSubnetCanisterRangeTimestampFields = { ...icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], ...icpSubnetCanisterRangeTimestamp }}
+		{@const selection = select(EntityType.IcpSubnetCanisterRange_Timestamp, icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpSubnetCanisterRange_TimestampView
+			selection={selection}
+			prefetched={icpSubnetCanisterRangeTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

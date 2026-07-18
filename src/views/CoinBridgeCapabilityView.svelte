@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const coinBridgeCapability = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			railId: true,
 		},
@@ -75,52 +76,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={coinBridgeCapability}>
-			{#snippet Pending()}
-				{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || 'Coin bridge capability'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={coinBridgeCapability}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={coinBridgeCapability}>
-			{#snippet Pending()}
-				{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || 'Coin bridge capability'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={coinBridgeCapability}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={coinBridgeCapability}>
-			{#snippet Pending()}
-				{@const railId0 = pendingEntity.railId}
-				{#if railId0 !== undefined && railId0 !== null}
-					<span data-text="muted">
-						{String((railId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const railId0 = resolvedEntity.railId}
-				{#if railId0 !== undefined && railId0 !== null}
-					<span data-text="muted">
-						{String((railId0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const railId0 = pendingEntity.railId}
+			{#if railId0 !== undefined && railId0 !== null}
+				<span data-text="muted">
+					{String((railId0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={coinBridgeCapability}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const railId0 = resolvedEntity.railId}
+					{#if railId0 !== undefined && railId0 !== null}
+						<span data-text="muted">
+							{String((railId0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -137,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									toolKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const toolKey = pendingEntity.toolKey}
-							{#if toolKey !== undefined && toolKey !== null}
-								{String((toolKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const toolKey = resolvedEntity.toolKey}
@@ -167,19 +162,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									railId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const railId = pendingEntity.railId}
-							{#if railId !== undefined && railId !== null}
-								{String((railId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const railId = resolvedEntity.railId}
@@ -197,19 +186,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									settlementModel: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const settlementModel = pendingEntity.settlementModel}
-							{#if settlementModel !== undefined && settlementModel !== null}
-								{String((settlementModel) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const settlementModel = resolvedEntity.settlementModel}
@@ -227,19 +210,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									verificationModel: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const verificationModel = pendingEntity.verificationModel}
-							{#if verificationModel !== undefined && verificationModel !== null}
-								{String((verificationModel) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const verificationModel = resolvedEntity.verificationModel}
@@ -257,19 +234,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetOutcome: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetOutcome = pendingEntity.assetOutcome}
-							{#if assetOutcome !== undefined && assetOutcome !== null}
-								{String((assetOutcome) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetOutcome = resolvedEntity.assetOutcome}

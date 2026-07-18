@@ -9,7 +9,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,10 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const rssFeedTimestamp = $derived(selection({
-		sources: [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('RSS feed observation')
 	const viewDomId = $derived('rss-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -69,7 +65,7 @@
 		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
-			feedUrl: String(pendingEntity.$feed.feedUrl ?? ''),
+			feedUrl: encodeURIComponent(String(pendingEntity.$feed.feedUrl ?? '')),
 		}) : undefined)
 	}
 	{layout}
@@ -77,53 +73,53 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={rssFeedTimestamp}>
-			{#snippet Pending()}
-				<RssFeedView
-					selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<RssFeedView
+						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
+						href={
 						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-							feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+							feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<RssFeedView
-					selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={rssFeedTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<RssFeedView
+						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
+						href={
 						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-							feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+							feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={rssFeedTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={rssFeedTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,7 +131,7 @@
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed, {})}
 						href={
 							(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-								feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+								feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -152,19 +148,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -184,19 +174,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -216,19 +200,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									reachable: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const reachable = pendingEntity.reachable}
-							{#if reachable !== undefined && reachable !== null}
-								{reachable ? 'Yes' : 'No'}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const reachable = resolvedEntity.reachable}
@@ -248,24 +226,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									observedItemCount: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const observedItemCount = pendingEntity.observedItemCount}
-							{#if observedItemCount !== undefined && observedItemCount !== null}
-								<NumberValue value={Number(observedItemCount)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const observedItemCount = resolvedEntity.observedItemCount}
 							{#if observedItemCount !== undefined && observedItemCount !== null}
-								<NumberValue value={Number(observedItemCount)} />
+								<NumberValue
+									value={observedItemCount}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -280,19 +254,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									fetchWindowKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const fetchWindowKind = pendingEntity.fetchWindowKind}
-							{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
-								{String((fetchWindowKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const fetchWindowKind = resolvedEntity.fetchWindowKind}
@@ -309,24 +277,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>Error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

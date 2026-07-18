@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiPackageVersion = $derived(selection({}))
+	const suiPackageVersion = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Sui package version')
 	const viewDomId = $derived('sui-package-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={suiPackageVersion}>
-			{#snippet Pending()}
-				{title || 'Sui package version'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={suiPackageVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -92,8 +94,6 @@
 			<ResourceBoundary
 				resource={selection.$package}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(suiPackage)}
 					{#if suiPackage != null && suiPackage[EntityMetaKey.Selector] != null}
 						<div>
@@ -117,19 +117,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									packageId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const packageId = pendingEntity.packageId}
-							{#if packageId !== undefined && packageId !== null}
-								{String((packageId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const packageId = resolvedEntity.packageId}
@@ -147,19 +141,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									version: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const version = pendingEntity.version}
-							{#if version !== undefined && version !== null}
-								{String((version) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const version = resolvedEntity.version}
@@ -177,19 +165,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									digest: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const digest = pendingEntity.digest}
-							{#if digest !== undefined && digest !== null}
-								<TruncatedValue value={String((digest) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const digest = resolvedEntity.digest}
@@ -204,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previousPackageId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previousPackageId = pendingEntity.previousPackageId}
-					{#if previousPackageId !== undefined && previousPackageId !== null}
-						<div>
-							<dt>previous package ID</dt>
-							<dd>
-								{String((previousPackageId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previousPackageId = resolvedEntity.previousPackageId}
@@ -239,24 +210,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							upgradePolicy: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const upgradePolicy = pendingEntity.upgradePolicy}
-					{#if upgradePolicy !== undefined && upgradePolicy !== null}
-						<div>
-							<dt>upgrade policy</dt>
-							<dd>
-								{String((upgradePolicy) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const upgradePolicy = resolvedEntity.upgradePolicy}

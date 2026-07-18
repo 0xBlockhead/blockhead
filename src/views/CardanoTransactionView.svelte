@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoTransaction = $derived(selection({}))
+	const cardanoTransaction = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano transaction')
 	const viewDomId = $derived('cardano-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -74,16 +76,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoTransaction}>
-			{#snippet Pending()}
-				{title || 'Cardano transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -112,19 +114,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const hash = pendingEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const hash = resolvedEntity.hash}
@@ -139,24 +135,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							blockSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockSlot = pendingEntity.blockSlot}
-					{#if blockSlot !== undefined && blockSlot !== null}
-						<div>
-							<dt>block slot</dt>
-							<dd>
-								{String((blockSlot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockSlot = resolvedEntity.blockSlot}
@@ -174,24 +159,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fee = pendingEntity.fee}
-					{#if fee !== undefined && fee !== null}
-						<div>
-							<dt>fee</dt>
-							<dd>
-								{String((fee) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fee = resolvedEntity.fee}
@@ -209,24 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							deposit: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const deposit = pendingEntity.deposit}
-					{#if deposit !== undefined && deposit !== null}
-						<div>
-							<dt>deposit</dt>
-							<dd>
-								{String((deposit) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const deposit = resolvedEntity.deposit}
@@ -244,24 +207,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const sizeBytes = pendingEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
-						<div>
-							<dt>size bytes</dt>
-							<dd>
-								{String((sizeBytes) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const sizeBytes = resolvedEntity.sizeBytes}
@@ -279,24 +231,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							validityStartSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const validityStartSlot = pendingEntity.validityStartSlot}
-					{#if validityStartSlot !== undefined && validityStartSlot !== null}
-						<div>
-							<dt>validity start slot</dt>
-							<dd>
-								{String((validityStartSlot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const validityStartSlot = resolvedEntity.validityStartSlot}
@@ -314,24 +255,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ttlSlot: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ttlSlot = pendingEntity.ttlSlot}
-					{#if ttlSlot !== undefined && ttlSlot !== null}
-						<div>
-							<dt>ttl slot</dt>
-							<dd>
-								{String((ttlSlot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ttlSlot = resolvedEntity.ttlSlot}
@@ -375,11 +305,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Activity</HeadingComponent>
 					</header>
@@ -387,12 +314,12 @@
 
 				{#snippet SectionCardanoTransactionInputs({ id, label, open })}
 					<CardanoTxInputsView
-						selection={
-							selection.$$inputs({
-								count: true,
-							})
-						}
+						selection={selection.$$inputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No inputs.'
 						open={open}
 						title={label}
@@ -402,12 +329,12 @@
 
 				{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
 					<CardanoTxOutputsView
-						selection={
-							selection.$$outputs({
-								count: true,
-							})
-						}
+						selection={selection.$$outputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No outputs.'
 						open={open}
 						title={label}
@@ -417,12 +344,12 @@
 
 				{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
 					<CardanoCertificatesView
-						selection={
-							selection.$$certificates({
-								count: true,
-							})
-						}
+						selection={selection.$$certificates}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No certificates.'
 						open={open}
 						title={label}
@@ -432,12 +359,12 @@
 
 				{#snippet SectionCardanoTransactionScripts({ id, label, open })}
 					<CardanoScriptWitnessesView
-						selection={
-							selection.$$scripts({
-								count: true,
-							})
-						}
+						selection={selection.$$scripts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No scripts.'
 						open={open}
 						title={label}
@@ -468,11 +395,8 @@
 				}
 				data-card
 				class='network-view-collapsible-related'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Related</HeadingComponent>
 					</header>
@@ -480,12 +404,12 @@
 
 				{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
 					<CardanoGovernanceProposalsView
-						selection={
-							selection.$$governanceProposals({
-								count: true,
-							})
-						}
+						selection={selection.$$governanceProposals}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No governance proposals.'
 						open={open}
 						title={label}
@@ -495,12 +419,12 @@
 
 				{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
 					<CardanoGovernanceVotesView
-						selection={
-							selection.$$governanceVotes({
-								count: true,
-							})
-						}
+						selection={selection.$$governanceVotes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No governance votes.'
 						open={open}
 						title={label}
@@ -510,12 +434,12 @@
 
 				{#snippet SectionCardanoTransactionAssets({ id, label, open })}
 					<CardanoNativeAssetsView
-						selection={
-							selection.$$assets({
-								count: true,
-							})
-						}
+						selection={selection.$$assets}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No assets.'
 						open={open}
 						title={label}

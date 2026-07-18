@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RssNetworkView from '$/views/RssNetworkView.svelte'
 </script>
@@ -62,79 +61,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					protocolName: true,
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RssNetwork}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				protocolName: true,
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(rssNetworks) => [...new Map(rssNetworks.values.map((rssNetwork) => [rssNetwork[EntityMetaKey.SelectorKey], rssNetwork])).values()]}
+	getKey={(rssNetwork) => rssNetwork[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No RSS / Atom yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(rssNetworks)}
-			{@const uniqueRssNetworks = [...new Map(rssNetworks.values.map((rssNetwork) => [rssNetwork[EntityMetaKey.SelectorKey], rssNetwork])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssNetworks.totalCount}
-				getKey={(rssNetwork) => rssNetwork[EntityMetaKey.SelectorKey]}
-				items={uniqueRssNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No RSS / Atom yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: rssNetwork })}
-					{@const rssNetworkFields = { ...rssNetwork[EntityMetaKey.Selector], ...rssNetwork }}
-					{@const selection = select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const rssNetworkHrefFields = { ...rssNetwork, ...rssNetwork[EntityMetaKey.Selector] }}
-					<RssNetworkView
-						selection={selection}
-						prefetched={rssNetworkFields}
-						href={(rssNetwork[EntityMetaKey.Selector].scope === 'RssNetwork' ? resolve('/rss') : undefined)}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RssNetwork}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: rssNetwork })}
+		{@const rssNetworkFields = { ...rssNetwork[EntityMetaKey.Selector], ...rssNetwork }}
+		{@const selection = select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const rssNetworkHrefFields = { ...rssNetwork, ...rssNetwork[EntityMetaKey.Selector] }}
+		<RssNetworkView
+			selection={selection}
+			prefetched={rssNetworkFields}
+			href={(rssNetwork[EntityMetaKey.Selector].scope === 'RssNetwork' ? resolve('/rss') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

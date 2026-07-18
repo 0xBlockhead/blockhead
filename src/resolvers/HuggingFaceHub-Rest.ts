@@ -65,13 +65,15 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: async ({ $provider, providerModelId }) => {
-					assertProvider($provider)
-					const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
-					return retrieveModel({
-						binding: huggingFaceBinding,
-						repoId: providerModelId,
-					})
+				[AiModelSelector.ProviderModelId]: {
+					resolve: async ({ $provider, providerModelId }) => {
+						assertProvider($provider)
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
+						return retrieveModel({
+							binding: huggingFaceBinding,
+							repoId: providerModelId,
+						})
+					},
 				},
 			},
 		})({
@@ -92,13 +94,15 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiModelVersion,
 			resolve: {
-				[AiModelVersionSelector.HuggingFaceRepoRevision]: async ({ huggingFaceRepo, revision }) => {
-					const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
-					return retrieveModel({
-						binding: huggingFaceBinding,
-						repoId: huggingFaceRepo,
-						revision,
-					})
+				[AiModelVersionSelector.HuggingFaceRepoRevision]: {
+					resolve: async ({ huggingFaceRepo, revision }) => {
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
+						return retrieveModel({
+							binding: huggingFaceBinding,
+							repoId: huggingFaceRepo,
+							revision,
+						})
+					},
 				},
 			},
 		})({
@@ -117,18 +121,20 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiArtifact,
 			resolve: {
-				[AiArtifactSelector.ProviderArtifactId]: async ({ $provider, providerArtifactId }) => {
-					assertProvider($provider)
-					const artifact = parseArtifactId(providerArtifactId)
-					const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
-					return {
-						...artifact,
-						model: await retrieveModel({
-							binding: huggingFaceBinding,
-							repoId: artifact.repoId,
-							revision: artifact.revision,
-						}),
-					}
+				[AiArtifactSelector.ProviderArtifactId]: {
+					resolve: async ({ $provider, providerArtifactId }) => {
+						assertProvider($provider)
+						const artifact = parseArtifactId(providerArtifactId)
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
+						return {
+							...artifact,
+							model: await retrieveModel({
+								binding: huggingFaceBinding,
+								repoId: artifact.repoId,
+								revision: artifact.revision,
+							}),
+						}
+					},
 				},
 			},
 		})({
@@ -148,23 +154,25 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiDocument,
 			resolve: {
-				[AiDocumentSelector.DocumentUrl]: async ({ documentUrl }) => {
-					const match = /^https:\/\/huggingface\.co\/(.+)\/blob\/([^/]+)\/(.+)$/.exec(documentUrl)
-					if (match == null)
-						throw new Error('HuggingFaceHub_Rest: unsupported document URL')
+				[AiDocumentSelector.DocumentUrl]: {
+					resolve: async ({ documentUrl }) => {
+						const match = /^https:\/\/huggingface\.co\/(.+)\/blob\/([^/]+)\/(.+)$/.exec(documentUrl)
+						if (match == null)
+							throw new Error('HuggingFaceHub_Rest: unsupported document URL')
 
-					const { retrieveFileText } = await import('$/sources/HuggingFace/Rest/queries.ts')
-					await retrieveFileText({
-						binding: huggingFaceBinding,
-						repoId: match[1],
-						revision: match[2],
-						path: match[3],
-					})
-					return {
-						repoId: match[1],
-						revision: match[2],
-						path: match[3],
-					}
+						const { retrieveFileText } = await import('$/sources/HuggingFace/Rest/queries.ts')
+						await retrieveFileText({
+							binding: huggingFaceBinding,
+							repoId: match[1],
+							revision: match[2],
+							path: match[3],
+						})
+						return {
+							repoId: match[1],
+							revision: match[2],
+							path: match[3],
+						}
+					},
 				},
 			},
 		})({

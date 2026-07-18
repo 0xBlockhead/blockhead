@@ -8,6 +8,7 @@ import { mediaFromUrl } from '$/resolvers/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
@@ -20,7 +21,7 @@ import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 import { FarcasterChannel_TimestampSelector } from '$/schema/FarcasterChannel_Timestamp.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { _GlobalFarcasterNetworkSelector } from '$/schema/_GlobalFarcasterNetwork.ts'
+import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 
 
 type CastHash = `0x${string}`
@@ -62,75 +63,81 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: async ({ fid }) => {
-					const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const ethRaw = await getPrimaryAddress({ fid })
-					const solRaw = await getPrimaryAddress({
-						fid,
-						protocol: 'solana',
-					})
-					const ethAddress = optionalNonemptyString(ethRaw ?? undefined)
-					const solAddress = optionalNonemptyString(solRaw ?? undefined)
-					const verifiedAddresses = [
-						...(ethAddress == null ?
-							[]
-						:
-							[((evmAddress) => ({
-								[EntityMetaKey.Selector]: {
-									fid,
-									protocol: 'ethereum' as const,
-									address: evmAddress,
-								},
-								$user: {
-									[EntityMetaKey.Selector]: { fid },
-								},
-								$evmAccount: {
+				[FarcasterUserSelector.Fid]: {
+					resolve: async ({ fid }) => {
+						const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const ethRaw = await getPrimaryAddress({ fid })
+						const solRaw = await getPrimaryAddress({
+							fid,
+							protocol: 'solana',
+						})
+						const ethAddress = optionalNonemptyString(ethRaw ?? undefined)
+						const solAddress = optionalNonemptyString(solRaw ?? undefined)
+						const verifiedAddresses = [
+							...(ethAddress == null ?
+								[]
+							:
+								[((evmAddress) => ({
 									[EntityMetaKey.Selector]: {
+										fid,
+										protocol: 'ethereum' as const,
 										address: evmAddress,
 									},
-								},
-								protocol: 'ethereum' as const,
-								address: evmAddress,
-							}))(EvmAddress.assert(ethAddress))]),
-						...(solAddress == null ?
-						[]
-					:
-						[{
-							[EntityMetaKey.Selector]: {
-								fid,
-								protocol: 'solana' as const,
-								address: solAddress,
-							},
-							$user: {
-								[EntityMetaKey.Selector]: { fid },
-							},
-							$solanaAccount: {
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
+											[EntityMetaKey.Selector]: { fid },
+										},
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$evmAccount')]: {
+											[EntityMetaKey.Selector]: {
+												address: evmAddress,
+											},
+										},
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: 'ethereum' as const,
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: evmAddress,
+									},
+								}))(EvmAddress.assert(ethAddress))]),
+							...(solAddress == null ?
+							[]
+						:
+							[{
 								[EntityMetaKey.Selector]: {
-									$network: {
-										caip2: {
-											namespace: 'solana',
-											reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+									fid,
+									protocol: 'solana' as const,
+									address: solAddress,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
+										[EntityMetaKey.Selector]: { fid },
+									},
+									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$solanaAccount')]: {
+										[EntityMetaKey.Selector]: {
+											$network: {
+												caip2: {
+													namespace: 'solana',
+													reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+												},
+											},
+											pubkey: solAddress,
 										},
 									},
-									pubkey: solAddress,
+									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: 'solana' as const,
+									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: solAddress,
 								},
-							},
-							protocol: 'solana' as const,
-							address: solAddress,
-						}]),
-					]
-					if (verifiedAddresses.length === 0)
-						throw new Error('Farcaster_Rest: verified address not found')
-					return {
-						...(ethAddress != null && {
-							$primaryEvmAccount: {
-								[EntityMetaKey.Selector]: {
-									address: EvmAddress.assert(ethAddress),
+							}]),
+						]
+						if (verifiedAddresses.length === 0)
+							throw new Error('Farcaster_Rest: verified address not found')
+						return {
+							...(ethAddress != null && {
+								$primaryEvmAccount: {
+									[EntityMetaKey.Selector]: {
+										address: EvmAddress.assert(ethAddress),
+									},
 								},
-							},
-						}),
-						$$verifiedAddresses: verifiedAddresses,
-					}
+							}),
+							$$verifiedAddresses: verifiedAddresses,
+						}
+					},
 				}
 			},
 		})({
@@ -141,72 +148,74 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: async ({ id }) => {
-					const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const channel = await getChannel(id)
-					if (channel == null) throw new Error('Farcaster_Rest: channel not found')
-					const name = optionalNonemptyString(channel.name) ?? channel.id
-					const url = optionalNonemptyString(channel.url)
-					const description = optionalNonemptyString(channel.description)
-					const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
-					const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
-					const pinnedCastHash = optionalNonemptyString(channel.pinnedCastHash)
-					const externalLinkTitle = optionalNonemptyString(channel.externalLink?.title)
-					const externalLinkUrl = optionalNonemptyString(channel.externalLink?.url)
-					const createdAt = (
-						channel.createdAt != null && Number.isFinite(channel.createdAt) ?
-							channel.createdAt >= 1e12 ?
-								channel.createdAt
+				[FarcasterChannelSelector.Id]: {
+					resolve: async ({ id }) => {
+						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const channel = await getChannel(id)
+						if (channel == null) throw new Error('Farcaster_Rest: channel not found')
+						const name = optionalNonemptyString(channel.name) ?? channel.id
+						const url = optionalNonemptyString(channel.url)
+						const description = optionalNonemptyString(channel.description)
+						const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
+						const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
+						const pinnedCastHash = optionalNonemptyString(channel.pinnedCastHash)
+						const externalLinkTitle = optionalNonemptyString(channel.externalLink?.title)
+						const externalLinkUrl = optionalNonemptyString(channel.externalLink?.url)
+						const createdAt = (
+							channel.createdAt != null && Number.isFinite(channel.createdAt) ?
+								channel.createdAt >= 1e12 ?
+									channel.createdAt
+								:
+									channel.createdAt * 1000
 							:
-								channel.createdAt * 1000
-						:
-							undefined
-					)
-					const followedAt = (
-						channel.followedAt != null && Number.isFinite(channel.followedAt) ?
-							channel.followedAt >= 1e12 ?
-								channel.followedAt
-							:
-								channel.followedAt * 1000
-						:
-							undefined
-					)
-					return {
-						name,
-						...(url != null && { url }),
-						...(description != null && { description }),
-						...(imageUrl != null && { iconUrl: imageUrl }),
-						...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(imageUrl, MediaType.Image)),
-						...(headerImageUrl != null && { headerImageUrl }),
-						...((headerImageMedia) => headerImageMedia != null && { $headerImage: headerImageMedia })(mediaFromUrl(headerImageUrl, MediaType.Image)),
-						$lead: (
-							channel.leadFid == null ?
 								undefined
+						)
+						const followedAt = (
+							channel.followedAt != null && Number.isFinite(channel.followedAt) ?
+								channel.followedAt >= 1e12 ?
+									channel.followedAt
+								:
+									channel.followedAt * 1000
 							:
-								{
-									[EntityMetaKey.Selector]: { fid: channel.leadFid },
-								}
-						),
-						$moderator: (
-							channel.moderatorFids?.[0] == null ?
 								undefined
-							:
+						)
+						return {
+							name,
+							...(url != null && { url }),
+							...(description != null && { description }),
+							...(imageUrl != null && { iconUrl: imageUrl }),
+							...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(imageUrl, MediaType.Image)),
+							...(headerImageUrl != null && { headerImageUrl }),
+							...((headerImageMedia) => headerImageMedia != null && { $headerImage: headerImageMedia })(mediaFromUrl(headerImageUrl, MediaType.Image)),
+							$lead: (
+								channel.leadFid == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: { fid: channel.leadFid },
+									}
+							),
+							$moderator: (
+								channel.moderatorFids?.[0] == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: { fid: channel.moderatorFids[0] },
+									}
+							),
+							$$moderators: (channel.moderatorFids ?? []).map((moderatorFid) => (
 								{
-									[EntityMetaKey.Selector]: { fid: channel.moderatorFids[0] },
+									[EntityMetaKey.Selector]: { fid: moderatorFid },
 								}
-						),
-						$$moderators: (channel.moderatorFids ?? []).map((moderatorFid) => (
-							{
-								[EntityMetaKey.Selector]: { fid: moderatorFid },
-							}
-						)),
-						...(createdAt != null && { createdAt }),
-						...(pinnedCastHash != null && { pinnedCastHash }),
-						...(channel.publicCasting != null && { publicCasting: channel.publicCasting }),
-						...(externalLinkTitle != null && { externalLinkTitle }),
-						...(externalLinkUrl != null && { externalLinkUrl }),
-						...(followedAt != null && { followedAt }),
-					}
+							)),
+							...(createdAt != null && { createdAt }),
+							...(pinnedCastHash != null && { pinnedCastHash }),
+							...(channel.publicCasting != null && { publicCasting: channel.publicCasting }),
+							...(externalLinkTitle != null && { externalLinkTitle }),
+							...(externalLinkUrl != null && { externalLinkUrl }),
+							...(followedAt != null && { followedAt }),
+						}
+					},
 				}
 			},
 		})({
@@ -231,23 +240,25 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			resolve: {
-				[FarcasterChannel_TimestampSelector.FarcasterChannelTimestampMs]: async ({ $channel }) => {
-					const {
-						getChannelFollowersCount,
-						getChannelMembersCount,
-					} = await import('$/sources/Farcaster/Rest/queries.ts')
-					const [followerCount, memberCount] = await Promise.all([
-						getChannelFollowersCount({
-							channelId: $channel.id,
-						}),
-						getChannelMembersCount({
-							channelId: $channel.id,
-						}),
-					])
-					return {
-						followerCount,
-						memberCount,
-					}
+				[FarcasterChannel_TimestampSelector.FarcasterChannelTimestampMs]: {
+					resolve: async ({ $channel }) => {
+						const {
+							getChannelFollowersCount,
+							getChannelMembersCount,
+						} = await import('$/sources/Farcaster/Rest/queries.ts')
+						const [followerCount, memberCount] = await Promise.all([
+							getChannelFollowersCount({
+								channelId: $channel.id,
+							}),
+							getChannelMembersCount({
+								channelId: $channel.id,
+							}),
+						])
+						return {
+							followerCount,
+							memberCount,
+						}
+					},
 				}
 			},
 		})({
@@ -258,69 +269,71 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.UsernameHashPrefix]: async ({ username, hashPrefix }) => {
-					const { getCastByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const cast = await getCastByUsernameAndHashPrefix({
-						username,
-						castHashPrefix: hashPrefix,
-					})
-					const hash = optionalNonemptyString(cast?.hash)
-					if (
-					cast == null
-					|| hash == null
-					|| cast.author?.fid == null
-					) {
-						throw new Error('Farcaster_Rest: cast not found')
-					}
-					const castHash = zeroXLowerHexCastHash(hash)
-					if (!castHash.startsWith(zeroXLowerHexCastHash(hashPrefix)))
-						throw new Error('Farcaster_Rest: cast hash prefix mismatch')
-					const timestamp = farcasterCastTimestampMs(cast.timestamp)
-					if (timestamp == null)
-						throw new Error('Farcaster_Rest: cast missing timestamp')
-					const parentHash = optionalNonemptyString(cast.parentHash)
-					const parentUrl = optionalNonemptyString(cast.parentUrl)
-					const channelId = optionalNonemptyString(cast.channel?.id)
-					return {
-						fid: cast.author.fid,
-						hash: castHash,
-						username,
-						hashPrefix: zeroXLowerHexCastHash(hashPrefix),
-						clientUrl: `https://warpcast.com/${username}/${zeroXLowerHexCastHash(hashPrefix)}`,
-						$author: {
-							[EntityMetaKey.Selector]: {
-								fid: cast.author.fid,
-							},
-						} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
-						text: optionalNonemptyString(cast.text) ?? '',
-						$parentCast: (
-							cast.parentAuthor?.fid == null
-							|| parentHash == null
-						) ?
-							undefined
-						:
-							({
+				[FarcasterCastSelector.UsernameHashPrefix]: {
+					resolve: async ({ username, hashPrefix }) => {
+						const { getCastByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const cast = await getCastByUsernameAndHashPrefix({
+							username,
+							castHashPrefix: hashPrefix,
+						})
+						const hash = optionalNonemptyString(cast?.hash)
+						if (
+						cast == null
+						|| hash == null
+						|| cast.author?.fid == null
+						) {
+							throw new Error('Farcaster_Rest: cast not found')
+						}
+						const castHash = zeroXLowerHexCastHash(hash)
+						if (!castHash.startsWith(zeroXLowerHexCastHash(hashPrefix)))
+							throw new Error('Farcaster_Rest: cast hash prefix mismatch')
+						const timestamp = farcasterCastTimestampMs(cast.timestamp)
+						if (timestamp == null)
+							throw new Error('Farcaster_Rest: cast missing timestamp')
+						const parentHash = optionalNonemptyString(cast.parentHash)
+						const parentUrl = optionalNonemptyString(cast.parentUrl)
+						const channelId = optionalNonemptyString(cast.channel?.id)
+						return {
+							fid: cast.author.fid,
+							hash: castHash,
+							username,
+							hashPrefix: zeroXLowerHexCastHash(hashPrefix),
+							clientUrl: `https://warpcast.com/${username}/${zeroXLowerHexCastHash(hashPrefix)}`,
+							$author: {
 								[EntityMetaKey.Selector]: {
-									fid: cast.parentAuthor.fid,
-									hash: zeroXLowerHexCastHash(parentHash),
+									fid: cast.author.fid,
 								},
-							} satisfies Entity<typeof schema, EntityType.FarcasterCast>),
-						parentUrl,
-						$channel: (
-							channelId == null ?
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+							text: optionalNonemptyString(cast.text) ?? '',
+							$parentCast: (
+								cast.parentAuthor?.fid == null
+								|| parentHash == null
+							) ?
 								undefined
 							:
 								({
 									[EntityMetaKey.Selector]: {
-										id: channelId,
+										fid: cast.parentAuthor.fid,
+										hash: zeroXLowerHexCastHash(parentHash),
 									},
-								} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
-						),
-						timestamp,
-						...(cast.threadHash != null && cast.threadHash !== '' && {
-							threadHash: zeroXLowerHexCastHash(cast.threadHash),
-						}),
-					}
+								} satisfies Entity<typeof schema, EntityType.FarcasterCast>),
+							parentUrl,
+							$channel: (
+								channelId == null ?
+									undefined
+								:
+									({
+										[EntityMetaKey.Selector]: {
+											id: channelId,
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
+							),
+							timestamp,
+							...(cast.threadHash != null && cast.threadHash !== '' && {
+								threadHash: zeroXLowerHexCastHash(cast.threadHash),
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -341,18 +354,26 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Variant]: async ({ variant }) => ({
-					label: variant === 'trending' ? 'Trending' : variant,
-				}),
-				[FarcasterFeedSelector.ByUser]: async ({ fid }) => ({
-					label: `FID ${String(fid)}`,
-				}),
-				[FarcasterFeedSelector.ByChannel]: async ({ channelId }) => ({
-					label: channelId,
-				}),
-				[FarcasterFeedSelector.Following]: async () => ({
-					label: 'Following',
-				}),
+				[FarcasterFeedSelector.Variant]: {
+					resolve: async ({ variant }) => ({
+						label: variant === 'trending' ? 'Trending' : variant,
+					}),
+				},
+				[FarcasterFeedSelector.ByUser]: {
+					resolve: async ({ fid }) => ({
+						label: `FID ${String(fid)}`,
+					}),
+				},
+				[FarcasterFeedSelector.ByChannel]: {
+					resolve: async ({ channelId }) => ({
+						label: channelId,
+					}),
+				},
+				[FarcasterFeedSelector.Following]: {
+					resolve: async () => ({
+						label: 'Following',
+					}),
+				},
 			},
 		})({
 				label: (feed) => feed.label,
@@ -361,29 +382,31 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: async ({ id }) => {
-					const {
-						getChannelFollowersCount,
-						getChannelMembersCount,
-					} = await import('$/sources/Farcaster/Rest/queries.ts')
-					const [followerCount, memberCount] = await Promise.all([
-						getChannelFollowersCount({
-							channelId: id,
-						}),
-						getChannelMembersCount({
-							channelId: id,
-						}),
-					])
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$channel: { id },
-								timestampMs: Date.now(),
+				[FarcasterChannelSelector.Id]: {
+					resolve: async ({ id }) => {
+						const {
+							getChannelFollowersCount,
+							getChannelMembersCount,
+						} = await import('$/sources/Farcaster/Rest/queries.ts')
+						const [followerCount, memberCount] = await Promise.all([
+							getChannelFollowersCount({
+								channelId: id,
+							}),
+							getChannelMembersCount({
+								channelId: id,
+							}),
+						])
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$channel: { id },
+									timestampMs: Date.now(),
+								},
+								followerCount,
+								memberCount,
 							},
-							followerCount,
-							memberCount,
-						},
-					]
+						]
+					},
 				}
 			},
 		})({
@@ -391,38 +414,42 @@ export default {
 			}),
 
 		defineResolver(Source.Farcaster_Rest, {
-			entityType: EntityType._GlobalFarcasterNetwork,
+			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[_GlobalFarcasterNetworkSelector.Scope]: async () => (
-					[
-						{
-							[EntityMetaKey.Selector]: {
-								variant: 'trending' as const,
+				[FarcasterNetworkSelector.Scope]: {
+					resolve: async () => (
+						[
+							{
+								[EntityMetaKey.Selector]: {
+									variant: 'trending' as const,
+								},
 							},
-						},
-					]
-				)
-			},
-		})({
-				$$observedFeeds: (feeds) => feeds,
-			}),
-
-		defineResolver(Source.Farcaster_Rest, {
-			entityType: EntityType._GlobalFarcasterNetwork,
-			resolve: {
-				[_GlobalFarcasterNetworkSelector.Scope]: async (_selector, context) => {
-					const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
-					return (await getAllChannels())
-						.slice(0, resolverContextRowLimit(context))
-						.map((farcasterChannel) => ({
-							[EntityMetaKey.Selector]: {
-								id: farcasterChannel.id,
-							},
-						}))
+						]
+					),
 				}
 			},
 		})({
-				$$observedChannels: (channels) => channels,
-			}),
+				$$feeds: (feeds) => feeds,
+		}),
+
+		defineResolver(Source.Farcaster_Rest, {
+			entityType: EntityType.FarcasterNetwork,
+			resolve: {
+				[FarcasterNetworkSelector.Scope]: {
+					resolve: async (_selector, context) => {
+						const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
+						return (await getAllChannels())
+							.slice(0, resolverContextRowLimit(context))
+							.map((farcasterChannel) => ({
+								[EntityMetaKey.Selector]: {
+									id: farcasterChannel.id,
+								},
+							}))
+					},
+				}
+			},
+		})({
+				$$channels: (channels) => channels,
+		}),
 	],
 }

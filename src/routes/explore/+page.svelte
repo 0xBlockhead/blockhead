@@ -38,10 +38,6 @@
 			{ id: 'proposals', label: 'Proposals' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -53,23 +49,29 @@
 		{/snippet}
 
 		{#snippet SectionNetworks()}
-			<NetworksView
+					<NetworksView
 												href={resolve('/networks')}
 				selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
-				id='networks'
-				open={true}
-			/>
+						id='networks'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 
 		{#snippet SectionUpgrades()}
-			<EthereumNetworkUpgradesView
+					<EthereumNetworkUpgradesView
 				selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
 					sources: [Source.Constants_Internal],
-					limit: 512,
-				})}
-				id='upgrades'
-				open={true}
-			/>
+						limit: 512,
+						})}
+						id='upgrades'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 
 		{#snippet SectionIpfs()}
@@ -83,14 +85,17 @@
 		{/snippet}
 
 		{#snippet SectionProposals()}
-			<SpecificationRealmsView
+					<SpecificationRealmsView
 				selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
 					sources: [Source.Constants_Internal],
 				})}
-				id='proposal-realms'
-				open={true}
-				title='Proposals'
-			/>
+						id='proposal-realms'
+						open={true}
+						title='Proposals'
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 	</CollapsibleTabs>
 </Page>

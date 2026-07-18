@@ -24,10 +24,10 @@
 		source: params.source,
 	}, {
 		sources: [({
-		$feed: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}).source],
+			$feed: data.selector,
+			timestampMs: Number(params.timestampMs),
+			source: params.source,
+		}).source],
 		fields: {
 			reachable: true,
 			observedItemCount: true,

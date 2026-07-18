@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import McpServerPackageView from '$/views/McpServerPackageView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					registryServerName: true,
-					repositoryUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServerPackage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.McpServerPackage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				registryServerName: true,
+				repositoryUrl: true,
+			},
+		})
+	}
+	getResourceItems={(mcpServerPackages) => [...new Map(mcpServerPackages.values.map((mcpServerPackage) => [mcpServerPackage[EntityMetaKey.SelectorKey], mcpServerPackage])).values()]}
+	getKey={(mcpServerPackage) => mcpServerPackage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No MCP server packages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(mcpServerPackages)}
-			{@const uniqueMcpServerPackages = [...new Map(mcpServerPackages.values.map((mcpServerPackage) => [mcpServerPackage[EntityMetaKey.SelectorKey], mcpServerPackage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.McpServerPackage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mcpServerPackages.totalCount}
-				getKey={(mcpServerPackage) => mcpServerPackage[EntityMetaKey.SelectorKey]}
-				items={uniqueMcpServerPackages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No MCP server packages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: mcpServerPackage })}
-					{@const mcpServerPackageFields = { ...mcpServerPackage[EntityMetaKey.Selector], ...mcpServerPackage }}
-					{@const selection = select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<McpServerPackageView
-						selection={selection}
-						prefetched={mcpServerPackageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.McpServerPackage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: mcpServerPackage })}
+		{@const mcpServerPackageFields = { ...mcpServerPackage[EntityMetaKey.Selector], ...mcpServerPackage }}
+		{@const selection = select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<McpServerPackageView
+			selection={selection}
+			prefetched={mcpServerPackageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

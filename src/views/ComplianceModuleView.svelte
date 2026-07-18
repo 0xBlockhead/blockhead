@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const complianceModule = $derived(selection({}))
+	const complianceModule = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('compliance module')
 	const viewDomId = $derived('compliance-module-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -62,16 +64,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={complianceModule}>
-			{#snippet Pending()}
-				{title || 'compliance module'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={complianceModule}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,19 +95,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									moduleKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const moduleKey = pendingEntity.moduleKey}
-							{#if moduleKey !== undefined && moduleKey !== null}
-								{String((moduleKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const moduleKey = resolvedEntity.moduleKey}
@@ -120,24 +116,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							ruleKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ruleKind = pendingEntity.ruleKind}
-					{#if ruleKind !== undefined && ruleKind !== null}
-						<div>
-							<dt>rule kind</dt>
-							<dd>
-								{String((ruleKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const ruleKind = resolvedEntity.ruleKind}

@@ -1,4 +1,8 @@
 import {
+	ProposalCategory as OwnedProposalCategory,
+	SpecificationRealm as OwnedSpecificationRealm,
+} from '$/constants/SpecificationProposal.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
@@ -41,19 +45,27 @@ export default {
 		defineResolver(Source.CosmosAdrs_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) {
-						throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
-					}
-					const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-					const text = await getMarkdownText({ number: number })
-					return {
-						documentCategory: 'ADR',
-						documentTitle: markdownTitle(text),
-						documentStatus: markdownStatus(text),
-						documentBody: text,
-					}
+				[SpecificationProposalSelector.RealmCategoryNumber]: {
+					appliesTo: [
+						{
+							realm: OwnedSpecificationRealm.Cosmos,
+							category: OwnedProposalCategory.Adr,
+						},
+					],
+					resolve: async ({ category, number, realm }) => {
+						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+						if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) {
+							throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
+						}
+						const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+						const text = await getMarkdownText({ number: number })
+						return {
+							documentCategory: 'ADR',
+							documentTitle: markdownTitle(text),
+							documentStatus: markdownStatus(text),
+							documentBody: text,
+						}
+					},
 				},
 			},
 		})({
@@ -66,9 +78,11 @@ export default {
 		defineResolver(Source.CosmosAdrs_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async () => {
-					const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-					return cosmosAdrRows(await getContents())
+				[_GlobalSelector.Scope]: {
+					resolve: async () => {
+						const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+						return cosmosAdrRows(await getContents())
+					},
 				},
 			},
 		})({

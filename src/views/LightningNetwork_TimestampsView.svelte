@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LightningNetwork_TimestampView from '$/views/LightningNetwork_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					nodeCount: true,
-					channelCount: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LightningNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				nodeCount: true,
+				channelCount: true,
+			},
+		})
+	}
+	getResourceItems={(lightningNetworkTimestamps) => [...new Map(lightningNetworkTimestamps.values.map((lightningNetworkTimestamp) => [lightningNetworkTimestamp[EntityMetaKey.SelectorKey], lightningNetworkTimestamp])).values()]}
+	getKey={(lightningNetworkTimestamp) => lightningNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lightning network observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lightningNetworkTimestamps)}
-			{@const uniqueLightningNetworkTimestamps = [...new Map(lightningNetworkTimestamps.values.map((lightningNetworkTimestamp) => [lightningNetworkTimestamp[EntityMetaKey.SelectorKey], lightningNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningNetworkTimestamps.totalCount}
-				getKey={(lightningNetworkTimestamp) => lightningNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueLightningNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lightning network observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lightningNetworkTimestamp })}
-					{@const lightningNetworkTimestampFields = { ...lightningNetworkTimestamp[EntityMetaKey.Selector], ...lightningNetworkTimestamp }}
-					{@const selection = select(EntityType.LightningNetwork_Timestamp, lightningNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<LightningNetwork_TimestampView
-						selection={selection}
-						prefetched={lightningNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LightningNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lightningNetworkTimestamp })}
+		{@const lightningNetworkTimestampFields = { ...lightningNetworkTimestamp[EntityMetaKey.Selector], ...lightningNetworkTimestamp }}
+		{@const selection = select(EntityType.LightningNetwork_Timestamp, lightningNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<LightningNetwork_TimestampView
+			selection={selection}
+			prefetched={lightningNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

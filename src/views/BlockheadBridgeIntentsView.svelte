@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadBridgeIntentView from '$/views/BlockheadBridgeIntentView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$sessionAction: true,
-					amount: true,
-					$fromNetwork: true,
-					$toNetwork: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadBridgeIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadBridgeIntent}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$sessionAction: true,
+				amount: true,
+				$fromNetwork: true,
+				$toNetwork: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadBridgeIntents) => [...new Map(blockheadBridgeIntents.values.map((blockheadBridgeIntent) => [blockheadBridgeIntent[EntityMetaKey.SelectorKey], blockheadBridgeIntent])).values()]}
+	getKey={(blockheadBridgeIntent) => blockheadBridgeIntent[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead bridge intents yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadBridgeIntents)}
-			{@const uniqueBlockheadBridgeIntents = [...new Map(blockheadBridgeIntents.values.map((blockheadBridgeIntent) => [blockheadBridgeIntent[EntityMetaKey.SelectorKey], blockheadBridgeIntent])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadBridgeIntent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadBridgeIntents.totalCount}
-				getKey={(blockheadBridgeIntent) => blockheadBridgeIntent[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadBridgeIntents}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead bridge intents yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadBridgeIntent })}
-					{@const blockheadBridgeIntentFields = { ...blockheadBridgeIntent[EntityMetaKey.Selector], ...blockheadBridgeIntent }}
-					{@const selection = select(EntityType.BlockheadBridgeIntent, blockheadBridgeIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadBridgeIntentView
-						selection={selection}
-						prefetched={blockheadBridgeIntentFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadBridgeIntent}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadBridgeIntent })}
+		{@const blockheadBridgeIntentFields = { ...blockheadBridgeIntent[EntityMetaKey.Selector], ...blockheadBridgeIntent }}
+		{@const selection = select(EntityType.BlockheadBridgeIntent, blockheadBridgeIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadBridgeIntentView
+			selection={selection}
+			prefetched={blockheadBridgeIntentFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

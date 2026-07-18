@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
@@ -62,87 +61,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					displayName: true,
-					localName: true,
-					address: true,
-					legacyProfileId: true,
-					createdAt: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.LensAccount}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				displayName: true,
+				localName: true,
+				address: true,
+				legacyProfileId: true,
+				createdAt: true,
+			},
+		})
+	}
+	getResourceItems={(lensAccounts) => [...new Map(lensAccounts.values.map((lensAccount) => [lensAccount[EntityMetaKey.SelectorKey], lensAccount])).values()]}
+	getKey={(lensAccount) => lensAccount[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Lens accounts yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(lensAccounts)}
-			{@const uniqueLensAccounts = [...new Map(lensAccounts.values.map((lensAccount) => [lensAccount[EntityMetaKey.SelectorKey], lensAccount])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensAccounts.totalCount}
-				getKey={(lensAccount) => lensAccount[EntityMetaKey.SelectorKey]}
-				items={uniqueLensAccounts}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Lens accounts yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: lensAccount })}
-					{@const lensAccountFields = { ...lensAccount[EntityMetaKey.Selector], ...lensAccount }}
-					{@const selection = select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const lensAccountHrefFields = { ...lensAccount, ...lensAccount[EntityMetaKey.Selector] }}
-					<LensAccountView
-						selection={selection}
-						prefetched={lensAccountFields}
-						href={
-							(lensAccountHrefFields.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
-								address: String(lensAccountHrefFields.address ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.LensAccount}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: lensAccount })}
+		{@const lensAccountFields = { ...lensAccount[EntityMetaKey.Selector], ...lensAccount }}
+		{@const selection = select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const lensAccountHrefFields = { ...lensAccount, ...lensAccount[EntityMetaKey.Selector] }}
+		<LensAccountView
+			selection={selection}
+			prefetched={lensAccountFields}
+			href={
+				(lensAccountHrefFields.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+					address: String(lensAccountHrefFields.address ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

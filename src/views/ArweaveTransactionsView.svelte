@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					transactionId: true,
-					quantityWinston: true,
-					$block: true,
-					$resource: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.ArweaveTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				transactionId: true,
+				quantityWinston: true,
+				$block: true,
+				$resource: true,
+			},
+		})
+	}
+	getResourceItems={(arweaveTransactions) => [...new Map(arweaveTransactions.values.map((arweaveTransaction) => [arweaveTransaction[EntityMetaKey.SelectorKey], arweaveTransaction])).values()]}
+	getKey={(arweaveTransaction) => arweaveTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Arweave transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(arweaveTransactions)}
-			{@const uniqueArweaveTransactions = [...new Map(arweaveTransactions.values.map((arweaveTransaction) => [arweaveTransaction[EntityMetaKey.SelectorKey], arweaveTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ArweaveTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={arweaveTransactions.totalCount}
-				getKey={(arweaveTransaction) => arweaveTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueArweaveTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Arweave transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: arweaveTransaction })}
-					{@const arweaveTransactionFields = { ...arweaveTransaction[EntityMetaKey.Selector], ...arweaveTransaction }}
-					{@const selection = select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<ArweaveTransactionView
-						selection={selection}
-						prefetched={arweaveTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.ArweaveTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: arweaveTransaction })}
+		{@const arweaveTransactionFields = { ...arweaveTransaction[EntityMetaKey.Selector], ...arweaveTransaction }}
+		{@const selection = select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<ArweaveTransactionView
+			selection={selection}
+			prefetched={arweaveTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

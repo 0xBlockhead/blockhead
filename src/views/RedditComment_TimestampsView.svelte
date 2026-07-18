@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditComment_TimestampView from '$/views/RedditComment_TimestampView.svelte'
 </script>
@@ -62,87 +61,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					score: true,
-					source: true,
-					$comment: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditComment_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RedditComment_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				score: true,
+				source: true,
+				$comment: true,
+			},
+		})
+	}
+	getResourceItems={(redditCommentTimestamps) => [...new Map(redditCommentTimestamps.values.map((redditCommentTimestamp) => [redditCommentTimestamp[EntityMetaKey.SelectorKey], redditCommentTimestamp])).values()]}
+	getKey={(redditCommentTimestamp) => redditCommentTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Reddit comment observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(redditCommentTimestamps)}
-			{@const uniqueRedditCommentTimestamps = [...new Map(redditCommentTimestamps.values.map((redditCommentTimestamp) => [redditCommentTimestamp[EntityMetaKey.SelectorKey], redditCommentTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditComment_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditCommentTimestamps.totalCount}
-				getKey={(redditCommentTimestamp) => redditCommentTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueRedditCommentTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Reddit comment observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: redditCommentTimestamp })}
-					{@const redditCommentTimestampFields = { ...redditCommentTimestamp[EntityMetaKey.Selector], ...redditCommentTimestamp }}
-					{@const selection = select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const redditCommentTimestampHrefFields = { ...redditCommentTimestamp, ...redditCommentTimestamp[EntityMetaKey.Selector] }}
-					<RedditComment_TimestampView
-						selection={selection}
-						prefetched={redditCommentTimestampFields}
-						href={
-							(redditCommentTimestampHrefFields.timestampMs !== undefined && redditCommentTimestampHrefFields.source !== undefined && redditCommentTimestampHrefFields.$comment !== undefined && redditCommentTimestampHrefFields.$comment.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(redditCommentTimestampHrefFields.timestampMs ?? ''),
-								source: String(redditCommentTimestampHrefFields.source ?? ''),
-								fullname: String(redditCommentTimestampHrefFields.$comment.fullname ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RedditComment_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: redditCommentTimestamp })}
+		{@const redditCommentTimestampFields = { ...redditCommentTimestamp[EntityMetaKey.Selector], ...redditCommentTimestamp }}
+		{@const selection = select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const redditCommentTimestampHrefFields = { ...redditCommentTimestamp, ...redditCommentTimestamp[EntityMetaKey.Selector] }}
+		<RedditComment_TimestampView
+			selection={selection}
+			prefetched={redditCommentTimestampFields}
+			href={
+				(redditCommentTimestampHrefFields.timestampMs !== undefined && redditCommentTimestampHrefFields.source !== undefined && redditCommentTimestampHrefFields.$comment !== undefined && redditCommentTimestampHrefFields.$comment.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(redditCommentTimestampHrefFields.timestampMs ?? ''),
+					source: String(redditCommentTimestampHrefFields.source ?? ''),
+					fullname: encodeURIComponent(String(redditCommentTimestampHrefFields.$comment.fullname ?? '')),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

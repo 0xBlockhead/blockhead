@@ -32,19 +32,21 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[CosmosBlockSelector.NetworkHeight]: async ({ $network, height }) => {
-					assertCosmosHub($network)
+				[CosmosBlockSelector.NetworkHeight]: {
+					resolve: async ({ $network, height }) => {
+						assertCosmosHub($network)
 
-					const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
-					const wireBlock = await getBlock({
-						restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
-						height,
-					})
-					return {
-						hash: wireBlock.result.block_id.hash,
-						proposerConsensusAddress: wireBlock.result.block.header.proposer_address,
-						timestampMs: Date.parse(wireBlock.result.block.header.time),
-					}
+						const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
+						const wireBlock = await getBlock({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
+							height,
+						})
+						return {
+							hash: wireBlock.result.block_id.hash,
+							proposerConsensusAddress: wireBlock.result.block.header.proposer_address,
+							timestampMs: Date.parse(wireBlock.result.block.header.time),
+						}
+					},
 				}
 			},
 		})({
@@ -56,24 +58,26 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[CosmosTransactionSelector.NetworkTxHash]: async ({ $network, txHash }) => {
-					assertCosmosHub($network)
-					const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
-					const wireTransaction = await getTx({
-						restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
-						txHash: txHash,
-					})
-					return {
-						$block: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: BigInt(wireTransaction.result.height),
+				[CosmosTransactionSelector.NetworkTxHash]: {
+					resolve: async ({ $network, txHash }) => {
+						assertCosmosHub($network)
+						const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
+						const wireTransaction = await getTx({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
+							txHash: txHash,
+						})
+						return {
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									height: BigInt(wireTransaction.result.height),
+								},
 							},
-						},
-						code: wireTransaction.result.tx_result.code,
-						gasWanted: BigInt(wireTransaction.result.tx_result.gas_wanted),
-						gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
-					}
+							code: wireTransaction.result.tx_result.code,
+							gasWanted: BigInt(wireTransaction.result.tx_result.gas_wanted),
+							gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
+						}
+					},
 				}
 			},
 		})({

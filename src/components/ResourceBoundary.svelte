@@ -55,6 +55,7 @@
 		<span
 			data-tag
 			data-text="muted"
+			data-resource-state="pending"
 			class="loading inline-placeholder"
 			aria-busy="true"
 			aria-label={placeholderText}
@@ -65,6 +66,7 @@
 		<div
 			data-card
 			data-text="muted"
+			data-resource-state="pending"
 			class="loading"
 		>
 			<p>{placeholderText}</p>
@@ -85,13 +87,17 @@
 	{:else if layout === Layout.Inline}
 		<span
 			data-tag
+			data-resource-state="failed"
 			class="inline-placeholder"
 			aria-label={errorDisplayMessage(normalizedError)}
 		>
 			•••
 		</span>
 	{:else}
-		<div data-card>
+		<div
+			data-card
+			data-resource-state="failed"
+		>
 			<p>{errorDisplayMessage(normalizedError)}</p>
 		</div>
 	{/if}

@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadCodexStoredData = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			firstSeenAt: true,
 		},
@@ -73,60 +70,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadCodexStoredData}>
-			{#snippet Pending()}
-				{[String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex stored data'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.cid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadCodexStoredData}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.cid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadCodexStoredData}>
-			{#snippet Pending()}
-				<BlockheadCodexStorageNodeStateView
-					selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BlockheadCodexStorageNodeStateView
-					selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<BlockheadCodexStorageNodeStateView
+						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={blockheadCodexStoredData}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<BlockheadCodexStorageNodeStateView
+						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadCodexStoredData}>
-			{#snippet Pending()}
-				{@const firstSeenAt0 = pendingEntity.firstSeenAt}
-				{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(firstSeenAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const firstSeenAt0 = resolvedEntity.firstSeenAt}
-				{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(firstSeenAt0)} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const firstSeenAt0 = pendingEntity.firstSeenAt}
+			{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(firstSeenAt0)} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadCodexStoredData}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const firstSeenAt0 = resolvedEntity.firstSeenAt}
+					{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
+						<span data-text="muted">
+							<Timestamp timestamp={Number(firstSeenAt0)} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,19 +145,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									cid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const cid = pendingEntity.cid}
-							{#if cid !== undefined && cid !== null}
-								{String((cid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const cid = resolvedEntity.cid}
@@ -175,8 +166,6 @@
 			<ResourceBoundary
 				resource={selection.$dataset}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(codexDataset)}
 					{#if codexDataset != null && codexDataset[EntityMetaKey.Selector] != null}
 						<div>
@@ -197,24 +186,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							firstSeenAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const firstSeenAt = pendingEntity.firstSeenAt}
-					{#if firstSeenAt !== undefined && firstSeenAt !== null}
-						<div>
-							<dt>first seen AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(firstSeenAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const firstSeenAt = resolvedEntity.firstSeenAt}

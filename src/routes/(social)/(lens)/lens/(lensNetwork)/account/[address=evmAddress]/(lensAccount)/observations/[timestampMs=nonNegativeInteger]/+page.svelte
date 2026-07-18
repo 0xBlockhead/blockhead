@@ -19,7 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.LensAccount_Timestamp, {
 		$account: {
-			address: decodeURIComponent(params.address),
+			address: params.address,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {

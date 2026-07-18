@@ -22,10 +22,10 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: params.chainId,
+					reference: Number(params.chainId),
 				},
 			},
-			id: decodeURIComponent(params.poolId),
+			id: params.poolId,
 		},
 		blockNumber: BigInt(params.blockNumber),
 	}, {

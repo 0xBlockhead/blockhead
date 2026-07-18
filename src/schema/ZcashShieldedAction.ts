@@ -7,6 +7,7 @@ import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { type } from 'arktype'
 
 export enum ZcashShieldedActionKind {
+	JoinSplit = 'joinSplit',
 	Spend = 'spend',
 	Output = 'output',
 	Action = 'action',
@@ -36,7 +37,7 @@ export const ZcashShieldedAction = entity({
 	actionKind: {
 		label: 'Action kind',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.enumerated(...Object.values(ZcashShieldedActionKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInTransaction: {

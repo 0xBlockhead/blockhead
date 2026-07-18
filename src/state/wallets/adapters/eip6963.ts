@@ -3,6 +3,7 @@ import {
 	getChainId,
 	onAccountsChanged,
 	onChainChanged,
+	personalSign,
 	requestAccounts,
 } from './eip1193.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
@@ -13,6 +14,7 @@ import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.t
 type EipConnectionState = {
 	accounts: `0x${string}`[]
 	chainId: number | null
+	connectedAt: number
 }
 
 export type Eip6963ProviderInfo = Readonly<{
@@ -71,6 +73,7 @@ export const eipConnectionFromAccounts = (
 	accounts: `0x${string}`[],
 	chainId: number | null,
 	status: BlockheadConnectionStatus,
+	connectedAt?: number,
 	error?: string
 ): WalletConnection => ({
 	walletId,
@@ -103,7 +106,7 @@ export const eipConnectionFromAccounts = (
 		capabilities: eipCapabilities,
 	})),
 	selected: status === BlockheadConnectionStatus.Connected,
-	connectedAt: Date.now(),
+	...(connectedAt != null && { connectedAt }),
 	...(error != null && { error }),
 })
 
@@ -196,14 +199,23 @@ export const createEip6963Adapter = (): WalletAdapter => {
 			eipStateByWalletId.set(walletId, {
 				accounts,
 				chainId,
+				connectedAt: Date.now(),
 			})
 
 			return eipConnectionFromAccounts(
 				walletId,
 				accounts,
 				chainId,
-				BlockheadConnectionStatus.Connected
+				BlockheadConnectionStatus.Connected,
+				eipStateByWalletId.get(walletId)?.connectedAt
 			)
+		},
+		signMessage: async (walletId, accountAddress, message) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new Error('EIP-6963 provider is unavailable')
+
+			return personalSign(provider, accountAddress, message)
 		},
 		disconnect: (walletId) => {
 			eipStateByWalletId.delete(walletId)
@@ -216,6 +228,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 				eipStateByWalletId.set(walletId, {
 					accounts,
 					chainId: eipStateByWalletId.get(walletId)?.chainId ?? null,
+					connectedAt: eipStateByWalletId.get(walletId)?.connectedAt ?? Date.now(),
 				})
 
 				updateConnection(eipConnectionFromAccounts(
@@ -225,7 +238,8 @@ export const createEip6963Adapter = (): WalletAdapter => {
 					accounts.length ?
 						BlockheadConnectionStatus.Connected
 					:
-						BlockheadConnectionStatus.Disconnected
+						BlockheadConnectionStatus.Disconnected,
+					eipStateByWalletId.get(walletId)?.connectedAt
 				))
 			})
 
@@ -235,6 +249,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 				eipStateByWalletId.set(walletId, {
 					accounts,
 					chainId,
+					connectedAt: eipStateByWalletId.get(walletId)?.connectedAt ?? Date.now(),
 				})
 
 				updateConnection(eipConnectionFromAccounts(
@@ -244,7 +259,8 @@ export const createEip6963Adapter = (): WalletAdapter => {
 					accounts.length ?
 						BlockheadConnectionStatus.Connected
 					:
-						BlockheadConnectionStatus.Disconnected
+						BlockheadConnectionStatus.Disconnected,
+					eipStateByWalletId.get(walletId)?.connectedAt
 				))
 			})
 

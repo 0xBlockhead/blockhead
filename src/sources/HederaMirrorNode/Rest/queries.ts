@@ -3,7 +3,38 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type { HederaMirrorNodeBlock } from '$/sources/HederaMirrorNode/Rest/types.ts'
+import type {
+	HederaMirrorNodeAccount,
+	HederaMirrorNodeBlock,
+	HederaMirrorNodeBlocks,
+} from '$/sources/HederaMirrorNode/Rest/types.ts'
+
+export const getAccount = (
+	binding: SourceBinding,
+	accountId: string
+): Promise<HederaMirrorNodeAccount> => {
+	if (!/^\d{1,10}\.\d{1,10}\.\d{1,10}$/.test(accountId))
+		throw new Error('HederaMirrorNode_Rest: invalid account selector')
+
+	return sourceGetJson<HederaMirrorNodeAccount>(
+		binding,
+		new URL(
+			`/api/v1/accounts/${encodeURIComponent(accountId)}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+}
+
+export const getBlocks = (
+	binding: SourceBinding,
+	limit: number
+): Promise<HederaMirrorNodeBlocks> => {
+	const url = new URL('/api/v1/blocks', firstHttpUrlForBinding(binding))
+	url.searchParams.set('limit', String(limit))
+	url.searchParams.set('order', 'desc')
+
+	return sourceGetJson<HederaMirrorNodeBlocks>(binding, url.toString())
+}
 
 export const getBlock = (
 	binding: SourceBinding,

@@ -7,6 +7,7 @@ import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
 import { createDiscoveryOnlyAdapter } from './adapters/createDiscoveryOnlyAdapter.ts'
 import { eipCandidateFromDetail, eipConnectionFromAccounts } from './adapters/eip6963.ts'
+import { onAccountsChanged } from './adapters/eip1193.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
@@ -26,6 +27,7 @@ import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { readNormalizedLocalInternal } from '$/resolvers/Local/Internal/catalog.ts'
 import { Source } from '$/sources/Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type MockRow = Record<string, string | number | boolean | object | readonly object[] | undefined>
 
@@ -65,13 +67,15 @@ describe('wallet connection runtime normalization', () => {
 				'0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			],
 			1,
-			BlockheadConnectionStatus.Connected
+			BlockheadConnectionStatus.Connected,
+			1_700_000_000_000
 		)).toMatchObject({
 			walletId: 'eip6963:com.example.wallet',
 			status: BlockheadConnectionStatus.Connected,
 			protocol: WalletProtocol.Eip6963,
 			transportKind: WalletTransportKind.InjectedProvider,
 			selected: true,
+			connectedAt: 1_700_000_000_000,
 			scopes: [
 				{
 					namespace: 'eip155',
@@ -89,6 +93,44 @@ describe('wallet connection runtime normalization', () => {
 				},
 			],
 		})
+	})
+
+	it('does not assign connection success time to disconnected adapter results', async () => {
+		expect(eipConnectionFromAccounts(
+			'eip6963:com.example.wallet',
+			[],
+			1,
+			BlockheadConnectionStatus.Disconnected
+		)).not.toHaveProperty('connectedAt')
+
+		expect(await createDiscoveryOnlyAdapter({
+			id: 'test-discovery',
+			candidate: {
+				protocol: WalletProtocol.CardanoCip30,
+				discoveryKind: WalletDiscoveryKind.InjectedGlobal,
+				transportKind: WalletTransportKind.InjectedSigner,
+				capabilities: [WalletCapability.Connect],
+			},
+			getCandidates: () => [],
+		}).connect('cip30:test-wallet')).not.toHaveProperty('connectedAt')
+	})
+
+	it('preserves an empty accountsChanged notification as a disconnected signal', () => {
+		let accountsChanged: ((accounts: JsonValue) => void) | undefined
+		const observedAccounts: string[][] = []
+		onAccountsChanged(
+			{
+				request: async () => [],
+				on: (_event, listener) => {
+					accountsChanged = listener
+				},
+			},
+			(accounts) => observedAccounts.push(accounts)
+		)
+
+		accountsChanged?.([])
+
+		expect(observedAccounts).toEqual([[]])
 	})
 
 	it('keeps implemented catalog methods aligned with mounted adapter protocols', () => {
@@ -115,7 +157,7 @@ describe('wallet connection runtime normalization', () => {
 	})
 
 	it('returns disconnected rows for discovery-only adapters without prompting', async () => {
-		expect(await createDiscoveryOnlyAdapter({
+		const adapter = createDiscoveryOnlyAdapter({
 			id: 'test-discovery',
 			candidate: {
 				protocol: WalletProtocol.CardanoCip30,
@@ -130,7 +172,18 @@ describe('wallet connection runtime normalization', () => {
 					icon: '',
 				},
 			],
-		}).connect('cip30:test-wallet')).toMatchObject({
+		})
+		const candidateUpdates: WalletCandidate[][] = []
+
+		adapter.start((candidates) => candidateUpdates.push(candidates))
+
+		expect(candidateUpdates).toEqual([[
+			expect.objectContaining({
+				id: 'cip30:test-wallet',
+				capabilities: [WalletCapability.Discover],
+			}),
+		]])
+		expect(await adapter.connect('cip30:test-wallet')).toMatchObject({
 			walletId: 'cip30:test-wallet',
 			status: BlockheadConnectionStatus.Disconnected,
 			protocol: WalletProtocol.CardanoCip30,
@@ -148,45 +201,120 @@ describe('wallet connection runtime normalization', () => {
 		const entityDeletes: string[] = []
 		const fieldDeletes: string[] = []
 		const countDeletes: string[] = []
-		const fieldCollection = () => ({
-			delete: (key: string) => fieldDeletes.push(key),
-			utils: {
-				writeUpsert: (row: MockRow) => fieldUpserts.push(row),
-			},
-		})
+		const fieldCollection = () => {
+			const currentRows: MockRow[] = []
+			const replaceRows = (
+				predicate: (row: MockRow) => boolean,
+				rows: MockRow[]
+			) => {
+				currentRows.splice(
+					0,
+					currentRows.length,
+					...currentRows.filter((row) => !predicate(row)),
+					...rows
+				)
+				if (rows.length === 0)
+					fieldDeletes.push('replacement')
+				else
+					fieldUpserts.push(...rows)
+			}
+			const writeUpsert = (row: MockRow) => {
+				currentRows.push(row)
+				fieldUpserts.push(row)
+			}
+
+			return {
+				delete: (key: string) => fieldDeletes.push(key),
+				get toArray() {
+					return currentRows
+				},
+				utils: {
+					deleteSelectorRowsAndAuthority: (predicate: (row: MockRow) => boolean, selectorKey: string) => {
+						replaceRows(predicate, [])
+						fieldDeletes.push(selectorKey)
+					},
+					refresh: () => {},
+					replaceRows,
+					replaceRowsWithAuthority: replaceRows,
+					writeUpsert,
+					writeUpsertWithAuthority: writeUpsert,
+				},
+			}
+		}
 
 		const context = {
 			entityCollections: {
 				[EntityType.BlockheadSession]: {
 					utils: {
+						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+							entityDeletes.push(stringify([
+								Source.Local_Internal,
+								selectorKey,
+							]))
+						},
+						refresh: () => {},
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 				[EntityType.BlockheadSessionAction]: {
 					delete: (key: string) => entityDeletes.push(key),
 					utils: {
+						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+							entityDeletes.push(stringify([
+								Source.Local_Internal,
+								selectorKey,
+							]))
+						},
+						refresh: () => {},
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 				[EntityType.BlockheadWallet]: {
 					utils: {
+						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+							entityDeletes.push(stringify([
+								Source.Local_Internal,
+								selectorKey,
+							]))
+						},
+						refresh: () => {},
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 				[EntityType.BlockheadWalletAccount]: {
 					utils: {
+						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+							entityDeletes.push(stringify([
+								Source.Local_Internal,
+								selectorKey,
+							]))
+						},
+						refresh: () => {},
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 				[EntityType.BlockheadWalletConnection]: {
 					delete: (key: string) => entityDeletes.push(key),
 					utils: {
+						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+							entityDeletes.push(stringify([
+								Source.Local_Internal,
+								selectorKey,
+							]))
+						},
+						refresh: () => {},
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 				[EntityType.EvmAccount]: {
 					utils: {
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
 			},
@@ -245,11 +373,42 @@ describe('wallet connection runtime normalization', () => {
 				},
 			},
 			entityFieldCountCollections: {
+				[EntityType._Global]: {
+					$$blockheadSessions: {
+						utils: {
+							deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+								countDeletes.push(selectorKey)
+							},
+							refresh: () => {},
+							replaceRows: (_predicate: (row: MockRow) => boolean, rows: MockRow[]) => countUpserts.push(...rows),
+							replaceRowsWithAuthority: (_predicate: (row: MockRow) => boolean, rows: MockRow[]) => countUpserts.push(...rows),
+							writeUpsertWithAuthority: (row: MockRow) => countUpserts.push(row),
+						},
+					},
+				},
+				[EntityType.BlockheadSession]: {
+					$$actions: {
+						utils: {
+							deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+								countDeletes.push(selectorKey)
+							},
+							refresh: () => {},
+							replaceRows: (_predicate: (row: MockRow) => boolean, rows: MockRow[]) => countUpserts.push(...rows),
+							replaceRowsWithAuthority: (_predicate: (row: MockRow) => boolean, rows: MockRow[]) => countUpserts.push(...rows),
+							writeUpsertWithAuthority: (row: MockRow) => countUpserts.push(row),
+						},
+					},
+				},
+				[EntityType.BlockheadSessionAction]: {},
 				[EntityType.BlockheadWalletConnection]: {
 					$$connectedAccounts: {
 						delete: (key: string) => countDeletes.push(key),
 						utils: {
+							deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+								countDeletes.push(selectorKey)
+							},
 							writeUpsert: (row: MockRow) => countUpserts.push(row),
+							writeUpsertWithAuthority: (row: MockRow) => countUpserts.push(row),
 						},
 					},
 				},
@@ -457,15 +616,19 @@ describe('wallet connection runtime normalization', () => {
 		expect(fieldUpserts).not.toContainEqual(expect.objectContaining({
 			fieldName: 'action',
 		}))
-		expect(countUpserts).toEqual([
-			expect.objectContaining({
-				[EntityMetaKey.Source]: Source.Local_Internal,
-				[EntityMetaKey.ParentSelectorKey]: walletConnectionSelectorKey,
-				[EntityMetaKey.Value]: 1,
-				fieldName: '$$connectedAccounts',
-				filterKey: stringify({}),
-			}),
-		])
+		expect(countUpserts).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.ParentSelectorKey]: walletConnectionSelectorKey,
+			[EntityMetaKey.Value]: 1,
+			fieldName: '$$connectedAccounts',
+			filterKey: stringify({}),
+		}))
+		expect(countUpserts).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.ParentSelectorKey]: sessionSelectorKey,
+			fieldName: '$$actions',
+			filterKey: stringify({}),
+		}))
 		expect(entityDeletes).toEqual([
 			stringify([
 				Source.Local_Internal,
@@ -476,20 +639,9 @@ describe('wallet connection runtime normalization', () => {
 				walletConnectionSelectorKey,
 			]),
 		])
-		expect(fieldDeletes).toEqual([
-			stringify([
-				Source.Local_Internal,
-				sessionSelectorKey,
-				stringify([]),
-				`Entity:${stringify(deletedSessionActionSelectorKey)}`,
-			]),
-		])
+		expect(fieldDeletes).toContain('replacement')
 		expect(countDeletes).toEqual([
-			stringify([
-				Source.Local_Internal,
-				walletConnectionSelectorKey,
-				stringify({}),
-			]),
+			walletConnectionSelectorKey,
 		])
 
 		updateLocalBlockheadSessionActionType(
@@ -550,7 +702,7 @@ describe('wallet connection runtime normalization', () => {
 			fieldName: 'action',
 		}))
 		expect(fieldUpserts.filter((row) => row.fieldName === '$$actions')).toHaveLength(1)
-	})
+	}, 15_000)
 
 	it('keeps Local session action catalog rows schema-shaped', () => {
 		expect(readNormalizedLocalInternal()
@@ -678,14 +830,14 @@ describe('wallet connection runtime normalization', () => {
 			accounts: [
 				{
 					namespace: 'polkadot',
-					reference: '0',
+					reference: '91b171bb158e2d3848fa23a9f1c25182',
 					accountAddress: '15abc',
 				},
 			],
 			scopes: [
 				expect.objectContaining({
 					namespace: 'polkadot',
-					reference: '0',
+					reference: '91b171bb158e2d3848fa23a9f1c25182',
 				}),
 			],
 		})

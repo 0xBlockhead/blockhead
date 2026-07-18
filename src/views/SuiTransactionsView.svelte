@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SuiTransactionView from '$/views/SuiTransactionView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SuiTransaction}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(suiTransactions) => [...new Map(suiTransactions.values.map((suiTransaction) => [suiTransaction[EntityMetaKey.SelectorKey], suiTransaction])).values()]}
+	getKey={(suiTransaction) => suiTransaction[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Sui transactions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(suiTransactions)}
-			{@const uniqueSuiTransactions = [...new Map(suiTransactions.values.map((suiTransaction) => [suiTransaction[EntityMetaKey.SelectorKey], suiTransaction])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SuiTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={suiTransactions.totalCount}
-				getKey={(suiTransaction) => suiTransaction[EntityMetaKey.SelectorKey]}
-				items={uniqueSuiTransactions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Sui transactions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: suiTransaction })}
-					{@const suiTransactionFields = { ...suiTransaction[EntityMetaKey.Selector], ...suiTransaction }}
-					{@const selection = select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SuiTransactionView
-						selection={selection}
-						prefetched={suiTransactionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SuiTransaction}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: suiTransaction })}
+		{@const suiTransactionFields = { ...suiTransaction[EntityMetaKey.Selector], ...suiTransaction }}
+		{@const selection = select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SuiTransactionView
+			selection={selection}
+			prefetched={suiTransactionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

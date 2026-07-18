@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentProgramInstall_TimestampView from '$/views/BlockheadAgentProgramInstall_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentProgramInstall_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadAgentProgramInstall_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadAgentProgramInstallTimestamps) => [...new Map(blockheadAgentProgramInstallTimestamps.values.map((blockheadAgentProgramInstallTimestamp) => [blockheadAgentProgramInstallTimestamp[EntityMetaKey.SelectorKey], blockheadAgentProgramInstallTimestamp])).values()]}
+	getKey={(blockheadAgentProgramInstallTimestamp) => blockheadAgentProgramInstallTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead agent program install observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadAgentProgramInstallTimestamps)}
-			{@const uniqueBlockheadAgentProgramInstallTimestamps = [...new Map(blockheadAgentProgramInstallTimestamps.values.map((blockheadAgentProgramInstallTimestamp) => [blockheadAgentProgramInstallTimestamp[EntityMetaKey.SelectorKey], blockheadAgentProgramInstallTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentProgramInstall_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentProgramInstallTimestamps.totalCount}
-				getKey={(blockheadAgentProgramInstallTimestamp) => blockheadAgentProgramInstallTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadAgentProgramInstallTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead agent program install observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadAgentProgramInstallTimestamp })}
-					{@const blockheadAgentProgramInstallTimestampFields = { ...blockheadAgentProgramInstallTimestamp[EntityMetaKey.Selector], ...blockheadAgentProgramInstallTimestamp }}
-					{@const selection = select(EntityType.BlockheadAgentProgramInstall_Timestamp, blockheadAgentProgramInstallTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadAgentProgramInstall_TimestampView
-						selection={selection}
-						prefetched={blockheadAgentProgramInstallTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadAgentProgramInstall_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadAgentProgramInstallTimestamp })}
+		{@const blockheadAgentProgramInstallTimestampFields = { ...blockheadAgentProgramInstallTimestamp[EntityMetaKey.Selector], ...blockheadAgentProgramInstallTimestamp }}
+		{@const selection = select(EntityType.BlockheadAgentProgramInstall_Timestamp, blockheadAgentProgramInstallTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadAgentProgramInstall_TimestampView
+			selection={selection}
+			prefetched={blockheadAgentProgramInstallTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadFedimintClientStateView from '$/views/BlockheadFedimintClientStateView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					clientName: true,
-					federationId: true,
-					clientId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFedimintClientState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.BlockheadFedimintClientState}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				clientName: true,
+				federationId: true,
+				clientId: true,
+			},
+		})
+	}
+	getResourceItems={(blockheadFedimintClientStates) => [...new Map(blockheadFedimintClientStates.values.map((blockheadFedimintClientState) => [blockheadFedimintClientState[EntityMetaKey.SelectorKey], blockheadFedimintClientState])).values()]}
+	getKey={(blockheadFedimintClientState) => blockheadFedimintClientState[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Blockhead Fedimint client states yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(blockheadFedimintClientStates)}
-			{@const uniqueBlockheadFedimintClientStates = [...new Map(blockheadFedimintClientStates.values.map((blockheadFedimintClientState) => [blockheadFedimintClientState[EntityMetaKey.SelectorKey], blockheadFedimintClientState])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFedimintClientState}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadFedimintClientStates.totalCount}
-				getKey={(blockheadFedimintClientState) => blockheadFedimintClientState[EntityMetaKey.SelectorKey]}
-				items={uniqueBlockheadFedimintClientStates}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Blockhead Fedimint client states yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: blockheadFedimintClientState })}
-					{@const blockheadFedimintClientStateFields = { ...blockheadFedimintClientState[EntityMetaKey.Selector], ...blockheadFedimintClientState }}
-					{@const selection = select(EntityType.BlockheadFedimintClientState, blockheadFedimintClientState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<BlockheadFedimintClientStateView
-						selection={selection}
-						prefetched={blockheadFedimintClientStateFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.BlockheadFedimintClientState}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: blockheadFedimintClientState })}
+		{@const blockheadFedimintClientStateFields = { ...blockheadFedimintClientState[EntityMetaKey.Selector], ...blockheadFedimintClientState }}
+		{@const selection = select(EntityType.BlockheadFedimintClientState, blockheadFedimintClientState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<BlockheadFedimintClientStateView
+			selection={selection}
+			prefetched={blockheadFedimintClientStateFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

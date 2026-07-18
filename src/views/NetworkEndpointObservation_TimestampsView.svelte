@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NetworkEndpointObservation_TimestampView from '$/views/NetworkEndpointObservation_TimestampView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					health: true,
-					latencyMs: true,
-					endpointKind: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NetworkEndpointObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.NetworkEndpointObservation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				health: true,
+				latencyMs: true,
+				endpointKind: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(networkEndpointObservationTimestamps) => [...new Map(networkEndpointObservationTimestamps.values.map((networkEndpointObservationTimestamp) => [networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey], networkEndpointObservationTimestamp])).values()]}
+	getKey={(networkEndpointObservationTimestamp) => networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Network endpoint observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(networkEndpointObservationTimestamps)}
-			{@const uniqueNetworkEndpointObservationTimestamps = [...new Map(networkEndpointObservationTimestamps.values.map((networkEndpointObservationTimestamp) => [networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey], networkEndpointObservationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NetworkEndpointObservation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={networkEndpointObservationTimestamps.totalCount}
-				getKey={(networkEndpointObservationTimestamp) => networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueNetworkEndpointObservationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Network endpoint observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: networkEndpointObservationTimestamp })}
-					{@const networkEndpointObservationTimestampFields = { ...networkEndpointObservationTimestamp[EntityMetaKey.Selector], ...networkEndpointObservationTimestamp }}
-					{@const selection = select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<NetworkEndpointObservation_TimestampView
-						selection={selection}
-						prefetched={networkEndpointObservationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.NetworkEndpointObservation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: networkEndpointObservationTimestamp })}
+		{@const networkEndpointObservationTimestampFields = { ...networkEndpointObservationTimestamp[EntityMetaKey.Selector], ...networkEndpointObservationTimestamp }}
+		{@const selection = select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<NetworkEndpointObservation_TimestampView
+			selection={selection}
+			prefetched={networkEndpointObservationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidOrder = $derived(selection({}))
+	const hyperliquidOrder = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hyperliquid order')
 	const viewDomId = $derived('hyperliquid-order-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidOrder}>
-			{#snippet Pending()}
-				{title || 'hyperliquid order'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hyperliquidOrder}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									oid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const oid = pendingEntity.oid}
-							{#if oid !== undefined && oid !== null}
-								{String((oid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const oid = resolvedEntity.oid}
@@ -121,24 +117,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							cloid: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const cloid = pendingEntity.cloid}
-					{#if cloid !== undefined && cloid !== null}
-						<div>
-							<dt>cloid</dt>
-							<dd>
-								{String((cloid) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const cloid = resolvedEntity.cloid}
@@ -159,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									coin: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const coin = pendingEntity.coin}
-							{#if coin !== undefined && coin !== null}
-								{String((coin) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const coin = resolvedEntity.coin}
@@ -186,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							side: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const side = pendingEntity.side}
-					{#if side !== undefined && side !== null}
-						<div>
-							<dt>side</dt>
-							<dd>
-								{String((side) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const side = resolvedEntity.side}
@@ -221,24 +189,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							orderType: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const orderType = pendingEntity.orderType}
-					{#if orderType !== undefined && orderType !== null}
-						<div>
-							<dt>order type</dt>
-							<dd>
-								{String((orderType) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const orderType = resolvedEntity.orderType}
@@ -256,24 +213,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							limitPrice: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const limitPrice = pendingEntity.limitPrice}
-					{#if limitPrice !== undefined && limitPrice !== null}
-						<div>
-							<dt>limit price</dt>
-							<dd>
-								{String((limitPrice) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const limitPrice = resolvedEntity.limitPrice}
@@ -291,24 +237,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							originalSize: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const originalSize = pendingEntity.originalSize}
-					{#if originalSize !== undefined && originalSize !== null}
-						<div>
-							<dt>original size</dt>
-							<dd>
-								{String((originalSize) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const originalSize = resolvedEntity.originalSize}
@@ -326,24 +261,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							triggerCondition: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const triggerCondition = pendingEntity.triggerCondition}
-					{#if triggerCondition !== undefined && triggerCondition !== null}
-						<div>
-							<dt>trigger condition</dt>
-							<dd>
-								{String((triggerCondition) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const triggerCondition = resolvedEntity.triggerCondition}
@@ -361,24 +285,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							triggerPrice: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const triggerPrice = pendingEntity.triggerPrice}
-					{#if triggerPrice !== undefined && triggerPrice !== null}
-						<div>
-							<dt>trigger price</dt>
-							<dd>
-								{String((triggerPrice) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const triggerPrice = resolvedEntity.triggerPrice}
@@ -396,24 +309,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reduceOnly: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reduceOnly = pendingEntity.reduceOnly}
-					{#if reduceOnly !== undefined && reduceOnly !== null}
-						<div>
-							<dt>reduce only</dt>
-							<dd>
-								{String((reduceOnly) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reduceOnly = resolvedEntity.reduceOnly}
@@ -431,24 +333,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							tif: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const tif = pendingEntity.tif}
-					{#if tif !== undefined && tif !== null}
-						<div>
-							<dt>tif</dt>
-							<dd>
-								{String((tif) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const tif = resolvedEntity.tif}
@@ -466,24 +357,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isTrigger: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isTrigger = pendingEntity.isTrigger}
-					{#if isTrigger !== undefined && isTrigger !== null}
-						<div>
-							<dt>is trigger</dt>
-							<dd>
-								{String((isTrigger) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isTrigger = resolvedEntity.isTrigger}
@@ -501,24 +381,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							isPositionTpsl: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const isPositionTpsl = pendingEntity.isPositionTpsl}
-					{#if isPositionTpsl !== undefined && isPositionTpsl !== null}
-						<div>
-							<dt>is position tpsl</dt>
-							<dd>
-								{String((isPositionTpsl) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const isPositionTpsl = resolvedEntity.isPositionTpsl}

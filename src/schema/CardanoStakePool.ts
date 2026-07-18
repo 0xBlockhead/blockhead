@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoStakePoolSelector {
@@ -32,6 +33,45 @@ export const CardanoStakePool = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	name: {
+		label: 'name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	ticker: {
+		label: 'ticker',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	description: {
+		label: 'description',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	homepage: {
+		label: 'homepage',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',

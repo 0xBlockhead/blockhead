@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosGovernanceProposal_TimestampView from '$/views/CosmosGovernanceProposal_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					source: true,
-					timestampMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosGovernanceProposal_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosGovernanceProposal_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				source: true,
+				timestampMs: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosGovernanceProposalTimestamps) => [...new Map(cosmosGovernanceProposalTimestamps.values.map((cosmosGovernanceProposalTimestamp) => [cosmosGovernanceProposalTimestamp[EntityMetaKey.SelectorKey], cosmosGovernanceProposalTimestamp])).values()]}
+	getKey={(cosmosGovernanceProposalTimestamp) => cosmosGovernanceProposalTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos governance proposal observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosGovernanceProposalTimestamps)}
-			{@const uniqueCosmosGovernanceProposalTimestamps = [...new Map(cosmosGovernanceProposalTimestamps.values.map((cosmosGovernanceProposalTimestamp) => [cosmosGovernanceProposalTimestamp[EntityMetaKey.SelectorKey], cosmosGovernanceProposalTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosGovernanceProposal_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosGovernanceProposalTimestamps.totalCount}
-				getKey={(cosmosGovernanceProposalTimestamp) => cosmosGovernanceProposalTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosGovernanceProposalTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos governance proposal observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosGovernanceProposalTimestamp })}
-					{@const cosmosGovernanceProposalTimestampFields = { ...cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cosmosGovernanceProposalTimestamp }}
-					{@const selection = select(EntityType.CosmosGovernanceProposal_Timestamp, cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosGovernanceProposal_TimestampView
-						selection={selection}
-						prefetched={cosmosGovernanceProposalTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosGovernanceProposal_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosGovernanceProposalTimestamp })}
+		{@const cosmosGovernanceProposalTimestampFields = { ...cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cosmosGovernanceProposalTimestamp }}
+		{@const selection = select(EntityType.CosmosGovernanceProposal_Timestamp, cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosGovernanceProposal_TimestampView
+			selection={selection}
+			prefetched={cosmosGovernanceProposalTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

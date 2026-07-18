@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// Context
@@ -44,18 +43,20 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zcashShieldedPoolBlockState = $derived(selection({
+		sources: selection.sources,
 		fields: {
-			finalRoot: true,
+			saplingTree: true,
+			orchardTree: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || 'zcash shielded pool block state')
+	const titleFallback = $derived('zcash shielded pool block state')
 	const viewDomId = $derived('zcash-shielded-pool-block-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
+	import ZcashShieldedPoolView from '$/views/ZcashShieldedPoolView.svelte'
 </script>
 
 
@@ -70,35 +71,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zcashShieldedPoolBlockState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || 'zcash shielded pool block state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ZcashShieldedPoolView
+						selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool)}
+						href={
+						(selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+							pool: String(selection.entitySelector.$pool.pool ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$pool.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+							pool: String(selection.entitySelector.$pool.pool ?? ''),
+							network: String(selection.entitySelector.$pool.$network.slug ?? ''),
+						}) : undefined)
+					}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={zcashShieldedPoolBlockState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ZcashShieldedPoolView
+						selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool)}
+						href={
+						(selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+							pool: String(selection.entitySelector.$pool.pool ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$pool.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+							pool: String(selection.entitySelector.$pool.pool ?? ''),
+							network: String(selection.entitySelector.$pool.$network.slug ?? ''),
+						}) : undefined)
+					}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zcashShieldedPoolBlockState}>
-			{#snippet Pending()}
-				{@const finalRoot0 = pendingEntity.finalRoot}
-				{#if finalRoot0 !== undefined && finalRoot0 !== null}
-					<TruncatedValue value={String((finalRoot0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const finalRoot0 = resolvedEntity.finalRoot}
-				{#if finalRoot0 !== undefined && finalRoot0 !== null}
-					<TruncatedValue value={String((finalRoot0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[pendingEntity.saplingTree == null ? '' : String((`${(pendingEntity.saplingTree).finalRoot} / ${(pendingEntity.saplingTree).finalState}`) ?? ''), pendingEntity.orchardTree == null ? '' : String((`${(pendingEntity.orchardTree).finalRoot} / ${(pendingEntity.orchardTree).finalState}`) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zcashShieldedPoolBlockState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[resolvedEntity.saplingTree == null ? '' : String((`${(resolvedEntity.saplingTree).finalRoot} / ${(resolvedEntity.saplingTree).finalState}`) ?? ''), resolvedEntity.orchardTree == null ? '' : String((`${(resolvedEntity.orchardTree).finalRoot} / ${(resolvedEntity.orchardTree).finalState}`) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,62 +149,41 @@
 			<div>
 				<dt>pool</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									pool: true,
-								},
-							})
+					<ZcashShieldedPoolView
+						selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool, {})}
+						href={
+							(selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+								pool: String(selection.entitySelector.$pool.pool ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$pool.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$pool.pool !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+								pool: String(selection.entitySelector.$pool.pool ?? ''),
+								network: String(selection.entitySelector.$pool.$network.slug ?? ''),
+							}) : undefined)
 						}
-					>
-						{#snippet Pending()}
-							{@const pool = pendingEntity.pool}
-							{#if pool !== undefined && pool !== null}
-								{String((pool) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pool = resolvedEntity.pool}
-							{#if pool !== undefined && pool !== null}
-								{String((pool) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						layout={EntityLayout.Value}
+						open={false}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
-							finalRoot: true,
+							saplingTree: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const finalRoot = pendingEntity.finalRoot}
-					{#if finalRoot !== undefined && finalRoot !== null}
-						<div>
-							<dt>final root</dt>
-							<dd>
-								{String((finalRoot) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalRoot = resolvedEntity.finalRoot}
-					{#if finalRoot !== undefined && finalRoot !== null}
+					{@const saplingTree = resolvedEntity.saplingTree}
+					{#if saplingTree !== undefined && saplingTree !== null}
 						<div>
-							<dt>final root</dt>
+							<dt>Sapling tree</dt>
 							<dd>
-								{String((finalRoot) ?? '')}
+								{saplingTree == null ? '' : String((`${(saplingTree).finalRoot} / ${(saplingTree).finalState}`) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -193,32 +193,21 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
-							blockCommitments: true,
+							orchardTree: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockCommitments = pendingEntity.blockCommitments}
-					{#if blockCommitments !== undefined && blockCommitments !== null}
-						<div>
-							<dt>block commitments</dt>
-							<dd>
-								{String((blockCommitments) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockCommitments = resolvedEntity.blockCommitments}
-					{#if blockCommitments !== undefined && blockCommitments !== null}
+					{@const orchardTree = resolvedEntity.orchardTree}
+					{#if orchardTree !== undefined && orchardTree !== null}
 						<div>
-							<dt>block commitments</dt>
+							<dt>Orchard tree</dt>
 							<dd>
-								{String((blockCommitments) ?? '')}
+								{orchardTree == null ? '' : String((`${(orchardTree).finalRoot} / ${(orchardTree).finalState}`) ?? '')}
 							</dd>
 						</div>
 					{/if}

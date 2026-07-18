@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moneroRingMember = $derived(selection({
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		sources: selection.sources,
 		fields: {
 			globalOutputIndex: true,
 		},
@@ -71,41 +68,49 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroRingMember}>
-			{#snippet Pending()}
-				{@const memberIndex0 = pendingEntity.memberIndex}
-				{#if memberIndex0 !== undefined && memberIndex0 !== null}
-					<NumberValue value={Number(memberIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const memberIndex0 = resolvedEntity.memberIndex}
-				{#if memberIndex0 !== undefined && memberIndex0 !== null}
-					<NumberValue value={Number(memberIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const memberIndex0 = pendingEntity.memberIndex}
+					{#if memberIndex0 !== undefined && memberIndex0 !== null}
+						<NumberValue
+							value={memberIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroRingMember}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const memberIndex0 = resolvedEntity.memberIndex}
+					{#if memberIndex0 !== undefined && memberIndex0 !== null}
+						<NumberValue
+							value={memberIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroRingMember}>
-			{#snippet Pending()}
-				{@const globalOutputIndex0 = pendingEntity.globalOutputIndex}
-				{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
-					<NumberValue value={Number(globalOutputIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const globalOutputIndex0 = resolvedEntity.globalOutputIndex}
-				{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
-					<NumberValue value={Number(globalOutputIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const globalOutputIndex0 = pendingEntity.globalOutputIndex}
+					{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
+						<NumberValue
+							value={globalOutputIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroRingMember}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const globalOutputIndex0 = resolvedEntity.globalOutputIndex}
+					{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
+						<NumberValue
+							value={globalOutputIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,24 +132,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									memberIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const memberIndex = pendingEntity.memberIndex}
-							{#if memberIndex !== undefined && memberIndex !== null}
-								<NumberValue value={Number(memberIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const memberIndex = resolvedEntity.memberIndex}
 							{#if memberIndex !== undefined && memberIndex !== null}
-								<NumberValue value={Number(memberIndex)} />
+								<NumberValue
+									value={memberIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -154,27 +155,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
+						sources: selection.sources,
 						fields: {
 							globalOutputIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const globalOutputIndex = pendingEntity.globalOutputIndex}
-					{#if globalOutputIndex !== undefined && globalOutputIndex !== null}
-						<div>
-							<dt>Global output index</dt>
-							<dd>
-								<NumberValue value={Number(globalOutputIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const globalOutputIndex = resolvedEntity.globalOutputIndex}
@@ -182,7 +169,9 @@
 						<div>
 							<dt>Global output index</dt>
 							<dd>
-								<NumberValue value={Number(globalOutputIndex)} />
+								<NumberValue
+									value={globalOutputIndex}
+								/>
 							</dd>
 						</div>
 					{/if}

@@ -7,7 +7,7 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum FilecoinActor_TimestampSelector {
-	ActorTimestampMsSource = 'ActorTimestampMsSource',
+	ActorHeightTipsetKeySource = 'ActorHeightTipsetKeySource',
 }
 export const FilecoinActor_Timestamp = entity({
 	entityType: EntityType.FilecoinActor_Timestamp,
@@ -40,20 +40,32 @@ export const FilecoinActor_Timestamp = entity({
 		label: 'Height',
 		description: 'The block height.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {
 		label: 'Tipset key',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
 		label: 'Tipset',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinTipset,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
+	},
+	idAddress: {
+		label: 'ID address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	actorCodeCid: {
 		label: 'Actor code CID',
@@ -93,9 +105,10 @@ export const FilecoinActor_Timestamp = entity({
 	},
 })({
 	selectors: {
-		ActorTimestampMsSource: [
+		ActorHeightTipsetKeySource: [
 			'$actor',
-			'timestampMs',
+			'height',
+			'tipsetKey',
 			'source',
 		],
 	},

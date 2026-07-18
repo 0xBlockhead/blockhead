@@ -11,12 +11,12 @@ import {
 
 
 const loadingSnapshot = {
-	data: '',
+	data: undefined,
 	isLoading: true,
 	isError: false,
 	isReady: false,
 	status: 'loading',
-} satisfies TanStackLiveQuerySnapshot<string>
+} satisfies TanStackLiveQuerySnapshot<string | undefined>
 
 const readySnapshot = (
 	data: string
@@ -125,6 +125,24 @@ describe('TanStackLiveQueryResource', () => {
 		fixture.setSnapshot(readySnapshot('second'))
 		expect(fixture.resource.current).toBe('second')
 		await expect(fixture.resource).resolves.toBe('second')
+	})
+
+	it('returns getter and promise surfaces to one pending state after authoritative deletion', async () => {
+		const fixture = createFixture(readySnapshot('first'))
+		await expect(fixture.resource).resolves.toBe('first')
+
+		fixture.setSnapshot(loadingSnapshot)
+		expect(fixture.resource.current).toBeUndefined()
+		expect(fixture.resource.loading).toBe(true)
+		expect(fixture.resource.ready).toBe(false)
+		expect(fixture.resource.error).toBeUndefined()
+
+		const reloaded = fixture.resource.then((value) => value)
+		fixture.setSnapshot(readySnapshot('second'))
+		await expect(reloaded).resolves.toBe('second')
+		expect(fixture.resource.current).toBe('second')
+		expect(fixture.resource.loading).toBe(false)
+		expect(fixture.resource.ready).toBe(true)
 	})
 
 	it('rejects then, catch, and finally from the same failed state', async () => {

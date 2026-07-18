@@ -44,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const elementsNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-			Source.Esplora_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			federationName: true,
 		},
@@ -76,51 +73,51 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={elementsNetwork}>
-			{#snippet Pending()}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={elementsNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
 						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
 						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={elementsNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.federationName) ?? '')].filter(Boolean).join(' ') || title || 'Elements network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.federationName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.federationName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={elementsNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.federationName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -158,8 +155,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -187,27 +182,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-						],
+						sources: selection.sources,
 						fields: {
 							federationName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const federationName = pendingEntity.federationName}
-					{#if federationName !== undefined && federationName !== null}
-						<div>
-							<dt>Federation</dt>
-							<dd>
-								{String((federationName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const federationName = resolvedEntity.federationName}
@@ -225,27 +206,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-						],
+						sources: selection.sources,
 						fields: {
 							blockTimeSeconds: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const blockTimeSeconds = pendingEntity.blockTimeSeconds}
-					{#if blockTimeSeconds !== undefined && blockTimeSeconds !== null}
-						<div>
-							<dt>Block time seconds</dt>
-							<dd>
-								<NumberValue value={Number(blockTimeSeconds)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const blockTimeSeconds = resolvedEntity.blockTimeSeconds}
@@ -253,7 +220,9 @@
 						<div>
 							<dt>Block time seconds</dt>
 							<dd>
-								<NumberValue value={Number(blockTimeSeconds)} />
+								<NumberValue
+									value={blockTimeSeconds}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -263,27 +232,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: [
-							Source.Constants_Internal,
-						],
+						sources: selection.sources,
 						fields: {
 							confidentialTransactionsDefault: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const confidentialTransactionsDefault = pendingEntity.confidentialTransactionsDefault}
-					{#if confidentialTransactionsDefault !== undefined && confidentialTransactionsDefault !== null}
-						<div>
-							<dt>Confidential transactions by default</dt>
-							<dd>
-								{confidentialTransactionsDefault ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const confidentialTransactionsDefault = resolvedEntity.confidentialTransactionsDefault}
@@ -307,8 +262,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
 						<div>

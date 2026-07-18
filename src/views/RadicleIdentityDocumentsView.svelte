@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RadicleIdentityDocumentView from '$/views/RadicleIdentityDocumentView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIdentityDocument}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.RadicleIdentityDocument}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(radicleIdentityDocuments) => [...new Map(radicleIdentityDocuments.values.map((radicleIdentityDocument) => [radicleIdentityDocument[EntityMetaKey.SelectorKey], radicleIdentityDocument])).values()]}
+	getKey={(radicleIdentityDocument) => radicleIdentityDocument[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Radicle identity documents yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(radicleIdentityDocuments)}
-			{@const uniqueRadicleIdentityDocuments = [...new Map(radicleIdentityDocuments.values.map((radicleIdentityDocument) => [radicleIdentityDocument[EntityMetaKey.SelectorKey], radicleIdentityDocument])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RadicleIdentityDocument}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={radicleIdentityDocuments.totalCount}
-				getKey={(radicleIdentityDocument) => radicleIdentityDocument[EntityMetaKey.SelectorKey]}
-				items={uniqueRadicleIdentityDocuments}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Radicle identity documents yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: radicleIdentityDocument })}
-					{@const radicleIdentityDocumentFields = { ...radicleIdentityDocument[EntityMetaKey.Selector], ...radicleIdentityDocument }}
-					{@const selection = select(EntityType.RadicleIdentityDocument, radicleIdentityDocument[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<RadicleIdentityDocumentView
-						selection={selection}
-						prefetched={radicleIdentityDocumentFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.RadicleIdentityDocument}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: radicleIdentityDocument })}
+		{@const radicleIdentityDocumentFields = { ...radicleIdentityDocument[EntityMetaKey.Selector], ...radicleIdentityDocument }}
+		{@const selection = select(EntityType.RadicleIdentityDocument, radicleIdentityDocument[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<RadicleIdentityDocumentView
+			selection={selection}
+			prefetched={radicleIdentityDocumentFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

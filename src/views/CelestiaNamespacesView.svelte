@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CelestiaNamespaceView from '$/views/CelestiaNamespaceView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					label: true,
-					namespaceVersion: true,
-					namespaceId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNamespace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CelestiaNamespace}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				label: true,
+				namespaceVersion: true,
+				namespaceId: true,
+			},
+		})
+	}
+	getResourceItems={(celestiaNamespaces) => [...new Map(celestiaNamespaces.values.map((celestiaNamespace) => [celestiaNamespace[EntityMetaKey.SelectorKey], celestiaNamespace])).values()]}
+	getKey={(celestiaNamespace) => celestiaNamespace[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Celestia namespaces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(celestiaNamespaces)}
-			{@const uniqueCelestiaNamespaces = [...new Map(celestiaNamespaces.values.map((celestiaNamespace) => [celestiaNamespace[EntityMetaKey.SelectorKey], celestiaNamespace])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CelestiaNamespace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={celestiaNamespaces.totalCount}
-				getKey={(celestiaNamespace) => celestiaNamespace[EntityMetaKey.SelectorKey]}
-				items={uniqueCelestiaNamespaces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Celestia namespaces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: celestiaNamespace })}
-					{@const celestiaNamespaceFields = { ...celestiaNamespace[EntityMetaKey.Selector], ...celestiaNamespace }}
-					{@const selection = select(EntityType.CelestiaNamespace, celestiaNamespace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CelestiaNamespaceView
-						selection={selection}
-						prefetched={celestiaNamespaceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CelestiaNamespace}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: celestiaNamespace })}
+		{@const celestiaNamespaceFields = { ...celestiaNamespace[EntityMetaKey.Selector], ...celestiaNamespace }}
+		{@const selection = select(EntityType.CelestiaNamespace, celestiaNamespace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CelestiaNamespaceView
+			selection={selection}
+			prefetched={celestiaNamespaceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

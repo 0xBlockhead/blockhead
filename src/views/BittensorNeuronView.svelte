@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bittensorNeuron = $derived(selection({
-		sources: [
-			Source.Bittensor_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron')
 	const viewDomId = $derived('bittensor-neuron-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -68,43 +65,47 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bittensorNeuron}>
-			{#snippet Pending()}
-				{@const uid0 = pendingEntity.uid}
-				{#if uid0 !== undefined && uid0 !== null}
-					<NumberValue value={Number(uid0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const uid0 = resolvedEntity.uid}
-				{#if uid0 !== undefined && uid0 !== null}
-					<NumberValue value={Number(uid0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const uid0 = pendingEntity.uid}
+					{#if uid0 !== undefined && uid0 !== null}
+						<NumberValue
+							value={uid0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={bittensorNeuron}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const uid0 = resolvedEntity.uid}
+					{#if uid0 !== undefined && uid0 !== null}
+						<NumberValue
+							value={uid0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={bittensorNeuron}>
-			{#snippet Pending()}
-				<BittensorSubnetView
-					selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BittensorSubnetView
-					selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<BittensorSubnetView
+						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={bittensorNeuron}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<BittensorSubnetView
+						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -126,24 +127,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									uid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const uid = pendingEntity.uid}
-							{#if uid !== undefined && uid !== null}
-								<NumberValue value={Number(uid)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const uid = resolvedEntity.uid}
 							{#if uid !== undefined && uid !== null}
-								<NumberValue value={Number(uid)} />
+								<NumberValue
+									value={uid}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

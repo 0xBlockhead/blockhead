@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StarknetClassView from '$/views/StarknetClassView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					classHash: true,
-					contractClassVersion: true,
-					declaredAtBlockNumber: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetClass}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StarknetClass}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				classHash: true,
+				contractClassVersion: true,
+				declaredAtBlockNumber: true,
+			},
+		})
+	}
+	getResourceItems={(starknetClasses) => [...new Map(starknetClasses.values.map((starknetClass) => [starknetClass[EntityMetaKey.SelectorKey], starknetClass])).values()]}
+	getKey={(starknetClass) => starknetClass[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Starknet classes yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(starknetClasses)}
-			{@const uniqueStarknetClasses = [...new Map(starknetClasses.values.map((starknetClass) => [starknetClass[EntityMetaKey.SelectorKey], starknetClass])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StarknetClass}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={starknetClasses.totalCount}
-				getKey={(starknetClass) => starknetClass[EntityMetaKey.SelectorKey]}
-				items={uniqueStarknetClasses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Starknet classes yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: starknetClass })}
-					{@const starknetClassFields = { ...starknetClass[EntityMetaKey.Selector], ...starknetClass }}
-					{@const selection = select(EntityType.StarknetClass, starknetClass[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StarknetClassView
-						selection={selection}
-						prefetched={starknetClassFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StarknetClass}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: starknetClass })}
+		{@const starknetClassFields = { ...starknetClass[EntityMetaKey.Selector], ...starknetClass }}
+		{@const selection = select(EntityType.StarknetClass, starknetClass[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StarknetClassView
+			selection={selection}
+			prefetched={starknetClassFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

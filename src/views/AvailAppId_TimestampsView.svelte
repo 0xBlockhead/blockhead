@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AvailAppId_TimestampView from '$/views/AvailAppId_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					dataSubmissionCount: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailAppId_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AvailAppId_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				dataSubmissionCount: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(availAppIdTimestamps) => [...new Map(availAppIdTimestamps.values.map((availAppIdTimestamp) => [availAppIdTimestamp[EntityMetaKey.SelectorKey], availAppIdTimestamp])).values()]}
+	getKey={(availAppIdTimestamp) => availAppIdTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Avail app ID observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(availAppIdTimestamps)}
-			{@const uniqueAvailAppIdTimestamps = [...new Map(availAppIdTimestamps.values.map((availAppIdTimestamp) => [availAppIdTimestamp[EntityMetaKey.SelectorKey], availAppIdTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AvailAppId_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={availAppIdTimestamps.totalCount}
-				getKey={(availAppIdTimestamp) => availAppIdTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAvailAppIdTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Avail app ID observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: availAppIdTimestamp })}
-					{@const availAppIdTimestampFields = { ...availAppIdTimestamp[EntityMetaKey.Selector], ...availAppIdTimestamp }}
-					{@const selection = select(EntityType.AvailAppId_Timestamp, availAppIdTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AvailAppId_TimestampView
-						selection={selection}
-						prefetched={availAppIdTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AvailAppId_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: availAppIdTimestamp })}
+		{@const availAppIdTimestampFields = { ...availAppIdTimestamp[EntityMetaKey.Selector], ...availAppIdTimestamp }}
+		{@const selection = select(EntityType.AvailAppId_Timestamp, availAppIdTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AvailAppId_TimestampView
+			selection={selection}
+			prefetched={availAppIdTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -35,10 +35,6 @@
 			{ id: 'pools', label: 'Pools' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -50,29 +46,38 @@
 		{/snippet}
 
 		{#snippet SectionCoins()}
-			<CoinsView
-												href={resolve('/coins')}
-				selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
-				id='coins'
-				open={true}
-			/>
+					<CoinsView
+									href={resolve('/coins')}
+						selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
+						id='coins'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 
 		{#snippet SectionCurrencies()}
-			<CurrenciesView
+					<CurrenciesView
 												href={resolve('/currencies')}
-				selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
-				open={true}
-			/>
+						selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 
 		{#snippet SectionPools()}
-			<LiquidityPoolsView
+					<LiquidityPoolsView
 												href={resolve('/pools')}
 				selection={select(EntityType._Global, { scope: '$$liquidityPools' }).$$liquidityPools}
-				id='pools'
-				open={false}
-			/>
+						id='pools'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
+					/>
 		{/snippet}
 	</CollapsibleTabs>
 </Page>

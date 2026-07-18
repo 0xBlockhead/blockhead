@@ -70,101 +70,83 @@
 	</p>
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					indexInLog: true,
-					standard: true,
-					amount: true,
-					tokenSymbol: true,
-					$log: true,
-				},
-				limit: 64,
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTokenTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.EvmTokenTransfer}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	resource={
+		selection({
+			fields: {
+				indexInLog: true,
+				standard: true,
+				amount: true,
+				tokenSymbol: true,
+				$log: true,
+			},
+			limit: 64,
+		})
+	}
+	getResourceItems={(evmTokenTransfers) => [...new Map(evmTokenTransfers.values.map((evmTokenTransfer) => [evmTokenTransfer[EntityMetaKey.SelectorKey], evmTokenTransfer])).values()]}
+	getKey={(evmTokenTransfer) => evmTokenTransfer[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Token transfers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(evmTokenTransfers)}
-			{@const uniqueEvmTokenTransfers = [...new Map(evmTokenTransfers.values.map((evmTokenTransfer) => [evmTokenTransfer[EntityMetaKey.SelectorKey], evmTokenTransfer])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTokenTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmTokenTransfers.totalCount}
-				getKey={(evmTokenTransfer) => evmTokenTransfer[EntityMetaKey.SelectorKey]}
-				items={uniqueEvmTokenTransfers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Token transfers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: evmTokenTransfer })}
-					{@const evmTokenTransferFields = { ...evmTokenTransfer[EntityMetaKey.Selector], ...evmTokenTransfer }}
-					{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const evmTokenTransferHrefFields = { ...evmTokenTransfer, ...evmTokenTransfer[EntityMetaKey.Selector] }}
-					<ProjectionBoundary
-						resource={selection.Nft}
-					>
-						{#snippet Applicable()}
-							<EvmTokenTransferView
-								selection={selection}
-								prefetched={evmTokenTransferFields}
-								href={
-									(evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
-										transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
-										indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
-										transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
-										network: String(caip2StringFromValue(evmTokenTransferHrefFields.$log.$transaction.$network.caip2) ?? ''),
-									}) : evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
-										transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
-										indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
-										transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
-										network: String(evmTokenTransferHrefFields.$log.$transaction.$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/snippet}
-					</ProjectionBoundary>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.EvmTokenTransfer}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-	/>
-{/if}
+	{#snippet Item({ item: evmTokenTransfer })}
+		{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector])}
+		<ProjectionBoundary
+			resource={selection.Nft}
+		>
+			{#snippet Applicable()}
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								Nft: {
+									fields: {
+										tokenId: true,
+									},
+								},
+							},
+						})
+					}
+				>
+					{#snippet children(evmTokenTransferProjection0)}
+						{@const evmTokenTransferFields = { ...evmTokenTransfer[EntityMetaKey.Selector], ...evmTokenTransfer, ...evmTokenTransferProjection0 }}
+						{@const evmTokenTransferHrefFields = { ...evmTokenTransfer, ...evmTokenTransferProjection0, ...evmTokenTransfer[EntityMetaKey.Selector] }}
+						<EvmTokenTransferView
+							selection={selection}
+							prefetched={evmTokenTransferFields}
+							href={
+								(evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+									transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+									indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
+									transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
+									network: String(caip2StringFromValue(evmTokenTransferHrefFields.$log.$transaction.$network.caip2) ?? ''),
+								}) : evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+									transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+									indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
+									transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
+									network: String(evmTokenTransferHrefFields.$log.$transaction.$network.slug ?? ''),
+								}) : undefined)
+							}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ProjectionBoundary>
+	{/snippet}
+</EntitiesList>

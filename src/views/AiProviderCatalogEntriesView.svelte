@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiProviderCatalogEntryView from '$/views/AiProviderCatalogEntryView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					entryLabel: true,
-					catalogKind: true,
-					providerEntryId: true,
-					subjectKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiProviderCatalogEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiProviderCatalogEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				entryLabel: true,
+				catalogKind: true,
+				providerEntryId: true,
+				subjectKind: true,
+			},
+		})
+	}
+	getResourceItems={(aiProviderCatalogEntries) => [...new Map(aiProviderCatalogEntries.values.map((aiProviderCatalogEntry) => [aiProviderCatalogEntry[EntityMetaKey.SelectorKey], aiProviderCatalogEntry])).values()]}
+	getKey={(aiProviderCatalogEntry) => aiProviderCatalogEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI provider catalog entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiProviderCatalogEntries)}
-			{@const uniqueAiProviderCatalogEntries = [...new Map(aiProviderCatalogEntries.values.map((aiProviderCatalogEntry) => [aiProviderCatalogEntry[EntityMetaKey.SelectorKey], aiProviderCatalogEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiProviderCatalogEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiProviderCatalogEntries.totalCount}
-				getKey={(aiProviderCatalogEntry) => aiProviderCatalogEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueAiProviderCatalogEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI provider catalog entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiProviderCatalogEntry })}
-					{@const aiProviderCatalogEntryFields = { ...aiProviderCatalogEntry[EntityMetaKey.Selector], ...aiProviderCatalogEntry }}
-					{@const selection = select(EntityType.AiProviderCatalogEntry, aiProviderCatalogEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiProviderCatalogEntryView
-						selection={selection}
-						prefetched={aiProviderCatalogEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiProviderCatalogEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiProviderCatalogEntry })}
+		{@const aiProviderCatalogEntryFields = { ...aiProviderCatalogEntry[EntityMetaKey.Selector], ...aiProviderCatalogEntry }}
+		{@const selection = select(EntityType.AiProviderCatalogEntry, aiProviderCatalogEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiProviderCatalogEntryView
+			selection={selection}
+			prefetched={aiProviderCatalogEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

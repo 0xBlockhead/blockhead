@@ -47,6 +47,12 @@ export const TonAccount_Timestamp = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	lastActivityTimestampMs: {
+		label: 'last activity',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	codeHash: {
 		label: 'code hash',
 		type: EntityFieldType.Primitive,

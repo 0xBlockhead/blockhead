@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,10 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaAcceptedTransaction = $derived(selection({
-		sources: [
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa accepted transaction')
 	const viewDomId = $derived('kaspa-accepted-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -71,16 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaAcceptedTransaction}>
-			{#snippet Pending()}
-				{title || 'kaspa accepted transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaAcceptedTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -110,24 +106,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							acceptedIndex: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const acceptedIndex = pendingEntity.acceptedIndex}
-					{#if acceptedIndex !== undefined && acceptedIndex !== null}
-						<div>
-							<dt>accepted index</dt>
-							<dd>
-								<NumberValue value={Number(acceptedIndex)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const acceptedIndex = resolvedEntity.acceptedIndex}
@@ -135,7 +120,9 @@
 						<div>
 							<dt>accepted index</dt>
 							<dd>
-								<NumberValue value={Number(acceptedIndex)} />
+								<NumberValue
+									value={acceptedIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -148,19 +135,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									acceptingBlockHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const acceptingBlockHash = pendingEntity.acceptingBlockHash}
-							{#if acceptingBlockHash !== undefined && acceptingBlockHash !== null}
-								<TruncatedValue value={String((acceptingBlockHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const acceptingBlockHash = resolvedEntity.acceptingBlockHash}
@@ -178,19 +159,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionId = pendingEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								{String((transactionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionId = resolvedEntity.transactionId}

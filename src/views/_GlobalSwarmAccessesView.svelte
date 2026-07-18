@@ -50,7 +50,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalSwarmAccessView from '$/views/_GlobalSwarmAccessView.svelte'
 </script>
@@ -62,78 +61,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					scope: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalSwarmAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalSwarmAccess}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				scope: true,
+			},
+		})
+	}
+	getResourceItems={(globalSwarmAccesses) => [...new Map(globalSwarmAccesses.values.map((globalSwarmAccess) => [globalSwarmAccess[EntityMetaKey.SelectorKey], globalSwarmAccess])).values()]}
+	getKey={(globalSwarmAccess) => globalSwarmAccess[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Global Swarm accesses yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalSwarmAccesses)}
-			{@const uniqueGlobalSwarmAccesses = [...new Map(globalSwarmAccesses.values.map((globalSwarmAccess) => [globalSwarmAccess[EntityMetaKey.SelectorKey], globalSwarmAccess])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalSwarmAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalSwarmAccesses.totalCount}
-				getKey={(globalSwarmAccess) => globalSwarmAccess[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalSwarmAccesses}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Global Swarm accesses yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalSwarmAccess })}
-					{@const globalSwarmAccessFields = { ...globalSwarmAccess[EntityMetaKey.Selector], ...globalSwarmAccess }}
-					{@const selection = select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const globalSwarmAccessHrefFields = { ...globalSwarmAccess, ...globalSwarmAccess[EntityMetaKey.Selector] }}
-					<GlobalSwarmAccessView
-						selection={selection}
-						prefetched={globalSwarmAccessFields}
-						href={(globalSwarmAccess[EntityMetaKey.Selector].scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalSwarmAccess}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalSwarmAccess })}
+		{@const globalSwarmAccessFields = { ...globalSwarmAccess[EntityMetaKey.Selector], ...globalSwarmAccess }}
+		{@const selection = select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const globalSwarmAccessHrefFields = { ...globalSwarmAccess, ...globalSwarmAccess[EntityMetaKey.Selector] }}
+		<GlobalSwarmAccessView
+			selection={selection}
+			prefetched={globalSwarmAccessFields}
+			href={(globalSwarmAccess[EntityMetaKey.Selector].scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

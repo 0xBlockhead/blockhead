@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotAssetBalance_TimestampView from '$/views/PolkadotAssetBalance_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$asset: true,
-					freeBalancePlancks: true,
-					status: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAssetBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotAssetBalance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$asset: true,
+				freeBalancePlancks: true,
+				status: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotAssetBalanceTimestamps) => [...new Map(polkadotAssetBalanceTimestamps.values.map((polkadotAssetBalanceTimestamp) => [polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey], polkadotAssetBalanceTimestamp])).values()]}
+	getKey={(polkadotAssetBalanceTimestamp) => polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot asset balance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotAssetBalanceTimestamps)}
-			{@const uniquePolkadotAssetBalanceTimestamps = [...new Map(polkadotAssetBalanceTimestamps.values.map((polkadotAssetBalanceTimestamp) => [polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey], polkadotAssetBalanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAssetBalance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAssetBalanceTimestamps.totalCount}
-				getKey={(polkadotAssetBalanceTimestamp) => polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotAssetBalanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot asset balance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotAssetBalanceTimestamp })}
-					{@const polkadotAssetBalanceTimestampFields = { ...polkadotAssetBalanceTimestamp[EntityMetaKey.Selector], ...polkadotAssetBalanceTimestamp }}
-					{@const selection = select(EntityType.PolkadotAssetBalance_Timestamp, polkadotAssetBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PolkadotAssetBalance_TimestampView
-						selection={selection}
-						prefetched={polkadotAssetBalanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotAssetBalance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotAssetBalanceTimestamp })}
+		{@const polkadotAssetBalanceTimestampFields = { ...polkadotAssetBalanceTimestamp[EntityMetaKey.Selector], ...polkadotAssetBalanceTimestamp }}
+		{@const selection = select(EntityType.PolkadotAssetBalance_Timestamp, polkadotAssetBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PolkadotAssetBalance_TimestampView
+			selection={selection}
+			prefetched={polkadotAssetBalanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

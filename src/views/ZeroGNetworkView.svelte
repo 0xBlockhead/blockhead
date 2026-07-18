@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,9 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const zeroGNetwork = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			name: true,
 			namespace: true,
@@ -86,52 +83,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGNetwork}>
-			{#snippet Pending()}
-				{[String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={zeroGNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGNetwork}>
-			{#snippet Pending()}
-				{@const environment0 = pendingEntity.environment}
-				{#if environment0 !== undefined && environment0 !== null}
-					<span data-text="muted">
-						{String((environment0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const environment0 = resolvedEntity.environment}
-				{#if environment0 !== undefined && environment0 !== null}
-					<span data-text="muted">
-						{String((environment0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const environment0 = pendingEntity.environment}
+			{#if environment0 !== undefined && environment0 !== null}
+				<span data-text="muted">
+					{String((environment0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={zeroGNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const environment0 = resolvedEntity.environment}
+					{#if environment0 !== undefined && environment0 !== null}
+						<span data-text="muted">
+							{String((environment0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,19 +139,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									slug: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const slug = pendingEntity.slug}
-							{#if slug !== undefined && slug !== null}
-								{String((slug) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const slug = resolvedEntity.slug}
@@ -172,19 +163,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									name: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const name = pendingEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const name = resolvedEntity.name}
@@ -202,19 +187,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									namespace: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const namespace = pendingEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								{String((namespace) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const namespace = resolvedEntity.namespace}
@@ -232,19 +211,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									environment: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const environment = pendingEntity.environment}
-							{#if environment !== undefined && environment !== null}
-								{String((environment) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const environment = resolvedEntity.environment}
@@ -262,24 +235,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									chainId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const chainId = pendingEntity.chainId}
-							{#if chainId !== undefined && chainId !== null}
-								<NumberValue value={Number(chainId)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const chainId = resolvedEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
-								<NumberValue value={Number(chainId)} />
+								<NumberValue
+									value={chainId}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -291,8 +260,6 @@
 			<ResourceBoundary
 				resource={selection.$executionNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -320,8 +287,6 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -356,11 +321,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -368,12 +330,12 @@
 
 				{#snippet SectionZerogNetworkObservations({ id, label, open })}
 					<ZeroGNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G network observations.'
 						open={open}
 						title={label}
@@ -404,11 +366,8 @@
 				}
 				data-card
 				class='network-view-collapsible-storage'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Storage</HeadingComponent>
 					</header>
@@ -416,12 +375,12 @@
 
 				{#snippet SectionZerogStorageNodes({ id, label, open })}
 					<ZeroGStorageNodesView
-						selection={
-							selection.$$storageNodes({
-								count: true,
-							})
-						}
+						selection={selection.$$storageNodes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G storage nodes.'
 						open={open}
 						title={label}
@@ -431,12 +390,12 @@
 
 				{#snippet SectionZerogDataBlobs({ id, label, open })}
 					<ZeroGDataBlobsView
-						selection={
-							selection.$$dataBlobs({
-								count: true,
-							})
-						}
+						selection={selection.$$dataBlobs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G data blobs.'
 						open={open}
 						title={label}
@@ -446,12 +405,12 @@
 
 				{#snippet SectionZerogKvEntries({ id, label, open })}
 					<ZeroGKvEntriesView
-						selection={
-							selection.$$kvEntries({
-								count: true,
-							})
-						}
+						selection={selection.$$kvEntries}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G KV entries.'
 						open={open}
 						title={label}
@@ -478,11 +437,8 @@
 				}
 				data-card
 				class='network-view-collapsible-data-availability'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Data availability</HeadingComponent>
 					</header>
@@ -490,12 +446,12 @@
 
 				{#snippet SectionZerogDaQuorums({ id, label, open })}
 					<ZeroGDaQuorumsView
-						selection={
-							selection.$$daQuorums({
-								count: true,
-							})
-						}
+						selection={selection.$$daQuorums}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G DA quorums.'
 						open={open}
 						title={label}
@@ -505,12 +461,12 @@
 
 				{#snippet SectionZerogDaNodes({ id, label, open })}
 					<ZeroGDaNodesView
-						selection={
-							selection.$$daNodes({
-								count: true,
-							})
-						}
+						selection={selection.$$daNodes}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G DA nodes.'
 						open={open}
 						title={label}
@@ -533,11 +489,8 @@
 				}
 				data-card
 				class='network-view-collapsible-service-providers'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Service providers</HeadingComponent>
 					</header>
@@ -545,12 +498,12 @@
 
 				{#snippet SectionZerogServiceProviderList({ id, label, open })}
 					<ZeroGServiceProvidersView
-						selection={
-							selection.$$serviceProviders({
-								count: true,
-							})
-						}
+						selection={selection.$$serviceProviders}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No 0G service providers.'
 						open={open}
 						title={label}

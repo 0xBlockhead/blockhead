@@ -762,17 +762,17 @@
 			data-scroll-item="snap-block-start"
 			style:--index={index}
 			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
-			{@attach visibility({ onVisible: pagination?.onLoadMore ?? (() => {}) })}
 		>
 			{#if pagination?.Placeholder}
 				{@render pagination.Placeholder({ loading: pagination.loading ?? false })}
 			{:else}
-				<code data-text="muted">
-					{(pagination?.loading ?? false) ?
-						'Loading…'
-					:
-						(pagination?.label ?? 'Load more')}
-				</code>
+				<button
+					type="button"
+					disabled={pagination?.loading ?? false}
+					onclick={pagination?.onLoadMore}
+				>
+					{pagination?.label ?? 'Load more'}
+				</button>
 			{/if}
 		</li>
 	{:else if isPlaceholderSentinelRow(row)}

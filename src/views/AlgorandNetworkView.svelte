@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandNetwork = $derived(selection({}))
+	const algorandNetwork = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('algorand network')
 	const viewDomId = $derived('algorand-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -73,16 +75,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandNetwork}>
-			{#snippet Pending()}
-				{title || 'algorand network'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandNetwork}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,11 +132,8 @@
 				}
 				data-card
 				class='network-view-collapsible-chain-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Chain activity</HeadingComponent>
 					</header>
@@ -142,12 +141,12 @@
 
 				{#snippet SectionAlgorandChainObservations({ id, label, open })}
 					<AlgorandNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand network observations.'
 						open={open}
 						title={label}
@@ -157,12 +156,12 @@
 
 				{#snippet SectionAlgorandChainRounds({ id, label, open })}
 					<AlgorandRoundsView
-						selection={
-							selection.$$rounds({
-								count: true,
-							})
-						}
+						selection={selection.$$rounds}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand rounds.'
 						open={open}
 						title={label}
@@ -172,12 +171,12 @@
 
 				{#snippet SectionAlgorandChainTransactions({ id, label, open })}
 					<AlgorandTransactionsView
-						selection={
-							selection.$$transactions({
-								count: true,
-							})
-						}
+						selection={selection.$$transactions}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand transactions.'
 						open={open}
 						title={label}
@@ -204,11 +203,8 @@
 				}
 				data-card
 				class='network-view-collapsible-accounts-assets'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Accounts and assets</HeadingComponent>
 					</header>
@@ -216,12 +212,12 @@
 
 				{#snippet SectionAlgorandAccounts({ id, label, open })}
 					<AlgorandAccountsView
-						selection={
-							selection.$$accounts({
-								count: true,
-							})
-						}
+						selection={selection.$$accounts}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand accounts.'
 						open={open}
 						title={label}
@@ -231,12 +227,12 @@
 
 				{#snippet SectionAlgorandAssets({ id, label, open })}
 					<AlgorandAssetsView
-						selection={
-							selection.$$assets({
-								count: true,
-							})
-						}
+						selection={selection.$$assets}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand assets.'
 						open={open}
 						title={label}
@@ -263,11 +259,8 @@
 				}
 				data-card
 				class='network-view-collapsible-applications'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Applications</HeadingComponent>
 					</header>
@@ -275,12 +268,12 @@
 
 				{#snippet SectionAlgorandApplicationList({ id, label, open })}
 					<AlgorandApplicationsView
-						selection={
-							selection.$$applications({
-								count: true,
-							})
-						}
+						selection={selection.$$applications}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand applications.'
 						open={open}
 						title={label}
@@ -290,12 +283,12 @@
 
 				{#snippet SectionAlgorandTealPrograms({ id, label, open })}
 					<AlgorandTealProgramsView
-						selection={
-							selection.$$tealPrograms({
-								count: true,
-							})
-						}
+						selection={selection.$$tealPrograms}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Algorand TEAL programs.'
 						open={open}
 						title={label}

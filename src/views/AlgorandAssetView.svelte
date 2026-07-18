@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const algorandAsset = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			creator: true,
 		},
@@ -68,60 +69,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={algorandAsset}>
-			{#snippet Pending()}
-				{[String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || 'algorand asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={algorandAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={algorandAsset}>
-			{#snippet Pending()}
-				<AlgorandNetworkView
-					selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<AlgorandNetworkView
-					selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<AlgorandNetworkView
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+		{:else}
+			<ResourceBoundary resource={algorandAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<AlgorandNetworkView
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={algorandAsset}>
-			{#snippet Pending()}
-				{@const creator0 = pendingEntity.creator}
-				{#if creator0 !== undefined && creator0 !== null}
-					<span data-text="muted">
-						{String((creator0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const creator0 = resolvedEntity.creator}
-				{#if creator0 !== undefined && creator0 !== null}
-					<span data-text="muted">
-						{String((creator0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const creator0 = pendingEntity.creator}
+			{#if creator0 !== undefined && creator0 !== null}
+				<span data-text="muted">
+					{String((creator0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={algorandAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const creator0 = resolvedEntity.creator}
+					{#if creator0 !== undefined && creator0 !== null}
+						<span data-text="muted">
+							{String((creator0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,19 +144,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetId = pendingEntity.assetId}
-							{#if assetId !== undefined && assetId !== null}
-								{String((assetId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetId = resolvedEntity.assetId}
@@ -170,24 +165,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							creator: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const creator = pendingEntity.creator}
-					{#if creator !== undefined && creator !== null}
-						<div>
-							<dt>creator</dt>
-							<dd>
-								{String((creator) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const creator = resolvedEntity.creator}

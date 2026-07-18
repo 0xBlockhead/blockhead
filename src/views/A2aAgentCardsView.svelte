@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import A2aAgentCardView from '$/views/A2aAgentCardView.svelte'
 </script>
@@ -61,76 +60,43 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					agentCardUrl: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentCard}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.A2aAgentCard}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				agentCardUrl: true,
+			},
+		})
+	}
+	getResourceItems={(a2aAgentCards) => [...new Map(a2aAgentCards.values.map((a2aAgentCard) => [a2aAgentCard[EntityMetaKey.SelectorKey], a2aAgentCard])).values()]}
+	getKey={(a2aAgentCard) => a2aAgentCard[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No A2A agent cards yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(a2aAgentCards)}
-			{@const uniqueA2aAgentCards = [...new Map(a2aAgentCards.values.map((a2aAgentCard) => [a2aAgentCard[EntityMetaKey.SelectorKey], a2aAgentCard])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.A2aAgentCard}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={a2aAgentCards.totalCount}
-				getKey={(a2aAgentCard) => a2aAgentCard[EntityMetaKey.SelectorKey]}
-				items={uniqueA2aAgentCards}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No A2A agent cards yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: a2aAgentCard })}
-					{@const a2aAgentCardFields = { ...a2aAgentCard[EntityMetaKey.Selector], ...a2aAgentCard }}
-					{@const selection = select(EntityType.A2aAgentCard, a2aAgentCard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<A2aAgentCardView
-						selection={selection}
-						prefetched={a2aAgentCardFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.A2aAgentCard}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: a2aAgentCard })}
+		{@const a2aAgentCardFields = { ...a2aAgentCard[EntityMetaKey.Selector], ...a2aAgentCard }}
+		{@const selection = select(EntityType.A2aAgentCard, a2aAgentCard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<A2aAgentCardView
+			selection={selection}
+			prefetched={a2aAgentCardFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

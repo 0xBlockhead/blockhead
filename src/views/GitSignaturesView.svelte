@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GitSignatureView from '$/views/GitSignatureView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					signatureId: true,
-					verificationStatus: true,
-					signatureKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitSignature}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.GitSignature}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				signatureId: true,
+				verificationStatus: true,
+				signatureKind: true,
+			},
+		})
+	}
+	getResourceItems={(gitSignatures) => [...new Map(gitSignatures.values.map((gitSignature) => [gitSignature[EntityMetaKey.SelectorKey], gitSignature])).values()]}
+	getKey={(gitSignature) => gitSignature[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Git signatures yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(gitSignatures)}
-			{@const uniqueGitSignatures = [...new Map(gitSignatures.values.map((gitSignature) => [gitSignature[EntityMetaKey.SelectorKey], gitSignature])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.GitSignature}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={gitSignatures.totalCount}
-				getKey={(gitSignature) => gitSignature[EntityMetaKey.SelectorKey]}
-				items={uniqueGitSignatures}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Git signatures yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: gitSignature })}
-					{@const gitSignatureFields = { ...gitSignature[EntityMetaKey.Selector], ...gitSignature }}
-					{@const selection = select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<GitSignatureView
-						selection={selection}
-						prefetched={gitSignatureFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.GitSignature}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: gitSignature })}
+		{@const gitSignatureFields = { ...gitSignature[EntityMetaKey.Selector], ...gitSignature }}
+		{@const selection = select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GitSignatureView
+			selection={selection}
+			prefetched={gitSignatureFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

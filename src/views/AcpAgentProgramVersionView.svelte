@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const acpAgentProgramVersion = $derived(selection({
-		sources: [
-			Source.AcpRegistry_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			distributionKind: true,
 		},
@@ -73,78 +70,82 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={acpAgentProgramVersion}>
-			{#snippet Pending()}
-				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent program version'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={acpAgentProgramVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpAgentProgramVersion}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$program}
-				>
-					{#snippet children(acpAgentProgram)}
-						{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramView
-								selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgram}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$program}
-				>
-					{#snippet children(acpAgentProgram)}
-						{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramView
-								selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgram}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					<ResourceBoundary
+						resource={selection.$program}
+					>
+						{#snippet children(acpAgentProgram)}
+							{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
+								<AcpAgentProgramView
+									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+									prefetched={acpAgentProgram}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={acpAgentProgramVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$program}
+					>
+						{#snippet children(acpAgentProgram)}
+							{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
+								<AcpAgentProgramView
+									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+									prefetched={acpAgentProgram}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={acpAgentProgramVersion}>
-			{#snippet Pending()}
-				{@const distributionKind0 = pendingEntity.distributionKind}
-				{#if distributionKind0 !== undefined && distributionKind0 !== null}
-					<span data-text="muted">
-						{String((distributionKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const distributionKind0 = resolvedEntity.distributionKind}
-				{#if distributionKind0 !== undefined && distributionKind0 !== null}
-					<span data-text="muted">
-						{String((distributionKind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const distributionKind0 = pendingEntity.distributionKind}
+			{#if distributionKind0 !== undefined && distributionKind0 !== null}
+				<span data-text="muted">
+					{String((distributionKind0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={acpAgentProgramVersion}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const distributionKind0 = resolvedEntity.distributionKind}
+					{#if distributionKind0 !== undefined && distributionKind0 !== null}
+						<span data-text="muted">
+							{String((distributionKind0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,8 +153,6 @@
 			<ResourceBoundary
 				resource={selection.$program}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(acpAgentProgram)}
 					{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
 						<div>
@@ -174,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -209,8 +197,6 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,24 +219,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							releaseDate: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const releaseDate = pendingEntity.releaseDate}
-					{#if releaseDate !== undefined && releaseDate !== null}
-						<div>
-							<dt>release date</dt>
-							<dd>
-								<Timestamp timestamp={Number(releaseDate)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const releaseDate = resolvedEntity.releaseDate}
@@ -268,24 +243,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							distributionKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const distributionKind = pendingEntity.distributionKind}
-					{#if distributionKind !== undefined && distributionKind !== null}
-						<div>
-							<dt>distribution kind</dt>
-							<dd>
-								{String((distributionKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const distributionKind = resolvedEntity.distributionKind}
@@ -303,24 +267,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							command: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const command = pendingEntity.command}
-					{#if command !== undefined && command !== null}
-						<div>
-							<dt>command</dt>
-							<dd>
-								{String((command) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const command = resolvedEntity.command}

@@ -143,9 +143,9 @@ entity({
 					field: 'missingListField',
 				}],
 			},
-			// @ts-expect-error Carousel conditions and sections must reference captured entity fields.
 			carousels: [{
 				label: 'Fixture carousel',
+				// @ts-expect-error Carousel conditions must reference captured entity fields.
 				conditions: [{
 					field: ['MissingFacet', 'facetField'],
 				}],

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CosmosValidatorView from '$/views/CosmosValidatorView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					moniker: true,
-					operatorAddress: true,
-					$network: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CosmosValidator}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				moniker: true,
+				operatorAddress: true,
+				$network: true,
+			},
+		})
+	}
+	getResourceItems={(cosmosValidators) => [...new Map(cosmosValidators.values.map((cosmosValidator) => [cosmosValidator[EntityMetaKey.SelectorKey], cosmosValidator])).values()]}
+	getKey={(cosmosValidator) => cosmosValidator[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cosmos validators yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cosmosValidators)}
-			{@const uniqueCosmosValidators = [...new Map(cosmosValidators.values.map((cosmosValidator) => [cosmosValidator[EntityMetaKey.SelectorKey], cosmosValidator])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosValidators.totalCount}
-				getKey={(cosmosValidator) => cosmosValidator[EntityMetaKey.SelectorKey]}
-				items={uniqueCosmosValidators}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cosmos validators yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cosmosValidator })}
-					{@const cosmosValidatorFields = { ...cosmosValidator[EntityMetaKey.Selector], ...cosmosValidator }}
-					{@const selection = select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CosmosValidatorView
-						selection={selection}
-						prefetched={cosmosValidatorFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CosmosValidator}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cosmosValidator })}
+		{@const cosmosValidatorFields = { ...cosmosValidator[EntityMetaKey.Selector], ...cosmosValidator }}
+		{@const selection = select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CosmosValidatorView
+			selection={selection}
+			prefetched={cosmosValidatorFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

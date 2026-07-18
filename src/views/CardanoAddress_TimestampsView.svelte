@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CardanoAddress_TimestampView from '$/views/CardanoAddress_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoAddress_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.CardanoAddress_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(cardanoAddressTimestamps) => [...new Map(cardanoAddressTimestamps.values.map((cardanoAddressTimestamp) => [cardanoAddressTimestamp[EntityMetaKey.SelectorKey], cardanoAddressTimestamp])).values()]}
+	getKey={(cardanoAddressTimestamp) => cardanoAddressTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Cardano address observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(cardanoAddressTimestamps)}
-			{@const uniqueCardanoAddressTimestamps = [...new Map(cardanoAddressTimestamps.values.map((cardanoAddressTimestamp) => [cardanoAddressTimestamp[EntityMetaKey.SelectorKey], cardanoAddressTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CardanoAddress_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cardanoAddressTimestamps.totalCount}
-				getKey={(cardanoAddressTimestamp) => cardanoAddressTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueCardanoAddressTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Cardano address observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: cardanoAddressTimestamp })}
-					{@const cardanoAddressTimestampFields = { ...cardanoAddressTimestamp[EntityMetaKey.Selector], ...cardanoAddressTimestamp }}
-					{@const selection = select(EntityType.CardanoAddress_Timestamp, cardanoAddressTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<CardanoAddress_TimestampView
-						selection={selection}
-						prefetched={cardanoAddressTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.CardanoAddress_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: cardanoAddressTimestamp })}
+		{@const cardanoAddressTimestampFields = { ...cardanoAddressTimestamp[EntityMetaKey.Selector], ...cardanoAddressTimestamp }}
+		{@const selection = select(EntityType.CardanoAddress_Timestamp, cardanoAddressTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<CardanoAddress_TimestampView
+			selection={selection}
+			prefetched={cardanoAddressTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

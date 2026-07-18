@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiModelVersionView from '$/views/AiModelVersionView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					versionId: true,
-					$model: true,
-					revision: true,
-					$artifact: true,
-					quantization: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiModelVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiModelVersion}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				versionId: true,
+				$model: true,
+				revision: true,
+				$artifact: true,
+				quantization: true,
+			},
+		})
+	}
+	getResourceItems={(aiModelVersions) => [...new Map(aiModelVersions.values.map((aiModelVersion) => [aiModelVersion[EntityMetaKey.SelectorKey], aiModelVersion])).values()]}
+	getKey={(aiModelVersion) => aiModelVersion[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI model versions yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiModelVersions)}
-			{@const uniqueAiModelVersions = [...new Map(aiModelVersions.values.map((aiModelVersion) => [aiModelVersion[EntityMetaKey.SelectorKey], aiModelVersion])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiModelVersion}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiModelVersions.totalCount}
-				getKey={(aiModelVersion) => aiModelVersion[EntityMetaKey.SelectorKey]}
-				items={uniqueAiModelVersions}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI model versions yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiModelVersion })}
-					{@const aiModelVersionFields = { ...aiModelVersion[EntityMetaKey.Selector], ...aiModelVersion }}
-					{@const selection = select(EntityType.AiModelVersion, aiModelVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiModelVersionView
-						selection={selection}
-						prefetched={aiModelVersionFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiModelVersion}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiModelVersion })}
+		{@const aiModelVersionFields = { ...aiModelVersion[EntityMetaKey.Selector], ...aiModelVersion }}
+		{@const selection = select(EntityType.AiModelVersion, aiModelVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiModelVersionView
+			selection={selection}
+			prefetched={aiModelVersionFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

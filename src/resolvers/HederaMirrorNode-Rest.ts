@@ -1,15 +1,27 @@
+import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
-import type { EntitySelector } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { HederaAccountSelector } from '$/schema/HederaAccount.ts'
 import { HederaBlockSelector } from '$/schema/HederaBlock.ts'
 import { schema } from '$/schema/index.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type { HederaMirrorNodeBlock } from '$/sources/HederaMirrorNode/Rest/types.ts'
 
 const hederaMirrorNodeBinding = sourceProviderDefinitions
 	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.HederaMirrorNode_Rest)
+	.find((binding) => (
+		binding.source === Source.HederaMirrorNode_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'hedera:mainnet'
+	))
 
 if (hederaMirrorNodeBinding == null)
 	throw new Error('HederaMirrorNode_Rest: source binding is missing')
@@ -17,7 +29,17 @@ if (hederaMirrorNodeBinding == null)
 const assertHederaMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
-	if (network.slug !== 'hedera')
+	if (
+		!(
+			'slug' in network
+			&& network.slug === networkBySlug.hedera.slug
+		)
+		&& !(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.hedera.caip2.namespace
+			&& network.caip2.reference === networkBySlug.hedera.caip2.reference
+		)
+	)
 		throw new Error('HederaMirrorNode_Rest: unsupported network')
 }
 
@@ -50,28 +72,80 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.HederaMirrorNode_Rest, {
+			entityType: EntityType.HederaAccount,
+			resolve: {
+				[HederaAccountSelector.NetworkAccountId]: {
+					resolve: async ({ $network, accountId }) => {
+						assertHederaMainnet($network)
+						const { getAccount } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const account = await getAccount(hederaMirrorNodeBinding, accountId)
+						if (account.account !== accountId)
+							throw new Error('HederaMirrorNode_Rest: response account does not match request')
+
+						return {
+							accountId: account.account,
+						}
+					},
+				},
+			},
+		})({
+			accountId: (account) => account.accountId,
+		}),
+
+		defineResolver(Source.HederaMirrorNode_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: {
+					resolve: async (network, context) => {
+						assertHederaMainnet(network)
+						const { getBlocks } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+
+						return (await getBlocks(
+							hederaMirrorNodeBinding,
+							Math.min(resolverContextRowLimit(context), 100)
+						)).blocks.map((block) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								blockNumber: BigInt(nonnegativeSafeInteger(block.number, 'block number')),
+							},
+							...blockFields(block),
+						}))
+					},
+				},
+			},
+		})({
+			Hedera: {
+				$$blocks: (blocks) => blocks,
+			},
+		}),
+
+		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaBlock,
 			resolve: {
-				[HederaBlockSelector.NetworkBlockNumber]: async ({ $network, blockNumber: requestedBlockNumber }) => {
-					assertHederaMainnet($network)
-					const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-					const block = await getBlock(hederaMirrorNodeBinding, requestedBlockNumber.toString())
-					if (BigInt(nonnegativeSafeInteger(block.number, 'block number')) !== requestedBlockNumber)
-						throw new Error('HederaMirrorNode_Rest: response block does not match request')
+				[HederaBlockSelector.NetworkBlockNumber]: {
+					resolve: async ({ $network, blockNumber: requestedBlockNumber }) => {
+						assertHederaMainnet($network)
+						const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const block = await getBlock(hederaMirrorNodeBinding, requestedBlockNumber.toString())
+						if (BigInt(nonnegativeSafeInteger(block.number, 'block number')) !== requestedBlockNumber)
+							throw new Error('HederaMirrorNode_Rest: response block does not match request')
 
-					return blockFields(block)
+						return blockFields(block)
+					},
 				},
-				[HederaBlockSelector.NetworkBlockHash]: async ({ $network, blockHash: requestedBlockHash }) => {
-					assertHederaMainnet($network)
-					const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-					const block = await getBlock(hederaMirrorNodeBinding, requestedBlockHash)
-					if (
-						block.hash.replace(/^0x/i, '').toLowerCase()
-						!== requestedBlockHash.replace(/^0x/i, '').toLowerCase()
-					)
-						throw new Error('HederaMirrorNode_Rest: response block does not match request')
+				[HederaBlockSelector.NetworkBlockHash]: {
+					resolve: async ({ $network, blockHash: requestedBlockHash }) => {
+						assertHederaMainnet($network)
+						const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const block = await getBlock(hederaMirrorNodeBinding, requestedBlockHash)
+						if (
+							block.hash.replace(/^0x/i, '').toLowerCase()
+							!== requestedBlockHash.replace(/^0x/i, '').toLowerCase()
+						)
+							throw new Error('HederaMirrorNode_Rest: response block does not match request')
 
-					return blockFields(block)
+						return blockFields(block)
+					},
 				},
 			},
 		})({

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StellarLedgerView from '$/views/StellarLedgerView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarLedger}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.StellarLedger}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(stellarLedgers) => [...new Map(stellarLedgers.values.map((stellarLedger) => [stellarLedger[EntityMetaKey.SelectorKey], stellarLedger])).values()]}
+	getKey={(stellarLedger) => stellarLedger[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Stellar ledgers yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(stellarLedgers)}
-			{@const uniqueStellarLedgers = [...new Map(stellarLedgers.values.map((stellarLedger) => [stellarLedger[EntityMetaKey.SelectorKey], stellarLedger])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.StellarLedger}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={stellarLedgers.totalCount}
-				getKey={(stellarLedger) => stellarLedger[EntityMetaKey.SelectorKey]}
-				items={uniqueStellarLedgers}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Stellar ledgers yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: stellarLedger })}
-					{@const stellarLedgerFields = { ...stellarLedger[EntityMetaKey.Selector], ...stellarLedger }}
-					{@const selection = select(EntityType.StellarLedger, stellarLedger[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<StellarLedgerView
-						selection={selection}
-						prefetched={stellarLedgerFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.StellarLedger}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: stellarLedger })}
+		{@const stellarLedgerFields = { ...stellarLedger[EntityMetaKey.Selector], ...stellarLedger }}
+		{@const selection = select(EntityType.StellarLedger, stellarLedger[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<StellarLedgerView
+			selection={selection}
+			prefetched={stellarLedgerFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

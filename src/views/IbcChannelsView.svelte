@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IbcChannelView from '$/views/IbcChannelView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					channelId: true,
-					state: true,
-					portId: true,
-					counterpartyChainId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IbcChannel}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				channelId: true,
+				state: true,
+				portId: true,
+				counterpartyChainId: true,
+			},
+		})
+	}
+	getResourceItems={(ibcChannels) => [...new Map(ibcChannels.values.map((ibcChannel) => [ibcChannel[EntityMetaKey.SelectorKey], ibcChannel])).values()]}
+	getKey={(ibcChannel) => ibcChannel[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No IBC channels yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ibcChannels)}
-			{@const uniqueIbcChannels = [...new Map(ibcChannels.values.map((ibcChannel) => [ibcChannel[EntityMetaKey.SelectorKey], ibcChannel])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ibcChannels.totalCount}
-				getKey={(ibcChannel) => ibcChannel[EntityMetaKey.SelectorKey]}
-				items={uniqueIbcChannels}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No IBC channels yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ibcChannel })}
-					{@const ibcChannelFields = { ...ibcChannel[EntityMetaKey.Selector], ...ibcChannel }}
-					{@const selection = select(EntityType.IbcChannel, ibcChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IbcChannelView
-						selection={selection}
-						prefetched={ibcChannelFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IbcChannel}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ibcChannel })}
+		{@const ibcChannelFields = { ...ibcChannel[EntityMetaKey.Selector], ...ibcChannel }}
+		{@const selection = select(EntityType.IbcChannel, ibcChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IbcChannelView
+			selection={selection}
+			prefetched={ibcChannelFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

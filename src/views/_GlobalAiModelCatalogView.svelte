@@ -36,7 +36,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalAiModelCatalog = $derived(selection({}))
+	const globalAiModelCatalog = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('global AI model catalog')
 	const viewDomId = $derived('-global-ai-model-catalog-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,16 +68,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={globalAiModelCatalog}>
-			{#snippet Pending()}
-				{title || 'global AI model catalog'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={globalAiModelCatalog}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -86,19 +88,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									catalogId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const catalogId = pendingEntity.catalogId}
-							{#if catalogId !== undefined && catalogId !== null}
-								{String((catalogId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const catalogId = resolvedEntity.catalogId}
@@ -113,24 +109,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							label: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const label = pendingEntity.label}
-					{#if label !== undefined && label !== null}
-						<div>
-							<dt>Label</dt>
-							<dd>
-								{String((label) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const label = resolvedEntity.label}
@@ -148,24 +133,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							catalogKind: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const catalogKind = pendingEntity.catalogKind}
-					{#if catalogKind !== undefined && catalogKind !== null}
-						<div>
-							<dt>catalog kind</dt>
-							<dd>
-								{String((catalogKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const catalogKind = resolvedEntity.catalogKind}
@@ -205,11 +179,8 @@
 				}
 				data-card
 				class='network-view-collapsible-directory'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Providers and models</HeadingComponent>
 					</header>
@@ -217,12 +188,12 @@
 
 				{#snippet SectionAiProviders({ id, label, open })}
 					<AiModelProvidersView
-						selection={
-							selection.$$providers({
-								count: true,
-							})
-						}
+						selection={selection.$$providers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI model providers.'
 						open={open}
 						title={label}
@@ -232,12 +203,12 @@
 
 				{#snippet SectionAiCatalogEntries({ id, label, open })}
 					<AiProviderCatalogEntriesView
-						selection={
-							selection.$$catalogEntries({
-								count: true,
-							})
-						}
+						selection={selection.$$catalogEntries}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI provider catalog entries.'
 						open={open}
 						title={label}
@@ -247,12 +218,12 @@
 
 				{#snippet SectionAiModels({ id, label, open })}
 					<AiModelsView
-						selection={
-							selection.$$models({
-								count: true,
-							})
-						}
+						selection={selection.$$models}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI models.'
 						open={open}
 						title={label}
@@ -283,11 +254,8 @@
 				}
 				data-card
 				class='network-view-collapsible-evaluation'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Datasets and evaluation</HeadingComponent>
 					</header>
@@ -295,12 +263,12 @@
 
 				{#snippet SectionAiDatasets({ id, label, open })}
 					<AiDatasetsView
-						selection={
-							selection.$$datasets({
-								count: true,
-							})
-						}
+						selection={selection.$$datasets}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI datasets.'
 						open={open}
 						title={label}
@@ -310,12 +278,12 @@
 
 				{#snippet SectionAiBenchmarks({ id, label, open })}
 					<AiBenchmarksView
-						selection={
-							selection.$$benchmarks({
-								count: true,
-							})
-						}
+						selection={selection.$$benchmarks}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI benchmarks.'
 						open={open}
 						title={label}
@@ -325,12 +293,12 @@
 
 				{#snippet SectionAiEvaluations({ id, label, open })}
 					<AiEvaluation_TimestampsView
-						selection={
-							selection.$$evaluations({
-								count: true,
-							})
-						}
+						selection={selection.$$evaluations}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI evaluation observations.'
 						open={open}
 						title={label}
@@ -353,11 +321,8 @@
 				}
 				data-card
 				class='network-view-collapsible-observations'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Observations</HeadingComponent>
 					</header>
@@ -365,12 +330,12 @@
 
 				{#snippet SectionAiCatalogTimestamps({ id, label, open })}
 					<GlobalAiModelCatalog_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No AI model catalog observations.'
 						open={open}
 						title={label}

@@ -43,6 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotExtrinsic = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			callName: true,
 			success: true,
@@ -98,39 +99,39 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={polkadotExtrinsic}>
-			{#snippet Pending()}
-				{[String((pendingEntity.callName) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot extrinsic'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.callName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.callName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={polkadotExtrinsic}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.callName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotExtrinsic}>
-			{#snippet Pending()}
-				{@const success0 = pendingEntity.success}
-				{#if success0 !== undefined && success0 !== null}
-					<span data-text="muted">
-						{success0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const success0 = resolvedEntity.success}
-				{#if success0 !== undefined && success0 !== null}
-					<span data-text="muted">
-						{success0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const success0 = pendingEntity.success}
+			{#if success0 !== undefined && success0 !== null}
+				<span data-text="muted">
+					{success0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={polkadotExtrinsic}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const success0 = resolvedEntity.success}
+					{#if success0 !== undefined && success0 !== null}
+						<span data-text="muted">
+							{success0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,19 +142,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInBlock: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInBlock = pendingEntity.indexInBlock}
-							{#if indexInBlock !== undefined && indexInBlock !== null}
-								{String((indexInBlock) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInBlock = resolvedEntity.indexInBlock}
@@ -168,24 +163,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							hash: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const hash = resolvedEntity.hash}
@@ -203,24 +187,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							callName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const callName = pendingEntity.callName}
-					{#if callName !== undefined && callName !== null}
-						<div>
-							<dt>Call name</dt>
-							<dd>
-								{String((callName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const callName = resolvedEntity.callName}
@@ -238,24 +211,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							success: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const success = pendingEntity.success}
-					{#if success !== undefined && success !== null}
-						<div>
-							<dt>Success</dt>
-							<dd>
-								{success ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const success = resolvedEntity.success}
@@ -275,8 +237,6 @@
 			<ResourceBoundary
 				resource={selection.$signer}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(polkadotAccount)}
 					{#if polkadotAccount != null && polkadotAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -306,8 +266,6 @@
 			<ResourceBoundary
 				resource={selection.$pallet}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
 						<div>

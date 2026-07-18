@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HederaAllowance_TimestampView from '$/views/HederaAllowance_TimestampView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaAllowance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.HederaAllowance_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(hederaAllowanceTimestamps) => [...new Map(hederaAllowanceTimestamps.values.map((hederaAllowanceTimestamp) => [hederaAllowanceTimestamp[EntityMetaKey.SelectorKey], hederaAllowanceTimestamp])).values()]}
+	getKey={(hederaAllowanceTimestamp) => hederaAllowanceTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Hedera allowance observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(hederaAllowanceTimestamps)}
-			{@const uniqueHederaAllowanceTimestamps = [...new Map(hederaAllowanceTimestamps.values.map((hederaAllowanceTimestamp) => [hederaAllowanceTimestamp[EntityMetaKey.SelectorKey], hederaAllowanceTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.HederaAllowance_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={hederaAllowanceTimestamps.totalCount}
-				getKey={(hederaAllowanceTimestamp) => hederaAllowanceTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueHederaAllowanceTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Hedera allowance observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: hederaAllowanceTimestamp })}
-					{@const hederaAllowanceTimestampFields = { ...hederaAllowanceTimestamp[EntityMetaKey.Selector], ...hederaAllowanceTimestamp }}
-					{@const selection = select(EntityType.HederaAllowance_Timestamp, hederaAllowanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<HederaAllowance_TimestampView
-						selection={selection}
-						prefetched={hederaAllowanceTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.HederaAllowance_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: hederaAllowanceTimestamp })}
+		{@const hederaAllowanceTimestampFields = { ...hederaAllowanceTimestamp[EntityMetaKey.Selector], ...hederaAllowanceTimestamp }}
+		{@const selection = select(EntityType.HederaAllowance_Timestamp, hederaAllowanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<HederaAllowance_TimestampView
+			selection={selection}
+			prefetched={hederaAllowanceTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

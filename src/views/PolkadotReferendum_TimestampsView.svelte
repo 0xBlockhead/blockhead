@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import PolkadotReferendum_TimestampView from '$/views/PolkadotReferendum_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					status: true,
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotReferendum_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.PolkadotReferendum_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				status: true,
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(polkadotReferendumTimestamps) => [...new Map(polkadotReferendumTimestamps.values.map((polkadotReferendumTimestamp) => [polkadotReferendumTimestamp[EntityMetaKey.SelectorKey], polkadotReferendumTimestamp])).values()]}
+	getKey={(polkadotReferendumTimestamp) => polkadotReferendumTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Polkadot referendum observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(polkadotReferendumTimestamps)}
-			{@const uniquePolkadotReferendumTimestamps = [...new Map(polkadotReferendumTimestamps.values.map((polkadotReferendumTimestamp) => [polkadotReferendumTimestamp[EntityMetaKey.SelectorKey], polkadotReferendumTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotReferendum_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotReferendumTimestamps.totalCount}
-				getKey={(polkadotReferendumTimestamp) => polkadotReferendumTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniquePolkadotReferendumTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Polkadot referendum observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: polkadotReferendumTimestamp })}
-					{@const polkadotReferendumTimestampFields = { ...polkadotReferendumTimestamp[EntityMetaKey.Selector], ...polkadotReferendumTimestamp }}
-					{@const selection = select(EntityType.PolkadotReferendum_Timestamp, polkadotReferendumTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<PolkadotReferendum_TimestampView
-						selection={selection}
-						prefetched={polkadotReferendumTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.PolkadotReferendum_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: polkadotReferendumTimestamp })}
+		{@const polkadotReferendumTimestampFields = { ...polkadotReferendumTimestamp[EntityMetaKey.Selector], ...polkadotReferendumTimestamp }}
+		{@const selection = select(EntityType.PolkadotReferendum_Timestamp, polkadotReferendumTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<PolkadotReferendum_TimestampView
+			selection={selection}
+			prefetched={polkadotReferendumTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

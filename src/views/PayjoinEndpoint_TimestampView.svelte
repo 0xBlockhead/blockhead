@@ -41,6 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const payjoinEndpointTimestamp = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			responseStatus: true,
 			error: true,
@@ -71,70 +72,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={payjoinEndpointTimestamp}>
-			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const timestampMs0 = pendingEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={payjoinEndpointTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={payjoinEndpointTimestamp}>
-			{#snippet Pending()}
-				{[String((pendingEntity.responseStatus) ?? ''), String((pendingEntity.error) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.responseStatus) ?? ''), String((resolvedEntity.error) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.responseStatus) ?? ''), String((pendingEntity.error) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={payjoinEndpointTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.responseStatus) ?? ''), String((resolvedEntity.error) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={payjoinEndpointTimestamp}>
-			{#snippet Pending()}
-				{@const requiresOhttp0 = pendingEntity.requiresOhttp}
-				{#if requiresOhttp0 !== undefined && requiresOhttp0 !== null}
-					<span data-text="muted">
-						{requiresOhttp0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-				{@const supportsOutputSubstitution1 = pendingEntity.supportsOutputSubstitution}
-				{#if supportsOutputSubstitution1 !== undefined && supportsOutputSubstitution1 !== null}
-					<span data-text="muted">
-						{supportsOutputSubstitution1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const requiresOhttp0 = resolvedEntity.requiresOhttp}
-				{#if requiresOhttp0 !== undefined && requiresOhttp0 !== null}
-					<span data-text="muted">
-						{requiresOhttp0 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-				{@const supportsOutputSubstitution1 = resolvedEntity.supportsOutputSubstitution}
-				{#if supportsOutputSubstitution1 !== undefined && supportsOutputSubstitution1 !== null}
-					<span data-text="muted">
-						{supportsOutputSubstitution1 ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const requiresOhttp0 = pendingEntity.requiresOhttp}
+			{#if requiresOhttp0 !== undefined && requiresOhttp0 !== null}
+				<span data-text="muted">
+					{requiresOhttp0 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+			{@const supportsOutputSubstitution1 = pendingEntity.supportsOutputSubstitution}
+			{#if supportsOutputSubstitution1 !== undefined && supportsOutputSubstitution1 !== null}
+				<span data-text="muted">
+					{supportsOutputSubstitution1 ? 'Yes' : 'No'}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={payjoinEndpointTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const requiresOhttp0 = resolvedEntity.requiresOhttp}
+					{#if requiresOhttp0 !== undefined && requiresOhttp0 !== null}
+						<span data-text="muted">
+							{requiresOhttp0 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+					{@const supportsOutputSubstitution1 = resolvedEntity.supportsOutputSubstitution}
+					{#if supportsOutputSubstitution1 !== undefined && supportsOutputSubstitution1 !== null}
+						<span data-text="muted">
+							{supportsOutputSubstitution1 ? 'Yes' : 'No'}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,19 +157,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -186,19 +181,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -215,24 +204,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							supportsOutputSubstitution: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const supportsOutputSubstitution = pendingEntity.supportsOutputSubstitution}
-					{#if supportsOutputSubstitution !== undefined && supportsOutputSubstitution !== null}
-						<div>
-							<dt>supports output substitution</dt>
-							<dd>
-								{supportsOutputSubstitution ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const supportsOutputSubstitution = resolvedEntity.supportsOutputSubstitution}
@@ -250,24 +228,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							requiresOhttp: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const requiresOhttp = pendingEntity.requiresOhttp}
-					{#if requiresOhttp !== undefined && requiresOhttp !== null}
-						<div>
-							<dt>requires ohttp</dt>
-							<dd>
-								{requiresOhttp ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const requiresOhttp = resolvedEntity.requiresOhttp}
@@ -285,24 +252,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxPayloadBytes: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxPayloadBytes = pendingEntity.maxPayloadBytes}
-					{#if maxPayloadBytes !== undefined && maxPayloadBytes !== null}
-						<div>
-							<dt>max payload bytes</dt>
-							<dd>
-								<NumberValue value={Number(maxPayloadBytes)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxPayloadBytes = resolvedEntity.maxPayloadBytes}
@@ -310,7 +266,9 @@
 						<div>
 							<dt>max payload bytes</dt>
 							<dd>
-								<NumberValue value={Number(maxPayloadBytes)} />
+								<NumberValue
+									value={maxPayloadBytes}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -322,24 +280,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							lastSeenAt: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const lastSeenAt = pendingEntity.lastSeenAt}
-					{#if lastSeenAt !== undefined && lastSeenAt !== null}
-						<div>
-							<dt>last seen AT</dt>
-							<dd>
-								<Timestamp timestamp={Number(lastSeenAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const lastSeenAt = resolvedEntity.lastSeenAt}
@@ -357,24 +304,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							responseStatus: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const responseStatus = pendingEntity.responseStatus}
-					{#if responseStatus !== undefined && responseStatus !== null}
-						<div>
-							<dt>response status</dt>
-							<dd>
-								<NumberValue value={Number(responseStatus)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const responseStatus = resolvedEntity.responseStatus}
@@ -382,7 +318,9 @@
 						<div>
 							<dt>response status</dt>
 							<dd>
-								<NumberValue value={Number(responseStatus)} />
+								<NumberValue
+									value={responseStatus}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -392,24 +330,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							error: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const error = pendingEntity.error}
-					{#if error !== undefined && error !== null}
-						<div>
-							<dt>error</dt>
-							<dd>
-								{String((error) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const error = resolvedEntity.error}

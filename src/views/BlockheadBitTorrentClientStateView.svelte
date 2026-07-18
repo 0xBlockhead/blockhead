@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadBitTorrentClientState = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			clientName: true,
 			peerId: true,
@@ -64,29 +65,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadBitTorrentClientState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadBitTorrentClientState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadBitTorrentClientState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadBitTorrentClientState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,19 +98,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									clientId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const clientId = pendingEntity.clientId}
-							{#if clientId !== undefined && clientId !== null}
-								{String((clientId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const clientId = resolvedEntity.clientId}
@@ -124,24 +119,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							clientName: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const clientName = pendingEntity.clientName}
-					{#if clientName !== undefined && clientName !== null}
-						<div>
-							<dt>client name</dt>
-							<dd>
-								{String((clientName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const clientName = resolvedEntity.clientName}
@@ -159,24 +143,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							peerId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const peerId = pendingEntity.peerId}
-					{#if peerId !== undefined && peerId !== null}
-						<div>
-							<dt>peer ID</dt>
-							<dd>
-								{String((peerId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const peerId = resolvedEntity.peerId}
@@ -194,24 +167,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							dhtNodeId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const dhtNodeId = pendingEntity.dhtNodeId}
-					{#if dhtNodeId !== undefined && dhtNodeId !== null}
-						<div>
-							<dt>DHT node ID</dt>
-							<dd>
-								{String((dhtNodeId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const dhtNodeId = resolvedEntity.dhtNodeId}

@@ -51,7 +51,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
@@ -63,87 +62,54 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					$icon: true,
-					name: true,
-					caip2: true,
-					slug: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Network}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.Network}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				$icon: true,
+				name: true,
+				caip2: true,
+				slug: true,
+			},
+		})
+	}
+	getResourceItems={(networks) => [...new Map(networks.values.map((network) => [network[EntityMetaKey.SelectorKey], network])).values()]}
+	getKey={(network) => network[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Networks yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(networks)}
-			{@const uniqueNetworks = [...new Map(networks.values.map((network) => [network[EntityMetaKey.SelectorKey], network])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Network}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={networks.totalCount}
-				getKey={(network) => network[EntityMetaKey.SelectorKey]}
-				items={uniqueNetworks}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Networks yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: network })}
-					{@const networkFields = { ...network[EntityMetaKey.Selector], ...network }}
-					{@const selection = select(EntityType.Network, network[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					{@const networkHrefFields = { ...network, ...network[EntityMetaKey.Selector] }}
-					<NetworkView
-						selection={selection}
-						prefetched={networkFields}
-						href={
-							(networkHrefFields.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(networkHrefFields.caip2) ?? ''),
-							}) : networkHrefFields.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(networkHrefFields.slug ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.Network}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: network })}
+		{@const networkFields = { ...network[EntityMetaKey.Selector], ...network }}
+		{@const selection = select(EntityType.Network, network[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		{@const networkHrefFields = { ...network, ...network[EntityMetaKey.Selector] }}
+		<NetworkView
+			selection={selection}
+			prefetched={networkFields}
+			href={
+				(networkHrefFields.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+					network: String(caip2StringFromValue(networkHrefFields.caip2) ?? ''),
+				}) : networkHrefFields.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+					network: String(networkHrefFields.slug ?? ''),
+				}) : undefined)
+			}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

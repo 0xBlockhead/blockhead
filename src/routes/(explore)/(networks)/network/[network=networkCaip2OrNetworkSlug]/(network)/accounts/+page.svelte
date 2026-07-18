@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,10 +45,16 @@
 				title='Solana accounts'
 				selection={
 					projection.$$accounts({
+						sources: [
+							Source.Solana_JsonRpc,
+						],
 						count: true,
 					})
 				}
 				id='accounts'
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</ProjectionBoundary>

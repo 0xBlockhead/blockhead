@@ -36,7 +36,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleIdentityRevision = $derived(selection({}))
+	const radicleIdentityRevision = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('radicle identity revision')
 	const viewDomId = $derived('radicle-identity-revision-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -58,16 +60,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={radicleIdentityRevision}>
-			{#snippet Pending()}
-				{title || 'radicle identity revision'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={radicleIdentityRevision}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -78,19 +80,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									rid: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const rid = pendingEntity.rid}
-							{#if rid !== undefined && rid !== null}
-								{String((rid) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rid = resolvedEntity.rid}
@@ -108,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									revision: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const revision = pendingEntity.revision}
-							{#if revision !== undefined && revision !== null}
-								{String((revision) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const revision = resolvedEntity.revision}
@@ -135,24 +125,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							previousRevision: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const previousRevision = pendingEntity.previousRevision}
-					{#if previousRevision !== undefined && previousRevision !== null}
-						<div>
-							<dt>previous revision</dt>
-							<dd>
-								{String((previousRevision) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const previousRevision = resolvedEntity.previousRevision}
@@ -173,19 +152,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									documentHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const documentHash = pendingEntity.documentHash}
-							{#if documentHash !== undefined && documentHash !== null}
-								<TruncatedValue value={String((documentHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const documentHash = resolvedEntity.documentHash}
@@ -203,19 +176,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									delegateDids: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const delegateDids = pendingEntity.delegateDids}
-							{#if delegateDids !== undefined && delegateDids !== null}
-								{delegateDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const delegateDids = resolvedEntity.delegateDids}
@@ -230,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							threshold: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const threshold = pendingEntity.threshold}
-					{#if threshold !== undefined && threshold !== null}
-						<div>
-							<dt>threshold</dt>
-							<dd>
-								{String((threshold) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const threshold = resolvedEntity.threshold}
@@ -268,19 +224,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signedByDids: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signedByDids = pendingEntity.signedByDids}
-							{#if signedByDids !== undefined && signedByDids !== null}
-								{signedByDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signedByDids = resolvedEntity.signedByDids}
@@ -298,19 +248,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									verificationStatus: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const verificationStatus = pendingEntity.verificationStatus}
-							{#if verificationStatus !== undefined && verificationStatus !== null}
-								{String((verificationStatus) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const verificationStatus = resolvedEntity.verificationStatus}

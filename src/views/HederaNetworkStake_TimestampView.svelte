@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNetworkStakeTimestamp = $derived(selection({}))
+	const hederaNetworkStakeTimestamp = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('hedera network stake timestamp')
 	const viewDomId = $derived('hedera-network-stake-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hederaNetworkStakeTimestamp}>
-			{#snippet Pending()}
-				{title || 'hedera network stake timestamp'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={hederaNetworkStakeTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									timestampMs: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const timestampMs = resolvedEntity.timestampMs}
@@ -132,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									source: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const source = pendingEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const source = resolvedEntity.source}
@@ -159,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							epochDay: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const epochDay = pendingEntity.epochDay}
-					{#if epochDay !== undefined && epochDay !== null}
-						<div>
-							<dt>epoch day</dt>
-							<dd>
-								{String((epochDay) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const epochDay = resolvedEntity.epochDay}
@@ -194,24 +173,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxStakeRewardedTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxStakeRewardedTinybar = pendingEntity.maxStakeRewardedTinybar}
-					{#if maxStakeRewardedTinybar !== undefined && maxStakeRewardedTinybar !== null}
-						<div>
-							<dt>max stake rewarded tinybar</dt>
-							<dd>
-								{String((maxStakeRewardedTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxStakeRewardedTinybar = resolvedEntity.maxStakeRewardedTinybar}
@@ -229,24 +197,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxStakingRewardRatePerHbar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxStakingRewardRatePerHbar = pendingEntity.maxStakingRewardRatePerHbar}
-					{#if maxStakingRewardRatePerHbar !== undefined && maxStakingRewardRatePerHbar !== null}
-						<div>
-							<dt>max staking reward rate per HBAR</dt>
-							<dd>
-								{String((maxStakingRewardRatePerHbar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxStakingRewardRatePerHbar = resolvedEntity.maxStakingRewardRatePerHbar}
@@ -264,24 +221,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							maxTotalRewardTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const maxTotalRewardTinybar = pendingEntity.maxTotalRewardTinybar}
-					{#if maxTotalRewardTinybar !== undefined && maxTotalRewardTinybar !== null}
-						<div>
-							<dt>max total reward tinybar</dt>
-							<dd>
-								{String((maxTotalRewardTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const maxTotalRewardTinybar = resolvedEntity.maxTotalRewardTinybar}
@@ -299,24 +245,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							nodeRewardFeeFraction: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const nodeRewardFeeFraction = pendingEntity.nodeRewardFeeFraction}
-					{#if nodeRewardFeeFraction !== undefined && nodeRewardFeeFraction !== null}
-						<div>
-							<dt>node reward fee fraction</dt>
-							<dd>
-								{String((nodeRewardFeeFraction) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const nodeRewardFeeFraction = resolvedEntity.nodeRewardFeeFraction}
@@ -334,24 +269,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							reservedStakingRewardsTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const reservedStakingRewardsTinybar = pendingEntity.reservedStakingRewardsTinybar}
-					{#if reservedStakingRewardsTinybar !== undefined && reservedStakingRewardsTinybar !== null}
-						<div>
-							<dt>reserved staking rewards tinybar</dt>
-							<dd>
-								{String((reservedStakingRewardsTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const reservedStakingRewardsTinybar = resolvedEntity.reservedStakingRewardsTinybar}
@@ -369,24 +293,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							rewardBalanceTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const rewardBalanceTinybar = pendingEntity.rewardBalanceTinybar}
-					{#if rewardBalanceTinybar !== undefined && rewardBalanceTinybar !== null}
-						<div>
-							<dt>reward balance tinybar</dt>
-							<dd>
-								{String((rewardBalanceTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const rewardBalanceTinybar = resolvedEntity.rewardBalanceTinybar}
@@ -404,24 +317,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakeTotalTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakeTotalTinybar = pendingEntity.stakeTotalTinybar}
-					{#if stakeTotalTinybar !== undefined && stakeTotalTinybar !== null}
-						<div>
-							<dt>stake total tinybar</dt>
-							<dd>
-								{String((stakeTotalTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakeTotalTinybar = resolvedEntity.stakeTotalTinybar}
@@ -439,24 +341,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakingPeriodsStored: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakingPeriodsStored = pendingEntity.stakingPeriodsStored}
-					{#if stakingPeriodsStored !== undefined && stakingPeriodsStored !== null}
-						<div>
-							<dt>staking periods stored</dt>
-							<dd>
-								{String((stakingPeriodsStored) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakingPeriodsStored = resolvedEntity.stakingPeriodsStored}
@@ -474,24 +365,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakingRewardFeeFraction: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakingRewardFeeFraction = pendingEntity.stakingRewardFeeFraction}
-					{#if stakingRewardFeeFraction !== undefined && stakingRewardFeeFraction !== null}
-						<div>
-							<dt>staking reward fee fraction</dt>
-							<dd>
-								{String((stakingRewardFeeFraction) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakingRewardFeeFraction = resolvedEntity.stakingRewardFeeFraction}
@@ -509,24 +389,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							stakingStartThresholdTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const stakingStartThresholdTinybar = pendingEntity.stakingStartThresholdTinybar}
-					{#if stakingStartThresholdTinybar !== undefined && stakingStartThresholdTinybar !== null}
-						<div>
-							<dt>staking start threshold tinybar</dt>
-							<dd>
-								{String((stakingStartThresholdTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const stakingStartThresholdTinybar = resolvedEntity.stakingStartThresholdTinybar}
@@ -544,24 +413,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							unreservedStakingRewardBalanceTinybar: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const unreservedStakingRewardBalanceTinybar = pendingEntity.unreservedStakingRewardBalanceTinybar}
-					{#if unreservedStakingRewardBalanceTinybar !== undefined && unreservedStakingRewardBalanceTinybar !== null}
-						<div>
-							<dt>unreserved staking reward balance tinybar</dt>
-							<dd>
-								{String((unreservedStakingRewardBalanceTinybar) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const unreservedStakingRewardBalanceTinybar = resolvedEntity.unreservedStakingRewardBalanceTinybar}

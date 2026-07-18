@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IcpCanisterMethodView from '$/views/IcpCanisterMethodView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanisterMethod}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IcpCanisterMethod}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(icpCanisterMethods) => [...new Map(icpCanisterMethods.values.map((icpCanisterMethod) => [icpCanisterMethod[EntityMetaKey.SelectorKey], icpCanisterMethod])).values()]}
+	getKey={(icpCanisterMethod) => icpCanisterMethod[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ICP canister methods yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(icpCanisterMethods)}
-			{@const uniqueIcpCanisterMethods = [...new Map(icpCanisterMethods.values.map((icpCanisterMethod) => [icpCanisterMethod[EntityMetaKey.SelectorKey], icpCanisterMethod])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IcpCanisterMethod}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={icpCanisterMethods.totalCount}
-				getKey={(icpCanisterMethod) => icpCanisterMethod[EntityMetaKey.SelectorKey]}
-				items={uniqueIcpCanisterMethods}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ICP canister methods yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: icpCanisterMethod })}
-					{@const icpCanisterMethodFields = { ...icpCanisterMethod[EntityMetaKey.Selector], ...icpCanisterMethod }}
-					{@const selection = select(EntityType.IcpCanisterMethod, icpCanisterMethod[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IcpCanisterMethodView
-						selection={selection}
-						prefetched={icpCanisterMethodFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IcpCanisterMethod}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: icpCanisterMethod })}
+		{@const icpCanisterMethodFields = { ...icpCanisterMethod[EntityMetaKey.Selector], ...icpCanisterMethod }}
+		{@const selection = select(EntityType.IcpCanisterMethod, icpCanisterMethod[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IcpCanisterMethodView
+			selection={selection}
+			prefetched={icpCanisterMethodFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

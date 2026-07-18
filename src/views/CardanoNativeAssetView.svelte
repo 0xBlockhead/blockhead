@@ -42,7 +42,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoNativeAsset = $derived(selection({}))
+	const cardanoNativeAsset = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('Cardano native asset')
 	const viewDomId = $derived('cardano-native-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -64,16 +66,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cardanoNativeAsset}>
-			{#snippet Pending()}
-				{title || 'Cardano native asset'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoNativeAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,19 +104,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									policyId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const policyId = pendingEntity.policyId}
-							{#if policyId !== undefined && policyId !== null}
-								{String((policyId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const policyId = resolvedEntity.policyId}
@@ -132,19 +128,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									assetName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const assetName = pendingEntity.assetName}
-							{#if assetName !== undefined && assetName !== null}
-								{String((assetName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const assetName = resolvedEntity.assetName}
@@ -159,24 +149,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							fingerprint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const fingerprint = pendingEntity.fingerprint}
-					{#if fingerprint !== undefined && fingerprint !== null}
-						<div>
-							<dt>fingerprint</dt>
-							<dd>
-								{String((fingerprint) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const fingerprint = resolvedEntity.fingerprint}

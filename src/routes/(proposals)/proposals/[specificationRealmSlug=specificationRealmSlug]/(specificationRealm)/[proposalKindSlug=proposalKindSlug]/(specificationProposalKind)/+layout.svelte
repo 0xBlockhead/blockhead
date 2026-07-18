@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -39,7 +40,9 @@
 			{@const DetailView = SpecificationProposalKindView}
 
 			<DetailView
-				selection={select(EntityType.SpecificationProposalKind, data.selector)}
+				selection={select(EntityType.SpecificationProposalKind, data.selector, { sources: [
+		Source.Constants_Internal,
+	] })}
 				href={
 					resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
 						specificationRealmSlug: params.specificationRealmSlug,

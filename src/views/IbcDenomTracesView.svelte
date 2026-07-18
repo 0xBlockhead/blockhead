@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import IbcDenomTraceView from '$/views/IbcDenomTraceView.svelte'
 </script>
@@ -61,80 +60,47 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					displayDenom: true,
-					baseDenom: true,
-					traceKey: true,
-					denomHash: true,
-					sourceChannel: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcDenomTrace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.IbcDenomTrace}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				displayDenom: true,
+				baseDenom: true,
+				traceKey: true,
+				denomHash: true,
+				sourceChannel: true,
+			},
+		})
+	}
+	getResourceItems={(ibcDenomTraces) => [...new Map(ibcDenomTraces.values.map((ibcDenomTrace) => [ibcDenomTrace[EntityMetaKey.SelectorKey], ibcDenomTrace])).values()]}
+	getKey={(ibcDenomTrace) => ibcDenomTrace[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No IBC denom traces yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(ibcDenomTraces)}
-			{@const uniqueIbcDenomTraces = [...new Map(ibcDenomTraces.values.map((ibcDenomTrace) => [ibcDenomTrace[EntityMetaKey.SelectorKey], ibcDenomTrace])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IbcDenomTrace}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ibcDenomTraces.totalCount}
-				getKey={(ibcDenomTrace) => ibcDenomTrace[EntityMetaKey.SelectorKey]}
-				items={uniqueIbcDenomTraces}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No IBC denom traces yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: ibcDenomTrace })}
-					{@const ibcDenomTraceFields = { ...ibcDenomTrace[EntityMetaKey.Selector], ...ibcDenomTrace }}
-					{@const selection = select(EntityType.IbcDenomTrace, ibcDenomTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<IbcDenomTraceView
-						selection={selection}
-						prefetched={ibcDenomTraceFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.IbcDenomTrace}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: ibcDenomTrace })}
+		{@const ibcDenomTraceFields = { ...ibcDenomTrace[EntityMetaKey.Selector], ...ibcDenomTrace }}
+		{@const selection = select(EntityType.IbcDenomTrace, ibcDenomTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<IbcDenomTraceView
+			selection={selection}
+			prefetched={ibcDenomTraceFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

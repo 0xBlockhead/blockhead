@@ -42,6 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitRef = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			refKind: true,
 			targetObjectId: true,
@@ -70,52 +71,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={gitRef}>
-			{#snippet Pending()}
-				{[String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitRef}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={gitRef}>
-			{#snippet Pending()}
-				{[String((pendingEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={gitRef}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={gitRef}>
-			{#snippet Pending()}
-				{@const targetObjectId0 = pendingEntity.targetObjectId}
-				{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((targetObjectId0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const targetObjectId0 = resolvedEntity.targetObjectId}
-				{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((targetObjectId0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const targetObjectId0 = pendingEntity.targetObjectId}
+			{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((targetObjectId0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={gitRef}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const targetObjectId0 = resolvedEntity.targetObjectId}
+					{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((targetObjectId0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,19 +138,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									refName: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const refName = pendingEntity.refName}
-							{#if refName !== undefined && refName !== null}
-								{String((refName) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const refName = resolvedEntity.refName}
@@ -167,19 +162,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									refKind: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const refKind = pendingEntity.refKind}
-							{#if refKind !== undefined && refKind !== null}
-								{String((refKind) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const refKind = resolvedEntity.refKind}
@@ -194,24 +183,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							targetObjectId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const targetObjectId = pendingEntity.targetObjectId}
-					{#if targetObjectId !== undefined && targetObjectId !== null}
-						<div>
-							<dt>target object ID</dt>
-							<dd>
-								<TruncatedValue value={String((targetObjectId) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const targetObjectId = resolvedEntity.targetObjectId}
@@ -229,24 +207,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							symbolicTarget: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const symbolicTarget = pendingEntity.symbolicTarget}
-					{#if symbolicTarget !== undefined && symbolicTarget !== null}
-						<div>
-							<dt>symbolic target</dt>
-							<dd>
-								{String((symbolicTarget) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const symbolicTarget = resolvedEntity.symbolicTarget}

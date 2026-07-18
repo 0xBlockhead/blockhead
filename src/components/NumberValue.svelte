@@ -13,6 +13,7 @@
 		tween = false,
 		tweenDuration = 1000,
 		formatValueOptions,
+		decimalPlaces,
 	}: {
 		value?: number | bigint
 		resource?: SvelteKitResource<number | bigint | undefined>
@@ -21,6 +22,7 @@
 		tween?: boolean
 		tweenDuration?: number
 		formatValueOptions?: NonNullable<Parameters<typeof formatValue>[1]>
+		decimalPlaces?: number
 	} = $props()
 
 
@@ -65,6 +67,41 @@
 					))
 			),
 		]
+	}
+
+	const scaledIntegerParts = (value: number | bigint, decimalPlaces: number) => {
+		const normalizedDecimalPlaces = Math.max(0, Math.trunc(decimalPlaces))
+		const divisor = 10n ** BigInt(normalizedDecimalPlaces)
+		const scaledValue = BigInt(value)
+		const absoluteValue = scaledValue < 0n ? -scaledValue : scaledValue
+		const fraction = String(absoluteValue % divisor)
+			.padStart(normalizedDecimalPlaces, '0')
+			.replace(/0+$/, '')
+
+		return [
+			...(scaledValue < 0n ? [{ type: 'minusSign', value: '-' }] : []),
+			...new Intl.NumberFormat(locales, {
+				...options,
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 0,
+			}).formatToParts(absoluteValue / divisor),
+			...(fraction === '' ? [] : [
+				{
+					type: 'decimal',
+					value: (
+						new Intl.NumberFormat(locales)
+							.formatToParts(1.1)
+							.find((part) => part.type === 'decimal')
+							?.value
+						?? '.'
+					),
+				},
+				{
+					type: 'fraction',
+					value: fraction,
+				},
+			]),
+		] satisfies Intl.NumberFormatPart[]
 	}
 
 
@@ -163,8 +200,10 @@
 {#snippet RenderValue(renderedValue: number | bigint)}
 	<output class="number-value">
 		{#each indexParts(
-			formatValueOptions
-				? (formatValue(
+			decimalPlaces !== undefined ?
+				scaledIntegerParts(renderedValue, decimalPlaces)
+			: formatValueOptions ?
+				(formatValue(
 					tween && resource === undefined ?
 						displayNumber
 					:
@@ -180,7 +219,7 @@
 						tween && resource === undefined ?
 							displayNumber
 						:
-							Number(renderedValue) || 0
+							renderedValue
 					)
 			)
 		) as indexed (indexed.key)}

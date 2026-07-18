@@ -4,6 +4,7 @@ import {
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -29,22 +30,24 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearAccount,
 			resolve: {
-				[NearAccountSelector.NetworkAccountId]: async ({ $network, accountId }) => {
-					assertNearMainnet($network)
-					const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
-					const account = (await getAccount({
-						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
-						accountId: accountId,
-					})).account?.[0]
-					if (account == null) throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
-					return {
-						...(account.amount != null && {
-							amountYoctoNear: BigInt(account.amount),
-						}),
-						...(account.storage_usage != null && {
-							storageUsageBytes: BigInt(account.storage_usage),
-						}),
-					}
+				[NearAccountSelector.NetworkAccountId]: {
+					resolve: async ({ $network, accountId }) => {
+						assertNearMainnet($network)
+						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const account = (await getAccount({
+							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
+							accountId: accountId,
+						})).account?.[0]
+						if (account == null) throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
+						return {
+							...(account.amount != null && {
+								amountYoctoNear: BigInt(account.amount),
+							}),
+							...(account.storage_usage != null && {
+								storageUsageBytes: BigInt(account.storage_usage),
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -55,31 +58,33 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearBlock,
 			resolve: {
-				[NearBlockSelector.NetworkHeightHash]: async ({ $network, hash, height }) => {
-					assertNearMainnet($network)
-					const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
-					const block = (await getBlock({
-						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
-						block: hash,
-					})).blocks?.[0]
-					if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
-					if (block.block_hash == null) throw new Error(`NearBlocks_Rest: block ${hash} missing block hash`)
-					return {
-						hash: block.block_hash,
-						...(block.prev_block_hash != null && height > 0n && {
-							$parent: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									height: height - 1n,
-									hash: block.prev_block_hash,
+				[NearBlockSelector.NetworkHeightHash]: {
+					resolve: async ({ $network, hash, height }) => {
+						assertNearMainnet($network)
+						const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const block = (await getBlock({
+							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
+							block: hash,
+						})).blocks?.[0]
+						if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
+						if (block.block_hash == null) throw new Error(`NearBlocks_Rest: block ${hash} missing block hash`)
+						return {
+							hash: block.block_hash,
+							...(block.prev_block_hash != null && height > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										height: height - 1n,
+										hash: block.prev_block_hash,
+									},
 								},
-							},
-						}),
-						epochId: block.epoch_id,
-						...(block.block_timestamp != null && {
-							timestampMs: Number(BigInt(block.block_timestamp) / 1_000_000n),
-						}),
-					}
+							}),
+							epochId: block.epoch_id,
+							...(block.block_timestamp != null && {
+								timestampMs: Number(BigInt(block.block_timestamp) / 1_000_000n),
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -92,78 +97,95 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
-				[NearTransactionSelector.NetworkHashSignerAccountId]: async ({ $network, hash }) => {
-					assertNearMainnet($network)
-					const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
-					const transaction = (await getTransaction({
-						restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
-						transactionHash: hash,
-					})).txns?.[0]
-					if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${hash} not found`)
-					return {
-						...(transaction.signer_account_id != null && {
-							$signer: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									accountId: transaction.signer_account_id,
-								},
-							},
-						}),
-						...(transaction.receiver_account_id != null && {
-							$receiver: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									accountId: transaction.receiver_account_id,
-								},
-							},
-						}),
-						...(transaction.nonce != null && {
-							nonce: BigInt(transaction.nonce),
-						}),
-						$$actions: transaction.actions?.map((action, actionIndex) => ({
-							[EntityMetaKey.Selector]: {
-								$transaction: {
-									$network,
-									hash,
-									...(transaction.signer_account_id != null && {
-										signerAccountId: transaction.signer_account_id,
-									}),
-								},
-								actionIndex,
-							},
-							actionKind: action.action ?? 'Unknown',
-							...(action.method != null && {
-								methodName: action.method,
-							}),
-						})) ?? [],
-						...(transaction.outcomes != null && {
-							$$executionOutcomes: [
-								{
+				[NearTransactionSelector.NetworkHashSignerAccountId]: {
+					resolve: async ({ $network, hash }) => {
+						assertNearMainnet($network)
+						const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const transaction = (await getTransaction({
+							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
+							transactionHash: hash,
+						})).txns?.[0]
+						if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${hash} not found`)
+						return {
+							...(transaction.signer_account_id != null && {
+								$signer: {
 									[EntityMetaKey.Selector]: {
-										$transaction: {
-											$network: $network,
-											hash: hash,
-											...(transaction.signer_account_id != null && {
-												signerAccountId: transaction.signer_account_id,
-											}),
-										},
-										outcomeId: hash,
+										$network: $network,
+										accountId: transaction.signer_account_id,
 									},
-									...(transaction.outcomes.status != null && {
-										status: transaction.outcomes.status ? 'SuccessValue' : 'Failure',
-									}),
 								},
-							],
-						}),
-					}
+							}),
+							...(transaction.receiver_account_id != null && {
+								$receiver: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										accountId: transaction.receiver_account_id,
+									},
+								},
+							}),
+							...(transaction.nonce != null && {
+								nonce: BigInt(transaction.nonce),
+							}),
+							$$actions: transaction.actions?.map((action, actionIndex) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: {
+										$network,
+										hash,
+										...(transaction.signer_account_id != null && {
+											signerAccountId: transaction.signer_account_id,
+										}),
+									},
+									actionIndex,
+								},
+								actionKind: action.action ?? 'Unknown',
+								...(action.method != null && {
+									methodName: action.method,
+								}),
+							})) ?? [],
+							...(transaction.outcomes != null && {
+								$$executionOutcomes: [
+									{
+										[EntityMetaKey.Selector]: {
+											$transaction: {
+												$network: $network,
+												hash: hash,
+												...(transaction.signer_account_id != null && {
+													signerAccountId: transaction.signer_account_id,
+												}),
+											},
+											outcomeId: hash,
+										},
+										...(transaction.outcomes.status != null && {
+											status: transaction.outcomes.status ? 'SuccessValue' : 'Failure',
+										}),
+									},
+								],
+							}),
+						}
+					},
 				}
 			},
 		})({
 				$signer: (snapshot) => snapshot.$signer,
 				$receiver: (snapshot) => snapshot.$receiver,
 				nonce: (snapshot) => snapshot.nonce,
-				$$actions: (snapshot) => snapshot.$$actions,
-				$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes ?? [],
+				$$actions: (snapshot) => snapshot.$$actions.map((action) => ({
+					[EntityMetaKey.Selector]: action[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.actionKind,
+						...(action.methodName != null && {
+							[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.methodName,
+						}),
+					},
+				})),
+				$$executionOutcomes: (snapshot) => (snapshot.$$executionOutcomes ?? []).map((outcome) => ({
+					[EntityMetaKey.Selector]: outcome[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						...(outcome.status != null && {
+							[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: outcome.status,
+						}),
+					},
+				})),
 			}),
 	],
 }

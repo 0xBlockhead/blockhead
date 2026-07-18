@@ -37,6 +37,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const avalancheSubnet = $derived(selection({
+		sources: selection.sources,
 		fields: {
 			label: true,
 			threshold: true,
@@ -68,35 +69,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={avalancheSubnet}>
-			{#snippet Pending()}
-				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={avalancheSubnet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={avalancheSubnet}>
-			{#snippet Pending()}
-				{@const threshold0 = pendingEntity.threshold}
-				{#if threshold0 !== undefined && threshold0 !== null}
-					<NumberValue value={Number(threshold0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const threshold0 = resolvedEntity.threshold}
-				{#if threshold0 !== undefined && threshold0 !== null}
-					<NumberValue value={Number(threshold0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const threshold0 = pendingEntity.threshold}
+					{#if threshold0 !== undefined && threshold0 !== null}
+						<NumberValue
+							value={threshold0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={avalancheSubnet}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const threshold0 = resolvedEntity.threshold}
+					{#if threshold0 !== undefined && threshold0 !== null}
+						<NumberValue
+							value={threshold0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,19 +112,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									subnetId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const subnetId = pendingEntity.subnetId}
-							{#if subnetId !== undefined && subnetId !== null}
-								<TruncatedValue value={String((subnetId) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subnetId = resolvedEntity.subnetId}
@@ -134,24 +133,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							threshold: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const threshold = pendingEntity.threshold}
-					{#if threshold !== undefined && threshold !== null}
-						<div>
-							<dt>threshold</dt>
-							<dd>
-								<NumberValue value={Number(threshold)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const threshold = resolvedEntity.threshold}
@@ -159,7 +147,9 @@
 						<div>
 							<dt>threshold</dt>
 							<dd>
-								<NumberValue value={Number(threshold)} />
+								<NumberValue
+									value={threshold}
+								/>
 							</dd>
 						</div>
 					{/if}

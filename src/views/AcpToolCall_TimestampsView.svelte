@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpToolCall_TimestampView from '$/views/AcpToolCall_TimestampView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					status: true,
-					latencyMs: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpToolCall_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpToolCall_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				status: true,
+				latencyMs: true,
+			},
+		})
+	}
+	getResourceItems={(acpToolCallTimestamps) => [...new Map(acpToolCallTimestamps.values.map((acpToolCallTimestamp) => [acpToolCallTimestamp[EntityMetaKey.SelectorKey], acpToolCallTimestamp])).values()]}
+	getKey={(acpToolCallTimestamp) => acpToolCallTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP tool call observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpToolCallTimestamps)}
-			{@const uniqueAcpToolCallTimestamps = [...new Map(acpToolCallTimestamps.values.map((acpToolCallTimestamp) => [acpToolCallTimestamp[EntityMetaKey.SelectorKey], acpToolCallTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpToolCall_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpToolCallTimestamps.totalCount}
-				getKey={(acpToolCallTimestamp) => acpToolCallTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpToolCallTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP tool call observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpToolCallTimestamp })}
-					{@const acpToolCallTimestampFields = { ...acpToolCallTimestamp[EntityMetaKey.Selector], ...acpToolCallTimestamp }}
-					{@const selection = select(EntityType.AcpToolCall_Timestamp, acpToolCallTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpToolCall_TimestampView
-						selection={selection}
-						prefetched={acpToolCallTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpToolCall_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpToolCallTimestamp })}
+		{@const acpToolCallTimestampFields = { ...acpToolCallTimestamp[EntityMetaKey.Selector], ...acpToolCallTimestamp }}
+		{@const selection = select(EntityType.AcpToolCall_Timestamp, acpToolCallTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpToolCall_TimestampView
+			selection={selection}
+			prefetched={acpToolCallTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TonMessageView from '$/views/TonMessageView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TonMessage}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tonMessages) => [...new Map(tonMessages.values.map((tonMessage) => [tonMessage[EntityMetaKey.SelectorKey], tonMessage])).values()]}
+	getKey={(tonMessage) => tonMessage[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No TON messages yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tonMessages)}
-			{@const uniqueTonMessages = [...new Map(tonMessages.values.map((tonMessage) => [tonMessage[EntityMetaKey.SelectorKey], tonMessage])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TonMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tonMessages.totalCount}
-				getKey={(tonMessage) => tonMessage[EntityMetaKey.SelectorKey]}
-				items={uniqueTonMessages}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No TON messages yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tonMessage })}
-					{@const tonMessageFields = { ...tonMessage[EntityMetaKey.Selector], ...tonMessage }}
-					{@const selection = select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TonMessageView
-						selection={selection}
-						prefetched={tonMessageFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TonMessage}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tonMessage })}
+		{@const tonMessageFields = { ...tonMessage[EntityMetaKey.Selector], ...tonMessage }}
+		{@const selection = select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TonMessageView
+			selection={selection}
+			prefetched={tonMessageFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

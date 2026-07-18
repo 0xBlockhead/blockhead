@@ -5,9 +5,9 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
+	import WalletConnectionsControl from '$/components/WalletConnectionsControl.svelte'
 	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
-	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
+	import WalletAccountPortfolio from '$/components/WalletAccountPortfolio.svelte'
 	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -39,10 +39,6 @@
 			{ id: 'transactions', label: 'Transactions' },
 		]}
 		data-card
-		scrollContainerProps={{
-			'data-row': 'start align-start',
-			style: '--carousel-basis: 40ch',
-		}}
 	>
 		{#snippet Summary({ open: _open })}
 			<header
@@ -54,13 +50,8 @@
 		{/snippet}
 
 		{#snippet SectionConnections()}
-			<BlockheadWalletConnectionsView
-				href={resolve('/~/accounts/connections')}
-				selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' }).$$blockheadWalletConnections({
-					sources: [Source.Local_Internal],
-				})}
+			<WalletConnectionsControl
 				id='wallet-connections'
-				open={true}
 			/>
 		{/snippet}
 
@@ -70,20 +61,16 @@
 				selection={select(EntityType._Global, { scope: '$$actors' }).$$actors({
 					sources: [Source.Local_Internal],
 				})}
-				id='accounts'
-				open={true}
+						id='accounts'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
 			/>
 		{/snippet}
 
 		{#snippet SectionBalances()}
-			<EvmNetworkActorCoinBalancesView
-				href={resolve('/~/accounts/balances')}
-				selection={select(EntityType._Global, { scope: '$$actorCoins' }).$$actorCoins({
-					sources: [Source.Allium_Rest],
-				})}
-				id='balances'
-				open={true}
-			/>
+			<WalletAccountPortfolio id='accounts-balances' />
 		{/snippet}
 
 		{#snippet SectionAllowances()}
@@ -99,8 +86,11 @@
 				selection={select(EntityType._Global, { scope: '$$bridgeTransactions' }).$$bridgeTransactions({
 					sources: [Source.Local_Internal],
 				})}
-				id='transactions'
-				open={true}
+						id='transactions'
+						open={true}
+						data-column-item='flexible'
+						data-card
+						data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

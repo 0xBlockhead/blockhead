@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import FedimintFederationView from '$/views/FedimintFederationView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					name: true,
-					consensusVersion: true,
-					federationId: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FedimintFederation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.FedimintFederation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				name: true,
+				consensusVersion: true,
+				federationId: true,
+			},
+		})
+	}
+	getResourceItems={(fedimintFederations) => [...new Map(fedimintFederations.values.map((fedimintFederation) => [fedimintFederation[EntityMetaKey.SelectorKey], fedimintFederation])).values()]}
+	getKey={(fedimintFederation) => fedimintFederation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Fedimint federations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(fedimintFederations)}
-			{@const uniqueFedimintFederations = [...new Map(fedimintFederations.values.map((fedimintFederation) => [fedimintFederation[EntityMetaKey.SelectorKey], fedimintFederation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FedimintFederation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={fedimintFederations.totalCount}
-				getKey={(fedimintFederation) => fedimintFederation[EntityMetaKey.SelectorKey]}
-				items={uniqueFedimintFederations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Fedimint federations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: fedimintFederation })}
-					{@const fedimintFederationFields = { ...fedimintFederation[EntityMetaKey.Selector], ...fedimintFederation }}
-					{@const selection = select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<FedimintFederationView
-						selection={selection}
-						prefetched={fedimintFederationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.FedimintFederation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: fedimintFederation })}
+		{@const fedimintFederationFields = { ...fedimintFederation[EntityMetaKey.Selector], ...fedimintFederation }}
+		{@const selection = select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<FedimintFederationView
+			selection={selection}
+			prefetched={fedimintFederationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

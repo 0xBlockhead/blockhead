@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,12 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const kaspaTransaction = $derived(selection({
-		sources: [
-			Source.KaspaExplorer_Rest,
-			Source.KaspaNode_Grpc,
-			Source.KaspaNode_Rest,
-			Source.KaspaNode_Wrpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived('kaspa transaction')
 	const viewDomId = $derived('kaspa-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -77,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={kaspaTransaction}>
-			{#snippet Pending()}
-				{title || 'kaspa transaction'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={kaspaTransaction}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -108,19 +102,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									transactionId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const transactionId = pendingEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								{String((transactionId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const transactionId = resolvedEntity.transactionId}
@@ -135,24 +123,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							version: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const version = pendingEntity.version}
-					{#if version !== undefined && version !== null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{String((version) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const version = resolvedEntity.version}
@@ -170,24 +147,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							subnetworkId: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const subnetworkId = pendingEntity.subnetworkId}
-					{#if subnetworkId !== undefined && subnetworkId !== null}
-						<div>
-							<dt>subnetwork ID</dt>
-							<dd>
-								{String((subnetworkId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const subnetworkId = resolvedEntity.subnetworkId}
@@ -205,24 +171,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							mass: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const mass = pendingEntity.mass}
-					{#if mass !== undefined && mass !== null}
-						<div>
-							<dt>mass</dt>
-							<dd>
-								<NumberValue value={Number(mass)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const mass = resolvedEntity.mass}
@@ -230,7 +185,9 @@
 						<div>
 							<dt>mass</dt>
 							<dd>
-								<NumberValue value={Number(mass)} />
+								<NumberValue
+									value={mass}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -242,24 +199,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							payloadLength: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const payloadLength = pendingEntity.payloadLength}
-					{#if payloadLength !== undefined && payloadLength !== null}
-						<div>
-							<dt>payload length</dt>
-							<dd>
-								{String((payloadLength) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const payloadLength = resolvedEntity.payloadLength}
@@ -280,19 +226,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									blockHashes: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const blockHashes = pendingEntity.blockHashes}
-							{#if blockHashes !== undefined && blockHashes !== null}
-								<TruncatedValue value={blockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const blockHashes = resolvedEntity.blockHashes}
@@ -325,11 +265,8 @@
 				}
 				data-card
 				class='network-view-collapsible-io'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Inputs and outputs</HeadingComponent>
 					</header>
@@ -337,12 +274,12 @@
 
 				{#snippet SectionKaspaTxInputs({ id, label, open })}
 					<UtxoInputsView
-						selection={
-							selection.$$inputs({
-								count: true,
-							})
-						}
+						selection={selection.$$inputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No UTXO inputs.'
 						open={open}
 						title={label}
@@ -352,12 +289,12 @@
 
 				{#snippet SectionKaspaTxOutputs({ id, label, open })}
 					<UtxoOutputsView
-						selection={
-							selection.$$outputs({
-								count: true,
-							})
-						}
+						selection={selection.$$outputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No UTXO outputs.'
 						open={open}
 						title={label}
@@ -380,11 +317,8 @@
 				}
 				data-card
 				class='network-view-collapsible-acceptance'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Acceptance</HeadingComponent>
 					</header>
@@ -392,12 +326,12 @@
 
 				{#snippet SectionKaspaTxAcceptances({ id, label, open })}
 					<KaspaAcceptedTransactionsView
-						selection={
-							selection.$$acceptances({
-								count: true,
-							})
-						}
+						selection={selection.$$acceptances}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Kaspa acceptances.'
 						open={open}
 						title={label}

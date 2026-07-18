@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AiEvaluation_TimestampView from '$/views/AiEvaluation_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					metricName: true,
-					value: true,
-					unit: true,
-					subjectKind: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiEvaluation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AiEvaluation_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				metricName: true,
+				value: true,
+				unit: true,
+				subjectKind: true,
+			},
+		})
+	}
+	getResourceItems={(aiEvaluationTimestamps) => [...new Map(aiEvaluationTimestamps.values.map((aiEvaluationTimestamp) => [aiEvaluationTimestamp[EntityMetaKey.SelectorKey], aiEvaluationTimestamp])).values()]}
+	getKey={(aiEvaluationTimestamp) => aiEvaluationTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No AI evaluation observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(aiEvaluationTimestamps)}
-			{@const uniqueAiEvaluationTimestamps = [...new Map(aiEvaluationTimestamps.values.map((aiEvaluationTimestamp) => [aiEvaluationTimestamp[EntityMetaKey.SelectorKey], aiEvaluationTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AiEvaluation_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={aiEvaluationTimestamps.totalCount}
-				getKey={(aiEvaluationTimestamp) => aiEvaluationTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAiEvaluationTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No AI evaluation observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: aiEvaluationTimestamp })}
-					{@const aiEvaluationTimestampFields = { ...aiEvaluationTimestamp[EntityMetaKey.Selector], ...aiEvaluationTimestamp }}
-					{@const selection = select(EntityType.AiEvaluation_Timestamp, aiEvaluationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AiEvaluation_TimestampView
-						selection={selection}
-						prefetched={aiEvaluationTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AiEvaluation_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: aiEvaluationTimestamp })}
+		{@const aiEvaluationTimestampFields = { ...aiEvaluationTimestamp[EntityMetaKey.Selector], ...aiEvaluationTimestamp }}
+		{@const selection = select(EntityType.AiEvaluation_Timestamp, aiEvaluationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AiEvaluation_TimestampView
+			selection={selection}
+			prefetched={aiEvaluationTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

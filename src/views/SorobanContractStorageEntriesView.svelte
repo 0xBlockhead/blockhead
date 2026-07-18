@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SorobanContractStorageEntryView from '$/views/SorobanContractStorageEntryView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContractStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SorobanContractStorageEntry}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(sorobanContractStorageEntries) => [...new Map(sorobanContractStorageEntries.values.map((sorobanContractStorageEntry) => [sorobanContractStorageEntry[EntityMetaKey.SelectorKey], sorobanContractStorageEntry])).values()]}
+	getKey={(sorobanContractStorageEntry) => sorobanContractStorageEntry[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Soroban contract storage entries yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(sorobanContractStorageEntries)}
-			{@const uniqueSorobanContractStorageEntries = [...new Map(sorobanContractStorageEntries.values.map((sorobanContractStorageEntry) => [sorobanContractStorageEntry[EntityMetaKey.SelectorKey], sorobanContractStorageEntry])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SorobanContractStorageEntry}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={sorobanContractStorageEntries.totalCount}
-				getKey={(sorobanContractStorageEntry) => sorobanContractStorageEntry[EntityMetaKey.SelectorKey]}
-				items={uniqueSorobanContractStorageEntries}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Soroban contract storage entries yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: sorobanContractStorageEntry })}
-					{@const sorobanContractStorageEntryFields = { ...sorobanContractStorageEntry[EntityMetaKey.Selector], ...sorobanContractStorageEntry }}
-					{@const selection = select(EntityType.SorobanContractStorageEntry, sorobanContractStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<SorobanContractStorageEntryView
-						selection={selection}
-						prefetched={sorobanContractStorageEntryFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.SorobanContractStorageEntry}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: sorobanContractStorageEntry })}
+		{@const sorobanContractStorageEntryFields = { ...sorobanContractStorageEntry[EntityMetaKey.Selector], ...sorobanContractStorageEntry }}
+		{@const selection = select(EntityType.SorobanContractStorageEntry, sorobanContractStorageEntry[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<SorobanContractStorageEntryView
+			selection={selection}
+			prefetched={sorobanContractStorageEntryFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

@@ -1,7 +1,9 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type JsonRpcError = {
@@ -20,27 +22,39 @@ type JsonRpcResponse<TResult> = {
 export const jsonRpc = async <_Result>({
 	rpcUrl,
 	origins,
+	binding,
 	method,
 	params,
 }: {
 	rpcUrl: string
 	origins: readonly SourceOrigin[]
+	binding?: SourceBinding
 	method: string
 	params: JsonValue[]
 }): Promise<_Result> => {
-	const response = await corsFetch(rpcUrl, {
-		origins,
-		init: {
-			method: 'POST',
-			headers: jsonRpcHeaders,
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		},
-	})
+	const init = {
+		method: 'POST',
+		headers: jsonRpcHeaders,
+		body: JSON.stringify({
+			jsonrpc: jsonRpcVersion,
+			id: 1,
+			method,
+			params,
+		}),
+	}
+	const response = await (
+		binding == null ?
+			corsFetch(rpcUrl, {
+				origins,
+				init,
+			})
+		:
+			sourceFetch(
+				binding,
+				rpcUrl,
+				init,
+			)
+	)
 	if (!response.ok) await throwHttpError(`JsonRpc ${method}`, response)
 
 	const json = await response.json<JsonRpcResponse<_Result>>()

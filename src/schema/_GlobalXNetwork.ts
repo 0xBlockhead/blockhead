@@ -34,12 +34,6 @@ export const _GlobalXNetwork = entity({
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$timestamps: {
-		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType._GlobalXNetwork_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		Scope: [

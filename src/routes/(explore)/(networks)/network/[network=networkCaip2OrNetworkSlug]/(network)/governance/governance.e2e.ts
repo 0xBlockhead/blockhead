@@ -1,0 +1,606 @@
+import { expect, test } from '@playwright/test'
+import type { Page, TestInfo } from '@playwright/test'
+
+import {
+	assertMainSettled,
+	expectMainVisible,
+	installChainlistRpcsJsonStub,
+	setupPageRuntimeDiagnostics,
+	waitForBoundarySettle,
+} from '../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
+import type {
+	BlockfrostAssets,
+	BlockfrostBlock,
+	BlockfrostCommittee,
+	BlockfrostCommitteeVotes,
+	BlockfrostDRep,
+	BlockfrostDRepMetadata,
+	BlockfrostDReps,
+	BlockfrostDRepVotes,
+	BlockfrostEpoch,
+	BlockfrostGovernanceProposal,
+	BlockfrostGovernanceProposalMetadata,
+	BlockfrostGovernanceProposals,
+	BlockfrostGovernanceProposalVotes,
+	BlockfrostProtocolParameters,
+	BlockfrostStakePool,
+	BlockfrostStakePoolMetadata,
+	BlockfrostStakePools,
+	BlockfrostTransactions,
+} from '$/sources/Blockfrost/Rest/types.ts'
+import type {
+	CardanoKoiosBlock,
+	CardanoKoiosTip,
+} from '$/sources/CardanoKoios/Rest/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+
+const attach = { timeout: 120_000 }
+const blockfrostBaseUrl = 'https://cardano-mainnet.blockfrost.io/api/v0/'
+const koiosBaseUrl = 'https://api.koios.rest/api/v1/'
+const proposalPath = '/network/cardano/governance/proposal/proposal-hash/1'
+const drepPath = '/network/cardano/drep/drep1fixture'
+const poolPath = '/network/cardano/stake-pool/pool1fixture'
+const committeePath = '/network/cardano/governance/committee/epoch/599/Blockfrost_Rest'
+const cardanoSections = [
+	['cardano-chain-blocks', 'Blocks'],
+	['cardano-chain-transactions', 'Transactions'],
+	['cardano-chain-observations', 'Observations'],
+	['cardano-stake-pools', 'Stake pools'],
+	['cardano-governance-proposals', 'Proposals'],
+	['cardano-governance-dreps', 'DReps'],
+	['cardano-governance-committee', 'Committee epochs'],
+	['cardano-assets-native', 'Native assets'],
+	['cardano-protocol-parameters', 'Protocol parameters'],
+	['cardano-resources-endpoints', 'Endpoints'],
+] as const
+
+const proposalList = [{
+	id: 'gov_action1fixture',
+	tx_hash: 'proposal-hash',
+	cert_index: 1,
+	governance_type: 'info_action',
+}] satisfies BlockfrostGovernanceProposals
+const proposal = {
+	id: 'gov_action1fixture',
+	tx_hash: 'proposal-hash',
+	cert_index: 1,
+	governance_type: 'info_action',
+	governance_description: {
+		tag: 'InfoAction',
+	},
+	deposit: '1000000',
+	return_address: 'stake1fixture',
+	ratified_epoch: 596,
+	enacted_epoch: 597,
+	dropped_epoch: null,
+	expired_epoch: null,
+	expiration: 600,
+} satisfies BlockfrostGovernanceProposal
+const proposalMetadata = {
+	id: 'gov_action1fixture',
+	tx_hash: 'proposal-hash',
+	cert_index: 1,
+	url: 'https://example.com/cardano/proposal.json',
+	hash: 'proposal-metadata-hash',
+	json_metadata: {
+		body: {
+			title: 'Deterministic governance proposal',
+		},
+	},
+	bytes: '',
+} satisfies BlockfrostGovernanceProposalMetadata
+const proposalVotes = [{
+	tx_hash: 'proposal-vote-hash',
+	cert_index: 2,
+	voter_role: 'drep',
+	voter: 'drep1fixture',
+	vote: 'yes',
+}] satisfies BlockfrostGovernanceProposalVotes
+const drepList = [{
+	drep_id: 'drep1fixture',
+	hex: 'ab',
+	amount: '2000000',
+	has_script: false,
+	retired: false,
+	expired: false,
+	last_active_epoch: 598,
+	metadata: {
+		url: 'https://example.com/cardano/drep.json',
+		hash: 'drep-metadata-hash',
+		json_metadata: {
+			body: {
+				givenName: 'Fixture DRep',
+			},
+		},
+		bytes: '',
+	},
+}] satisfies BlockfrostDReps
+const drep = {
+	drep_id: 'drep1fixture',
+	hex: 'ab',
+	amount: '2000000',
+	active: true,
+	active_epoch: 590,
+	has_script: false,
+	last_active_epoch: 598,
+	retired: false,
+	expired: false,
+} satisfies BlockfrostDRep
+const drepMetadata = {
+	drep_id: 'drep1fixture',
+	hex: 'ab',
+	url: 'https://example.com/cardano/drep.json',
+	hash: 'drep-metadata-hash',
+	json_metadata: {
+		body: {
+			givenName: 'Fixture DRep',
+		},
+	},
+	bytes: '',
+} satisfies BlockfrostDRepMetadata
+const drepVotes = [{
+	tx_hash: 'drep-vote-hash',
+	cert_index: 3,
+	proposal_id: 'gov_action1fixture',
+	proposal_tx_hash: 'proposal-hash',
+	proposal_cert_index: 1,
+	vote: 'yes',
+}] satisfies BlockfrostDRepVotes
+const stakePools = ['pool1fixture'] satisfies BlockfrostStakePools
+const stakePool = {
+	pool_id: 'pool1fixture',
+	hex: 'cd',
+	vrf_key: 'fixture-vrf-key',
+	blocks_minted: 12,
+	blocks_epoch: 2,
+	live_stake: '5000000',
+	live_size: 0.1,
+	live_saturation: 0.2,
+	live_delegators: 3,
+	active_stake: '4000000',
+	active_size: 0.1,
+	declared_pledge: '1000000',
+	live_pledge: '1000000',
+	margin_cost: 0.03,
+	fixed_cost: '340000000',
+	reward_account: 'stake1poolfixture',
+	owners: ['stake1ownerfixture'],
+	registration: ['pool-registration-hash'],
+	retirement: [],
+	calidus_key: null,
+} satisfies BlockfrostStakePool
+const stakePoolMetadata = {
+	pool_id: 'pool1fixture',
+	hex: 'cd',
+	url: 'https://example.com/cardano/pool.json',
+	hash: 'pool-metadata-hash',
+	ticker: 'FIX',
+	name: 'Fixture Pool',
+	description: 'Deterministic Cardano stake pool',
+	homepage: 'https://example.com/cardano/pool',
+} satisfies BlockfrostStakePoolMetadata
+const committee = {
+	gov_action_id: 'gov_action1committee',
+	proposal_tx_hash: 'proposal-hash',
+	proposal_index: 1,
+	is_dissolved: false,
+	quorum: {
+		numerator: 2,
+		denominator: 3,
+	},
+	members: [{
+		cc_cold_id: 'cc_cold1fixture',
+		cc_cold_hex: 'ef',
+		cc_cold_has_script: false,
+		cc_hot_id: 'cc_hot1fixture',
+		cc_hot_hex: '01',
+		cc_hot_has_script: false,
+		status: 'authorized',
+		expiration_epoch: 610,
+	}],
+} satisfies BlockfrostCommittee
+const committeeVotes = [{
+	tx_hash: 'committee-vote-hash',
+	voter_hot_id: 'cc_hot1fixture',
+	proposal_id: 'gov_action1fixture',
+	proposal_tx_hash: 'proposal-hash',
+	proposal_index: 1,
+	governance_type: 'info_action',
+	vote: 'yes',
+	metadata_url: 'https://example.com/cardano/committee-vote.json',
+	metadata_hash: 'committee-vote-metadata-hash',
+	block_height: 10_000_000,
+	block_time: 1_720_000_000,
+}] satisfies BlockfrostCommitteeVotes
+const latestEpoch = {
+	epoch: 599,
+	start_time: 1_719_964_800,
+	end_time: 1_720_396_799,
+	first_block_time: 1_719_964_820,
+	last_block_time: 1_720_300_000,
+	block_count: 21_600,
+	tx_count: 350_000,
+	output: '1',
+	fees: '2',
+	active_stake: '30000000000000000',
+} satisfies BlockfrostEpoch
+const protocolParameters = {
+	epoch: 599,
+	min_fee_a: 44,
+	min_fee_b: 155_381,
+	max_block_size: 65_536,
+	max_tx_size: 16_384,
+	max_block_header_size: 1_100,
+	key_deposit: '2000000',
+	pool_deposit: '500000000',
+	e_max: 18,
+	n_opt: 500,
+	a0: 0.3,
+	rho: 0.003,
+	tau: 0.2,
+	decentralisation_param: 0,
+	extra_entropy: null,
+	protocol_major_ver: 9,
+	protocol_minor_ver: 0,
+	min_utxo: '1000000',
+	min_pool_cost: '170000000',
+	nonce: 'fixture-nonce',
+	cost_models: null,
+	cost_models_raw: {
+		PlutusV3: [1],
+	},
+	price_mem: 0.0577,
+	price_step: 0.0000721,
+	max_tx_ex_mem: '10000000',
+	max_tx_ex_steps: '10000000000',
+	max_block_ex_mem: '50000000',
+	max_block_ex_steps: '40000000000',
+	max_val_size: '5000',
+	collateral_percent: 150,
+	max_collateral_inputs: 3,
+	coins_per_utxo_size: '4310',
+	coins_per_utxo_word: null,
+	pvt_motion_no_confidence: 0.51,
+	pvt_committee_normal: 0.51,
+	pvt_committee_no_confidence: 0.51,
+	pvt_hard_fork_initiation: 0.51,
+	dvt_motion_no_confidence: 0.67,
+	dvt_committee_normal: 0.67,
+	dvt_committee_no_confidence: 0.67,
+	dvt_update_to_constitution: 0.75,
+	dvt_hard_fork_initiation: 0.6,
+	dvt_p_p_network_group: 0.67,
+	dvt_p_p_economic_group: 0.67,
+	dvt_p_p_technical_group: 0.67,
+	dvt_p_p_gov_group: 0.75,
+	dvt_treasury_withdrawal: 0.67,
+	committee_min_size: '7',
+	committee_max_term_length: '146',
+	gov_action_lifetime: '6',
+	gov_action_deposit: '100000000000',
+	drep_deposit: '500000000',
+	drep_activity: '20',
+	pvtpp_security_group: 0.51,
+	pvt_p_p_security_group: 0.51,
+	min_fee_ref_script_cost_per_byte: 15,
+} satisfies BlockfrostProtocolParameters
+const koiosTip = {
+	hash: 'koios-block-hash',
+	epoch_no: 599,
+	era: 'Conway',
+	abs_slot: 130_000_000,
+	block_height: 10_000_000,
+	block_time: 1_720_000_000,
+} satisfies CardanoKoiosTip
+const koiosBlocks = [{
+	...koiosTip,
+	tx_count: 4,
+}] satisfies CardanoKoiosBlock[]
+
+type Scenario = 'happy' | 'optional-empty' | 'proposal-error'
+
+const installCardanoGovernanceFixtures = async (
+	page: Page,
+	scenario: Scenario
+) => {
+	const requests = new Map<string, number>()
+	const unexpected: string[] = []
+	const responseByRequest = new Map<string, JsonValue>(Object.entries({
+		'GET assets?count=16': [] satisfies BlockfrostAssets,
+		'GET blocks/latest/txs?count=16': [] satisfies BlockfrostTransactions,
+		'GET epochs/latest': latestEpoch,
+		'GET epochs/latest/parameters': protocolParameters,
+		'GET governance/committee': committee,
+		'GET governance/committee/votes?count=16': committeeVotes,
+		'GET governance/committee/votes?count=100': committeeVotes,
+		'GET governance/dreps?count=16': drepList,
+		'GET governance/dreps/drep1fixture': drep,
+		'GET governance/dreps/drep1fixture/metadata': drepMetadata,
+		'GET governance/dreps/drep1fixture/votes?count=100': drepVotes,
+		'GET governance/proposals?count=16': proposalList,
+		'GET governance/proposals/proposal-hash/1': proposal,
+		'GET governance/proposals/proposal-hash/1/metadata': proposalMetadata,
+		'GET governance/proposals/proposal-hash/1/votes?count=100': proposalVotes,
+		'GET pools?count=16': stakePools,
+		'GET pools/pool1fixture': stakePool,
+		'GET pools/pool1fixture/metadata': stakePoolMetadata,
+	}))
+	const koiosResponseByRequest = new Map<string, JsonValue>(Object.entries({
+		'GET blocks?limit=16': koiosBlocks,
+		'GET tip': [koiosTip],
+	}))
+
+	await page.route(
+		'**/*',
+		async (route) => {
+			const request = route.request()
+			const decodedUrl = decodeURIComponent(request.url())
+			if (
+				!decodedUrl.includes(blockfrostBaseUrl)
+				&& !decodedUrl.includes(koiosBaseUrl)
+			) {
+				const url = new URL(request.url())
+				if (
+					url.origin === 'https://chainid.network'
+					|| url.origin === 'https://chainlist.org'
+					|| url.hostname === 'localhost'
+					|| url.hostname === '127.0.0.1'
+				) {
+					await route.fallback()
+					return
+				}
+
+				unexpected.push(`${request.method()} ${request.url()}`)
+				await route.abort('blockedbyclient')
+				return
+			}
+			const baseUrl = (
+				decodedUrl.includes(blockfrostBaseUrl) ?
+					blockfrostBaseUrl
+				:
+					koiosBaseUrl
+			)
+			const requestKey = `${request.method()} ${decodedUrl.slice(decodedUrl.indexOf(baseUrl) + baseUrl.length)}`
+			requests.set(requestKey, (requests.get(requestKey) ?? 0) + 1)
+
+			if (
+				baseUrl === blockfrostBaseUrl
+				&& requestKey === 'GET governance/proposals/proposal-hash/1'
+				&& scenario === 'proposal-error'
+			) {
+				await route.fulfill({
+					body: 'Intentional Cardano proposal fixture failure',
+					status: 503,
+				})
+				return
+			}
+			if (
+				baseUrl === blockfrostBaseUrl
+				&& requestKey === 'GET governance/proposals/proposal-hash/1/metadata'
+				&& scenario === 'optional-empty'
+			) {
+				await route.fulfill({
+					body: 'Optional proposal metadata is absent',
+					status: 404,
+				})
+				return
+			}
+			if (
+				baseUrl === blockfrostBaseUrl
+				&& requestKey === 'GET governance/proposals/proposal-hash/1/votes?count=100'
+				&& scenario === 'optional-empty'
+			) {
+				await route.fulfill({
+					contentType: 'application/json',
+					json: [] satisfies BlockfrostGovernanceProposalVotes,
+				})
+				return
+			}
+
+			const response = (
+				baseUrl === blockfrostBaseUrl ?
+					responseByRequest.get(requestKey)
+				:
+					koiosResponseByRequest.get(requestKey)
+			)
+			if (response === undefined) {
+				unexpected.push(requestKey)
+				await route.fulfill({
+					body: `Unexpected Cardano fixture request: ${requestKey}`,
+					status: 418,
+				})
+				return
+			}
+
+			await route.fulfill({
+				contentType: 'application/json',
+				json: response,
+			})
+		}
+	)
+
+	return {
+		requests,
+		unexpected,
+	}
+}
+
+const preparePage = async (
+	page: Page,
+	testInfo: TestInfo,
+	scenario: Scenario
+) => {
+	await page.addInitScript(({ databaseName, schemaVersion }) => {
+		window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+		window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		databaseName: `blockhead-cardano-governance-${testInfo.workerIndex}-${testInfo.retry}-${scenario}-${Date.now()}.sqlite`,
+		schemaVersion: Date.now(),
+	})
+	await installChainlistRpcsJsonStub(page)
+	return installCardanoGovernanceFixtures(page, scenario)
+}
+
+const expectNoWalletActions = async (page: Page) => {
+	await expect(page.locator('#main article').getByRole('button', {
+		name: /connect wallet|vote|delegate|submit/i,
+	})).toHaveCount(0)
+}
+
+
+test.describe('Cardano governance reading journey', () => {
+	test('renders and traverses source-backed proposal, DRep, pool, and committee cards', async ({ page }, testInfo) => {
+		testInfo.setTimeout(300_000)
+		const fixture = await preparePage(page, testInfo, 'happy')
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: true,
+			failOnDevServerContamination: true,
+			failOnTanStackWarnings: true,
+		})
+
+		await diagnostics.step(page.goto('/network/cardano', {
+			waitUntil: 'domcontentloaded',
+		}))
+		await expectMainVisible(page, 120_000, diagnostics)
+		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
+
+		const paneHost = page.locator('.network-view-collapsible-cardano-explorer [data-collapsible-tabs-pane-host]')
+		await expect(paneHost).toHaveCount(1)
+		for (const [sectionId, marker] of cardanoSections) {
+			const section = paneHost.locator(`section[id$=":${sectionId}"][data-scroll-marker-label="${marker}"][data-column][data-column-item="flexible"]`)
+			await expect(section).toHaveCount(1)
+			await expect(section.locator(`:scope > article[id$=":${sectionId}-list"][data-column-item="flexible"][data-card][data-scroll-container]`)).toHaveCount(1)
+		}
+
+		const traverse = async ({
+			marker,
+			pathname,
+			expectedText,
+		}: {
+			marker: string
+			pathname: string
+			expectedText: string | RegExp
+		}) => {
+			const section = paneHost.locator(`section[data-scroll-marker-label="${marker}"]`)
+			await section.locator('article[data-card][data-scroll-container] a').first().click()
+			await expect(page).toHaveURL((url) => url.pathname === pathname)
+			await expect(page.locator('#main article[data-card][data-scroll-container]').first()).toBeAttached(attach)
+			await expect(page.locator('#main')).toContainText(expectedText, attach)
+			await expect(page.locator('#main [data-error]')).toHaveCount(0)
+			await expect(page.locator('#main')).not.toContainText('[object Object]')
+			await expect(page.locator('#main')).not.toContainText('This information is not available')
+			await expectNoWalletActions(page)
+		}
+
+		await traverse({
+			marker: 'Proposals',
+			pathname: proposalPath,
+			expectedText: 'proposal-metadata-hash',
+		})
+		await expect(page.locator('#CardanoGovernanceProposal_TimestampsView-timestamps')).toContainText(/599|596|597/)
+		await expect(page.locator('#CardanoGovernanceVotesView-votes')).toContainText('proposal-vote-hash')
+
+		await page.goBack({ waitUntil: 'domcontentloaded' })
+		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
+		await traverse({
+			marker: 'DReps',
+			pathname: drepPath,
+			expectedText: 'drep-metadata-hash',
+		})
+		await expect(page.locator('#CardanoGovernanceVotesView-votes')).toContainText('drep-vote-hash')
+
+		await page.goBack({ waitUntil: 'domcontentloaded' })
+		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
+		await traverse({
+			marker: 'Stake pools',
+			pathname: poolPath,
+			expectedText: 'Fixture Pool',
+		})
+
+		await page.goBack({ waitUntil: 'domcontentloaded' })
+		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
+		await traverse({
+			marker: 'Committee epochs',
+			pathname: committeePath,
+			expectedText: /Epoch 599/,
+		})
+		await expect(page.locator('#CardanoGovernanceVotesView-votes')).toContainText('committee-vote-hash')
+
+		expect(diagnostics.issues).toEqual([])
+		expect(fixture.unexpected).toEqual([])
+		for (const requestKey of [
+			'GET governance/proposals?count=16',
+			'GET governance/proposals/proposal-hash/1',
+			'GET governance/proposals/proposal-hash/1/metadata',
+			'GET governance/proposals/proposal-hash/1/votes?count=100',
+			'GET governance/dreps?count=16',
+			'GET governance/dreps/drep1fixture',
+			'GET governance/dreps/drep1fixture/metadata',
+			'GET governance/dreps/drep1fixture/votes?count=100',
+			'GET pools?count=16',
+			'GET pools/pool1fixture',
+			'GET pools/pool1fixture/metadata',
+			'GET governance/committee',
+			'GET governance/committee/votes?count=100',
+		])
+			expect(fixture.requests.get(requestKey), requestKey).toBeGreaterThan(0)
+	})
+
+	test('keeps optional metadata and an empty vote collection non-failing', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const fixture = await preparePage(page, testInfo, 'optional-empty')
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: false,
+			failOnDevServerContamination: true,
+			failOnTanStackWarnings: true,
+		})
+
+		await page.goto(proposalPath, { waitUntil: 'domcontentloaded' })
+		await expectMainVisible(page, 120_000, diagnostics)
+		await assertMainSettled(page, 120_000, diagnostics)
+
+		await expect(page.locator('#main')).toContainText('info_action')
+		await expect(page.locator('#CardanoGovernanceProposal_TimestampsView-timestamps')).toContainText(/599|596|597/)
+		await expect(page.locator('#CardanoGovernanceVotesView-votes')).toContainText('No votes.')
+		await expect(page.locator('#main [data-error]')).toHaveCount(0)
+		await expectNoWalletActions(page)
+		expect(fixture.requests.get('GET governance/proposals/proposal-hash/1/metadata')).toBeGreaterThan(0)
+		expect(fixture.requests.get('GET governance/proposals/proposal-hash/1/votes?count=100')).toBeGreaterThan(0)
+		expect(diagnostics.issues.filter((issue) => !issue.includes('response:404'))).toEqual([])
+		expect(fixture.unexpected).toEqual([])
+	})
+
+	test('keeps a proposal transport failure inside its resource boundary', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const fixture = await preparePage(page, testInfo, 'proposal-error')
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: false,
+			failOnDevServerContamination: true,
+			failOnTanStackWarnings: true,
+		})
+
+		await page.goto(proposalPath, { waitUntil: 'domcontentloaded' })
+		await expect(page.locator('#layout')).toBeVisible(attach)
+		const settled = await waitForBoundarySettle(page, {
+			timeoutMs: 120_000,
+			quietMs: 4_000,
+		})
+		expect(settled.loading).toEqual([])
+		expect(settled.failed).toHaveLength(1)
+		await expect(page.locator('#main article[id^="cardano-governance-proposal-"] [data-error]')).toHaveCount(1)
+		await expect(page.locator('#CardanoGovernanceProposal_TimestampsView-timestamps article[data-card][data-scroll-container]').first()).toBeAttached(attach)
+		await expect(page.locator('#CardanoGovernanceProposal_TimestampsView-timestamps')).toContainText(/599|596|597/)
+		await expect(page.locator('#main')).not.toContainText('This information is not available')
+		await expectNoWalletActions(page)
+
+		expect(fixture.requests.get('GET governance/proposals/proposal-hash/1')).toBeGreaterThan(0)
+		expect(diagnostics.issues.filter((issue) => (
+			!issue.includes('response:503')
+			&& !issue.includes('Blockfrost_Rest: HTTP 503')
+		))).toEqual([])
+		expect(fixture.unexpected).toEqual([])
+	})
+})

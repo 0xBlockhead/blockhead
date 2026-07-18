@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetSupply_TimestampView from '$/views/AssetSupply_TimestampView.svelte'
 </script>
@@ -61,79 +60,46 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					supplyScopeKey: true,
-					totalSupply: true,
-					circulatingSupply: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetSupply_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AssetSupply_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				supplyScopeKey: true,
+				totalSupply: true,
+				circulatingSupply: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(assetSupplyTimestamps) => [...new Map(assetSupplyTimestamps.values.map((assetSupplyTimestamp) => [assetSupplyTimestamp[EntityMetaKey.SelectorKey], assetSupplyTimestamp])).values()]}
+	getKey={(assetSupplyTimestamp) => assetSupplyTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Asset supply observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(assetSupplyTimestamps)}
-			{@const uniqueAssetSupplyTimestamps = [...new Map(assetSupplyTimestamps.values.map((assetSupplyTimestamp) => [assetSupplyTimestamp[EntityMetaKey.SelectorKey], assetSupplyTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetSupply_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetSupplyTimestamps.totalCount}
-				getKey={(assetSupplyTimestamp) => assetSupplyTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueAssetSupplyTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Asset supply observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: assetSupplyTimestamp })}
-					{@const assetSupplyTimestampFields = { ...assetSupplyTimestamp[EntityMetaKey.Selector], ...assetSupplyTimestamp }}
-					{@const selection = select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AssetSupply_TimestampView
-						selection={selection}
-						prefetched={assetSupplyTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AssetSupply_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: assetSupplyTimestamp })}
+		{@const assetSupplyTimestampFields = { ...assetSupplyTimestamp[EntityMetaKey.Selector], ...assetSupplyTimestamp }}
+		{@const selection = select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AssetSupply_TimestampView
+			selection={selection}
+			prefetched={assetSupplyTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

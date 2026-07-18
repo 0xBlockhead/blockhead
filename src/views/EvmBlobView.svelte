@@ -11,7 +11,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -45,10 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmBlob = $derived(selection({
-		sources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blobscan_Rest,
-		],
+		sources: selection.sources,
 		fields: {
 			versionedHash: true,
 		},
@@ -109,26 +105,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmBlob}>
-			{#snippet Pending()}
-				{@const versionedHash0 = pendingEntity.versionedHash}
-				{#if versionedHash0 !== undefined && versionedHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((versionedHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const versionedHash0 = resolvedEntity.versionedHash}
-				{#if versionedHash0 !== undefined && versionedHash0 !== null}
-					<span data-text="muted">
-						<TruncatedValue value={String((versionedHash0) ?? '')} />
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{@const versionedHash0 = pendingEntity.versionedHash}
+			{#if versionedHash0 !== undefined && versionedHash0 !== null}
+				<span data-text="muted">
+					<TruncatedValue value={String((versionedHash0) ?? '')} />
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={evmBlob}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const versionedHash0 = resolvedEntity.versionedHash}
+					{#if versionedHash0 !== undefined && versionedHash0 !== null}
+						<span data-text="muted">
+							<TruncatedValue value={String((versionedHash0) ?? '')} />
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -145,20 +141,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									indexInTransaction: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const indexInTransaction = pendingEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<span>#</span>
-								{String((indexInTransaction) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const indexInTransaction = resolvedEntity.indexInTransaction}
@@ -177,19 +166,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									versionedHash: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const versionedHash = pendingEntity.versionedHash}
-							{#if versionedHash !== undefined && versionedHash !== null}
-								<TruncatedValue value={String((versionedHash) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const versionedHash = resolvedEntity.versionedHash}
@@ -258,24 +241,13 @@
 				<ResourceBoundary
 					resource={
 						selection({
+							sources: selection.sources,
 							fields: {
 								kzgCommitment: true,
 							},
 						})
 					}
 				>
-					{#snippet Pending()}
-						{@const kzgCommitment = pendingEntity.kzgCommitment}
-						{#if kzgCommitment !== undefined && kzgCommitment !== null}
-							<div>
-								<dt>KZG commitment</dt>
-								<dd>
-									<TruncatedValue value={String((kzgCommitment) ?? '')} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
 						{@const kzgCommitment = resolvedEntity.kzgCommitment}

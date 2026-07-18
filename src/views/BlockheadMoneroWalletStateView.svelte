@@ -8,7 +8,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,9 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadMoneroWalletState = $derived(selection({
-		sources: [
-			Source.Local_Internal,
-		],
+		sources: selection.sources,
 		fields: {
 			primaryAddress: true,
 		},
@@ -78,68 +75,76 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadMoneroWalletState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadMoneroWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadMoneroWalletState}>
-			{#snippet Pending()}
-				{[String((pendingEntity.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{[String((pendingEntity.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={blockheadMoneroWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadMoneroWalletState}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(moneroNetwork)}
-						<span data-text="muted">
-							<MoneroNetworkView
-								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
-								prefetched={moneroNetwork}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(moneroNetwork)}
-						<span data-text="muted">
-							<MoneroNetworkView
-								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
-								prefetched={moneroNetwork}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={selection.$network}
+			>
+				{#snippet children(moneroNetwork)}
+					{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
+					<span data-text="muted">
+						<MoneroNetworkView
+							selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
+							prefetched={moneroNetwork}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={blockheadMoneroWalletState}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(moneroNetwork)}
+							{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<MoneroNetworkView
+									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
+									prefetched={moneroNetwork}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,19 +155,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									walletId: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const walletId = pendingEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const walletId = resolvedEntity.walletId}
@@ -177,8 +176,6 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -219,24 +216,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							primaryAddress: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const primaryAddress = pendingEntity.primaryAddress}
-					{#if primaryAddress !== undefined && primaryAddress !== null}
-						<div>
-							<dt>primary address</dt>
-							<dd>
-								<TruncatedValue value={String((primaryAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const primaryAddress = resolvedEntity.primaryAddress}
@@ -254,24 +240,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							viewOnly: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const viewOnly = pendingEntity.viewOnly}
-					{#if viewOnly !== undefined && viewOnly !== null}
-						<div>
-							<dt>view only</dt>
-							<dd>
-								{viewOnly ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const viewOnly = resolvedEntity.viewOnly}
@@ -289,24 +264,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							trustedDaemon: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const trustedDaemon = pendingEntity.trustedDaemon}
-					{#if trustedDaemon !== undefined && trustedDaemon !== null}
-						<div>
-							<dt>trusted daemon</dt>
-							<dd>
-								{trustedDaemon ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const trustedDaemon = resolvedEntity.trustedDaemon}
@@ -326,24 +290,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							viewKeyFingerprint: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const viewKeyFingerprint = pendingEntity.viewKeyFingerprint}
-					{#if viewKeyFingerprint !== undefined && viewKeyFingerprint !== null}
-						<div>
-							<dt>view key fingerprint</dt>
-							<dd>
-								{String((viewKeyFingerprint) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const viewKeyFingerprint = resolvedEntity.viewKeyFingerprint}
@@ -361,24 +314,13 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: selection.sources,
 						fields: {
 							spendKeyAvailable: true,
 						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const spendKeyAvailable = pendingEntity.spendKeyAvailable}
-					{#if spendKeyAvailable !== undefined && spendKeyAvailable !== null}
-						<div>
-							<dt>spend key available</dt>
-							<dd>
-								{spendKeyAvailable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{@const spendKeyAvailable = resolvedEntity.spendKeyAvailable}
@@ -414,11 +356,8 @@
 				}
 				data-card
 				class='network-view-collapsible-addresses'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Addresses and outputs</HeadingComponent>
 					</header>
@@ -426,12 +365,12 @@
 
 				{#snippet SectionMoneroSubaddresses({ id, label, open })}
 					<BlockheadMoneroSubaddressStatesView
-						selection={
-							selection.$$subaddresses({
-								count: true,
-							})
-						}
+						selection={selection.$$subaddresses}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Monero subaddresses.'
 						open={open}
 						title={label}
@@ -441,12 +380,12 @@
 
 				{#snippet SectionMoneroOutputs({ id, label, open })}
 					<BlockheadMoneroOutputStatesView
-						selection={
-							selection.$$outputs({
-								count: true,
-							})
-						}
+						selection={selection.$$outputs}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Monero outputs.'
 						open={open}
 						title={label}
@@ -473,11 +412,8 @@
 				}
 				data-card
 				class='network-view-collapsible-activity'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Transfers and observations</HeadingComponent>
 					</header>
@@ -485,12 +421,12 @@
 
 				{#snippet SectionMoneroTransfers({ id, label, open })}
 					<BlockheadMoneroTransferStatesView
-						selection={
-							selection.$$transfers({
-								count: true,
-							})
-						}
+						selection={selection.$$transfers}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Monero transfers.'
 						open={open}
 						title={label}
@@ -500,12 +436,12 @@
 
 				{#snippet SectionMoneroWalletTimestamps({ id, label, open })}
 					<BlockheadMoneroWalletState_TimestampsView
-						selection={
-							selection.$$timestamps({
-								count: true,
-							})
-						}
+						selection={selection.$$timestamps}
 						CollapsibleProps={{ canToggle: false }}
+						collapsible={false}
+						data-column-item="flexible"
+						data-card
+						data-scroll-container
 						emptyText='No Monero wallet observations.'
 						open={open}
 						title={label}

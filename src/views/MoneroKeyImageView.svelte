@@ -42,9 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const moneroKeyImage = $derived(selection({
-		sources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.keyImage) ?? '')].filter(Boolean).join(' ') || 'monero key image')
 	const viewDomId = $derived('monero-key-image-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -70,96 +68,104 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroKeyImage}>
-			{#snippet Pending()}
-				{@const keyImage0 = pendingEntity.keyImage}
-				{#if keyImage0 !== undefined && keyImage0 !== null}
-					<TruncatedValue value={String((keyImage0) ?? '')} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const keyImage0 = resolvedEntity.keyImage}
-				{#if keyImage0 !== undefined && keyImage0 !== null}
-					<TruncatedValue value={String((keyImage0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const keyImage0 = pendingEntity.keyImage}
+					{#if keyImage0 !== undefined && keyImage0 !== null}
+						<TruncatedValue value={String((keyImage0) ?? '')} />
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroKeyImage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const keyImage0 = resolvedEntity.keyImage}
+					{#if keyImage0 !== undefined && keyImage0 !== null}
+						<TruncatedValue value={String((keyImage0) ?? '')} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroKeyImage}>
-			{#snippet Pending()}
-				{@const inputIndex0 = pendingEntity.inputIndex}
-				{#if inputIndex0 !== undefined && inputIndex0 !== null}
-					<NumberValue value={Number(inputIndex0)} />
-				{/if}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const inputIndex0 = resolvedEntity.inputIndex}
-				{#if inputIndex0 !== undefined && inputIndex0 !== null}
-					<NumberValue value={Number(inputIndex0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+					{@const inputIndex0 = pendingEntity.inputIndex}
+					{#if inputIndex0 !== undefined && inputIndex0 !== null}
+						<NumberValue
+							value={inputIndex0}
+						/>
+					{/if}
+		{:else}
+			<ResourceBoundary resource={moneroKeyImage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const inputIndex0 = resolvedEntity.inputIndex}
+					{#if inputIndex0 !== undefined && inputIndex0 !== null}
+						<NumberValue
+							value={inputIndex0}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moneroKeyImage}>
-			{#snippet Pending()}
-				<ResourceBoundary
-					resource={
-						selection.$ring({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(moneroRing)}
-						{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<MoneroRingView
-									selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
-									prefetched={moneroRing}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection.$ring({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-						})
-					}
-				>
-					{#snippet children(moneroRing)}
-						{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<MoneroRingView
-									selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
-									prefetched={moneroRing}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			<ResourceBoundary
+				resource={
+					selection.$ring({
+						sources: [
+							Source.MoneroDaemonRpc_JsonRpc,
+						],
+					})
+				}
+			>
+				{#snippet children(moneroRing)}
+					{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
+						<span data-text="muted">
+							<MoneroRingView
+								selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
+								prefetched={moneroRing}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						</span>
+					{:else}
+						<span data-text="muted">Unavailable</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<ResourceBoundary resource={moneroKeyImage}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<ResourceBoundary
+						resource={
+							selection.$ring({
+								sources: [
+									Source.MoneroDaemonRpc_JsonRpc,
+								],
+							})
+						}
+					>
+						{#snippet children(moneroRing)}
+							{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
+								<span data-text="muted">
+									<MoneroRingView
+										selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
+										prefetched={moneroRing}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</span>
+							{:else}
+								<span data-text="muted">Unavailable</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -181,24 +187,20 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									inputIndex: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const inputIndex = pendingEntity.inputIndex}
-							{#if inputIndex !== undefined && inputIndex !== null}
-								<NumberValue value={Number(inputIndex)} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const inputIndex = resolvedEntity.inputIndex}
 							{#if inputIndex !== undefined && inputIndex !== null}
-								<NumberValue value={Number(inputIndex)} />
+								<NumberValue
+									value={inputIndex}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -211,19 +213,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									keyImage: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const keyImage = pendingEntity.keyImage}
-							{#if keyImage !== undefined && keyImage !== null}
-								<TruncatedValue value={String((keyImage) ?? '')} />
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keyImage = resolvedEntity.keyImage}
@@ -244,8 +240,6 @@
 					})
 				}
 			>
-				{#snippet Pending()}{/snippet}
-
 				{#snippet children(moneroRing)}
 					{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
 						<div>

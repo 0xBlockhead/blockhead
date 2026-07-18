@@ -40,7 +40,9 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarAccountSigner = $derived(selection({}))
+	const stellarAccountSigner = $derived(selection({
+		sources: selection.sources,
+	}))
 	const titleFallback = $derived('stellar account signer')
 	const viewDomId = $derived('stellar-account-signer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -63,16 +65,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={stellarAccountSigner}>
-			{#snippet Pending()}
-				{title || 'stellar account signer'}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+			{title || titleFallback}
+		{:else}
+			<ResourceBoundary resource={stellarAccountSigner}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,19 +96,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signerKey: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signerKey = pendingEntity.signerKey}
-							{#if signerKey !== undefined && signerKey !== null}
-								{String((signerKey) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signerKey = resolvedEntity.signerKey}
@@ -124,19 +120,13 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: selection.sources,
 								fields: {
 									signerType: true,
 								},
 							})
 						}
 					>
-						{#snippet Pending()}
-							{@const signerType = pendingEntity.signerType}
-							{#if signerType !== undefined && signerType !== null}
-								{String((signerType) ?? '')}
-							{/if}
-						{/snippet}
-
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signerType = resolvedEntity.signerType}

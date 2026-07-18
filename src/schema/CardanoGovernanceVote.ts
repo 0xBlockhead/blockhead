@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum CardanoGovernanceVoteSelector {
-	ProposalVoterKindVoterCredentialSource = 'ProposalVoterKindVoterCredentialSource',
+	ProposalVoterKindVoterCredentialVoteTxHashSource = 'ProposalVoterKindVoterCredentialVoteTxHashSource',
 }
 export const CardanoGovernanceVote = entity({
 	entityType: EntityType.CardanoGovernanceVote,
@@ -68,7 +68,7 @@ export const CardanoGovernanceVote = entity({
 		label: 'vote transaction hash',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	voteIndex: {
 		label: 'vote index',
@@ -100,12 +100,19 @@ export const CardanoGovernanceVote = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	timestampMs: {
+		label: 'timestamp',
+		type: EntityFieldType.Primitive,
+		primitiveType: (type('number.integer >= 0')),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 })({
 	selectors: {
-		ProposalVoterKindVoterCredentialSource: [
+		ProposalVoterKindVoterCredentialVoteTxHashSource: [
 			'$proposal',
 			'voterKind',
 			'voterCredential',
+			'voteTxHash',
 			'source',
 		],
 	},

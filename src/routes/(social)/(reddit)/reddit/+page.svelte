@@ -20,6 +20,7 @@
 	const pageSelection = $derived(select(EntityType._GlobalRedditNetwork, data.selector, {
 		sources: [
 			Source.Constants_Internal,
+			Source.Reddit_PublicJson,
 		],
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'Reddit' : 'Reddit')))

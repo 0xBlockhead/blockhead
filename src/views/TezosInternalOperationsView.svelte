@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TezosInternalOperationView from '$/views/TezosInternalOperationView.svelte'
 </script>
@@ -61,70 +60,40 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={selection}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosInternalOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.TezosInternalOperation}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+		})
+	}
+	getResourceItems={(tezosInternalOperations) => [...new Map(tezosInternalOperations.values.map((tezosInternalOperation) => [tezosInternalOperation[EntityMetaKey.SelectorKey], tezosInternalOperation])).values()]}
+	getKey={(tezosInternalOperation) => tezosInternalOperation[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Tezos internal operations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(tezosInternalOperations)}
-			{@const uniqueTezosInternalOperations = [...new Map(tezosInternalOperations.values.map((tezosInternalOperation) => [tezosInternalOperation[EntityMetaKey.SelectorKey], tezosInternalOperation])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.TezosInternalOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={tezosInternalOperations.totalCount}
-				getKey={(tezosInternalOperation) => tezosInternalOperation[EntityMetaKey.SelectorKey]}
-				items={uniqueTezosInternalOperations}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Tezos internal operations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: tezosInternalOperation })}
-					{@const tezosInternalOperationFields = { ...tezosInternalOperation[EntityMetaKey.Selector], ...tezosInternalOperation }}
-					{@const selection = select(EntityType.TezosInternalOperation, tezosInternalOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<TezosInternalOperationView
-						selection={selection}
-						prefetched={tezosInternalOperationFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.TezosInternalOperation}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: tezosInternalOperation })}
+		{@const tezosInternalOperationFields = { ...tezosInternalOperation[EntityMetaKey.Selector], ...tezosInternalOperation }}
+		{@const selection = select(EntityType.TezosInternalOperation, tezosInternalOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<TezosInternalOperationView
+			selection={selection}
+			prefetched={tezosInternalOperationFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

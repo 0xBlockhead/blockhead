@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AcpPermissionRequestView from '$/views/AcpPermissionRequestView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					requestId: true,
-					requestKind: true,
-					decision: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpPermissionRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.AcpPermissionRequest}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				requestId: true,
+				requestKind: true,
+				decision: true,
+			},
+		})
+	}
+	getResourceItems={(acpPermissionRequests) => [...new Map(acpPermissionRequests.values.map((acpPermissionRequest) => [acpPermissionRequest[EntityMetaKey.SelectorKey], acpPermissionRequest])).values()]}
+	getKey={(acpPermissionRequest) => acpPermissionRequest[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No ACP permission requests yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(acpPermissionRequests)}
-			{@const uniqueAcpPermissionRequests = [...new Map(acpPermissionRequests.values.map((acpPermissionRequest) => [acpPermissionRequest[EntityMetaKey.SelectorKey], acpPermissionRequest])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AcpPermissionRequest}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={acpPermissionRequests.totalCount}
-				getKey={(acpPermissionRequest) => acpPermissionRequest[EntityMetaKey.SelectorKey]}
-				items={uniqueAcpPermissionRequests}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No ACP permission requests yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: acpPermissionRequest })}
-					{@const acpPermissionRequestFields = { ...acpPermissionRequest[EntityMetaKey.Selector], ...acpPermissionRequest }}
-					{@const selection = select(EntityType.AcpPermissionRequest, acpPermissionRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<AcpPermissionRequestView
-						selection={selection}
-						prefetched={acpPermissionRequestFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.AcpPermissionRequest}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: acpPermissionRequest })}
+		{@const acpPermissionRequestFields = { ...acpPermissionRequest[EntityMetaKey.Selector], ...acpPermissionRequest }}
+		{@const selection = select(EntityType.AcpPermissionRequest, acpPermissionRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<AcpPermissionRequestView
+			selection={selection}
+			prefetched={acpPermissionRequestFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

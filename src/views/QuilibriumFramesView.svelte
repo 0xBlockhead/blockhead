@@ -49,7 +49,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import QuilibriumFrameView from '$/views/QuilibriumFrameView.svelte'
 </script>
@@ -61,78 +60,45 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					frameNumber: true,
-					shardKey: true,
-					frameHash: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumFrame}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.QuilibriumFrame}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				frameNumber: true,
+				shardKey: true,
+				frameHash: true,
+			},
+		})
+	}
+	getResourceItems={(quilibriumFrames) => [...new Map(quilibriumFrames.values.map((quilibriumFrame) => [quilibriumFrame[EntityMetaKey.SelectorKey], quilibriumFrame])).values()]}
+	getKey={(quilibriumFrame) => quilibriumFrame[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No Quilibrium frames yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(quilibriumFrames)}
-			{@const uniqueQuilibriumFrames = [...new Map(quilibriumFrames.values.map((quilibriumFrame) => [quilibriumFrame[EntityMetaKey.SelectorKey], quilibriumFrame])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.QuilibriumFrame}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={quilibriumFrames.totalCount}
-				getKey={(quilibriumFrame) => quilibriumFrame[EntityMetaKey.SelectorKey]}
-				items={uniqueQuilibriumFrames}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No Quilibrium frames yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: quilibriumFrame })}
-					{@const quilibriumFrameFields = { ...quilibriumFrame[EntityMetaKey.Selector], ...quilibriumFrame }}
-					{@const selection = select(EntityType.QuilibriumFrame, quilibriumFrame[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-					<QuilibriumFrameView
-						selection={selection}
-						prefetched={quilibriumFrameFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType.QuilibriumFrame}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: quilibriumFrame })}
+		{@const quilibriumFrameFields = { ...quilibriumFrame[EntityMetaKey.Selector], ...quilibriumFrame }}
+		{@const selection = select(EntityType.QuilibriumFrame, quilibriumFrame[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<QuilibriumFrameView
+			selection={selection}
+			prefetched={quilibriumFrameFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>
